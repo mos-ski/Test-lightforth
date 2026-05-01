@@ -912,15 +912,31 @@ function DashboardTabs({
 
 // ─── Job Detail Panel ─────────────────────────────────────────────────────────
 
-function JobDetailPanel({ jobId, tab }: { jobId: string; tab: 'jobs' | 'applied' }) {
+function JobDetailPanel({
+  jobId,
+  tab,
+  onClose,
+}: {
+  jobId: string
+  tab: 'jobs' | 'applied'
+  onClose: () => void
+}) {
   const job = MOCK_JOBS.find((j) => j.id === jobId)!
   const isApplied = tab === 'applied'
 
   return (
-    <div className="w-72 flex-shrink-0 rounded-xl border border-border bg-white p-4 overflow-y-auto max-h-[600px]">
-      <h3 className="text-sm font-semibold text-foreground mb-0.5">{job.title}</h3>
-      <p className="text-xs text-muted-foreground mb-3">{job.company} · {job.location}</p>
-
+    <div className="w-80 flex-shrink-0 rounded-xl border border-border bg-white overflow-y-auto">
+      {/* Header with close */}
+      <div className="flex items-start justify-between border-b border-border p-4 pb-3">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">{job.title}</h3>
+          <p className="text-xs text-muted-foreground">{job.company} · {job.location}</p>
+        </div>
+        <button onClick={onClose} className="ml-2 flex-shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="p-4">
       {/* Tags */}
       <div className="flex flex-wrap gap-1.5 mb-4">
         {isApplied ? (
@@ -966,15 +982,6 @@ function JobDetailPanel({ jobId, tab }: { jobId: string; tab: 'jobs' | 'applied'
             </div>
           </div>
 
-          {/* Screenshots */}
-          <div>
-            <p className="text-xs font-semibold text-foreground mb-2">Screenshots (5)</p>
-            <div className="grid grid-cols-4 gap-1">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="aspect-video rounded bg-muted border border-border" />
-              ))}
-            </div>
-          </div>
         </>
       ) : (
         <>
@@ -993,6 +1000,7 @@ function JobDetailPanel({ jobId, tab }: { jobId: string; tab: 'jobs' | 'applied'
           </button>
         </>
       )}
+      </div>
     </div>
   )
 }
@@ -1015,8 +1023,7 @@ function JobsTab({
 
   return (
     <div className="mt-4 flex gap-4">
-      <div className={cn('flex-1 min-w-0', selectedJob && 'max-w-[55%]')}>
-        {/* Search */}
+      <div className="flex-1 min-w-0">
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
@@ -1027,58 +1034,50 @@ function JobsTab({
           />
         </div>
 
-        {/* Table */}
         <div className="lf-table-wrap">
-        <table className="lf-table">
-          <thead className="lf-table-head">
-            <tr>
-              <th className="lf-table-th">
-                Title <ArrowDown className="inline h-3 w-3" />
-              </th>
-              <th className="lf-table-th">
-                Salary <ArrowDown className="inline h-3 w-3" />
-              </th>
-              <th className="lf-table-th">
-                Source <ArrowDown className="inline h-3 w-3" />
-              </th>
-              <th className="lf-table-th text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((job) => (
-              <tr
-                key={job.id}
-                onClick={() => setSelectedJob(job.id)}
-                className={cn(
-                  'lf-table-row cursor-pointer',
-                  selectedJob === job.id && 'bg-primary/5'
-                )}
-              >
-                <td className="lf-table-cell">
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-primary/60 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">{job.title}</p>
-                      <p className="text-xs text-muted-foreground">{job.company} · {job.location}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="lf-table-cell text-muted-foreground">{job.salary}</td>
-                <td className="lf-table-cell text-muted-foreground">{job.source}</td>
-                <td className="lf-table-cell text-right">
-                  <button className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90 ml-auto">
-                    <ArrowUpRight className="h-3 w-3" /> Apply
-                  </button>
-                </td>
+          <table className="lf-table">
+            <thead className="lf-table-head">
+              <tr>
+                <th className="lf-table-th">Title <ArrowDown className="inline h-3 w-3" /></th>
+                <th className="lf-table-th">Salary <ArrowDown className="inline h-3 w-3" /></th>
+                <th className="lf-table-th">Source <ArrowDown className="inline h-3 w-3" /></th>
+                <th className="lf-table-th text-right">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((job) => (
+                <tr
+                  key={job.id}
+                  onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
+                  className={cn('lf-table-row cursor-pointer', selectedJob === job.id && 'bg-primary/5')}
+                >
+                  <td className="lf-table-cell">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-primary/60 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-foreground">{job.title}</p>
+                        <p className="text-xs text-muted-foreground">{job.company} · {job.location}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="lf-table-cell text-muted-foreground">{job.salary}</td>
+                  <td className="lf-table-cell text-muted-foreground">{job.source}</td>
+                  <td className="lf-table-cell text-right">
+                    <button className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90 ml-auto">
+                      <ArrowUpRight className="h-3 w-3" /> Apply
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
         <button className="mt-3 w-full text-center text-sm text-primary hover:underline">Load more</button>
       </div>
 
-      {selectedJob && <JobDetailPanel jobId={selectedJob} tab="jobs" />}
+      {selectedJob && (
+        <JobDetailPanel jobId={selectedJob} tab="jobs" onClose={() => setSelectedJob(null)} />
+      )}
     </div>
   )
 }
@@ -1101,8 +1100,7 @@ function AppliedTab({
 
   return (
     <div className="mt-4 flex gap-4">
-      <div className={cn('flex-1 min-w-0', selectedJob && 'max-w-[55%]')}>
-        {/* Search */}
+      <div className="flex-1 min-w-0">
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
@@ -1113,54 +1111,48 @@ function AppliedTab({
           />
         </div>
 
-        {/* Table */}
         <div className="lf-table-wrap">
-        <table className="lf-table">
-          <thead className="lf-table-head">
-            <tr>
-              <th className="lf-table-th">
-                Title <ArrowDown className="inline h-3 w-3" />
-              </th>
-              <th className="lf-table-th">
-                Source <ArrowDown className="inline h-3 w-3" />
-              </th>
-              <th className="lf-table-th text-right">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((job) => (
-              <tr
-                key={job.id}
-                onClick={() => setSelectedJob(job.id)}
-                className={cn(
-                  'lf-table-row cursor-pointer',
-                  selectedJob === job.id && 'bg-primary/5'
-                )}
-              >
-                <td className="lf-table-cell">
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="h-4 w-4 text-primary/60 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">{job.title}</p>
-                      <p className="text-xs text-muted-foreground">{job.company} · {job.location}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="lf-table-cell text-muted-foreground">{job.source}</td>
-                <td className="lf-table-cell text-right">
-                  <span className="rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white">
-                    Applied
-                  </span>
-                </td>
+          <table className="lf-table">
+            <thead className="lf-table-head">
+              <tr>
+                <th className="lf-table-th">Title <ArrowDown className="inline h-3 w-3" /></th>
+                <th className="lf-table-th">Source <ArrowDown className="inline h-3 w-3" /></th>
+                <th className="lf-table-th text-right">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((job) => (
+                <tr
+                  key={job.id}
+                  onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
+                  className={cn('lf-table-row cursor-pointer', selectedJob === job.id && 'bg-primary/5')}
+                >
+                  <td className="lf-table-cell">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-primary/60 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium text-foreground">{job.title}</p>
+                        <p className="text-xs text-muted-foreground">{job.company} · {job.location}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="lf-table-cell text-muted-foreground">{job.source}</td>
+                  <td className="lf-table-cell text-right">
+                    <span className="rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white">
+                      Applied
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
         <button className="mt-3 w-full text-center text-sm text-primary hover:underline">Load more</button>
       </div>
 
-      {selectedJob && <JobDetailPanel jobId={selectedJob} tab="applied" />}
+      {selectedJob && (
+        <JobDetailPanel jobId={selectedJob} tab="applied" onClose={() => setSelectedJob(null)} />
+      )}
     </div>
   )
 }
