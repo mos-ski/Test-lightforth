@@ -1,7 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
 @tailwind base;
 @tailwind components;
@@ -9,85 +6,26 @@
 
 @layer base {
   :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --radius: 0.625rem;
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
-  }
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
-  }
-  .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-  }
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+    --radius: 0.5rem;
   }
 }
 
@@ -97,5 +35,115 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .lf-page-shell {
+    @apply mx-auto w-full max-w-6xl;
+  }
+
+  .lf-page-stack {
+    @apply mx-auto w-full max-w-6xl space-y-6;
+  }
+
+  .lf-page-header {
+    @apply mb-8;
+  }
+
+  .lf-panel {
+    @apply rounded-lg border border-border bg-white shadow-sm;
+  }
+
+  .lf-input {
+    @apply h-10 w-full rounded-lg border border-input bg-white px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground;
+  }
+
+  .lf-select {
+    @apply h-10 w-full appearance-none rounded-lg border border-input bg-white px-3 pr-9 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+
+  .lf-tabs {
+    @apply flex gap-6 border-b border-border;
+  }
+
+  .lf-tab {
+    @apply border-b-2 border-transparent pb-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground;
+  }
+
+  .lf-tab-active {
+    @apply border-primary text-primary;
+  }
+
+  .lf-table-wrap {
+    @apply overflow-hidden rounded-lg border border-border bg-white;
+  }
+
+  .lf-table {
+    @apply w-full text-left text-sm;
+  }
+
+  .lf-table-head {
+    @apply bg-muted/50 text-xs font-semibold text-muted-foreground;
+  }
+
+  .lf-table-th {
+    @apply px-4 py-3 font-semibold;
+  }
+
+  .lf-table-row {
+    @apply border-b border-border/60 transition-colors last:border-b-0 hover:bg-muted/30;
+  }
+
+  .lf-table-cell {
+    @apply px-4 py-4;
+  }
+
+  .lf-page-title {
+    @apply text-2xl font-bold leading-tight tracking-normal text-foreground;
+  }
+
+  .lf-overlay-title {
+    @apply text-2xl font-bold leading-tight tracking-normal text-foreground md:text-3xl;
+  }
+
+  .lf-section-title {
+    @apply text-lg font-bold leading-snug tracking-normal text-foreground;
+  }
+
+  .lf-card-title {
+    @apply text-base font-bold leading-snug tracking-normal text-foreground;
+  }
+
+  .lf-body {
+    @apply text-sm leading-6 text-muted-foreground;
+  }
+
+  .lf-label {
+    @apply text-sm font-medium text-slate-700;
+  }
+}
+
+@layer utilities {
+  @keyframes uploadCtaPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+      transform: translateY(0);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.08);
+      transform: translateY(-1px);
+    }
+  }
+
+  .upload-cta-pulse {
+    animation: uploadCtaPulse 2.4s ease-in-out infinite;
   }
 }

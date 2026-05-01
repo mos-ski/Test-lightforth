@@ -5,16 +5,15 @@ import {
   Briefcase,
   Target,
   Headphones,
-  User,
   Compass,
   Download,
   CreditCard,
   Settings,
   ChevronDown,
-  Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import UpgradeCard from '@/components/shared/UpgradeCard'
+import LightforthLogo from '@/components/shared/LightforthLogo'
 
 const PRIMARY_NAV = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -25,9 +24,8 @@ const PRIMARY_NAV = [
 ]
 
 const SECONDARY_NAV = [
-  { to: '/job-profile', icon: User, label: 'Job Profile' },
-  { to: '/explore', icon: Compass, label: 'Explore', redDot: true },
-  { to: '/downloads', icon: Download, label: 'Download Apps' },
+  { to: '/explore', icon: Compass, label: 'Explore' },
+  { to: '/downloads', icon: Download, label: 'Downloads' },
   { to: '/billing', icon: CreditCard, label: 'Billing & subscription' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]
@@ -84,8 +82,7 @@ export default function Sidebar() {
     <aside className="flex h-screen w-56 flex-shrink-0 flex-col border-r border-border bg-white">
       {/* Logo */}
       <div className="flex h-14 items-center gap-2 px-4">
-        <Zap className="h-6 w-6 fill-primary text-primary" />
-        <span className="text-base font-bold text-primary">Lightforth</span>
+        <LightforthLogo className="h-7" />
       </div>
 
       {/* Navigation */}
@@ -103,17 +100,20 @@ export default function Sidebar() {
         <div className="my-2 border-t border-border" />
 
         {/* How to use — YouTube-style */}
-        <a
-          href="https://youtube.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
+        <NavLink
+          to="/how-to-use"
+          className={({ isActive }) =>
+            cn(
+              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              isActive ? 'bg-primary/5 text-primary' : 'text-foreground hover:bg-muted',
+            )
+          }
         >
           <span className="flex h-5 w-7 flex-shrink-0 items-center justify-center rounded bg-red-600">
             <span className="border-y-[5px] border-l-[8px] border-y-transparent border-l-white" />
           </span>
           How to use
-        </a>
+        </NavLink>
       </nav>
 
       {/* Upgrade card */}

@@ -38,8 +38,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (token: string) => {
     localStorage.setItem(TOKEN_KEY, token)
-    const res = await api.get<User>('/me')
-    setUser(res.data)
+    try {
+      const res = await api.get<User>('/me')
+      setUser(res.data)
+    } catch {
+      // Demo fallback — no backend available yet
+      setUser({
+        id: 'demo',
+        name: 'Darnell Smith',
+        email: 'demo@lightforth.ai',
+        plan: 'pro',
+        credits: 0,
+        creditsUsed: 30,
+      })
+    }
   }
 
   const logout = () => {

@@ -28,7 +28,7 @@ export default function ResumeUploadDropdown({ onUpload }: Props) {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-sm font-medium text-foreground hover:bg-blue-100 transition-colors"
+        className="upload-cta-pulse flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-blue-100"
       >
         <span className="flex items-center gap-2">
           <span className="text-lg font-light text-muted-foreground">+</span>

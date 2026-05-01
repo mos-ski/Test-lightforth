@@ -3,9 +3,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { AuthProvider, ProtectedRoute } from '@/hooks/useAuth'
 import AppLayout from '@/components/layout/AppLayout'
+import { lazy, Suspense } from 'react'
 import Auth from '@/pages/Auth'
 import Dashboard from '@/pages/Dashboard'
-import Placeholder from '@/pages/Placeholder'
+
+const MyDocuments = lazy(() => import('@/pages/MyDocuments'))
+const ResumeBuilder = lazy(() => import('@/pages/ResumeBuilder'))
+const AutoApply = lazy(() => import('@/pages/AutoApply'))
+const InterviewCopilot = lazy(() => import('@/pages/InterviewCopilot'))
+const InterviewPrep = lazy(() => import('@/pages/InterviewPrep'))
+const JobProfile = lazy(() => import('@/pages/JobProfile'))
+const Explore = lazy(() => import('@/pages/Explore'))
+const Downloads = lazy(() => import('@/pages/Downloads'))
+const Billing = lazy(() => import('@/pages/Billing'))
+const Settings = lazy(() => import('@/pages/Settings'))
+const HowToUse = lazy(() => import('@/pages/HowToUse'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,18 +44,20 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/*" element={<Auth />} />
             <Route path="/" element={<AppRoute><Dashboard /></AppRoute>} />
-            <Route path="/documents" element={<AppRoute><Placeholder title="My Documents" /></AppRoute>} />
-            <Route path="/resume-builder" element={<AppRoute><Placeholder title="Resume Builder" /></AppRoute>} />
-            <Route path="/auto-apply" element={<AppRoute><Placeholder title="Auto-Apply" /></AppRoute>} />
-            <Route path="/interview-prep" element={<AppRoute><Placeholder title="Interview Prep" /></AppRoute>} />
-            <Route path="/interview-copilot" element={<AppRoute><Placeholder title="Interview Copilot" /></AppRoute>} />
-            <Route path="/billing" element={<AppRoute><Placeholder title="Billing" /></AppRoute>} />
-            <Route path="/settings" element={<AppRoute><Placeholder title="Settings" /></AppRoute>} />
-            <Route path="/job-profile" element={<AppRoute><Placeholder title="Job Profile" /></AppRoute>} />
-            <Route path="/explore" element={<AppRoute><Placeholder title="Explore" /></AppRoute>} />
-            <Route path="/downloads" element={<AppRoute><Placeholder title="Download Apps" /></AppRoute>} />
+            <Route path="/documents" element={<AppRoute><Suspense fallback={null}><MyDocuments /></Suspense></AppRoute>} />
+            <Route path="/resume-builder" element={<ProtectedRoute><Suspense fallback={null}><ResumeBuilder /></Suspense></ProtectedRoute>} />
+            <Route path="/auto-apply" element={<AppRoute><Suspense fallback={null}><AutoApply /></Suspense></AppRoute>} />
+            <Route path="/interview-prep" element={<AppRoute><Suspense fallback={null}><InterviewPrep /></Suspense></AppRoute>} />
+            <Route path="/interview-copilot" element={<AppRoute><Suspense fallback={null}><InterviewCopilot /></Suspense></AppRoute>} />
+            <Route path="/billing" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
+            <Route path="/billings-and-subscription" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
+            <Route path="/settings" element={<AppRoute><Suspense fallback={null}><Settings /></Suspense></AppRoute>} />
+            <Route path="/job-profile" element={<AppRoute><Suspense fallback={null}><JobProfile /></Suspense></AppRoute>} />
+            <Route path="/explore" element={<AppRoute><Suspense fallback={null}><Explore /></Suspense></AppRoute>} />
+            <Route path="/downloads" element={<AppRoute><Suspense fallback={null}><Downloads /></Suspense></AppRoute>} />
+            <Route path="/how-to-use" element={<AppRoute><Suspense fallback={null}><HowToUse /></Suspense></AppRoute>} />
           </Routes>
           <Toaster position="top-right" richColors />
         </AuthProvider>

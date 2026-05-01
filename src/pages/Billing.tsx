@@ -1,0 +1,160 @@
+import { Check, Gift } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
+const plans = [
+  {
+    name: 'STARTER',
+    price: '₦5,000',
+    credits: '15 Credits',
+    description: 'The budget tier to get your job hunt started with the essentials.',
+    features: ['15 credits per month', 'Resume builder', 'Cover letter features', 'Download resumes'],
+    note: 'Ideal for light or occasional job applications',
+  },
+  {
+    name: 'PRO',
+    price: '₦20,000',
+    credits: '50 Credits',
+    description: 'More credits. Unlock our full suite of tools to actively apply and prep for interviews.',
+    features: ['50 credits per month', 'All features from Starter', 'Auto-apply', 'AI Interview prep', 'Interview Copilot'],
+    note: 'Best for users who want AI + autopilot help consistently',
+    popular: true,
+  },
+  {
+    name: 'PREMIUM',
+    price: '₦50,000',
+    credits: '100 Credits',
+    description: 'Built for power users who apply daily or want maximum automation.',
+    features: ['100 credits per month', 'All features from PRO', 'Unlimited AI suggestions', 'Unlimited ATS scores', 'Dedicated priority support'],
+    note: 'Best value for serious job hunters',
+  },
+]
+
+const creditRows = [
+  ['Resume Builder', 'Click "Generate Resume"', '1 Credit'],
+  ['AI Cover Letter Generator', 'Click "Generate Cover Letter"', '1 Credit'],
+  ['Auto Apply', 'Job applied successfully', '1 Credit'],
+  ['Interview Prep', 'Start new session', '1 Credit'],
+  ['Interview Copilot', 'Session start (web, mobile, desktop)', '1 Credit'],
+  ['ATS Scoring', 'Click "Score Resume"', 'Free'],
+  ['AI Suggester', 'Writes a phrase/statement better', 'Free'],
+]
+
+export default function Billing() {
+  return (
+    <div className="lf-page-stack">
+      <div className="lf-page-header">
+        <h1 className="lf-page-title">Billing & Subscription</h1>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <section className="lf-panel p-6">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span>You're on</span>
+            <strong className="text-foreground">Free Plan plan</strong>
+            <span className="rounded-full bg-blue-50 px-3 py-1 font-semibold text-primary">Monthly</span>
+          </div>
+          <div className="flex min-h-32 items-center justify-end">
+            <p className="text-5xl font-black text-foreground">
+              ₦0 <span className="text-sm font-medium text-muted-foreground">per month</span>
+            </p>
+          </div>
+        </section>
+
+        <section className="lf-panel p-6">
+          <h2 className="font-bold text-foreground">Credits</h2>
+          <p className="text-sm text-muted-foreground">Resets on May 31, 2026</p>
+          <p className="mt-5 text-3xl font-black text-foreground">
+            31 <span className="text-base font-medium text-muted-foreground">of 34 Left</span>
+          </p>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+            <div className="h-full w-[91%] rounded-full bg-primary" />
+          </div>
+          <Button variant="link" className="mt-5 px-0 text-violet-500">
+            <Gift className="h-4 w-4" />
+            Get Free credits
+          </Button>
+        </section>
+      </div>
+
+      <section className="lf-panel p-6">
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <h2 className="lf-section-title">Update plan</h2>
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <span className="h-5 w-9 rounded-full bg-slate-300 p-0.5">
+              <span className="block h-4 w-4 rounded-full bg-white" />
+            </span>
+            Annual
+            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-600">(save 20%)</span>
+          </div>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-3">
+          {plans.map((plan) => (
+            <article
+              key={plan.name}
+              className={cn(
+                'flex min-h-[470px] flex-col rounded-lg border bg-white p-6',
+                plan.popular && 'border-primary bg-blue-50/60 shadow-lg',
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-black text-foreground">{plan.name}</h3>
+                {plan.popular && (
+                  <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">Popular</span>
+                )}
+              </div>
+              <p className="mt-6 text-2xl font-black text-foreground">
+                {plan.price} <span className="text-sm font-medium text-muted-foreground">per month</span>
+              </p>
+              <p className="mt-6 font-bold text-foreground">{plan.credits}</p>
+              <p className="mt-4 min-h-14 text-sm leading-6 text-muted-foreground">{plan.description}</p>
+              <Button className="mt-4" variant={plan.popular ? 'default' : 'outline'}>Upgrade</Button>
+              <ul className="mt-6 space-y-3 border-b pb-6 text-sm text-muted-foreground">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-3">
+                    <Check className="h-4 w-4 text-slate-400" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-auto pt-5 text-sm font-medium italic text-primary">{plan.note}</p>
+            </article>
+          ))}
+        </div>
+        <p className="mt-6 rounded-md bg-orange-50 px-4 py-3 text-sm text-orange-600">
+          Every feature uses 1 credit. Use your credits however you like.
+        </p>
+      </section>
+
+      <section className="lf-panel p-6">
+        <h2 className="lf-section-title">How credits works</h2>
+        <p className="mt-2 max-w-5xl text-sm leading-6 text-muted-foreground">
+          This outlines how credits are deducted per feature usage across the Lightforth platform. Each core product feature deducts 1 credit per use, regardless of plan tier.
+        </p>
+        <div className="mt-6 lf-table-wrap">
+          <table className="lf-table">
+            <thead className="lf-table-head">
+              <tr>
+                <th className="lf-table-th">Feature</th>
+                <th className="lf-table-th">Trigger Event</th>
+                <th className="lf-table-th text-right">Deducted</th>
+              </tr>
+            </thead>
+            <tbody>
+              {creditRows.map(([feature, trigger, deducted]) => (
+                <tr key={feature} className="lf-table-row">
+                  <td className="lf-table-cell font-semibold text-foreground">{feature}</td>
+                  <td className="lf-table-cell text-muted-foreground">{trigger}</td>
+                  <td className={cn('lf-table-cell text-right font-semibold', deducted === 'Free' && 'text-emerald-600')}>
+                    {deducted}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  )
+}

@@ -8,9 +8,10 @@ interface Props {
   description: string
   to: string
   active?: boolean
+  badge?: string
 }
 
-export default function ActionCard({ Icon, title, description, to, active }: Props) {
+export default function ActionCard({ Icon, title, description, to, active, badge }: Props) {
   return (
     <Link
       to={to}
@@ -32,6 +33,11 @@ export default function ActionCard({ Icon, title, description, to, active }: Pro
       >
         {title}
         <ArrowRight className="h-3.5 w-3.5" />
+        {badge && (
+          <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">
+            {badge}
+          </span>
+        )}
       </p>
       <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
     </Link>

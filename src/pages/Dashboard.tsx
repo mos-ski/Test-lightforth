@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { ChevronDown, FileText, Monitor, Briefcase, X } from 'lucide-react'
+import { ChevronDown, FileText, Monitor, Briefcase, Send, X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import ResumeUploadDropdown, { type UploadedResume } from '@/components/shared/ResumeUploadDropdown'
 import ActionCard from '@/components/shared/ActionCard'
@@ -15,9 +15,9 @@ export default function Dashboard() {
   const firstName = user?.name?.split(' ')[0] ?? 'there'
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="lf-page-shell">
       {/* Main card */}
-      <div className="mb-4 rounded-xl border border-border bg-white p-6">
+      <div className="lf-panel mb-4 p-6">
         {/* Date + greeting */}
         <p className="mb-1 text-sm text-muted-foreground">
           {format(new Date(), 'EEEE, MMMM do')}
@@ -66,7 +66,7 @@ export default function Dashboard() {
           <p className="mb-3 text-sm font-medium text-foreground">
             Resume uploaded. What do you want to do next?
           </p>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <ActionCard
               Icon={FileText}
               title="Tailor my Resume"
@@ -86,11 +86,18 @@ export default function Dashboard() {
               description="From resume reviews to job matches and strategy tips, Copilot gives you smart insights at every step."
               to="/interview-copilot"
             />
+            <ActionCard
+              Icon={Send}
+              title="Auto-Apply"
+              description="Let Lightforth auto-apply to relevant roles based on your preferences — no more job hunting stress."
+              to="/auto-apply"
+              badge="NEW"
+            />
           </div>
         </div>
       ) : (
         /* How it works — shown when no resume */
-        <div className="rounded-xl border border-border bg-white p-6">
+        <div className="lf-panel p-6">
           <button
             className="flex w-full items-center justify-between text-sm font-medium text-foreground"
             onClick={() => setHowItWorksOpen((o) => !o)}
