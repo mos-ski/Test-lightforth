@@ -724,8 +724,8 @@ export default function ResumeBuilder() {
                       : 'border-border bg-white hover:border-primary/30',
                   )}
                 >
-                  {/* Thumbnail */}
-                  <div className="relative mb-3 h-40 w-full overflow-hidden rounded-md border border-gray-100 bg-white shadow-sm">
+                  {/* Thumbnail — portrait A4 ratio */}
+                  <div className="relative mb-3 h-56 w-full overflow-hidden rounded-md border border-gray-100 bg-white shadow-sm">
                     {selectedTemplate === t.name && (
                       <div className="absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-green-500 shadow">
                         <Check className="h-3 w-3 text-white" />
@@ -747,13 +747,14 @@ export default function ResumeBuilder() {
             </div>
 
             {/* Bottom action */}
-            <div className="mt-8 flex items-center gap-6">
+            <div className="mt-8 border-t border-border pt-5 flex items-center justify-between max-w-[500px]">
               <span className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">{selectedTemplate}</span> selected
+                <span className="font-semibold text-foreground">{selectedTemplate}</span>{' '}
+                <span className="text-muted-foreground">selected</span>
               </span>
               <button
                 onClick={() => setStep('title')}
-                className="rounded-lg bg-primary px-8 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+                className="rounded-lg bg-primary px-10 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
               >
                 Proceed
               </button>
@@ -761,11 +762,28 @@ export default function ResumeBuilder() {
           </div>
 
           {/* Right — preview panel */}
-          <div className="w-72 flex-shrink-0 overflow-y-auto border-l border-border bg-gray-50 p-4">
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Template Preview
-            </h3>
-            <LargeResumeMockup />
+          <div className="w-[340px] flex-shrink-0 border-l border-border bg-gray-50">
+            <div className="sticky top-0 px-5 pt-5 pb-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Template Preview
+              </h3>
+            </div>
+            <div className="px-5 pb-5">
+              <div className="relative overflow-hidden rounded-sm bg-white shadow-md" style={{ height: '600px' }}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '750px',
+                    transform: 'scale(0.4)',
+                    transformOrigin: 'top left',
+                  }}
+                >
+                  <ResumeDoc />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )
