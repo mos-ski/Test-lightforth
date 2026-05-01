@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+import LightforthLogo from '@/components/shared/LightforthLogo'
 import {
   ArrowLeft, X, Check, ChevronDown, RefreshCw, Pencil, Download, Share,
-  Sparkles, Info, Zap, User, AlignLeft, Briefcase, GraduationCap,
+  Sparkles, Info, User, AlignLeft, Briefcase, GraduationCap,
   FolderGit2, Code2, Languages, Award, Globe, Save,
 } from 'lucide-react'
 
@@ -38,16 +39,85 @@ const TEMPLATES = [
   },
 ]
 
-const ACCORDION_SECTIONS = [
-  { label: 'Personal Information', icon: User },
-  { label: 'Professional Summary', icon: AlignLeft },
-  { label: 'Experience', icon: Briefcase },
-  { label: 'Education', icon: GraduationCap },
-  { label: 'Projects', icon: FolderGit2 },
-  { label: 'Skills', icon: Code2 },
-  { label: 'Language', icon: Languages },
-  { label: 'Certificate', icon: Award },
-  { label: 'Website and Social Links', icon: Globe },
+type FieldDef = { label: string; placeholder?: string; wide?: boolean; type?: 'text' | 'email' | 'tel' | 'url' | 'date' | 'textarea' }
+
+const ACCORDION_SECTIONS: { label: string; icon: React.ElementType; fields: FieldDef[] }[] = [
+  {
+    label: 'Personal Information', icon: User,
+    fields: [
+      { label: 'First Name', placeholder: 'Darnell' },
+      { label: 'Last Name', placeholder: 'Smith' },
+      { label: 'Email', placeholder: 'demo@lightforth.ai', type: 'email', wide: true },
+      { label: 'Phone', placeholder: '+1 234 567 8901', type: 'tel' },
+      { label: 'City / Location', placeholder: 'New York, NY' },
+      { label: 'Website', placeholder: 'https://yoursite.com', type: 'url', wide: true },
+    ],
+  },
+  {
+    label: 'Professional Summary', icon: AlignLeft,
+    fields: [
+      { label: 'Summary', placeholder: 'Write a short professional summary…', type: 'textarea', wide: true },
+    ],
+  },
+  {
+    label: 'Experience', icon: Briefcase,
+    fields: [
+      { label: 'Job Title', placeholder: 'Product Manager' },
+      { label: 'Company', placeholder: 'Lightforth' },
+      { label: 'Start Date', placeholder: 'Jan 2022', type: 'text' },
+      { label: 'End Date', placeholder: 'Present' },
+      { label: 'Location', placeholder: 'Lagos, Nigeria', wide: true },
+      { label: 'Description', placeholder: 'Describe your responsibilities and achievements…', type: 'textarea', wide: true },
+    ],
+  },
+  {
+    label: 'Education', icon: GraduationCap,
+    fields: [
+      { label: 'Degree', placeholder: 'B.Sc. Computer Science' },
+      { label: 'School', placeholder: 'University of Lagos' },
+      { label: 'Start Year', placeholder: '2014' },
+      { label: 'End Year', placeholder: '2018' },
+      { label: 'Description', placeholder: 'Relevant coursework, achievements…', type: 'textarea', wide: true },
+    ],
+  },
+  {
+    label: 'Projects', icon: FolderGit2,
+    fields: [
+      { label: 'Project Name', placeholder: 'AI Resume Builder', wide: true },
+      { label: 'URL', placeholder: 'https://github.com/...', type: 'url', wide: true },
+      { label: 'Description', placeholder: 'What did you build and what impact did it have?', type: 'textarea', wide: true },
+    ],
+  },
+  {
+    label: 'Skills', icon: Code2,
+    fields: [
+      { label: 'Skills', placeholder: 'e.g. React, TypeScript, Figma, Agile…', type: 'textarea', wide: true },
+    ],
+  },
+  {
+    label: 'Language', icon: Languages,
+    fields: [
+      { label: 'Language', placeholder: 'English' },
+      { label: 'Proficiency', placeholder: 'Native / Fluent / Intermediate' },
+    ],
+  },
+  {
+    label: 'Certificate', icon: Award,
+    fields: [
+      { label: 'Certificate Name', placeholder: 'AWS Solutions Architect', wide: true },
+      { label: 'Issuing Organisation', placeholder: 'Amazon Web Services' },
+      { label: 'Issue Date', placeholder: 'Mar 2023' },
+    ],
+  },
+  {
+    label: 'Website and Social Links', icon: Globe,
+    fields: [
+      { label: 'LinkedIn', placeholder: 'https://linkedin.com/in/yourname', type: 'url', wide: true },
+      { label: 'GitHub', placeholder: 'https://github.com/yourname', type: 'url', wide: true },
+      { label: 'Portfolio', placeholder: 'https://yourportfolio.com', type: 'url', wide: true },
+      { label: 'Twitter / X', placeholder: 'https://twitter.com/yourhandle', type: 'url', wide: true },
+    ],
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -407,15 +477,63 @@ function ResumeDoc({
 }
 
 // ---------------------------------------------------------------------------
-// AccordionItem
+// AccordionItem — expandable with form fields
 // ---------------------------------------------------------------------------
-function AccordionItem({ label, icon: Icon }: { label: string; icon: React.ElementType }) {
+function AccordionItem({
+  label,
+  icon: Icon,
+  fields,
+}: {
+  label: string
+  icon: React.ElementType
+  fields: FieldDef[]
+}) {
+  const [open, setOpen] = useState(false)
+  const [values, setValues] = useState<Record<string, string>>({})
+  const set = (key: string, val: string) => setValues(v => ({ ...v, [key]: val }))
+
   return (
-    <button className="flex w-full items-center gap-3 border-b border-border/40 px-4 py-3 text-left hover:bg-muted/40 transition-colors">
-      <Icon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-      <span className="flex-1 text-sm text-foreground">{label}</span>
-      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-    </button>
+    <div className="border-b border-border/40">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 transition-colors"
+      >
+        <Icon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+        <span className="flex-1 text-sm text-foreground">{label}</span>
+        <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform duration-200', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <div className="bg-muted/20 px-4 pb-4 pt-2">
+          <div className="grid grid-cols-2 gap-x-2 gap-y-3">
+            {fields.map(f => (
+              <div key={f.label} className={f.wide ? 'col-span-2' : 'col-span-1'}>
+                <label className="mb-1 block text-[11px] font-medium text-muted-foreground">{f.label}</label>
+                {f.type === 'textarea' ? (
+                  <textarea
+                    value={values[f.label] ?? ''}
+                    onChange={e => set(f.label, e.target.value)}
+                    placeholder={f.placeholder}
+                    rows={3}
+                    className="w-full resize-none rounded-lg border border-input bg-white px-2.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                  />
+                ) : (
+                  <input
+                    type={f.type ?? 'text'}
+                    value={values[f.label] ?? ''}
+                    onChange={e => set(f.label, e.target.value)}
+                    placeholder={f.placeholder}
+                    className="w-full rounded-lg border border-input bg-white px-2.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          <button className="mt-3 w-full rounded-lg bg-primary/10 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
+            Save {label}
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -566,8 +684,7 @@ export default function ResumeBuilder() {
         <div className="flex h-14 flex-shrink-0 items-center gap-4 border-b border-border bg-white px-5">
           {/* Logo */}
           <div className="flex items-center gap-1.5 mr-2">
-            <Zap className="h-5 w-5 fill-primary text-primary" />
-            <span className="text-base font-bold text-primary">Lightforth</span>
+            <LightforthLogo className="h-[22px]" linked={false} />
           </div>
           {/* CV name */}
           <div className="flex items-center gap-1.5">
@@ -605,8 +722,7 @@ export default function ResumeBuilder() {
       return (
         <div className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-white px-6">
           <div className="flex items-center gap-1.5">
-            <Zap className="h-5 w-5 fill-primary text-primary" />
-            <span className="text-base font-bold text-primary">Lightforth</span>
+            <LightforthLogo className="h-[22px]" linked={false} />
           </div>
           <div className="flex-1" />
           <button className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
@@ -630,8 +746,7 @@ export default function ResumeBuilder() {
       return (
         <div className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-white px-6">
           <div className="flex items-center gap-1.5">
-            <Zap className="h-5 w-5 fill-primary text-primary" />
-            <span className="text-base font-bold text-primary">Lightforth</span>
+            <LightforthLogo className="h-[22px]" linked={false} />
           </div>
           <div className="flex-1" />
           <button
@@ -654,8 +769,7 @@ export default function ResumeBuilder() {
     return (
       <div className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-white px-6">
         <div className="flex items-center gap-1.5">
-          <Zap className="h-5 w-5 fill-primary text-primary" />
-          <span className="text-base font-bold text-primary">Lightforth</span>
+          <img src="/logo-B1uc6Mmo.svg" alt="Lightforth" className="h-[22px] w-auto" />
         </div>
         <div className="flex-1" />
         <button
