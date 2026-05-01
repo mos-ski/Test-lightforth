@@ -228,6 +228,7 @@ function LandingContent({
         </tbody>
       </table>
     </div>
+  </div>
   )
 }
 
