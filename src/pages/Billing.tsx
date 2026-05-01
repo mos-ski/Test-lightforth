@@ -49,15 +49,26 @@ export default function Billing() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <section className="lf-panel p-6">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span>You're on</span>
-            <strong className="text-foreground">Free Plan plan</strong>
-            <span className="rounded-full bg-blue-50 px-3 py-1 font-semibold text-primary">Monthly</span>
-          </div>
-          <div className="flex min-h-32 items-center justify-end">
-            <p className="text-5xl font-black text-foreground">
-              ₦0 <span className="text-sm font-medium text-muted-foreground">per month</span>
+          <div className="flex items-start justify-between mb-1">
+            <div className="flex items-center gap-3">
+              <strong className="text-lg font-bold text-foreground">You're on Starter plan</strong>
+              <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground">Monthly</span>
+            </div>
+            <p className="text-4xl font-black text-foreground">
+              $25 <span className="text-sm font-normal text-muted-foreground">per month</span>
             </p>
+          </div>
+          <p className="text-sm text-muted-foreground mb-6">Renews Sep 1, 2025</p>
+          <div className="flex items-center justify-between border-t border-border pt-5">
+            <Button variant="outline" className="rounded-xl border-2 border-foreground font-bold px-5">
+              Manage Plan
+            </Button>
+            <a href="#" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+              Manage Payment Method
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
+              </svg>
+            </a>
           </div>
         </section>
 

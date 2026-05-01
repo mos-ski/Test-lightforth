@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-const tabs = ['profile', 'security', 'billing', 'referral'] as const
+const tabs = ['profile', 'security', 'referral'] as const
 type Tab = (typeof tabs)[number]
 
 const referrals = [
@@ -101,78 +101,6 @@ function SecurityTab() {
           <p className="text-sm text-muted-foreground">Permanently delete your Lightforth account.</p>
         </div>
         <Button variant="outline" className="border-red-300 text-red-500 hover:bg-red-50">Delete Account</Button>
-      </section>
-    </div>
-  )
-}
-
-function BillingTab() {
-  return (
-    <div className="space-y-6">
-      <section className="lf-panel p-8">
-        <h2 className="lf-section-title mb-6">Subscription</h2>
-        <div className="rounded-2xl border border-border p-6">
-          {/* Top row */}
-          <div className="flex items-start justify-between mb-1">
-            <div className="flex items-center gap-3">
-              <h3 className="text-lg font-bold text-foreground">You're on Starter plan</h3>
-              <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground">
-                Monthly
-              </span>
-            </div>
-            <p className="text-2xl font-black text-foreground">
-              $25 <span className="text-base font-normal text-muted-foreground">per month</span>
-            </p>
-          </div>
-          {/* Renews */}
-          <p className="text-sm text-muted-foreground mb-6">Renews Sep 1, 2025</p>
-          {/* Divider + actions */}
-          <div className="flex items-center justify-between border-t border-border pt-5">
-            <button className="rounded-xl border-2 border-foreground px-5 py-2.5 text-sm font-bold text-foreground hover:bg-muted transition-colors">
-              Manage Plan
-            </button>
-            <a href="#" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-              Manage Payment Method
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="lf-panel p-8">
-        <h2 className="lf-section-title mb-6">Billing History</h2>
-        <div className="lf-table-wrap">
-          <table className="lf-table">
-            <thead className="lf-table-head">
-              <tr>
-                <th className="lf-table-th">Date</th>
-                <th className="lf-table-th">Description</th>
-                <th className="lf-table-th">Amount</th>
-                <th className="lf-table-th">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ['Aug 1, 2025', 'Starter Plan – Monthly', '$25.00', 'Paid'],
-                ['Jul 1, 2025', 'Starter Plan – Monthly', '$25.00', 'Paid'],
-                ['Jun 1, 2025', 'Starter Plan – Monthly', '$25.00', 'Paid'],
-              ].map(([date, desc, amount, status]) => (
-                <tr key={date} className="lf-table-row">
-                  <td className="lf-table-cell text-muted-foreground">{date}</td>
-                  <td className="lf-table-cell text-foreground">{desc}</td>
-                  <td className="lf-table-cell font-semibold text-foreground">{amount}</td>
-                  <td className="lf-table-cell">
-                    <span className="rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs font-semibold text-green-600">
-                      {status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </section>
     </div>
   )
@@ -303,8 +231,7 @@ export default function Settings() {
       <div className="mt-7">
         {activeTab === 'profile' && <ProfileTab />}
         {activeTab === 'security' && <SecurityTab />}
-        {activeTab === 'billing' && <BillingTab />}
-        {activeTab === 'referral' && <ReferralTab />}
+{activeTab === 'referral' && <ReferralTab />}
       </div>
     </div>
   )
