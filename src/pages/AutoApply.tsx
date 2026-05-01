@@ -1003,8 +1003,8 @@ function JobsTab({
   selectedJob,
   setSelectedJob,
 }: {
-  selectedJob: string
-  setSelectedJob: (id: string) => void
+  selectedJob: string | null
+  setSelectedJob: (id: string | null) => void
 }) {
   const [search, setSearch] = useState('')
   const filtered = MOCK_JOBS.filter(
@@ -1089,8 +1089,8 @@ function AppliedTab({
   selectedJob,
   setSelectedJob,
 }: {
-  selectedJob: string
-  setSelectedJob: (id: string) => void
+  selectedJob: string | null
+  setSelectedJob: (id: string | null) => void
 }) {
   const [search, setSearch] = useState('')
   const filtered = MOCK_JOBS.filter(
@@ -1172,7 +1172,7 @@ export default function AutoApply() {
   const [view, setView] = useState<AutoApplyView>('setup')
   const [setupStep, setSetupStep] = useState<SetupStep>(1)
   const [dashTab, setDashTab] = useState<DashboardTab>('jobs')
-  const [selectedJob, setSelectedJob] = useState<string>('1')
+  const [selectedJob, setSelectedJob] = useState<string | null>(null)
 
   // Form state — kept at top level to preserve across steps
   const [resumeFile] = useState('Darnell_Smith_Product_Manager_2026.pdf')

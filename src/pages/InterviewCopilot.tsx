@@ -182,7 +182,7 @@ function LandingContent({
 
       {/* Search + Start button row */}
       <div className="mb-4 flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             placeholder="Search"
@@ -191,7 +191,7 @@ function LandingContent({
         </div>
         <button
           onClick={onStart}
-          className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+          className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
         >
           + Start Interview
         </button>

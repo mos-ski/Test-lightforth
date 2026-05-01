@@ -1,13 +1,19 @@
+import { useState } from 'react'
 import {
   Bell,
+  BriefcaseBusiness,
+  CheckCircle2,
   ChevronRight,
+  CreditCard,
   ExternalLink,
+  FileText,
   Gift,
   HelpCircle,
   LogOut,
   Mail,
   MessageCircle,
   Settings,
+  Tag,
   User,
   X,
   Zap,
@@ -25,9 +31,26 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
+const NOTIFICATIONS = [
+  { id: '1', icon: CreditCard, color: 'text-blue-500 bg-blue-50', title: '1 credit deducted', desc: 'Resume tailored for Google · Senior Frontend Engineer', time: '2m ago', read: false },
+  { id: '2', icon: CheckCircle2, color: 'text-green-600 bg-green-50', title: 'Auto-Apply submitted', desc: 'Applied to Product Designer at Apple via LinkedIn', time: '15m ago', read: false },
+  { id: '3', icon: FileText, color: 'text-purple-500 bg-purple-50', title: 'Interview report ready', desc: 'Your Software Engineer session report is available', time: '1h ago', read: false },
+  { id: '4', icon: BriefcaseBusiness, color: 'text-amber-500 bg-amber-50', title: '12 new job matches', desc: 'New roles match your profile — check Auto-Apply', time: '3h ago', read: true },
+  { id: '5', icon: Zap, color: 'text-blue-500 bg-blue-50', title: '3 credits used today', desc: 'Resume builder ×1 · Interview prep ×2', time: '6h ago', read: true },
+  { id: '6', icon: Tag, color: 'text-rose-500 bg-rose-50', title: '🎉 50% off Premium — this week only', desc: 'Upgrade to Premium and get 100 credits/month', time: '1d ago', read: true },
+]
+
 export default function TopNav() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [notifOpen, setNotifOpen] = useState(false)
+  const [readIds, setReadIds] = useState<Set<string>>(new Set(['4', '5', '6']))
+
+  const unreadCount = NOTIFICATIONS.filter((n) => !readIds.has(n.id)).length
+
+  function markAllRead() {
+    setReadIds(new Set(NOTIFICATIONS.map((n) => n.id)))
+  }
 
   const planCredits = user?.plan === 'premium' ? 100 : user?.plan === 'pro' ? 50 : user?.plan === 'starter' ? 15 : 34
   const remainingCredits = user?.credits ?? 31
@@ -92,9 +115,86 @@ export default function TopNav() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <button className="relative rounded-full p-2 transition-colors hover:bg-muted" aria-label="Notifications">
-        <Bell className="h-5 w-5 text-muted-foreground" />
-      </button>
+      <div className="relative">
+        <button
+          onClick={() => setNotifOpen((o) => !o)}
+          className="relative rounded-full p-2 transition-colors hover:bg-muted"
+          aria-label="Notifications"
+        >
+          <Bell className="h-5 w-5 text-muted-foreground" />
+          {unreadCount > 0 && (
+            <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+
+        {notifOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+            <div className="absolute right-0 top-full z-50 mt-2 w-96 overflow-hidden rounded-xl border border-border bg-white shadow-xl">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <p className="text-sm font-semibold text-foreground">
+                  Notifications
+                  {unreadCount > 0 && (
+                    <span className="ml-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </p>
+                <button
+                  onClick={markAllRead}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Mark all read
+                </button>
+              </div>
+
+              {/* List */}
+              <div className="max-h-[420px] overflow-y-auto divide-y divide-border">
+                {NOTIFICATIONS.map((n) => {
+                  const isUnread = !readIds.has(n.id)
+                  return (
+                    <button
+                      key={n.id}
+                      onClick={() => setReadIds((s) => new Set([...s, n.id]))}
+                      className={cn(
+                        'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50',
+                        isUnread && 'bg-primary/[0.03]',
+                      )}
+                    >
+                      <div className={cn('mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full', n.color)}>
+                        <n.icon className="h-4 w-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn('text-sm', isUnread ? 'font-semibold text-foreground' : 'font-medium text-foreground/80')}>
+                          {n.title}
+                        </p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{n.desc}</p>
+                        <p className="mt-1 text-[11px] text-muted-foreground/70">{n.time}</p>
+                      </div>
+                      {isUnread && (
+                        <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Footer */}
+              <div className="border-t border-border">
+                <button
+                  onClick={() => setNotifOpen(false)}
+                  className="flex h-10 w-full items-center justify-center text-xs font-medium text-primary hover:bg-primary/5 transition-colors"
+                >
+                  View all notifications
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger className="rounded-full p-2 transition-colors hover:bg-muted" aria-label="Open help">

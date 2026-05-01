@@ -60,7 +60,7 @@ export default function Billing() {
           </div>
           <p className="text-sm text-muted-foreground mb-6">Renews Sep 1, 2025</p>
           <div className="flex items-center justify-between border-t border-border pt-5">
-            <Button variant="outline" className="rounded-xl border-2 border-foreground font-bold px-5">
+            <Button variant="outline" className="rounded-xl border border-border font-semibold px-5 text-foreground hover:bg-muted">
               Manage Plan
             </Button>
             <a href="#" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
