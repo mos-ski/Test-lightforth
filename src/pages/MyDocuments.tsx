@@ -10,6 +10,8 @@ import {
   LayoutGrid,
   FileText,
   ArrowDownUp,
+  X,
+  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +22,7 @@ const mockResumes = [
     atsScore: 38,
     modified: 'Apr 30, 2026 at 05:47 PM',
     created: 'Apr 30, 2026 at 05:47 PM',
+    preview: '/templates/t01.png',
   },
   {
     id: '2',
@@ -27,6 +30,7 @@ const mockResumes = [
     atsScore: 86,
     modified: 'Apr 20, 2026 at 05:29 PM',
     created: 'Apr 20, 2026 at 05:27 PM',
+    preview: '/templates/t02.png',
   },
   {
     id: '3',
@@ -34,6 +38,7 @@ const mockResumes = [
     atsScore: 58,
     modified: 'Apr 20, 2026 at 05:26 PM',
     created: 'Apr 20, 2026 at 05:25 PM',
+    preview: '/templates/t13.png',
   },
   {
     id: '4',
@@ -41,6 +46,7 @@ const mockResumes = [
     atsScore: 0,
     modified: 'Apr 3, 2026 at 12:57 AM',
     created: 'Apr 3, 2026 at 12:57 AM',
+    preview: '/templates/t05.png',
   },
 ]
 
@@ -54,8 +60,9 @@ function atsColor(score: number) {
 export default function MyDocuments() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'yours' | 'ai'>('yours')
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid')
   const [search, setSearch] = useState('')
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
 
   const filteredResumes = mockResumes.filter((r) =>
     r.title.toLowerCase().includes(search.toLowerCase())
@@ -75,7 +82,7 @@ export default function MyDocuments() {
         {/* Card 1: Create from scratch */}
         <div
           className="lf-panel cursor-pointer p-5 transition-all hover:border-violet-300 hover:shadow-sm"
-          onClick={() => navigate('/resume-builder')}
+          onClick={() => navigate('/resume-builder?mode=scratch')}
         >
           <div className="rounded-lg bg-violet-100 p-2.5 mb-3 w-fit">
             <FilePlus className="h-5 w-5 text-violet-600" />
@@ -87,7 +94,7 @@ export default function MyDocuments() {
         {/* Card 2: Create from a resume */}
         <div
           className="lf-panel cursor-pointer p-5 transition-all hover:border-green-300 hover:shadow-sm"
-          onClick={() => navigate('/resume-builder')}
+          onClick={() => setUploadModalOpen(true)}
         >
           <div className="rounded-lg bg-green-100 p-2.5 mb-3 w-fit">
             <Upload className="h-5 w-5 text-green-600" />
@@ -168,7 +175,28 @@ export default function MyDocuments() {
         </div>
       </div>
 
-      {/* Table */}
+      {viewMode === 'grid' ? (
+        <div className="grid gap-4 md:grid-cols-3">
+          {filteredResumes.map((resume) => (
+            <article key={resume.id} className="group">
+              <button className="w-full rounded-lg border border-border bg-white p-4 transition hover:border-primary/50 hover:shadow-sm">
+                <div className="flex h-[420px] items-start justify-center overflow-hidden rounded-md bg-slate-50 p-4">
+                  <img src={resume.preview} alt={`${resume.title} preview`} className="h-full w-full object-contain object-top shadow-sm" />
+                </div>
+              </button>
+              <div className="mt-3 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate text-base font-bold text-foreground">{resume.title.replace(/[_-]/g, ' ').replace(/\.pdf$/i, '')}</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">Last edited: {resume.modified}</p>
+                </div>
+                <button aria-label="Resume actions" className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
       <div className="lf-table-wrap">
         <table className="lf-table">
           <thead className="lf-table-head">
@@ -228,6 +256,59 @@ export default function MyDocuments() {
         </tbody>
       </table>
       </div>
+      )}
+      {uploadModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
+          <div className="lf-panel w-full max-w-[560px] p-0 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <h2 className="text-lg font-bold text-foreground">Create from a resume</h2>
+              <button onClick={() => setUploadModalOpen(false)} aria-label="Close create from resume modal">
+                <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+              </button>
+            </div>
+            <div className="space-y-5 p-6">
+              <section>
+                <p className="lf-label mb-3">Quick Select</p>
+                <button className="flex w-full items-center gap-3 rounded-lg border border-border bg-white px-3 py-3 text-left transition hover:border-primary/60">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-red-100">
+                    <FileText className="h-5 w-5 fill-red-500 text-red-500" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">Adedamola_Adewale_Product_Manager.pdf</p>
+                    <p className="mt-1 text-xs text-muted-foreground">120 KB · Product Manager</p>
+                  </div>
+                  <span className="rounded-full border border-primary bg-primary/5 px-2 py-0.5 text-[10px] font-bold text-primary">LAST USED</span>
+                </button>
+              </section>
+
+              <section>
+                <p className="lf-label mb-3">Or choose another resume</p>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <button className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border bg-white text-sm font-semibold text-foreground transition hover:bg-muted">
+                    <Upload className="h-4 w-4" />
+                    Upload a Resume
+                  </button>
+                  <button className="relative inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-primary bg-primary/5 text-sm font-semibold text-primary transition hover:bg-primary/10">
+                    <span className="absolute -top-4 rounded-full border border-primary bg-white px-2 py-0.5 text-[9px] font-bold text-primary">RECOMMENDED</span>
+                    <Sparkles className="h-4 w-4" />
+                    Use Lightforth Resume
+                  </button>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">PDF files only · Max size: 10MB</p>
+              </section>
+
+              <div className="grid gap-3 border-t border-border pt-4 md:grid-cols-2">
+                <button onClick={() => setUploadModalOpen(false)} className="h-11 rounded-lg border border-border bg-white text-sm font-semibold text-foreground transition hover:bg-muted">
+                  Cancel
+                </button>
+                <button onClick={() => navigate('/resume-builder?mode=tailor')} className="h-11 rounded-lg bg-primary text-sm font-semibold text-white transition hover:bg-primary/90">
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

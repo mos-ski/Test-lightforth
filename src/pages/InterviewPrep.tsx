@@ -239,55 +239,57 @@ function Setup({ onBack, onClose, onNext }: { onBack: () => void; onClose: () =>
   const [modal, setModal] = useState(false)
 
   return (
-    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-[#fafafa]">
+    <div className="fixed inset-0 z-[9999] overflow-hidden bg-background">
       <OverlayHeader onBack={onBack} onClose={onClose} />
-      <div className="mx-auto max-w-[560px] bg-white px-8 py-9">
-        <h1 className="lf-overlay-title">👋 Hola, Welcome to you<br />AI Interview</h1>
+      <main className="flex h-[calc(100vh-70px)] items-center justify-center px-6 py-8">
+      <div className="lf-panel w-full max-w-[620px] p-8">
+        <h1 className="lf-overlay-title">Set up your interview prep</h1>
         <p className="lf-body mt-3">
-          You’ve already applied and need to prep now. Learn how to answer the most common interview questions, sharpen your presentation skills, and master the art of selling yourself. Stand out from the competition with techniques other candidates don’t know.
+          Practice with an AI interviewer using your target role, resume, and optional job description.
         </p>
         <div className="mt-7 space-y-5">
           <label className="block">
-            <span className="mb-2 block text-sm font-medium">Job title</span>
-            <input className="h-11 w-full rounded-md border px-4 outline-none focus:border-primary" placeholder="Enter job role" />
+            <span className="lf-label mb-2 block">Job title</span>
+            <input className="lf-input h-11" placeholder="Enter job role" />
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
               <span className="text-muted-foreground">Suggestions:</span>
-              <button className="text-primary">Product Designer</button>
-              <button className="rounded bg-muted px-2">Product Manager</button>
+              <button className="text-primary hover:underline">Product Designer</button>
+              <button className="text-primary hover:underline">Product Manager</button>
             </div>
           </label>
           <div>
-            <p className="mb-2 text-sm font-medium">Choose Resume</p>
+            <p className="lf-label mb-2">Choose resume</p>
             <div className="grid gap-3 md:grid-cols-2">
               <Button variant="outline" className="h-11">
                 <Upload className="h-4 w-4" />
-                Upload a Resume
+                Upload a new resume
               </Button>
-              <Button variant="outline" className="relative h-11 border-primary text-foreground">
-                <span className="absolute -top-4 rounded-full border border-primary bg-white px-2 py-0.5 text-[9px] text-primary">RECOMMENDED</span>
-                <span className="text-primary">✦</span>
+              <Button variant="outline" className="relative h-11 border-primary bg-primary/5 text-primary">
+                <span className="absolute -top-4 rounded-full border border-primary bg-white px-2 py-0.5 text-[9px] font-bold text-primary">RECOMMENDED</span>
+                <Sparkles className="h-4 w-4" />
                 Use Lightforth Resume
               </Button>
             </div>
-            <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
+            <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
               <FileText className="h-4 w-4 fill-red-500 text-red-500" />
-              adewale_damola_PM_resume.pdf
-              <X className="h-3 w-3" />
-            </p>
+              <span>adewale_damola_PM_resume.pdf</span>
+              <button aria-label="Remove resume"><X className="h-3.5 w-3.5 hover:text-destructive" /></button>
+            </div>
           </div>
           <label className="block">
-            <span className="mb-2 block text-sm font-medium">Job description <span className="text-xs text-muted-foreground">(optional)</span></span>
+            <span className="lf-label mb-2 block">Job description <span className="text-xs text-muted-foreground">(optional)</span></span>
             <div className="relative">
-              <textarea className="h-32 w-full resize-none rounded-md border px-4 py-3 outline-none focus:border-primary" placeholder="Write or paste here..." />
-              <Button size="sm" variant="outline" className="absolute bottom-3 right-3">
-                <Sparkles className="h-4 w-4 text-primary" />
+              <textarea className="lf-input h-32 resize-none py-3" placeholder="Write or paste here..." />
+              <button className="absolute bottom-3 right-3 flex items-center gap-1 text-xs text-primary hover:underline">
+                <Sparkles className="h-3 w-3" />
                 Suggest for me
-              </Button>
+              </button>
             </div>
           </label>
           <Button className="h-11 w-full" onClick={() => setModal(true)}>Continue</Button>
         </div>
       </div>
+      </main>
       {modal && <PreferenceModal onClose={() => setModal(false)} onNext={onNext} />}
     </div>
   )
@@ -296,7 +298,7 @@ function Setup({ onBack, onClose, onNext }: { onBack: () => void; onClose: () =>
 function PreferenceModal({ onClose, onNext }: { onClose: () => void; onNext: () => void }) {
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/35 p-4">
-      <div className="w-[min(540px,calc(100vw-32px))] rounded-md bg-white p-8 shadow-xl">
+      <div className="lf-panel w-[min(540px,calc(100vw-32px))] p-8 shadow-xl">
         <div className="mb-8 flex items-center justify-between">
           <h2 className="lf-section-title">Interview Preference</h2>
           <button onClick={onClose}><X className="h-5 w-5 text-muted-foreground" /></button>
@@ -471,17 +473,19 @@ function Live({ onBack, onEnd }: { onBack: () => void; onEnd: () => void }) {
 
 function Complete({ onHome, onReport }: { onHome: () => void; onReport: () => void }) {
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#f7f7f7]">
+    <div className="fixed inset-0 z-[9999] bg-background">
       <OverlayHeader onBack={onHome} onClose={onHome} />
-      <div className="mx-auto mt-28 max-w-[640px] rounded-lg border bg-white p-8">
-        <h1 className="lf-overlay-title">👏 Your Interview is<br />complete!</h1>
-        <p className="mt-5 text-base leading-7 text-muted-foreground">Thank you for completing your AI interview with Your Favorite Company.</p>
-        <p className="mt-10 text-base leading-7 text-muted-foreground">Your responses have been recorded and will be evaluated by our Lightforth AI. Based on predefined criteria set by the hiring manager, Lightforth will provide unbiased assessment for the role.</p>
+      <main className="flex h-[calc(100vh-70px)] items-center justify-center px-6 py-8">
+      <div className="lf-panel w-full max-w-[620px] p-8">
+        <h1 className="lf-overlay-title">Your Interview is complete!</h1>
+        <p className="lf-body mt-5">Thank you for completing your AI interview with Your Favorite Company.</p>
+        <p className="lf-body mt-8">Your responses have been recorded and will be evaluated by our Lightforth AI. Based on predefined criteria set by the hiring manager, Lightforth will provide an unbiased assessment for the role.</p>
         <div className="mt-10 grid gap-3 md:grid-cols-2">
-          <Button variant="outline" className="h-12 text-base font-bold" onClick={onHome}>Go Home</Button>
-          <Button className="h-12 text-base font-bold" onClick={onReport}>See Report</Button>
+          <Button variant="outline" className="h-11 font-bold" onClick={onHome}>Go Home</Button>
+          <Button className="h-11 font-bold" onClick={onReport}>See Report</Button>
         </div>
       </div>
+      </main>
     </div>
   )
 }

@@ -8,18 +8,24 @@ import {
   ChevronDown,
   Download,
   Eye,
+  FileText,
+  Highlighter,
   Info,
+  LayoutTemplate,
   MapPin,
   Menu,
+  MessageSquare,
   Pencil,
   Plus,
   Save,
   Search,
+  Send,
   Sparkles,
   Target,
   Trash2,
   X,
   Upload,
+  Wand2,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react'
@@ -65,6 +71,12 @@ const TEMPLATES = [
 ]
 
 type ImproveMode = 'closed' | 'menu' | 'synonyms' | 'rewrite'
+type SidebarTab = 'chat' | 'create' | 'templates'
+type ChatMessage = {
+  id: number
+  role: 'ai' | 'user'
+  text: string
+}
 
 type ResumeData = {
   firstName: string
@@ -124,6 +136,55 @@ const suggestions = [
 
 const skillOptions = ['Figma', 'Graphic Design', 'Photoshop', 'Miro', 'Prototyping', 'Research']
 const languageOptions = ['English', 'French', 'Spanish', 'Yoruba', 'Arabic', 'Mandarin']
+
+function getATSInsights(resume: ResumeData, jobDescription: string) {
+  const resumeText = Object.values(resume).join(' ').toLowerCase()
+  const jdWords = jobDescription
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((word) => word.length > 4)
+  const uniqueJdWords = Array.from(new Set(jdWords))
+  const matchedKeywords = uniqueJdWords.filter((word) => resumeText.includes(word)).slice(0, 8)
+  const missingKeywords = uniqueJdWords.filter((word) => !resumeText.includes(word)).slice(0, 6)
+  const hasMetrics = /\d|%|\$|revenue|growth|reduced|increased|launched|saved/i.test(resume.experienceBullets)
+  const hasContact = Boolean(resume.email.trim() && resume.phone.trim() && resume.city.trim())
+  const hasSummary = resume.summary.trim().split(/\s+/).length >= 18
+  const hasSkills = resume.skills.split(',').filter((skill) => skill.trim()).length >= 6
+  const jdScore = uniqueJdWords.length ? Math.round((matchedKeywords.length / Math.min(uniqueJdWords.length, 8)) * 28) : 14
+  const score = Math.min(98, 36 + jdScore + (hasMetrics ? 12 : 0) + (hasContact ? 8 : 0) + (hasSummary ? 8 : 0) + (hasSkills ? 8 : 0))
+
+  return {
+    score,
+    matchedKeywords,
+    missingKeywords,
+    checks: [
+      { label: 'Contact details are complete', done: hasContact },
+      { label: 'Summary has enough context', done: hasSummary },
+      { label: 'Experience includes measurable impact', done: hasMetrics },
+      { label: 'Skills section has 6+ relevant skills', done: hasSkills },
+      { label: 'Resume mirrors job keywords', done: matchedKeywords.length >= 4 },
+    ],
+    scores: [
+      ['Headline Match', resume.title.trim().length > 2 ? 82 : 48],
+      ['Skill Match', Math.min(96, 52 + matchedKeywords.length * 7)],
+      ['Impact Score', hasMetrics ? 88 : 54],
+      ['Experience Score', resume.experienceBullets.split('\n').filter(Boolean).length >= 3 ? 86 : 58],
+      ['Style Score', resume.summary.length < 420 ? 84 : 66],
+    ] as const,
+  }
+}
+
+function tailorResumeFromJobDescription(resume: ResumeData, jobDescription: string): ResumeData {
+  const words = Array.from(new Set(jobDescription.match(/\b[A-Za-z][A-Za-z-]{4,}\b/g) ?? [])).slice(0, 8)
+  const keywordLine = words.length ? ` Core strengths include ${words.slice(0, 5).join(', ')}.` : ''
+  return {
+    ...resume,
+    summary: `Results-driven ${resume.title || 'professional'} with experience delivering measurable outcomes across product strategy, execution, stakeholder alignment, and operational improvement.${keywordLine}`,
+    experienceBullets: `${resume.experienceBullets}\nTailored resume language to match role requirements, emphasizing ${words.slice(0, 4).join(', ') || 'high-priority responsibilities'} and measurable business impact.`,
+    skills: Array.from(new Set([...resume.skills.split(',').map((skill) => skill.trim()).filter(Boolean), ...words.slice(0, 6)])).join(', '),
+  }
+}
 
 // ─── Shared UI primitives ───────────────────────────────────────────────────
 
@@ -647,11 +708,13 @@ function ResumePaper({
   resume,
   setResume,
   fitViewport = false,
+  templateId = 't01',
 }: {
   editable?: boolean
   resume: ResumeData
   setResume?: Dispatch<SetStateAction<ResumeData>>
   fitViewport?: boolean
+  templateId?: string
 }) {
   const fullName = `${resume.firstName} ${resume.lastName}`.trim() || 'John Doe'
   const bulletItems = resume.experienceBullets
@@ -660,6 +723,9 @@ function ResumePaper({
     .filter(Boolean)
   const skills = resume.skills.split(',').map((item) => item.trim()).filter(Boolean)
   const languages = resume.languages.split(',').map((item) => item.trim()).filter(Boolean)
+  const accent = templateId === 't07' || templateId === 't14' ? '#0f766e' : templateId === 't09' ? '#9f1239' : templateId === 't12' ? '#334155' : '#143763'
+  const centered = templateId === 't02' || templateId === 't13'
+  const serif = templateId === 't05' || templateId === 't15'
 
   function editableText(field: keyof ResumeData, className: string, fallback?: string) {
     return {
@@ -676,17 +742,19 @@ function ResumePaper({
     <article
       className={cn(
         'mx-auto rounded-lg border border-slate-200 bg-white shadow-sm',
+        serif && 'font-serif',
         fitViewport
           ? 'h-full max-h-[calc(100vh-9.5rem)] aspect-[8.5/11] min-h-0 w-auto overflow-hidden px-10 py-8 text-[13px] leading-5 ring-1 ring-slate-100'
-          : 'min-h-[920px] w-[680px] px-12 py-10',
+          : 'min-h-[1056px] w-[816px] px-16 py-12',
       )}
     >
-      <header className={cn('flex justify-between gap-6', fitViewport ? 'mb-6' : 'mb-8')}>
+      <header className={cn('flex justify-between gap-6', centered && 'flex-col items-center text-center', fitViewport ? 'mb-6' : 'mb-8')}>
         <div>
           <h1
             contentEditable={editable}
             suppressContentEditableWarning
-            className={cn('font-bold uppercase tracking-normal text-[#143763]', fitViewport ? 'text-xl' : 'text-2xl')}
+            className={cn('font-bold uppercase tracking-normal', fitViewport ? 'text-xl' : 'text-2xl')}
+            style={{ color: accent }}
             onBlur={(event) => {
               if (!setResume) return
               const [firstName, ...rest] = (event.currentTarget.textContent?.trim() || fullName).split(/\s+/)
@@ -697,18 +765,18 @@ function ResumePaper({
           </h1>
           <p {...editableText('title', cn('mt-1', fitViewport ? 'text-sm' : 'text-base'), 'Position')}>{resume.title}</p>
         </div>
-        <div className={cn('text-right', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
+        <div className={cn('text-right', centered && 'text-center', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
           <p {...editableText('phone', '', '123-456-7890')}>{resume.phone}</p>
           <p {...editableText('email', 'text-[#149cf2]', 'myemail@gmail.com')}>{resume.email}</p>
           <p {...editableText('portfolio', '', 'www.myportfolio.com')}>{resume.portfolio}</p>
           <p>Linkedin: <span {...editableText('linkedin', 'text-[#149cf2] underline', 'John Doe')}>{resume.linkedin}</span></p>
         </div>
       </header>
-      <ResumeSection title="Experience" editable={editable} active resume={resume} setResume={setResume} bulletItems={bulletItems} fitViewport={fitViewport} />
-      <ResumeSection title="Education" editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} />
-      <ResumeSection title="Certificates" editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} />
+      <ResumeSection title="Experience" editable={editable} active resume={resume} setResume={setResume} bulletItems={bulletItems} fitViewport={fitViewport} accent={accent} />
+      <ResumeSection title="Education" editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} accent={accent} />
+      <ResumeSection title="Certificates" editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} accent={accent} />
       <section className={cn(fitViewport ? 'mt-5' : 'mt-8')}>
-        <h2 className={cn('border-b-2 border-slate-900 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')}>Skills</h2>
+        <h2 className={cn('border-b-2 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')} style={{ borderColor: accent }}>Skills</h2>
         <div className={cn('mt-3 grid grid-cols-2 gap-2', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
           {skills.map((skill, index) => (
             <p
@@ -728,7 +796,7 @@ function ResumePaper({
         </div>
       </section>
       <section className={cn(fitViewport ? 'mt-5' : 'mt-8')}>
-        <h2 className={cn('border-b-2 border-slate-900 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')}>Languages</h2>
+        <h2 className={cn('border-b-2 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')} style={{ borderColor: accent }}>Languages</h2>
         <div className={cn('mt-3', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
           {languages.map((item, index) => (
             <p
@@ -759,6 +827,7 @@ function ResumeSection({
   setResume,
   bulletItems = [],
   fitViewport = false,
+  accent = '#143763',
 }: {
   title: string
   editable?: boolean
@@ -767,10 +836,11 @@ function ResumeSection({
   setResume?: Dispatch<SetStateAction<ResumeData>>
   bulletItems?: string[]
   fitViewport?: boolean
+  accent?: string
 }) {
   return (
     <section className={cn(fitViewport ? 'mt-5' : 'mt-8')}>
-      <h2 className={cn('border-b-2 border-slate-900 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')}>{title}</h2>
+      <h2 className={cn('border-b-2 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')} style={{ borderColor: accent }}>{title}</h2>
       <div className="mt-3">
         <div className="mb-2 flex justify-between">
           <div>
@@ -850,11 +920,65 @@ function CanvasScreen({
   setJobDescription: Dispatch<SetStateAction<string>>
 }) {
   const [improveMode, setImproveMode] = useState<ImproveMode>('closed')
-  const [expanded, setExpanded] = useState('Experience')
-  const [sidebarTab, setSidebarTab] = useState<'create' | 'template'>('create')
+  const [expanded, setExpanded] = useState('')
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat')
+  const [resumeName, setResumeName] = useState("Adedamola's CV")
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [chatDraft, setChatDraft] = useState('')
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [addSectionOpen, setAddSectionOpen] = useState(false)
+  const [visibleSections, setVisibleSections] = useState(['Personal Information', 'Professional Summary', 'Experience', 'Education', 'Skills', 'Language', 'Certificates', 'Website and Social Links'])
+  const [zoom, setZoom] = useState(0.9)
   const [downloadOpen, setDownloadOpen] = useState(false)
-  const [saveOpen, setSaveOpen] = useState(false)
   const navigate = useNavigate()
+  const selectedTemplate = TEMPLATES.find((template) => template.id === templateId) ?? TEMPLATES[0]
+  const zoomPercent = Math.round(zoom * 100)
+  const quickPrompts = ['Make summary more formal', 'Shorten experience bullets', 'Add stronger metrics']
+  const availableSections = ['Projects', 'Awards', 'Volunteer Work', 'Publications'].filter((item) => !visibleSections.includes(item))
+
+  function handleTailor() {
+    if (!jobDescription.trim()) return
+    setResume((current) => tailorResumeFromJobDescription(current, jobDescription))
+    setChatMessages((messages) => [
+      ...messages,
+      { id: Date.now(), role: 'user', text: 'Rewrite my resume for this job description.' },
+      { id: Date.now() + 1, role: 'ai', text: 'Done. I rewrote the summary, added role keywords to skills, and added a tailored impact bullet. Keep editing here and I will keep the canvas updated.' },
+    ])
+  }
+
+  function sendChat(message = chatDraft) {
+    const trimmed = message.trim()
+    const normalized = trimmed.toLowerCase()
+    if (!normalized) return
+    let aiText = 'I updated the resume canvas with that direction. You can ask for tone, length, stronger metrics, or a more ATS-focused rewrite next.'
+    if (normalized.includes('short')) {
+      updateResumeField(setResume, 'summary', resume.summary.split('.').slice(0, 2).join('.').trim())
+      aiText = 'I shortened the professional summary while keeping the main positioning intact.'
+    } else if (normalized.includes('formal') || normalized.includes('professional')) {
+      updateResumeField(setResume, 'summary', resume.summary.replace('Dynamic', 'Accomplished').replace('robust', 'comprehensive'))
+      aiText = 'I made the summary sound more formal and executive without making it stiff.'
+    } else if (normalized.includes('job description') || normalized.includes('rewrite') || normalized.includes('tailor')) {
+      handleTailor()
+      setChatDraft('')
+      return
+    } else if (normalized.includes('metric') || normalized.includes('impact')) {
+      updateResumeField(setResume, 'experienceBullets', `${resume.experienceBullets}\nImproved product activation and delivery quality by aligning roadmap decisions with measurable user and business outcomes.`)
+      aiText = 'I added a stronger impact-focused bullet. Add exact numbers later and the ATS score will respond even better.'
+    }
+    setChatMessages((messages) => [
+      ...messages,
+      { id: Date.now(), role: 'user', text: trimmed },
+      { id: Date.now() + 1, role: 'ai', text: aiText },
+    ])
+    setChatDraft('')
+  }
+
+  function addSection(section: string) {
+    setVisibleSections((current) => [...current, section])
+    setExpanded(section)
+    setAddSectionOpen(false)
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#f5f6f8] font-sans text-slate-950">
       <FullscreenTopbar
@@ -864,7 +988,23 @@ function CanvasScreen({
               <X className="h-4 w-4" />
             </button>
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-slate-950">Adedamola's CV</p>
+              {isEditingName ? (
+                <input
+                  value={resumeName}
+                  autoFocus
+                  onChange={(event) => setResumeName(event.target.value)}
+                  onBlur={() => setIsEditingName(false)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') setIsEditingName(false)
+                  }}
+                  className="h-8 w-52 rounded-md border border-slate-200 px-2 text-sm font-bold outline-none focus:border-[#149cf2]"
+                />
+              ) : (
+                <button onClick={() => setIsEditingName(true)} className="flex max-w-56 items-center gap-1 text-left text-sm font-bold text-slate-950">
+                  <span className="truncate">{resumeName || 'Untitled resume'}</span>
+                  <Pencil className="h-3.5 w-3.5 text-slate-400" />
+                </button>
+              )}
               <p className="text-xs text-slate-500">Resume canvas</p>
             </div>
           </div>
@@ -875,48 +1015,98 @@ function CanvasScreen({
               <CheckCircle2 className="h-4 w-4" />
               Saved
             </span>
-            <OutlineButton onClick={() => setScreen('ats')} className="h-9">ATS <Target className="h-4 w-4" /></OutlineButton>
             <OutlineButton onClick={() => setScreen('preview')} className="h-9">Preview <Eye className="h-4 w-4" /></OutlineButton>
             <ActionMenu
               open={downloadOpen}
               setOpen={setDownloadOpen}
-              button={<OutlineButton className="h-9">Download <Download className="h-4 w-4" /></OutlineButton>}
-              items={['Export as PDF', 'Export as DOCX', 'Export as Text']}
-            />
-            <ActionMenu
-              open={saveOpen}
-              setOpen={setSaveOpen}
               alignRight
-              button={<PrimaryButton className="h-9">Save <Save className="ml-2 h-4 w-4" /></PrimaryButton>}
-              items={['Save changes', 'Save as draft']}
+              button={<PrimaryButton className="h-9">Download <Download className="ml-2 h-4 w-4" /></PrimaryButton>}
+              items={['Export as PDF', 'Export as DOCX', 'Export as Text']}
             />
           </>
         )}
       />
-      <main className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)_300px] gap-3 px-4 py-3">
-        <aside className="min-h-0 overflow-y-auto rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="mb-5 flex items-center gap-3 text-sm font-bold">
+      <main className="grid min-h-0 flex-1 grid-cols-[250px_minmax(0,1fr)_260px] gap-3 px-4 py-3">
+        <aside className="flex min-h-0 flex-col overflow-hidden rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-5 flex shrink-0 items-center gap-3 text-sm font-bold">
             <Menu className="h-5 w-5 text-[#123667]" />
             Resume content
             <Pencil className="h-4 w-4 text-slate-500" />
           </div>
-          <div className="mb-5 grid grid-cols-2 rounded-md border border-slate-200 bg-slate-50 p-1 text-center text-sm font-semibold">
-            <button
-              onClick={() => setSidebarTab('create')}
-              className={cn('rounded-md py-2 transition-colors', sidebarTab === 'create' ? 'bg-white shadow-sm' : 'text-slate-500')}
-            >
-              Create
-            </button>
-            <button
-              onClick={() => setSidebarTab('template')}
-              className={cn('rounded-md py-2 transition-colors', sidebarTab === 'template' ? 'bg-white shadow-sm' : 'text-slate-500')}
-            >
-              Template
-            </button>
+          <div className="mb-5 grid shrink-0 grid-cols-3 rounded-md border border-slate-200 bg-slate-50 p-1 text-center text-xs font-semibold">
+            {[
+              ['chat', MessageSquare, 'Chat'],
+              ['create', FileText, 'Create'],
+              ['templates', LayoutTemplate, 'Templates'],
+            ].map(([id, Icon, label]) => (
+              <button
+                key={id as string}
+                onClick={() => setSidebarTab(id as SidebarTab)}
+                className={cn('flex items-center justify-center gap-1 rounded-md py-2 transition-colors', sidebarTab === id ? 'bg-white shadow-sm' : 'text-slate-500')}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {label as string}
+              </button>
+            ))}
           </div>
-          {sidebarTab === 'template' ? (
-            <div className="overflow-y-auto">
-              <div className="grid grid-cols-2 gap-3">
+          {sidebarTab === 'chat' ? (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="min-h-0 flex-1 space-y-4 overflow-hidden pr-1">
+                {chatMessages.length === 0 ? (
+                  <div className="flex h-full items-center justify-center text-center">
+                    <div>
+                      <p className="text-lg font-bold text-slate-900">Paste your job description</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-500">I can rewrite your resume for the role, then we can refine it together.</p>
+                    </div>
+                  </div>
+                ) : (
+                  chatMessages.map((message) => (
+                    <div key={message.id} className={cn('flex items-start gap-2', message.role === 'user' && 'justify-end')}>
+                      <div className={cn(
+                        'max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-6',
+                        message.role === 'user' ? 'rounded-tr-sm bg-[#149cf2] text-white' : 'rounded-tl-sm bg-slate-100 text-slate-700',
+                      )}>
+                        {message.text}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="mt-4 shrink-0 space-y-3 border-t border-slate-200 pt-3">
+                <div className="flex flex-wrap gap-2">
+                  {quickPrompts.map((prompt) => (
+                    <button key={prompt} onClick={() => sendChat(prompt)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[#149cf2] hover:text-[#149cf2]">
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-white p-2">
+                  <textarea
+                    value={chatDraft}
+                    onChange={(event) => setChatDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault()
+                        sendChat()
+                      }
+                    }}
+                    rows={2}
+                    className="min-w-0 flex-1 resize-none text-sm leading-5 outline-none"
+                    placeholder="Message Lightforth AI..."
+                  />
+                  <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#149cf2] text-white">
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : sidebarTab === 'templates' ? (
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <div className="mb-4 rounded-md border border-slate-200 p-3">
+                <p className="text-sm font-bold text-slate-900">{selectedTemplate.name}</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">The main canvas is editable and updates as you switch templates.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 overflow-hidden">
                 {TEMPLATES.map((tmpl) => (
                   <button
                     key={tmpl.id}
@@ -938,10 +1128,10 @@ function CanvasScreen({
               </div>
             </div>
           ) : (
-            <>
+            <div className="min-h-0 flex-1 overflow-hidden">
               <ProgressBadge />
-              <div className="mt-5 divide-y divide-slate-200">
-                {['Personal Information', 'Professional Summary', 'Experience', 'Education', 'Skills', 'Language', 'Certificates', 'Website and Social Links'].map((item) => (
+              <div className="mt-5 divide-y divide-slate-200 overflow-hidden">
+                {visibleSections.map((item) => (
                   <div key={item} className="py-4">
                     <button onClick={() => setExpanded(expanded === item ? '' : item)} className="flex w-full items-center justify-between text-sm font-semibold text-slate-700 transition hover:text-slate-950">
                       {item}
@@ -965,6 +1155,18 @@ function CanvasScreen({
                         )}
                         {item === 'Professional Summary' && (
                           <>
+                            <div className="mb-3 grid grid-cols-3 gap-1.5">
+                              {[
+                                ['Suggest', Wand2],
+                                ['Synonyms', Highlighter],
+                                ['Rewrite', Sparkles],
+                              ].map(([label, Icon]) => (
+                                <button key={label as string} onClick={() => setImproveMode(label === 'Synonyms' ? 'synonyms' : 'menu')} className="flex h-8 items-center justify-center gap-1 rounded-md border border-slate-200 text-[11px] font-semibold text-slate-600 hover:border-[#149cf2] hover:text-[#149cf2]">
+                                  <Icon className="h-3.5 w-3.5" />
+                                  {label as string}
+                                </button>
+                              ))}
+                            </div>
                             <label className="block">
                               <span className="mb-1 block text-xs text-slate-500">Summary</span>
                               <textarea
@@ -1072,6 +1274,15 @@ function CanvasScreen({
                             <SidebarInput label="Portfolio" value={resume.portfolio} onChange={(value) => updateResumeField(setResume, 'portfolio', value)} type="url" />
                           </>
                         )}
+                        {['Projects', 'Awards', 'Volunteer Work', 'Publications'].includes(item) && (
+                          <>
+                            <SidebarInput label={`${item} title`} placeholder={`Add ${item.toLowerCase()} title`} />
+                            <label className="block">
+                              <span className="mb-1 block text-xs text-slate-500">Details</span>
+                              <textarea rows={3} className="lf-input h-auto w-full resize-none py-2 text-sm" placeholder="Add the details you want to show on the resume." />
+                            </label>
+                          </>
+                        )}
                         {item !== 'Experience' && (
                           <button className="mt-1 w-full rounded-md bg-[#149cf2]/10 py-2 text-sm font-semibold text-[#149cf2] hover:bg-[#149cf2]/20 transition-colors">
                             Save
@@ -1081,12 +1292,25 @@ function CanvasScreen({
                     )}
                   </div>
                 ))}
-                <button className="flex h-10 w-full items-center justify-between text-left text-sm font-semibold text-[#149cf2]">
-                  + Add section
-                  <ChevronDown className="h-5 w-5" />
-                </button>
+                <div className="relative py-3">
+                  <button onClick={() => setAddSectionOpen((open) => !open)} className="flex h-10 w-full items-center justify-between text-left text-sm font-semibold text-[#149cf2]">
+                    + Add section
+                    <ChevronDown className="h-5 w-5" />
+                  </button>
+                  {addSectionOpen && (
+                    <div className="absolute bottom-14 left-0 right-0 z-20 rounded-md border border-slate-200 bg-white p-1 shadow-xl">
+                      {availableSections.length ? availableSections.map((section) => (
+                        <button key={section} onClick={() => addSection(section)} className="flex h-9 w-full items-center rounded px-3 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                          {section}
+                        </button>
+                      )) : (
+                        <p className="px-3 py-2 text-sm text-slate-500">All sections are already added.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </>
+            </div>
           )}
         </aside>
 
@@ -1094,18 +1318,22 @@ function CanvasScreen({
           <div className="flex h-10 shrink-0 items-center justify-between border-b border-slate-200 bg-white/80 px-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Canvas</p>
             <div className="flex items-center gap-1 rounded-md border border-slate-200 bg-white p-1 text-slate-500">
-              <button className="grid h-7 w-7 place-items-center rounded hover:bg-slate-50" aria-label="Zoom out"><ZoomOut className="h-4 w-4" /></button>
-              <span className="px-2 text-xs font-semibold text-slate-700">Fit</span>
-              <button className="grid h-7 w-7 place-items-center rounded hover:bg-slate-50" aria-label="Zoom in"><ZoomIn className="h-4 w-4" /></button>
+              <button onClick={() => setZoom((value) => Math.max(0.55, Number((value - 0.08).toFixed(2))))} className="grid h-7 w-7 place-items-center rounded hover:bg-slate-50" aria-label="Zoom out"><ZoomOut className="h-4 w-4" /></button>
+              <button onClick={() => setZoom(0.9)} className="px-2 text-xs font-semibold text-slate-700">{zoomPercent}%</button>
+              <button onClick={() => setZoom((value) => Math.min(1.25, Number((value + 0.08).toFixed(2))))} className="grid h-7 w-7 place-items-center rounded hover:bg-slate-50" aria-label="Zoom in"><ZoomIn className="h-4 w-4" /></button>
             </div>
           </div>
-          <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden px-5 py-4">
-            <ResumePaper editable resume={resume} setResume={setResume} fitViewport />
+          <div className="relative min-h-0 flex-1 overflow-auto px-5 py-4">
+            <div className="mx-auto" style={{ width: 816 * zoom, height: 1056 * zoom }}>
+              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
+                <ResumePaper editable resume={resume} setResume={setResume} templateId={templateId} />
+              </div>
+            </div>
           </div>
           <ImprovePopover mode={improveMode} setMode={setImproveMode} />
         </section>
 
-        <CanvasRightPanel jobDescription={jobDescription} setJobDescription={setJobDescription} />
+        <CanvasRightPanel resume={resume} jobDescription={jobDescription} />
       </main>
     </div>
   )
@@ -1155,13 +1383,16 @@ function ActionMenu({
   open,
   setOpen,
   alignRight,
+  icon = 'download',
 }: {
   button: ReactNode
   items: string[]
   open: boolean
   setOpen: (open: boolean) => void
   alignRight?: boolean
+  icon?: 'download' | 'save'
 }) {
+  const Icon = icon === 'save' ? Save : Download
   return (
     <div className="relative">
       <div onClick={() => setOpen(!open)}>{button}</div>
@@ -1176,7 +1407,7 @@ function ActionMenu({
                 className="flex h-10 w-full items-center justify-between rounded-md px-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 {item}
-                <Download className="h-4 w-4 text-slate-400" />
+                <Icon className="h-4 w-4 text-slate-400" />
               </button>
             ))}
           </div>
@@ -1234,36 +1465,58 @@ function ImprovePopover({ mode, setMode }: { mode: ImproveMode; setMode: (mode: 
 }
 
 function CanvasRightPanel({
+  resume,
   jobDescription,
-  setJobDescription,
 }: {
+  resume: ResumeData
   jobDescription: string
-  setJobDescription: Dispatch<SetStateAction<string>>
 }) {
-  const canTailor = jobDescription.trim().length > 0
+  const insights = getATSInsights(resume, jobDescription)
   return (
-    <aside className="min-h-0 space-y-5 overflow-y-auto rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-      <section>
-        <h3 className="mb-3 flex items-center gap-2 text-sm font-bold"><Info className="h-4 w-4" /> ATS Tips</h3>
-        <p className="text-sm leading-6 text-slate-600">The gatekeeper sorting resumes that come in is not always the direct hiring manager, so keep your resume language at a middle school level.</p>
-        <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-600">
-          <li>Highlight 6-8 skills that are most relevant to your desired job.</li>
-          <li>Use short bulleted phrases - 3 words or less.</li>
-          <li>Emphasize the skills that are required in the job description.</li>
-        </ul>
+    <aside className="min-h-0 space-y-4 overflow-hidden rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+      <section className="rounded-md border border-slate-200 p-4">
+        <div className="flex items-center gap-4">
+          <div className="relative grid h-16 w-16 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#16a34a ${insights.score}%, #e5e7eb 0)` }}>
+            <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-sm font-bold text-slate-700">{insights.score}%</div>
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Live ATS score</h3>
+            <p className="mt-1 text-xs leading-5 text-slate-500">Updates as you edit the resume and the chat job prompt.</p>
+          </div>
+        </div>
+        <div className="mt-5 space-y-3">
+          {insights.scores.map(([label, value]) => (
+            <div key={label}>
+              <div className="mb-1 flex justify-between text-xs font-semibold text-slate-500"><span>{label}</span><span>{value}%</span></div>
+              <div className="h-1.5 rounded-full bg-slate-200"><div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${value}%` }} /></div>
+            </div>
+          ))}
+        </div>
       </section>
-      <section>
-        <h3 className="mb-3 text-sm font-bold">Job Description</h3>
-        <textarea
-          value={jobDescription}
-          onChange={(event) => setJobDescription(event.target.value)}
-          className="lf-input h-44 w-full resize-none bg-white p-3 text-sm leading-6"
-          placeholder="Write or paste the job description here"
-        />
-        <button className={cn('mt-4 w-full rounded-md px-4 py-2.5 text-sm font-bold text-white', canTailor ? 'bg-[#149cf2]' : 'bg-primary/35')}>
-          <Sparkles className="mr-2 inline h-4 w-4" />Tailor my Resume
-        </button>
-        <div className="mt-3 rounded-md bg-sky-100 p-3 text-sm leading-6 text-blue-700">Our AI will generate a resume based on this job description.</div>
+      <section className="rounded-md border border-slate-200 p-4">
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-bold"><Info className="h-4 w-4" /> Live ATS tips</h3>
+        <div className="space-y-2.5">
+          {insights.checks.map((check) => (
+            <p key={check.label} className="flex items-start gap-2 text-sm leading-5 text-slate-600">
+              <span className={cn('mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white', check.done ? 'bg-emerald-500' : 'bg-amber-500')}>
+                {check.done ? '✓' : '!'}
+              </span>
+              {check.label}
+            </p>
+          ))}
+        </div>
+        {insights.missingKeywords.length > 0 && (
+          <div className="mt-4 rounded-md bg-amber-50 p-3">
+            <p className="text-xs font-bold text-amber-800">Recommended keywords</p>
+            <p className="mt-1 text-xs leading-5 text-amber-700">{insights.missingKeywords.join(', ')}</p>
+          </div>
+        )}
+        {insights.matchedKeywords.length > 0 && (
+          <div className="mt-3 rounded-md bg-emerald-50 p-3">
+            <p className="text-xs font-bold text-emerald-800">Already matched</p>
+            <p className="mt-1 text-xs leading-5 text-emerald-700">{insights.matchedKeywords.join(', ')}</p>
+          </div>
+        )}
       </section>
     </aside>
   )
@@ -1306,6 +1559,7 @@ function ATSScreen({
               alignRight
               button={<PrimaryButton className="h-9">Save <Save className="ml-2 h-4 w-4" /></PrimaryButton>}
               items={['Save changes', 'Save as draft']}
+              icon="save"
             />
             <button onClick={() => navigate('/documents')} aria-label="Close ATS view" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50">
               <X className="h-4 w-4" />
@@ -1539,11 +1793,11 @@ function TemplateSelectScreen({
   const navigate = useNavigate()
   const selectedTemplate = TEMPLATES.find((template) => template.id === templateId) ?? TEMPLATES[0]
   return (
-    <div className="flex min-h-screen flex-col bg-white font-sans text-slate-950">
+    <div className="flex h-screen flex-col overflow-hidden bg-white font-sans text-slate-950">
       <CreateResumeTopbar onBack={() => navigate(-1)} onClose={() => navigate('/documents')} />
-      <main className="grid flex-1 grid-cols-[220px_minmax(0,560px)_1fr] bg-white">
+      <main className="grid min-h-0 flex-1 grid-cols-[220px_minmax(0,560px)_1fr] bg-white">
         <CreateResumeSteps active="template" />
-        <section className="border-r border-border px-6 py-8">
+        <section className="min-h-0 overflow-y-auto border-r border-border px-6 py-8">
           <h1 className="text-xl font-bold text-foreground">Choose a resume template</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Select a professionally designed template. All templates are ATS-optimized.</p>
           <div className="mt-6 grid grid-cols-2 gap-4">
@@ -1578,13 +1832,13 @@ function TemplateSelectScreen({
             </PrimaryButton>
           </div>
         </section>
-        <section className="bg-slate-50">
+        <section className="flex min-h-0 flex-col bg-slate-50">
           <div className="border-b border-border bg-white px-6 py-4">
             <h2 className="text-base font-bold text-foreground">Template Preview</h2>
           </div>
-          <div className="flex justify-center overflow-y-auto p-8">
-            <div className="w-[560px] rounded-md bg-white p-4 shadow-lg">
-              <img src={selectedTemplate.src} alt={`${selectedTemplate.name} preview`} className="w-full object-contain" />
+          <div className="flex min-h-0 flex-1 justify-center overflow-hidden p-8">
+            <div className="h-full max-h-[calc(100vh-10rem)] w-[560px] rounded-md bg-white p-4 shadow-lg">
+              <img src={selectedTemplate.src} alt={`${selectedTemplate.name} preview`} className="h-full w-full object-contain object-top" />
             </div>
           </div>
         </section>
@@ -1664,13 +1918,14 @@ export default function ResumeBuilder() {
   const [searchParams] = useSearchParams()
   const mode = searchParams.get('mode') ?? 'scratch'
   // resume: upload → template → canvas
+  // tailor: template → canvas (dashboard already has an uploaded resume)
   // scratch: template → jobTitle → summary → … → canvas
   const [screen, setScreen] = useState<BuilderScreen>(mode === 'resume' ? 'upload' : 'template')
   const [resume, setResume] = useState<ResumeData>(initialResumeData)
   const [templateId, setTemplateId] = useState<string>('t01')
   const [jobDescription, setJobDescription] = useState(initialJobDescription)
 
-  const nextScreenAfterTemplate: BuilderScreen = mode === 'resume' ? 'canvas' : 'jobTitle'
+  const nextScreenAfterTemplate: BuilderScreen = mode === 'resume' || mode === 'tailor' ? 'canvas' : 'jobTitle'
 
   if (screen === 'upload') return <UploadResumeScreen setScreen={setScreen} />
   if (screen === 'template') return <TemplateSelectScreen setScreen={setScreen} templateId={templateId} setTemplateId={setTemplateId} nextScreen={nextScreenAfterTemplate} />

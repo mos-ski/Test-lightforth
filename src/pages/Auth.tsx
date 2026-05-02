@@ -12,7 +12,7 @@ function AuthShell({ children, showFooter = true }: { children: React.ReactNode;
   return (
     <div className="flex min-h-screen flex-col bg-white font-sans">
       <header className="flex h-20 items-center justify-between border-b px-8 md:px-16">
-        <LightforthLogo className="h-8" to="/auth" />
+        <LightforthLogo className="h-8" />
         <a
           href="https://help.lightforth.ai"
           target="_blank"

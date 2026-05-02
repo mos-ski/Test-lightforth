@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  ArrowLeft, X, Settings, Upload, Trash2, Mic, Sparkles,
+  ArrowLeft, X, Settings, Upload, FileText, Mic, Sparkles,
   ChevronDown, Search, Play, Monitor,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -62,7 +62,7 @@ function PreferenceModal({
 }) {
   return (
     <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+      <div className="lf-panel w-full max-w-md p-6 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-foreground">Preference</h2>
           <button onClick={onClose}><X className="h-5 w-5 text-muted-foreground" /></button>
@@ -76,7 +76,7 @@ function PreferenceModal({
               key={t}
               onClick={() => setResponseType(t)}
               className={cn(
-                'flex-1 flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 text-sm font-medium transition-colors',
+                'flex-1 flex items-center gap-2 rounded-lg border-2 px-3 py-2.5 text-sm font-medium transition-colors',
                 responseType === t ? 'border-primary text-primary bg-primary/5' : 'border-border text-foreground',
               )}
             >
@@ -91,7 +91,7 @@ function PreferenceModal({
           ))}
         </div>
 
-        <div className="rounded-xl border border-border bg-gray-50 p-4 mb-3 text-sm leading-relaxed text-foreground">
+        <div className="mb-3 rounded-lg border border-border bg-muted/50 p-4 text-sm leading-relaxed text-foreground">
           {responseType === 'default' && (
             <p>
               &quot;I redesigned a <strong>vehicle maintenance app</strong> that had low engagement. Led a team to identify pain points, improved UI, and introduced a personalized dashboard. <strong><em>Engagement increased by 30% in 3 months</em></strong>, and customer satisfaction improved significantly. Strong experience in user centered design and cross-functional collaboration&quot;
@@ -131,7 +131,7 @@ function PreferenceModal({
 
         <button
           onClick={onNext}
-          className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white hover:bg-primary/90"
+          className="h-11 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary/90"
         >
           Next
         </button>
@@ -261,36 +261,30 @@ function SetupContent({
 }) {
   return (
     <>
-      {/* Top bar */}
-      <div className="flex h-14 items-center justify-between border-b border-border px-6">
-        <button onClick={onBack} className="flex items-center gap-2 text-sm text-foreground hover:text-primary">
+      <div className="flex h-[70px] items-center justify-between border-b border-border bg-white px-16">
+        <button onClick={onBack} className="flex items-center gap-3 text-sm font-bold text-foreground hover:text-primary">
           <ArrowLeft className="h-4 w-4" /> Interview Copilot
         </button>
-        <button onClick={onBack}><X className="h-5 w-5 text-muted-foreground hover:text-foreground" /></button>
+        <button onClick={onBack} aria-label="Close setup"><X className="h-5 w-5 text-muted-foreground hover:text-foreground" /></button>
       </div>
 
-      {/* Content */}
-      <div className="mx-auto max-w-lg px-6 py-10">
-        {/* Greeting */}
+      <main className="flex h-[calc(100vh-70px)] items-center justify-center bg-background px-6 py-8">
+      <div className="lf-panel w-full max-w-[620px] p-8">
         <div className="mb-6">
-          <p className="text-3xl mb-1">👋</p>
-          <h1 className="text-2xl font-bold text-foreground leading-tight">
-            Hola, Welcome to<br />Interview Co-Pilot
-          </h1>
-          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-            You&apos;ve already applied and need to prep now. Learn how to answer the most common interview questions, sharpen your presentation skills, and master the art of selling yourself. Stand out from the competition with techniques other candidates don&apos;t know.
+          <h1 className="lf-overlay-title">Set up Interview Copilot</h1>
+          <p className="lf-body mt-3">
+            Connect your role, resume, and audio so Copilot can guide you during the live interview.
           </p>
         </div>
 
-        {/* Job title */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-foreground mb-1.5">Job title</label>
+          <label className="lf-label mb-2 block">Job title</label>
           <div className="relative">
             <input
               value={jobTitle}
               onChange={e => setJobTitle(e.target.value)}
               placeholder="Enter job role"
-              className="w-full rounded-lg border border-input px-3 py-2.5 text-sm outline-none focus:border-primary pr-8"
+              className="lf-input h-11 pr-8"
             />
             {jobTitle && (
               <button onClick={() => setJobTitle('')} className="absolute right-2.5 top-1/2 -translate-y-1/2">
@@ -304,10 +298,7 @@ function SetupContent({
               <button
                 key={s}
                 onClick={() => setJobTitle(s)}
-                className={cn(
-                  'text-xs hover:underline',
-                  jobTitle === s ? 'text-primary font-medium' : 'text-muted-foreground',
-                )}
+                className="text-xs font-medium text-primary hover:underline"
               >
                 {s}
               </button>
@@ -315,55 +306,51 @@ function SetupContent({
           </div>
         </div>
 
-        {/* Choose Resume */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-foreground mb-1.5">Choose Resume</label>
-          <div className="flex rounded-lg border border-border overflow-hidden">
+          <label className="lf-label mb-2 block">Choose resume</label>
+          <div className="grid gap-3 md:grid-cols-2">
             <button
               onClick={() => setResumeType('upload')}
               className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 py-2 text-sm transition-colors',
-                resumeType === 'upload' ? 'border-primary text-primary bg-primary/5' : 'text-muted-foreground hover:bg-muted',
+                'flex h-11 items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition-colors',
+                resumeType === 'upload' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted',
               )}
             >
-              <Upload className="h-3.5 w-3.5" /> Upload a new resume
+              <Upload className="h-4 w-4" /> Upload a new resume
             </button>
             <button
               onClick={() => setResumeType('lightforth')}
               className={cn(
-                'flex-1 relative flex items-center justify-center gap-1.5 py-2 text-sm border-l border-border transition-colors',
-                resumeType === 'lightforth' ? 'border-primary text-primary bg-primary/5' : 'text-muted-foreground hover:bg-muted',
+                'relative flex h-11 items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition-colors',
+                resumeType === 'lightforth' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted',
               )}
             >
               {resumeType === 'lightforth' && (
-                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full border border-primary bg-white px-1.5 py-0.5 text-[9px] font-bold text-primary">
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full border border-primary bg-white px-2 py-0.5 text-[9px] font-bold text-primary">
                   RECOMMENDED
                 </span>
               )}
-              → Use Lightforth Resume
+              <Sparkles className="h-4 w-4" /> Use Lightforth Resume
             </button>
           </div>
 
           {resumeType === 'lightforth' && (
-            <div className="mt-2 flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-red-100">
-                <span className="text-[10px] font-bold text-red-500">PDF</span>
-              </div>
-              <span className="flex-1 text-sm font-medium text-foreground">Darnell Smith</span>
-              <button><Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" /></button>
+            <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <FileText className="h-4 w-4 fill-red-500 text-red-500" />
+              <span>Darnell_Smith_resume.pdf</span>
+              <button aria-label="Remove resume"><X className="h-3.5 w-3.5 hover:text-destructive" /></button>
             </div>
           )}
         </div>
 
-        {/* Job description */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-foreground mb-1.5">Job description</label>
+          <label className="lf-label mb-2 block">Job description <span className="text-xs text-muted-foreground">(optional)</span></label>
           <div className="relative">
             <textarea
               value={jobDesc}
               onChange={e => setJobDesc(e.target.value)}
               placeholder="Write or paste here..."
-              className="w-full h-24 rounded-lg border border-input px-3 py-2.5 text-sm outline-none focus:border-primary resize-none"
+              className="lf-input h-28 resize-none py-3"
             />
             <button className="absolute bottom-2 right-2 flex items-center gap-1 text-xs text-primary hover:underline">
               <Sparkles className="h-3 w-3" /> Suggest for me
@@ -371,15 +358,14 @@ function SetupContent({
           </div>
         </div>
 
-        {/* Select Audio */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-sm font-medium text-foreground">Select Audio</label>
+            <label className="lf-label">Select audio</label>
             {audioConnected && <span className="text-xs font-medium text-green-600">Connected</span>}
           </div>
           <button
             onClick={() => setAudioConnected(true)}
-            className="w-full flex items-center justify-between rounded-lg border border-input px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+            className="flex h-11 w-full items-center justify-between rounded-lg border border-input bg-white px-3 text-sm text-foreground transition-colors hover:bg-muted"
           >
             <span className="flex items-center gap-2">
               <Mic className="h-4 w-4 text-muted-foreground" />
@@ -389,23 +375,23 @@ function SetupContent({
           </button>
         </div>
 
-        {/* Buttons */}
         <button
           onClick={() => setAudioConnected(true)}
-          className="mb-2 w-full rounded-xl bg-violet-600 py-3 text-sm font-semibold text-white hover:bg-violet-700 transition-colors"
+          className="mb-2 h-11 w-full rounded-lg border border-border bg-white text-sm font-semibold text-foreground transition-colors hover:bg-muted"
         >
           Enable Microphone Access
         </button>
         <button
           onClick={onContinue}
           className={cn(
-            'w-full rounded-xl py-3 text-sm font-semibold text-white transition-colors',
+            'h-11 w-full rounded-lg text-sm font-semibold text-white transition-colors',
             jobTitle ? 'bg-primary hover:bg-primary/90' : 'bg-primary/40 cursor-not-allowed',
           )}
         >
           Continue
         </button>
       </div>
+      </main>
     </>
   )
 }
@@ -659,25 +645,26 @@ function LiveInterview({
 function CompleteScreen({ onGoHome }: { onGoHome: () => void }) {
   return (
     <>
-      <div className="flex h-14 items-center justify-between border-b border-border px-6">
-        <button onClick={onGoHome} className="flex items-center gap-2 text-sm text-foreground">
+      <div className="flex h-[70px] items-center justify-between border-b border-border bg-white px-16">
+        <button onClick={onGoHome} className="flex items-center gap-3 text-sm font-bold text-foreground">
           <ArrowLeft className="h-4 w-4" /> Interview Copilot
         </button>
-        <button onClick={onGoHome}><X className="h-5 w-5 text-muted-foreground" /></button>
+        <button onClick={onGoHome} aria-label="Close complete screen"><X className="h-5 w-5 text-muted-foreground" /></button>
       </div>
-      <div className="flex flex-1 flex-col items-center justify-center text-center px-6">
-        <p className="text-5xl mb-4">👏</p>
-        <h1 className="text-3xl font-bold text-foreground mb-3">Your Interview is complete!</h1>
-        <p className="text-sm text-muted-foreground max-w-sm mb-8">
+      <main className="flex h-[calc(100vh-70px)] items-center justify-center bg-background px-6 py-8">
+      <div className="lf-panel w-full max-w-[620px] p-8 text-left">
+        <h1 className="lf-overlay-title">Your Interview is complete!</h1>
+        <p className="lf-body mt-5">
           Thank you for completing the AI interview. Your responses have been recorded and will be evaluated by our AI to provide an unbiased assessment.
         </p>
         <button
           onClick={onGoHome}
-          className="rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-white hover:bg-primary/90"
+          className="mt-10 h-11 w-full rounded-lg bg-primary text-sm font-semibold text-white hover:bg-primary/90"
         >
           Go Home
         </button>
       </div>
+      </main>
     </>
   )
 }
@@ -830,7 +817,7 @@ export default function InterviewCopilot() {
 
       {/* Setup overlay */}
       {view === 'setup' && (
-        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-hidden bg-background">
           <SetupContent
             jobTitle={jobTitle}
             setJobTitle={setJobTitle}
@@ -869,7 +856,7 @@ export default function InterviewCopilot() {
 
       {/* Complete screen */}
       {view === 'complete' && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-white">
+        <div className="fixed inset-0 z-50 flex flex-col bg-background">
           <CompleteScreen onGoHome={() => setView('landing')} />
         </div>
       )}

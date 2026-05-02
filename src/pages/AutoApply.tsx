@@ -1161,7 +1161,7 @@ function AppliedTab({
 
 export default function AutoApply() {
   const { user } = useAuth()
-  const [view, setView] = useState<AutoApplyView>('setup')
+  const [view, setView] = useState<AutoApplyView>('dashboard')
   const [setupStep, setSetupStep] = useState<SetupStep>(1)
   const [dashTab, setDashTab] = useState<DashboardTab>('jobs')
   const [selectedJob, setSelectedJob] = useState<string | null>(null)
