@@ -1,1107 +1,979 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
-import { cn } from '@/lib/utils'
-import LightforthLogo from '@/components/shared/LightforthLogo'
 import {
-  ArrowLeft, X, Check, ChevronDown, RefreshCw, Pencil, Download, Share,
-  Sparkles, Info, User, AlignLeft, Briefcase, GraduationCap,
-  FolderGit2, Code2, Languages, Award, Globe, Save,
+  AlignLeft,
+  ArrowLeft,
+  Award,
+  Briefcase,
+  Calendar,
+  Check,
+  ChevronDown,
+  Download,
+  Eye,
+  FileText,
+  Globe,
+  GraduationCap,
+  Info,
+  Languages,
+  MapPin,
+  Menu,
+  Pencil,
+  Plus,
+  Save,
+  Search,
+  Sparkles,
+  Target,
+  Trash2,
+  X,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-type BuilderStep = 'template' | 'title' | 'build'
-type BuilderView = 'editor' | 'diff' | 'ats' | 'preview'
+type BuilderScreen =
+  | 'summary'
+  | 'experienceList'
+  | 'experienceForm'
+  | 'educationList'
+  | 'educationForm'
+  | 'skills'
+  | 'contact'
+  | 'language'
+  | 'canvas'
+  | 'ats'
 
-const TEMPLATES = [
-  {
-    name: 'Professional',
-    desc: 'Clean, crisp design with Libre Baskerville serif font. Traditional and ATS-friendly.',
-    font: 'font-serif',
-    headerStyle: 'uppercase tracking-widest',
-  },
-  {
-    name: 'Lora Modern',
-    desc: 'Modern design with Lora font. Perfect for creative professionals.',
-    font: 'font-serif',
-    headerStyle: 'tracking-wide',
-  },
-  {
-    name: 'Garamond Classic',
-    desc: 'Elegant Garamond typeface for a timeless, professional look.',
-    font: 'font-serif',
-    headerStyle: 'uppercase',
-  },
-  {
-    name: 'Calibri Clean',
-    desc: 'Clean and readable Calibri design for modern workplaces.',
-    font: 'font-sans',
-    headerStyle: 'uppercase tracking-wider',
-  },
+type TourStep = 'progress' | 'tips' | 'suggestions' | null
+type ImproveMode = 'closed' | 'menu' | 'synonyms' | 'rewrite'
+
+const sections = [
+  'Professional Summary',
+  'Work Experience',
+  'Education',
+  'Skills',
+  'Contact Information',
 ]
 
-type FieldDef = { label: string; placeholder?: string; wide?: boolean; type?: 'text' | 'email' | 'tel' | 'url' | 'date' | 'textarea' }
+const extraSections = ['Language', 'Projects', 'Awards', 'Referee']
 
-const ACCORDION_SECTIONS: { label: string; icon: React.ElementType; fields: FieldDef[] }[] = [
-  {
-    label: 'Personal Information', icon: User,
-    fields: [
-      { label: 'First Name', placeholder: 'Darnell' },
-      { label: 'Last Name', placeholder: 'Smith' },
-      { label: 'Email', placeholder: 'demo@lightforth.ai', type: 'email', wide: true },
-      { label: 'Phone', placeholder: '+1 234 567 8901', type: 'tel' },
-      { label: 'City / Location', placeholder: 'New York, NY' },
-      { label: 'Website', placeholder: 'https://yoursite.com', type: 'url', wide: true },
-    ],
-  },
-  {
-    label: 'Professional Summary', icon: AlignLeft,
-    fields: [
-      { label: 'Summary', placeholder: 'Write a short professional summary…', type: 'textarea', wide: true },
-    ],
-  },
-  {
-    label: 'Experience', icon: Briefcase,
-    fields: [
-      { label: 'Job Title', placeholder: 'Product Manager' },
-      { label: 'Company', placeholder: 'Lightforth' },
-      { label: 'Start Date', placeholder: 'Jan 2022', type: 'text' },
-      { label: 'End Date', placeholder: 'Present' },
-      { label: 'Location', placeholder: 'Lagos, Nigeria', wide: true },
-      { label: 'Description', placeholder: 'Describe your responsibilities and achievements…', type: 'textarea', wide: true },
-    ],
-  },
-  {
-    label: 'Education', icon: GraduationCap,
-    fields: [
-      { label: 'Degree', placeholder: 'B.Sc. Computer Science' },
-      { label: 'School', placeholder: 'University of Lagos' },
-      { label: 'Start Year', placeholder: '2014' },
-      { label: 'End Year', placeholder: '2018' },
-      { label: 'Description', placeholder: 'Relevant coursework, achievements…', type: 'textarea', wide: true },
-    ],
-  },
-  {
-    label: 'Projects', icon: FolderGit2,
-    fields: [
-      { label: 'Project Name', placeholder: 'AI Resume Builder', wide: true },
-      { label: 'URL', placeholder: 'https://github.com/...', type: 'url', wide: true },
-      { label: 'Description', placeholder: 'What did you build and what impact did it have?', type: 'textarea', wide: true },
-    ],
-  },
-  {
-    label: 'Skills', icon: Code2,
-    fields: [
-      { label: 'Skills', placeholder: 'e.g. React, TypeScript, Figma, Agile…', type: 'textarea', wide: true },
-    ],
-  },
-  {
-    label: 'Language', icon: Languages,
-    fields: [
-      { label: 'Language', placeholder: 'English' },
-      { label: 'Proficiency', placeholder: 'Native / Fluent / Intermediate' },
-    ],
-  },
-  {
-    label: 'Certificate', icon: Award,
-    fields: [
-      { label: 'Certificate Name', placeholder: 'AWS Solutions Architect', wide: true },
-      { label: 'Issuing Organisation', placeholder: 'Amazon Web Services' },
-      { label: 'Issue Date', placeholder: 'Mar 2023' },
-    ],
-  },
-  {
-    label: 'Website and Social Links', icon: Globe,
-    fields: [
-      { label: 'LinkedIn', placeholder: 'https://linkedin.com/in/yourname', type: 'url', wide: true },
-      { label: 'GitHub', placeholder: 'https://github.com/yourname', type: 'url', wide: true },
-      { label: 'Portfolio', placeholder: 'https://yourportfolio.com', type: 'url', wide: true },
-      { label: 'Twitter / X', placeholder: 'https://twitter.com/yourhandle', type: 'url', wide: true },
-    ],
-  },
+const suggestions = [
+  'Diligent Senior Product Manager offering [Number] years of success in product roadmap development, market research and data analysis. Highly skilled in identifying opportunities to maximize revenue. Driven and strategic with proven history of superior market penetration and product launch.',
+  'Experienced with product development, market analysis, and lifecycle management. Utilizes cross-functional collaboration to drive product success and adaptability to changing market needs.',
+  'Motivated professional with extensive experience in product sales and distribution. Possesses unmatched leadership and strategy skills to maximize company revenue.',
 ]
 
-// ---------------------------------------------------------------------------
-// MiniResumeMockup — tiny thumbnail using scaled real resume content
-// ---------------------------------------------------------------------------
-function MiniResumeMockup({ template }: { template: string }) {
-  const isSans = template === 'Calibri Clean'
+const skillOptions = ['Figma', 'Graphic Design', 'Photoshop', 'Miro', 'Prototyping', 'Research']
+const languageOptions = ['English', 'French', 'Spanish']
+
+function BuilderHeader({ title, right }: { title: string; right?: ReactNode }) {
+  const navigate = useNavigate()
   return (
-    <div className="h-full w-full overflow-hidden">
-      <div
-        className={cn(
-          'w-[530px] origin-top-left p-6 leading-snug',
-          isSans ? 'font-sans' : 'font-serif',
-        )}
-        style={{ transform: 'scale(0.37)' }}
+    <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-10">
+      <button
+        onClick={() => navigate('/my-documents')}
+        className="inline-flex items-center gap-3 text-base font-semibold text-slate-900"
       >
-        <p className="text-center text-lg font-bold uppercase tracking-widest mb-0.5">ANTHONY WILLIAM</p>
-        <p className="text-center text-[11px] text-gray-500 mb-2">
-          +1 (555) 123-4567 | anthony@email.com | San Francisco, CA | linkedin.com/in/anthonyw
-        </p>
-        <div className="border-t border-gray-400 mb-2" />
-        <p className="text-[11px] font-bold uppercase tracking-wider mb-1">PROFESSIONAL SUMMARY</p>
-        <p className="text-[10px] text-gray-600 mb-2 leading-relaxed">
-          Results-driven Senior Product Manager with 8+ years of experience leading cross-functional teams to deliver innovative digital products. Proven track record of increasing user engagement by 45%.
-        </p>
-        <div className="border-t border-gray-300 mb-2" />
-        <p className="text-[11px] font-bold uppercase tracking-wider mb-1">EXPERIENCE</p>
-        <div className="mb-2">
-          <div className="flex justify-between">
-            <p className="text-[11px] font-bold">Lightforth</p>
-            <p className="text-[10px] text-gray-500">Jan 2022 – Present</p>
-          </div>
-          <p className="text-[10px] italic text-gray-500 mb-0.5">Senior Product Manager, San Francisco, CA</p>
-          <ul className="text-[10px] text-gray-600 space-y-0.5">
-            <li>• Led development and launch of AI-powered resume builder, increasing user acquisition by 150%</li>
-            <li>• Managed cross-functional team of 12 engineers, designers, and data scientists</li>
-            <li>• Implemented A/B testing framework improving conversion rates by 23%</li>
-          </ul>
-        </div>
-        <div className="mb-2">
-          <div className="flex justify-between">
-            <p className="text-[11px] font-bold">TechCorp Solutions</p>
-            <p className="text-[10px] text-gray-500">Mar 2019 – Dec 2021</p>
-          </div>
-          <p className="text-[10px] italic text-gray-500 mb-0.5">Product Manager, Austin, TX</p>
-          <ul className="text-[10px] text-gray-600 space-y-0.5">
-            <li>• Spearheaded redesign of flagship SaaS platform improving satisfaction 40%</li>
-            <li>• Conducted user research and competitive analysis identifying opportunities worth $5M+</li>
-          </ul>
-        </div>
-        <div className="border-t border-gray-300 mb-2" />
-        <p className="text-[11px] font-bold uppercase tracking-wider mb-1">EDUCATION</p>
-        <div className="flex justify-between mb-1">
-          <div>
-            <p className="text-[11px] font-bold">University of California, Berkeley</p>
-            <p className="text-[10px] italic text-gray-500">Bachelor of Science, Computer Science</p>
-          </div>
-          <p className="text-[10px] text-gray-500">2015 – 2019</p>
-        </div>
-        <div className="border-t border-gray-300 mb-2" />
-        <p className="text-[11px] font-bold uppercase tracking-wider mb-1">SKILLS</p>
-        <p className="text-[10px] text-gray-600">
-          Product Strategy · User Research · Agile/Scrum · A/B Testing · SQL · Figma · JIRA · React
-        </p>
-      </div>
-    </div>
+        <ArrowLeft className="h-5 w-5 text-slate-600" />
+        {title}
+      </button>
+      {right}
+    </header>
   )
 }
 
-// ---------------------------------------------------------------------------
-// LargeResumeMockup — right preview panel on template step
-// ---------------------------------------------------------------------------
-function LargeResumeMockup() {
+function PrimaryButton({ children, onClick, className }: { children: ReactNode; onClick?: () => void; className?: string }) {
   return (
-    <div className="overflow-hidden rounded-sm bg-white shadow">
-      <div className="font-serif p-8 text-[9px] leading-snug">
-        <p className="text-center text-base font-bold uppercase tracking-widest mb-0.5">ANTHONY WILLIAMS</p>
-        <p className="text-center text-gray-500 mb-2">
-          +1 (555) 123-4567 · anthony.williams@email.com · San Francisco, CA · linkedin.com/in/anthonywilliams · anthonywilliams.dev
-        </p>
-        <div className="border-t-2 border-gray-800 mb-2" />
-        <p className="font-bold uppercase tracking-wider mb-1">PROFESSIONAL SUMMARY</p>
-        <p className="text-gray-600 mb-2 italic leading-relaxed">
-          Results-driven Senior Product Manager with 8+ years of experience leading cross-functional teams to deliver innovative digital products. Proven track record of increasing user engagement by 45% and driving $2M+ in annual revenue growth. Expertise in agile methodologies, data-driven decision making, and stakeholder management. Passionate about creating user-centric solutions.
-        </p>
-        <p className="font-bold uppercase tracking-wider mb-1">EXPERIENCE</p>
-        <div className="border-t border-gray-400 mb-1" />
-        <div className="mb-2">
-          <div className="flex justify-between">
-            <div>
-              <p className="font-bold">Lightforth</p>
-              <p className="text-[8px] italic text-gray-500">Senior Product Manager, San Francisco, CA</p>
-            </div>
-            <p className="text-gray-500">Jan 2022 – Present</p>
-          </div>
-          <ul className="mt-1 space-y-0.5 text-gray-600">
-            <li>• Led the development and launch of AI-powered resume builder, increasing user acquisition by 150% within 6 months</li>
-            <li>• Managed a cross-functional team of 12 engineers, designers, and data scientists to deliver product roadmap on schedule</li>
-            <li>• Implemented data-driven A/B testing framework that improved conversion rates by 23%</li>
-            <li>• Collaborated with C-suite executives to align product strategy with company vision and quarterly OKRs</li>
-            <li>• Reduced customer churn by 25% through implementation of personalized onboarding experience</li>
-          </ul>
-        </div>
-        <div className="mb-2">
-          <div className="flex justify-between">
-            <div>
-              <p className="font-bold">TechCorp Solutions</p>
-              <p className="text-[8px] italic text-gray-500">Product Manager, Austin, TX</p>
-            </div>
-            <p className="text-gray-500">Mar 2019 – Dec 2021</p>
-          </div>
-          <ul className="mt-1 space-y-0.5 text-gray-600">
-            <li>• Spearheaded the redesign of flagship SaaS platform, resulting in 40% improvement in user satisfaction scores</li>
-            <li>• Conducted extensive user research and competitive analysis to identify opportunities worth $5M+</li>
-            <li>• Defined and prioritized product backlog for 3 agile development teams across multiple time zones</li>
-          </ul>
-        </div>
-        <p className="font-bold uppercase tracking-wider mb-1">EDUCATION</p>
-        <div className="border-t border-gray-400 mb-1" />
-        <div className="flex justify-between mb-2">
-          <div>
-            <p className="font-bold">University of California, Berkeley</p>
-            <p className="italic text-gray-500">Bachelor of Science, Computer Science</p>
-          </div>
-          <p className="text-gray-500">2015 – 2019</p>
-        </div>
-        <p className="font-bold uppercase tracking-wider mb-1">SKILLS</p>
-        <div className="border-t border-gray-400 mb-1" />
-        <p className="text-gray-600">
-          Product Strategy · User Research · Agile/Scrum · A/B Testing · SQL · Figma · JIRA · React · TypeScript · Data Analysis
-        </p>
+    <button
+      onClick={onClick}
+      className={cn(
+        'inline-flex h-12 items-center justify-center rounded-md bg-[#149cf2] px-6 text-base font-semibold text-white transition hover:bg-[#0d8dde]',
+        className,
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+function OutlineButton({ children, onClick, className }: { children: ReactNode; onClick?: () => void; className?: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'inline-flex h-11 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-5 text-base font-semibold text-slate-900 transition hover:bg-slate-50',
+        className,
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+function ProgressBadge({ label = 'Your Progress', sub = 'Start creating your resume' }: { label?: string; sub?: string }) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="relative grid h-16 w-16 place-items-center rounded-full bg-[conic-gradient(#149cf2_40%,#e5e7eb_0)]">
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-white text-sm font-bold text-slate-700">40%</div>
+      </div>
+      <div>
+        <p className="text-lg font-bold text-slate-950">{label}</p>
+        <p className="text-base text-slate-500">{sub}</p>
       </div>
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// ResumeDoc — live resume preview in center panel
-// ---------------------------------------------------------------------------
-function ResumeDoc({
-  showDiff = false,
-  userName = 'Darnell Smith',
-}: {
-  showDiff?: boolean
-  userName?: string
+function PreviewRail({ health = false }: { health?: boolean }) {
+  return (
+    <aside className="hidden w-[330px] shrink-0 space-y-4 xl:block">
+      <ProgressBadge label={health ? 'Resume Health' : 'Your Progress'} sub={health ? 'Almost there!' : 'Start creating your resume'} />
+      <div className="relative mx-auto h-[520px] w-[300px] overflow-hidden rounded-sm bg-white shadow-xl">
+        <div className="h-14 bg-slate-300 text-center text-xs font-bold leading-[3.5rem] text-white">Andrew Bolton</div>
+        <div className="space-y-4 p-8 opacity-25">
+          {Array.from({ length: 16 }).map((_, index) => (
+            <div key={index} className="h-2 rounded-full bg-slate-400" style={{ width: `${45 + (index % 4) * 12}%` }} />
+          ))}
+        </div>
+        <button className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full bg-white/90 px-5 py-2 text-2xl font-medium text-slate-900 shadow">
+          <Search className="h-6 w-6" />
+          Preview
+        </button>
+      </div>
+    </aside>
+  )
+}
+
+function BuilderShell({ screen, setScreen, children, showTour }: {
+  screen: BuilderScreen
+  setScreen: (screen: BuilderScreen) => void
+  children: ReactNode
+  showTour?: boolean
 }) {
-  const nameParts = userName.split(' ')
-  const firstName = nameParts[0] ?? 'Darnell'
-  const lastName = nameParts[1] ?? 'Smith'
-  const fullNameUpper = userName.toUpperCase()
-
+  const [tour, setTour] = useState<TourStep>(showTour ? 'progress' : null)
   return (
-    <div className="w-full max-w-[750px] bg-white shadow-md font-serif text-[13px] leading-relaxed text-gray-900">
-      {/* Header */}
-      <div className="px-12 pt-10 pb-4 text-center">
-        <h1 className="text-2xl font-bold tracking-widest uppercase mb-1">{fullNameUpper}</h1>
-        <p className="text-sm text-gray-600">
-          demo@lightforth.ai | Lagos | linkedin.com/in/{firstName.toLowerCase()}-{lastName.toLowerCase()} | lightforth.ai
-        </p>
+    <div className="min-h-screen bg-white font-sans text-slate-950">
+      <BuilderHeader
+        title="Adedamola_Adewale_Product Manager Resume"
+        right={<OutlineButton onClick={() => setScreen('ats')}>Check ATS Score <Target className="h-5 w-5" /></OutlineButton>}
+      />
+      <main className="mx-auto grid w-full max-w-[1500px] grid-cols-[300px_minmax(0,680px)_330px] gap-8 px-10 py-16">
+        <BuilderNav screen={screen} setScreen={setScreen} tour={tour} setTour={setTour} />
+        <section className="relative min-h-[560px] bg-white px-6">{children}</section>
+        <PreviewRail health={screen === 'summary'} />
+      </main>
+    </div>
+  )
+}
+
+function BuilderNav({ screen, setScreen, tour, setTour }: {
+  screen: BuilderScreen
+  setScreen: (screen: BuilderScreen) => void
+  tour: TourStep
+  setTour: (step: TourStep) => void
+}) {
+  const sectionMap: Record<string, BuilderScreen> = {
+    'Professional Summary': 'summary',
+    'Work Experience': 'experienceList',
+    Education: 'educationList',
+    Skills: 'skills',
+    'Contact Information': 'contact',
+  }
+  return (
+    <aside className="space-y-4 pt-4">
+      <nav className="space-y-5">
+        {sections.map((section) => {
+          const active = sectionMap[section] === screen
+          return (
+            <button
+              key={section}
+              onClick={() => setScreen(sectionMap[section])}
+              className={cn('block text-left text-xl font-semibold text-slate-600', active && 'text-[#149cf2]')}
+            >
+              {section}
+            </button>
+          )
+        })}
+      </nav>
+
+      <div className="relative">
+        <button className="mt-2 flex h-12 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-xl font-semibold text-slate-500">
+          <span>+ Add section</span>
+          <ChevronDown className="h-5 w-5" />
+        </button>
+        {screen === 'language' && (
+          <div className="mt-3 space-y-3 pl-3 text-base font-medium text-slate-600">
+            {extraSections.map((item) => (
+              <button key={item} className="block text-left">
+                <span className={item === 'Language' ? 'text-[#149cf2]' : ''}>{item === 'Language' ? '✓ ' : ''}{item}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="px-12 pb-10">
-        {/* Professional Summary */}
-        <div className="mb-4">
-          <h2 className="text-[13px] font-bold uppercase tracking-wider mb-0.5">Professional Summary</h2>
-          <div className="border-t-[1.5px] border-gray-800 mb-2" />
-          {showDiff ? (
-            <p className="text-[13px] italic leading-relaxed">
-              <span className="line-through text-red-500">
-                8 years building and shipping fintech, AI, and crypto products across Africa. Portfolio of 12 live apps spanning payment infrastructure, wealth management, and AI tools. Uniquely positioned as a Product manager and Design engineer who also designs and builds, reducing time-to-market for lean teams and owning the full product lifecycle from strategy to working product.
-              </span>
-              <span className="text-green-700">
-                {' '}Dynamic Product Designer & Strategist with a robust background in product management and design engineering. Adept in aligning user needs with business goals through innovative design solutions and strategic product development. Proven expertise in leading cross-functional teams, conducting user research, and implementing data-driven design strategies to enhance product usability and market reach. Passionate about leveraging cutting-edge technologies, including AI-assisted development, to deliver impactful and user-centric products for fintech and crypto industries.
-              </span>
-            </p>
-          ) : (
-            <p className="text-[13px] italic leading-relaxed text-gray-700">
-              8 years building and shipping fintech, AI, and crypto products across Africa. Portfolio of 12 live apps spanning payment infrastructure, wealth management, and AI tools. Uniquely positioned as a Product manager and Design engineer who also designs and builds, reducing time-to-market for lean teams and owning the full product lifecycle from strategy to working product.
-            </p>
+      {screen === 'summary' && (
+        <div className="relative mt-4 rounded-md border border-pink-100 bg-white p-4 text-base">
+          <p className="font-medium text-blue-500">Get resume <span className="text-2xl text-purple-400">10x</span> <span className="text-pink-400">Faster</span></p>
+          <p className="mt-3 leading-7 text-slate-600">Just paste the job description and we will generate a resume for you.</p>
+          {tour === 'progress' && (
+            <TourBubble
+              className="left-[320px] top-3 w-[360px]"
+              title="Your Resume completion progress"
+              step="Next 1/3"
+              onNext={() => setTour('tips')}
+              onClose={() => setTour(null)}
+            />
           )}
         </div>
+      )}
+    </aside>
+  )
+}
 
-        {/* Experience */}
-        <div className="mb-4">
-          <h2 className="text-[13px] font-bold uppercase tracking-wider mb-0.5">Experience</h2>
-          <div className="border-t-[1.5px] border-gray-800 mb-3" />
-
-          {/* Job 1 */}
-          <div className="mb-4">
-            <div className="flex justify-between items-start mb-0.5">
-              <div>
-                {showDiff ? (
-                  <p className="font-bold text-[13px]">
-                    <span className="line-through text-red-500">Lightforth</span>
-                    <span className="text-green-700"> DecXoptions</span>
-                  </p>
-                ) : (
-                  <p className="font-bold text-[13px]">Lightforth</p>
-                )}
-                {showDiff ? (
-                  <p className="italic text-gray-600 text-[12px]">
-                    <span className="line-through text-red-500">Product Manager</span>
-                    <span className="text-green-700"> Head of Product</span>
-                  </p>
-                ) : (
-                  <p className="italic text-gray-600 text-[12px]">Product Manager</p>
-                )}
-              </div>
-              <p className="text-[12px] text-gray-500 whitespace-nowrap">Jan 2022 – Present</p>
-            </div>
-            <ul className="mt-1 space-y-1 text-[12px] text-gray-700">
-              {showDiff ? (
-                <>
-                  <li className="flex gap-2">
-                    ••{' '}
-                    <span className="text-green-700">
-                      Led the redesign and go-to-market strategy for a fintech solution, enhancing user experience and increasing user engagement by 40% through strategic design principles.
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    ••{' '}
-                    <span className="text-green-700">
-                      Spearheaded cross-functional teams in agile environments to deliver product enhancements aligned with user feedback and market demands.
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    ••{' '}
-                    <span className="text-green-700">
-                      Implemented a robust product roadmap that supported scalable design solutions and accelerated feature deployment timelines by 25%.
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    ••{' '}
-                    <span className="text-green-700">
-                      Orchestrated comprehensive user testing and A/B testing protocols to ensure product designs met customer needs and improved retention rates.
-                    </span>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li className="flex gap-2">
-                    •{' '}Led end-to-end development of 5 core products AI Resume Builder, AI Cover Letter Builder, Interview Prep Simulator, Copilot (live interview AI assistant), and Partnership Dashboard launching MVP in 5 months with 95 feature completion rate.
-                  </li>
-                  <li className="flex gap-2">
-                    •{' '}Built an ATS-compliant resume builder that rewrites an entire resume from a pasted job description using AI, significantly improving application match rates for users.
-                  </li>
-                  <li className="flex gap-2">
-                    •{' '}Shipped Copilot a real-time AI assistant that surfaces suggested answers during live interview calls, a first-of-its-kind feature on the platform.
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
-
-          {/* Job 2 */}
-          <div className="mb-4">
-            <div className="flex justify-between items-start mb-0.5">
-              <div>
-                {showDiff ? (
-                  <p className="font-bold text-[13px]">
-                    <span className="line-through text-red-500">Syarpa</span>
-                    <span className="text-green-700"> Lightforth</span>
-                  </p>
-                ) : (
-                  <p className="font-bold text-[13px]">Syarpa</p>
-                )}
-                <p className="italic text-gray-600 text-[12px]">Product Manager</p>
-              </div>
-              <p className="text-[12px] text-gray-500 whitespace-nowrap">Mar 2019 – Dec 2021</p>
-            </div>
-            <ul className="mt-1 space-y-1 text-[12px] text-gray-700">
-              {showDiff ? (
-                <>
-                  <li className="flex gap-2">
-                    ••{' '}
-                    <span className="text-green-700">
-                      Architected innovative product features that aligned with user insights and stakeholder objectives, resulting in a 30% improvement in customer satisfaction.
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    ••{' '}
-                    <span className="text-green-700">
-                      Managed end-to-end product lifecycle from strategy to execution, collaborating with design and engineering teams to launch market-ready products.
-                    </span>
-                  </li>
-                  <li className="flex gap-2">
-                    ••{' '}
-                    <span className="text-green-700">
-                      Developed and refined product design strategies incorporating user research and data analysis to enhance UI/UX across multiple platforms.
-                    </span>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li className="flex gap-2">
-                    •{' '}Led product development for Bloomvest a goal-based savings and Ajo (group thrift) app shipping KYC tiering, automated deposits, and savings goal flows that boosted weekly active users 45.
-                  </li>
-                  <li className="flex gap-2">
-                    •{' '}Built and launched Rebble, a crypto trading app enabling users to buy and sell crypto via the app and directly through a WhatsApp chatbot driving approximately 20,000,000 in transaction volume.
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
-
-          {/* Job 3 */}
-          <div className="mb-4">
-            <div className="flex justify-between items-start mb-0.5">
-              <div>
-                {showDiff ? (
-                  <p className="font-bold text-[13px]">
-                    <span className="line-through text-red-500">Cwito</span>
-                    <span className="text-green-700"> Celler (Tampay)</span>
-                  </p>
-                ) : (
-                  <p className="font-bold text-[13px]">Celler (Tampay)</p>
-                )}
-                <p className="italic text-gray-600 text-[12px]">Product Manager</p>
-              </div>
-              <p className="text-[12px] text-gray-500 whitespace-nowrap">Jun 2017 – Feb 2019</p>
-            </div>
-            <ul className="mt-1 space-y-1 text-[12px] text-gray-700">
-              <li className="flex gap-2">
-                •{' '}Led product design initiatives for a crypto-focused application, coordinating with UI/UX designers to craft intuitive interfaces that improved user onboarding by 25%.
-              </li>
-              <li className="flex gap-2">
-                •{' '}Devised and executed design strategies that streamlined product features, resulting in a 20% reduction in user drop-offs.
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Education */}
-        <div className="mb-4">
-          <h2 className="text-[13px] font-bold uppercase tracking-wider mb-0.5">Education</h2>
-          <div className="border-t-[1.5px] border-gray-800 mb-3" />
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="font-bold text-[13px]">University of Lagos</p>
-              <p className="italic text-gray-600 text-[12px]">Bachelor of Science, Computer Science</p>
-            </div>
-            <p className="text-[12px] text-gray-500">2014 – 2018</p>
-          </div>
-        </div>
-
-        {/* Skills */}
-        <div>
-          <h2 className="text-[13px] font-bold uppercase tracking-wider mb-0.5">Skills</h2>
-          <div className="border-t-[1.5px] border-gray-800 mb-2" />
-          <p className="text-[12px] text-gray-700 leading-relaxed">
-            Product Strategy · User Research · AI/ML Product Development · Agile/Scrum · Figma · React · TypeScript · Data Analysis · Cross-functional Leadership · OKR Framework
-          </p>
+function TourBubble({ title, step, onNext, onClose, className, back }: {
+  title: string
+  step: string
+  onNext: () => void
+  onClose: () => void
+  className?: string
+  back?: () => void
+}) {
+  return (
+    <div className={cn('absolute z-40 rounded-sm bg-[#0d326b] p-4 text-white shadow-2xl', className)}>
+      <span className="absolute -top-2 left-3 h-0 w-0 border-x-8 border-b-8 border-x-transparent border-b-[#0d326b]" />
+      <div className="flex items-start justify-between gap-4">
+        <p className="text-base font-bold">{title}</p>
+        <button onClick={onClose} className="text-white/75 hover:text-white"><X className="h-5 w-5" /></button>
+      </div>
+      <p className="mt-5 text-base leading-7 text-blue-100">Learn how to use Lightforth to land job faster by learning the tools you need.</p>
+      <div className="mt-6 flex items-center justify-between">
+        <button onClick={onClose} className="text-lg font-semibold text-[#149cf2]">Skip</button>
+        <div className="flex items-center gap-6">
+          {back && <button onClick={back} className="text-lg font-semibold">Back</button>}
+          <button onClick={onNext} className="rounded-md bg-[#149cf2] px-4 py-3 text-lg font-bold">{step}</button>
         </div>
       </div>
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// AccordionItem — expandable with form fields
-// ---------------------------------------------------------------------------
-function AccordionItem({
-  label,
-  icon: Icon,
-  fields,
-}: {
-  label: string
-  icon: React.ElementType
-  fields: FieldDef[]
-}) {
-  const [open, setOpen] = useState(false)
-  const [values, setValues] = useState<Record<string, string>>({})
-  const set = (key: string, val: string) => setValues(v => ({ ...v, [key]: val }))
-
+function TipsLink({ tour, setTour }: { tour?: TourStep; setTour?: (step: TourStep) => void }) {
   return (
-    <div className="border-b border-border/40">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 transition-colors"
-      >
-        <Icon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-        <span className="flex-1 text-sm text-foreground">{label}</span>
-        <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform duration-200', open && 'rotate-180')} />
+    <button onClick={() => setTour?.('tips')} className="relative inline-flex items-center gap-2 text-base font-semibold text-[#149cf2]">
+      <Info className="h-5 w-5" />
+      Tips
+      {tour === 'tips' && (
+        <TourBubble
+          className="right-[-20px] top-10 w-[380px]"
+          title="Get Free ATS tips along the way"
+          step="Next 2/3"
+          onNext={() => setTour?.('suggestions')}
+          onClose={() => setTour?.(null)}
+          back={() => setTour?.('progress')}
+        />
+      )}
+    </button>
+  )
+}
+
+function SummaryStep({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  const [tour, setTour] = useState<TourStep>('progress')
+  return (
+    <BuilderShell screen="summary" setScreen={setScreen} showTour>
+      <StepBack />
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Professional summary</h1>
+        <TipsLink tour={tour} setTour={setTour} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Full Name" placeholder="Surname First" />
+        <Field label="Job Title" placeholder="Product Manager" />
+      </div>
+      <label className="mt-5 block text-lg text-slate-600">Choose from our pre-written examples below or write your own.</label>
+      <textarea className="lf-input mt-2 h-48 w-full resize-none p-4 text-lg" placeholder="Enter job role" />
+      <div className="relative mt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-lg text-slate-500">AI Suggestions for <b className="text-slate-950">Product Manager</b></p>
+          <button onClick={() => setTour('suggestions')} className="inline-flex items-center gap-2 text-base font-semibold text-slate-900">
+            <Sparkles className="h-5 w-5 text-[#149cf2]" /> Suggest more
+          </button>
+        </div>
+        <SuggestionList />
+        {tour === 'suggestions' && (
+          <TourBubble
+            className="left-[230px] top-9 w-[360px]"
+            title="Use AI to get recommendations"
+            step="Finish 3/3"
+            onNext={() => setTour(null)}
+            onClose={() => setTour(null)}
+          />
+        )}
+      </div>
+      <PrimaryButton onClick={() => setScreen('experienceList')} className="mt-6 w-full">Next</PrimaryButton>
+    </BuilderShell>
+  )
+}
+
+function Field({ label, placeholder, wide }: { label: string; placeholder: string; wide?: boolean }) {
+  return (
+    <label className={cn('block', wide && 'col-span-2')}>
+      <span className="mb-2 block text-base font-medium text-slate-600">{label}</span>
+      <input className="lf-input h-12 w-full px-4 text-base" placeholder={placeholder} />
+    </label>
+  )
+}
+
+function StepBack() {
+  return (
+    <button className="mb-8 inline-flex items-center gap-3 text-base font-semibold text-slate-600">
+      <ArrowLeft className="h-5 w-5" />
+      Back
+    </button>
+  )
+}
+
+function SuggestionList() {
+  return (
+    <div className="space-y-3">
+      {suggestions.map((item, index) => (
+        <div key={item} className={cn('flex gap-4 rounded-lg bg-white p-5 text-lg leading-8 text-slate-500 shadow-sm', index === 0 && 'text-[#149cf2]')}>
+          <button className="text-3xl text-slate-500">+</button>
+          <p>{item}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ExperienceList({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  return (
+    <BuilderShell screen="experienceList" setScreen={setScreen}>
+      <StepBack />
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Experience</h1>
+        <TipsLink />
+      </div>
+      {['Product Design, Lightforth', 'Product Design, Lightforth', 'Product Design, Lightforth'].map((item, index) => (
+        <div key={index} className="flex h-20 items-center justify-between border-b border-slate-200 text-2xl font-bold text-slate-600">
+          <button onClick={() => setScreen('experienceForm')} className="inline-flex items-center gap-4">
+            <span className="text-slate-500">✥</span>
+            {item}
+          </button>
+          <div className="flex items-center gap-5">
+            <ChevronDown className="h-5 w-5" />
+            {index === 1 && <Trash2 className="h-5 w-5 text-slate-300" />}
+          </div>
+        </div>
+      ))}
+      <button onClick={() => setScreen('experienceForm')} className="mt-8 inline-flex items-center gap-3 text-2xl font-medium text-[#149cf2]">
+        <Plus className="h-6 w-6" />
+        Add new employment
       </button>
-      {open && (
-        <div className="bg-muted/20 px-4 pb-4 pt-2">
-          <div className="grid grid-cols-2 gap-x-2 gap-y-3">
-            {fields.map(f => (
-              <div key={f.label} className={f.wide ? 'col-span-2' : 'col-span-1'}>
-                <label className="mb-1 block text-[11px] font-medium text-muted-foreground">{f.label}</label>
-                {f.type === 'textarea' ? (
-                  <textarea
-                    value={values[f.label] ?? ''}
-                    onChange={e => set(f.label, e.target.value)}
-                    placeholder={f.placeholder}
-                    rows={3}
-                    className="w-full resize-none rounded-lg border border-input bg-white px-2.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-                  />
-                ) : (
-                  <input
-                    type={f.type ?? 'text'}
-                    value={values[f.label] ?? ''}
-                    onChange={e => set(f.label, e.target.value)}
-                    placeholder={f.placeholder}
-                    className="w-full rounded-lg border border-input bg-white px-2.5 py-2 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-                  />
+      <PrimaryButton onClick={() => setScreen('educationList')} className="mt-8 w-full">Next</PrimaryButton>
+    </BuilderShell>
+  )
+}
+
+function ExperienceForm({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  return (
+    <BuilderShell screen="experienceList" setScreen={setScreen}>
+      <StepBack />
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Product Design, Lightforth</h1>
+        <TipsLink />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Title" placeholder="Sales Manager" />
+        <Field label="Employer" placeholder="Google" />
+        <DateSelect label="Start Date" />
+        <DateSelect label="End Date" />
+        <label className="col-span-2 flex items-center gap-3 text-base font-semibold">
+          <span className="grid h-6 w-6 place-items-center rounded-md bg-[#149cf2] text-white"><Check className="h-4 w-4" /></span>
+          I’m still working here
+        </label>
+        <Field label="Location" placeholder="London, United States" wide />
+        <label className="col-span-2 flex items-center gap-3 text-base font-semibold">
+          <span className="h-6 w-6 rounded-md border border-slate-300" />
+          Remote
+        </label>
+      </div>
+      <label className="mt-4 block text-base font-medium text-slate-600">Achievements</label>
+      <textarea className="lf-input mt-2 h-28 w-full resize-none p-4 text-lg" placeholder="Enter job role" />
+      <div className="mt-6 flex items-center justify-between">
+        <p className="text-lg text-slate-500">AI Suggestions for <b className="text-slate-950">Product Manager</b></p>
+        <button className="inline-flex items-center gap-2 text-base font-semibold"><Sparkles className="h-5 w-5 text-[#149cf2]" /> Suggest more</button>
+      </div>
+      <SuggestionList />
+      <PrimaryButton onClick={() => setScreen('experienceList')} className="mt-5 w-full">Save</PrimaryButton>
+    </BuilderShell>
+  )
+}
+
+function DateSelect({ label }: { label: string }) {
+  return (
+    <label>
+      <span className="mb-2 block text-base font-medium text-slate-600">{label}</span>
+      <div className="grid grid-cols-2 gap-3">
+        <button className="lf-select h-12 justify-between px-4 text-base text-slate-400">Month <ChevronDown className="h-5 w-5" /></button>
+        <button className="lf-select h-12 justify-between px-4 text-base text-slate-400">Year <ChevronDown className="h-5 w-5" /></button>
+      </div>
+    </label>
+  )
+}
+
+function EducationList({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  return (
+    <BuilderShell screen="educationList" setScreen={setScreen}>
+      <StepBack />
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Education</h1>
+        <TipsLink />
+      </div>
+      <button onClick={() => setScreen('educationForm')} className="flex h-20 w-full items-center justify-between border-b border-slate-200 text-2xl font-bold text-slate-600">
+        <span className="inline-flex items-center gap-4"><span>✥</span>Bsc. Agriculture, Ilorin</span>
+        <ChevronDown className="h-5 w-5" />
+      </button>
+      <button onClick={() => setScreen('educationForm')} className="mt-8 inline-flex items-center gap-3 text-2xl font-medium text-[#149cf2]">
+        <Plus className="h-6 w-6" />
+        Add new education
+      </button>
+      <PrimaryButton onClick={() => setScreen('skills')} className="mt-8 w-full">Next</PrimaryButton>
+    </BuilderShell>
+  )
+}
+
+function EducationForm({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  return (
+    <BuilderShell screen="educationList" setScreen={setScreen}>
+      <StepBack />
+      <div className="mb-7 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Bsc. Agriculture, Ilorin</h1>
+        <TipsLink />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Institution" placeholder="University of Dallas" />
+        <Field label="Location" placeholder="London" />
+        <Field label="Degree" placeholder="Master of Science" />
+        <Field label="Course" placeholder="B.Sc Agriculture" />
+        <DateSelect label="Start Date" />
+        <DateSelect label="End Date/Expected Date" />
+        <Field label="CGPA" placeholder="Optional" />
+        <Field label="Other Achievements" placeholder="List anything notable" />
+      </div>
+      <PrimaryButton onClick={() => setScreen('educationList')} className="mt-5 w-full">Save</PrimaryButton>
+    </BuilderShell>
+  )
+}
+
+function SkillsStep({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  return (
+    <BuilderShell screen="skills" setScreen={setScreen}>
+      <StepBack />
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Skills</h1>
+        <TipsLink />
+      </div>
+      <SearchBox placeholder="Search Skills" />
+      <ChipList items={skillOptions} selected="Figma" />
+      <PrimaryButton onClick={() => setScreen('contact')} className="mt-5 w-full">Next</PrimaryButton>
+    </BuilderShell>
+  )
+}
+
+function ContactStep({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  return (
+    <BuilderShell screen="contact" setScreen={setScreen}>
+      <StepBack />
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Contact Information</h1>
+        <TipsLink />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="First name" placeholder="Adewale" />
+        <Field label="Last name" placeholder="Adedamola" />
+        <Field label="Email address" placeholder="adedamola.moses@gmail.com" />
+        <Field label="Phone number" placeholder="NG (+234) 8103 674 006" />
+        <Field label="Gender" placeholder="Male" />
+        <Field label="Birthday" placeholder="Sep 8, 2099" />
+        <Field label="City" placeholder="Lagos, Nigeria" />
+        <Field label="Postal Code" placeholder="100216" />
+        <label className="col-span-2 block">
+          <span className="mb-2 block text-base font-medium text-slate-600">Location</span>
+          <div className="relative">
+            <input className="lf-input h-12 w-full px-4 pr-12 text-base" placeholder="Lagos, Nigeria" />
+            <MapPin className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          </div>
+        </label>
+      </div>
+      <PrimaryButton onClick={() => setScreen('language')} className="mt-5 w-full">Next</PrimaryButton>
+    </BuilderShell>
+  )
+}
+
+function LanguageStep({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  return (
+    <BuilderShell screen="language" setScreen={setScreen}>
+      <StepBack />
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Language</h1>
+        <TipsLink />
+      </div>
+      <p className="mb-3 text-2xl text-slate-600">Select Language</p>
+      <SearchBox placeholder="Ex. Adobe" />
+      <ChipList items={languageOptions} selected="English" />
+      <PrimaryButton onClick={() => setScreen('canvas')} className="mt-5 w-full">Next</PrimaryButton>
+    </BuilderShell>
+  )
+}
+
+function SearchBox({ placeholder }: { placeholder: string }) {
+  return (
+    <div className="relative">
+      <Search className="absolute left-5 top-1/2 h-7 w-7 -translate-y-1/2 text-slate-500" />
+      <input className="lf-input h-16 w-full pl-14 pr-5 text-2xl" placeholder={placeholder} />
+    </div>
+  )
+}
+
+function ChipList({ items, selected }: { items: string[]; selected: string }) {
+  return (
+    <div className="mt-4 flex flex-wrap gap-3">
+      {items.map((item) => (
+        <button
+          key={item}
+          className={cn(
+            'inline-flex h-11 items-center gap-3 rounded-full border border-slate-200 bg-white px-5 text-xl font-medium text-slate-900 shadow-sm',
+            item === selected && 'border-[#149cf2] bg-blue-50',
+          )}
+        >
+          {item}
+          {item === selected ? <Check className="h-5 w-5 text-[#149cf2]" /> : <Plus className="h-5 w-5 text-slate-500" />}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function ResumePaper({ editable = false }: { editable?: boolean }) {
+  return (
+    <article className="mx-auto min-h-[1120px] w-[820px] rounded-xl border border-slate-200 bg-white px-16 py-12 shadow-sm">
+      <header className="mb-10 flex justify-between gap-8">
+        <div>
+          <h1 contentEditable={editable} suppressContentEditableWarning className="text-3xl font-bold uppercase tracking-wide text-[#143763]">John Doe</h1>
+          <p contentEditable={editable} suppressContentEditableWarning className="mt-1 text-base">Position</p>
+        </div>
+        <div className="text-right text-sm leading-6">
+          <p>123-456-7890</p>
+          <p className="text-[#149cf2]">myemail@gmail.com</p>
+          <p>www.myportfolio.com</p>
+          <p>Linkedin: <span className="text-[#149cf2] underline">John Doe</span></p>
+        </div>
+      </header>
+      <ResumeSection title="Experience" editable={editable} active />
+      <ResumeSection title="Education" editable={editable} />
+      <ResumeSection title="Certificates" editable={editable} />
+      <section className="mt-8">
+        <h2 className="border-b-2 border-slate-900 pb-1 text-xl uppercase">Skills</h2>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-sm leading-6">
+          {['Program Management', 'Agile Project Management', 'Relationship Building', 'Project Planning', 'Scrum Master', 'Management', 'Project Management', 'Microsoft Project', 'Data Analysis', 'Talent Management'].map((skill) => (
+            <p key={skill} contentEditable={editable} suppressContentEditableWarning>{skill}</p>
+          ))}
+        </div>
+      </section>
+      <section className="mt-8">
+        <h2 className="border-b-2 border-slate-900 pb-1 text-xl uppercase">Languages</h2>
+        <div className="mt-3 text-sm leading-6">
+          {['English', 'French', 'Yoruba'].map((item) => (
+            <p key={item} contentEditable={editable} suppressContentEditableWarning>{item}</p>
+          ))}
+        </div>
+      </section>
+    </article>
+  )
+}
+
+function ResumeSection({ title, editable, active }: { title: string; editable?: boolean; active?: boolean }) {
+  return (
+    <section className="mt-8">
+      <h2 className="border-b-2 border-slate-900 pb-1 text-xl uppercase">{title}</h2>
+      <div className="mt-3">
+        <div className="mb-2 flex justify-between">
+          <div>
+            <p className="font-bold">Position <Pencil className="ml-1 inline h-3 w-3" /></p>
+            <p className="text-slate-500">Company, Location</p>
+          </div>
+          <p className="text-slate-500">{title === 'Education' ? 'End Date' : 'Start Date - End Date'}</p>
+        </div>
+        {title === 'Experience' && (
+          <div
+            contentEditable={editable}
+            suppressContentEditableWarning
+            className={cn('rounded-md p-3 text-sm leading-6 outline-none', active && 'border border-sky-300')}
+          >
+            <ul className="list-disc pl-5">
+              <li>Dolor rutrum diam pulvinar pharetra dignissim id duis parturient.</li>
+              <li>Vulputate sollicitudin in accumsan at. Mauris enim tortor ut condimentum montes malesuada proin.</li>
+              <li>Mi aenean fringilla. Fermentum integer senectus.</li>
+            </ul>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function CanvasScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  const [improveMode, setImproveMode] = useState<ImproveMode>('synonyms')
+  const [expanded, setExpanded] = useState('Experience')
+  return (
+    <div className="min-h-screen bg-[#f3f3f3] font-sans text-slate-950">
+      <FullscreenTopbar
+        title=""
+        left={<button onClick={() => setScreen('summary')} className="flex items-center gap-2 text-xl font-bold text-[#123667]"><LightforthMark /> Lightforth</button>}
+        right={(
+          <>
+            <OutlineButton onClick={() => setScreen('ats')}>Check ATS Score <Target className="h-5 w-5" /></OutlineButton>
+            <OutlineButton>Preview <Eye className="h-5 w-5" /></OutlineButton>
+            <OutlineButton>Download <Download className="h-5 w-5" /></OutlineButton>
+            <PrimaryButton>Save <Save className="ml-2 h-5 w-5" /></PrimaryButton>
+          </>
+        )}
+      />
+      <main className="grid grid-cols-[420px_minmax(760px,1fr)_420px] gap-8 px-6 py-7">
+        <aside className="rounded-md bg-white p-8">
+          <div className="mb-8 flex items-center gap-5 text-lg font-bold">
+            <Menu className="h-6 w-6 text-[#123667]" />
+            Adedamola’s CV
+            <Pencil className="h-4 w-4 text-slate-500" />
+          </div>
+          <div className="mb-7 grid grid-cols-2 rounded-md border border-slate-200 text-center text-sm font-semibold">
+            <button className="rounded-md bg-white py-3 shadow-sm">Create</button>
+            <button className="py-3 text-slate-500">Template</button>
+          </div>
+          <ProgressBadge />
+          <div className="mt-9 divide-y divide-slate-200">
+            {['Personal Information', 'Professional Summary', 'Experience', 'Education', 'Skills', 'Language', 'Certificates', 'Website and Social Links'].map((item) => (
+              <div key={item} className="py-5">
+                <button onClick={() => setExpanded(expanded === item ? '' : item)} className="flex w-full items-center justify-between text-lg font-semibold text-slate-700">
+                  {item}
+                  <span>{expanded === item ? '−' : '+'}</span>
+                </button>
+                {expanded === item && (
+                  <div className=”mt-4 space-y-2.5”>
+                    {item === 'Personal Information' && (
+                      <>
+                        <div className=”grid grid-cols-2 gap-2”>
+                          <SidebarInput label=”First Name” placeholder=”Darnell” />
+                          <SidebarInput label=”Last Name” placeholder=”Smith” />
+                        </div>
+                        <SidebarInput label=”Job Title” placeholder=”Product Manager” />
+                        <SidebarInput label=”Email” placeholder=”demo@lightforth.ai” type=”email” />
+                        <div className=”grid grid-cols-2 gap-2”>
+                          <SidebarInput label=”Phone” placeholder=”+1 234 567 8901” />
+                          <SidebarInput label=”City” placeholder=”New York, NY” />
+                        </div>
+                      </>
+                    )}
+                    {item === 'Professional Summary' && (
+                      <>
+                        <label className=”block”>
+                          <span className=”mb-1 block text-xs text-slate-500”>Summary</span>
+                          <textarea
+                            rows={4}
+                            className=”lf-input h-auto w-full resize-none py-2 text-sm”
+                            placeholder=”Describe yourself in 2–4 sentences…”
+                          />
+                        </label>
+                        <button className=”flex items-center gap-1 text-xs font-semibold text-[#149cf2]”>
+                          <Sparkles className=”h-3.5 w-3.5” /> AI Suggestions
+                        </button>
+                      </>
+                    )}
+                    {item === 'Experience' && (
+                      <>
+                        <div className=”mb-3 flex gap-4 text-slate-400”>
+                          <b>B</b><i>I</i><b>H</b><span>”</span><span>🔗</span><AlignLeft className=”h-5 w-5” />
+                        </div>
+                        <div className=”rounded-md border border-sky-300 p-4”>
+                          <p className=”text-base leading-6”>
+                            Developed numerous marketing programs (logos, <mark className=”bg-purple-100”>brochures</mark>, newsletters, infographics, presentations) and guaranteed that they exceeded the expectations of our clients
+                          </p>
+                          <div className=”mt-10 flex items-center justify-between border-t pt-4”>
+                            <Info className=”h-5 w-5 text-orange-400” />
+                            <button onClick={() => setImproveMode('menu')} className=”rounded-md border border-emerald-500 px-4 py-2 text-sm font-bold text-emerald-600”>
+                              <Pencil className=”mr-2 inline h-4 w-4” /> Improve
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {item === 'Education' && (
+                      <>
+                        <SidebarInput label=”Degree / Qualification” placeholder=”B.Sc. Computer Science” />
+                        <SidebarInput label=”School / Institution” placeholder=”University of Lagos” />
+                        <div className=”grid grid-cols-2 gap-2”>
+                          <SidebarInput label=”Start Year” placeholder=”2014” />
+                          <SidebarInput label=”End Year” placeholder=”2018” />
+                        </div>
+                        <label className=”block”>
+                          <span className=”mb-1 block text-xs text-slate-500”>Description (optional)</span>
+                          <textarea rows={2} className=”lf-input h-auto w-full resize-none py-2 text-sm” placeholder=”Relevant coursework, honours…” />
+                        </label>
+                      </>
+                    )}
+                    {item === 'Skills' && (
+                      <>
+                        <label className=”block”>
+                          <span className=”mb-1 block text-xs text-slate-500”>Add skills</span>
+                          <textarea rows={2} className=”lf-input h-auto w-full resize-none py-2 text-sm” placeholder=”e.g. Figma, TypeScript, Agile, SQL…” />
+                        </label>
+                        <div className=”flex flex-wrap gap-1.5 pt-1”>
+                          {['Figma', 'TypeScript', 'Agile', 'SQL', 'React', 'Leadership'].map((s) => (
+                            <button key={s} className=”rounded-full border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:border-[#149cf2] hover:text-[#149cf2] transition-colors”>
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    {item === 'Language' && (
+                      <>
+                        <div className=”grid grid-cols-2 gap-2”>
+                          <SidebarInput label=”Language” placeholder=”English” />
+                          <label className=”block”>
+                            <span className=”mb-1 block text-xs text-slate-500”>Proficiency</span>
+                            <select className=”lf-input w-full pr-3 text-sm”>
+                              {['Native', 'Fluent', 'Advanced', 'Intermediate', 'Basic'].map((l) => (
+                                <option key={l}>{l}</option>
+                              ))}
+                            </select>
+                          </label>
+                        </div>
+                        <button className=”flex items-center gap-1 text-xs font-semibold text-[#149cf2]”>
+                          <Plus className=”h-3.5 w-3.5” /> Add another language
+                        </button>
+                      </>
+                    )}
+                    {item === 'Certificates' && (
+                      <>
+                        <SidebarInput label=”Certificate Name” placeholder=”AWS Solutions Architect” />
+                        <div className=”grid grid-cols-2 gap-2”>
+                          <SidebarInput label=”Issuing Organisation” placeholder=”Amazon Web Services” />
+                          <SidebarInput label=”Issue Date” placeholder=”Mar 2023” />
+                        </div>
+                      </>
+                    )}
+                    {item === 'Website and Social Links' && (
+                      <>
+                        <SidebarInput label=”LinkedIn” placeholder=”https://linkedin.com/in/…” type=”url” />
+                        <SidebarInput label=”GitHub” placeholder=”https://github.com/…” type=”url” />
+                        <SidebarInput label=”Portfolio” placeholder=”https://yoursite.com” type=”url” />
+                        <SidebarInput label=”Twitter / X” placeholder=”https://twitter.com/…” type=”url” />
+                      </>
+                    )}
+                    {item !== 'Experience' && (
+                      <button className=”mt-1 w-full rounded-md bg-[#149cf2]/10 py-2 text-sm font-semibold text-[#149cf2] hover:bg-[#149cf2]/20 transition-colors”>
+                        Save
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
+            <button className="flex h-12 w-full items-center justify-between text-left text-lg font-semibold text-[#149cf2]">
+              + Add section
+              <ChevronDown className="h-5 w-5" />
+            </button>
           </div>
-          <button className="mt-3 w-full rounded-lg bg-primary/10 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
-            Save {label}
-          </button>
+        </aside>
+
+        <section className="relative rounded-md bg-white px-8 py-8">
+          <ResumePaper editable />
+          <ImprovePopover mode={improveMode} setMode={setImproveMode} />
+        </section>
+
+        <CanvasRightPanel />
+      </main>
+    </div>
+  )
+}
+
+function SidebarInput({ label, placeholder, type = 'text' }: { label: string; placeholder?: string; type?: string }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs text-slate-500">{label}</span>
+      <input type={type} placeholder={placeholder} className="lf-input w-full text-sm" />
+    </label>
+  )
+}
+
+function LightforthMark() {
+  return <span className="grid h-7 w-7 place-items-center rounded-sm bg-[#123667] text-white">▟</span>
+}
+
+function FullscreenTopbar({ left, title, right }: { left?: ReactNode; title?: string; right?: ReactNode }) {
+  return (
+    <header className="flex h-20 items-center justify-between border-b border-slate-200 bg-white px-10">
+      <div className="min-w-0">{left ?? <span className="text-xl font-semibold">{title}</span>}</div>
+      <div className="flex items-center gap-3">{right}</div>
+    </header>
+  )
+}
+
+function ImprovePopover({ mode, setMode }: { mode: ImproveMode; setMode: (mode: ImproveMode) => void }) {
+  if (mode === 'closed') return null
+  return (
+    <div className="absolute left-[-42px] top-[520px] z-30 w-[420px] overflow-hidden rounded-md border-2 border-[#123667] bg-white shadow-2xl">
+      <div className="flex h-10 items-center justify-between bg-[#123667] px-3 text-white">
+        <span className="font-semibold">✦ Improve</span>
+        <button onClick={() => setMode('closed')}><X className="h-5 w-5" /></button>
+      </div>
+      {mode === 'synonyms' && (
+        <div className="p-3">
+          <p className="mb-3 text-sm">Synonyms for newsletter</p>
+          <div className="flex flex-wrap gap-3">
+            {['Mailings', 'Paperwork', 'Writeups', 'Summary'].map((item) => (
+              <button key={item} className="rounded-md border border-sky-300 px-4 py-3 text-sm">{item}</button>
+            ))}
+          </div>
+        </div>
+      )}
+      {mode === 'rewrite' && (
+        <div className="p-3">
+          <button onClick={() => setMode('menu')} className="mb-4 rounded-md border px-4 py-2 text-sm"><ArrowLeft className="mr-2 inline h-4 w-4" /> Back</button>
+          <p className="text-sm leading-6">Developed numerous marketing programs (logos, brochures, newsletters, infographics, presentations) and guaranteed that they exceeded the expectations of our clients</p>
+        </div>
+      )}
+      {mode === 'menu' && (
+        <div className="max-h-[410px] overflow-auto p-3">
+          <div className="flex flex-wrap gap-3">
+            {['😊 Casual', '👋 Engaging', '✍️ Outline', '🗣️ Persuasive', '👊 Assertive', '💪 Confident', '🫶 Constructive', '🤝 Diplomatic', '☝️ Friendly', '📷 Descriptive', '💦 Detailed', '📏 Shorter', '🪜 Longer', '💃 Simplify', '🔁 Paraphrase', '🛠 Fix any mistake', '🧑‍💼 More Professional', '⚡ Rewrite'].map((item) => (
+              <button
+                key={item}
+                onClick={() => item.includes('Rewrite') || item.includes('mistake') ? setMode('rewrite') : undefined}
+                className={cn(
+                  'rounded-full border border-sky-300 px-4 py-2 text-sm font-semibold',
+                  item.includes('mistake') && 'bg-[#149cf2] text-white',
+                )}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          <button className="mt-4 rounded-md border px-4 py-2 text-sm">↻ Generate Text</button>
         </div>
       )}
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// ATSOverviewPanel
-// ---------------------------------------------------------------------------
-function ATSOverviewPanel({ jobTitle }: { jobTitle: string }) {
-  const score = 86
-  const r = 45
-  const circ = 2 * Math.PI * r
-  const bars = [
-    { label: 'Headline Match score', score: 80 },
-    { label: 'Impact score', score: 90 },
-    { label: 'Skill Match Score', score: 90 },
-    { label: 'Experience Score', score: 90 },
-    { label: 'Style Score', score: 80 },
-    { label: 'Total Score', score: 86 },
-  ]
+function CanvasRightPanel() {
   return (
-    <div className="w-[340px] flex-shrink-0 overflow-y-auto border-l border-border bg-white p-6">
-      {/* Score circle + title */}
-      <div className="flex items-center gap-4 mb-5">
-        <div className="relative h-16 w-16 flex-shrink-0">
-          <svg className="h-16 w-16 -rotate-90" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r={r} fill="none" stroke="#E2E8F0" strokeWidth="8" />
-            <circle
-              cx="50"
-              cy="50"
-              r={r}
-              fill="none"
-              stroke="#16A34A"
-              strokeWidth="8"
-              strokeDasharray={`${(circ * score) / 100} ${circ}`}
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-foreground">
-            {score}%
-          </span>
+    <aside className="space-y-8 rounded-md bg-white p-8">
+      <section>
+        <h3 className="mb-4 flex items-center gap-2 text-lg font-bold"><Info className="h-5 w-5" /> ATS Tips</h3>
+        <p className="text-lg leading-8 text-slate-600">The gatekeeper sorting resumes that come in is not always the direct hiring manager, so keep your resume language at a middle school level.</p>
+        <ul className="mt-6 list-disc space-y-3 pl-6 text-base leading-6 text-slate-600">
+          <li>Highlight 6-8 skills that are most relevant to your desired job.</li>
+          <li>Use short bulleted phrases - 3 words or less.</li>
+          <li>Emphasize the skills that are required in the job description.</li>
+        </ul>
+      </section>
+      <section>
+        <h3 className="mb-4 text-lg font-bold">Job Description</h3>
+        <div className="rounded-md border border-slate-200 p-5 text-base leading-8 text-slate-600">
+          <ul className="list-disc pl-5">
+            <li>Coordinate internal resources and third parties/vendors for the flawless execution of projects</li>
+            <li>Ensure that all projects are delivered on-time, within scope and within budget</li>
+            <li>Developing project scopes and objectives</li>
+          </ul>
         </div>
-        <div>
-          <p className="text-sm font-bold text-foreground">ATS Optimization Overview</p>
-          <p className="text-xs text-muted-foreground">Darnell Smith's CV</p>
+        <button className="mt-4 rounded-md bg-[#149cf2] px-4 py-3 text-base font-bold text-white"><Sparkles className="mr-2 inline h-5 w-5" />Tailor my Resume</button>
+        <div className="mt-4 bg-sky-100 p-5 text-base leading-7 text-blue-700">Our AI will generate a Resume for you base on this Job Description</div>
+      </section>
+    </aside>
+  )
+}
+
+function ATSScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  return (
+    <div className="min-h-screen bg-[#f3f3f3] font-sans">
+      <FullscreenTopbar
+        left={<button onClick={() => setScreen('canvas')} className="inline-flex items-center gap-3 text-xl font-semibold"><ArrowLeft className="h-5 w-5" /> Go back to Edit</button>}
+        right={(
+          <>
+            <OutlineButton>Download <Download className="h-5 w-5" /></OutlineButton>
+            <PrimaryButton>Save <Save className="ml-2 h-5 w-5" /></PrimaryButton>
+          </>
+        )}
+      />
+      <main className="mx-auto grid max-w-[1600px] grid-cols-[minmax(760px,1fr)_680px] gap-8 px-10 py-8">
+        <section className="rounded-md bg-white p-10">
+          <ResumePaper editable />
+        </section>
+        <ATSOverviewPanel />
+      </main>
+    </div>
+  )
+}
+
+function ATSOverviewPanel() {
+  const scores = [
+    ['Headline Match Score', 50, 'bg-orange-500'],
+    ['Skill Match Score', 90, 'bg-emerald-500'],
+    ['Style Score', 20, 'bg-red-500'],
+    ['Impact Score', 50, 'bg-orange-500'],
+    ['Experience Score', 90, 'bg-emerald-500'],
+    ['Total Score', 20, 'bg-red-500'],
+  ] as const
+  return (
+    <aside className="rounded-md bg-white p-9">
+      <div className="rounded-lg border border-slate-200 p-7">
+        <div className="flex items-center gap-5">
+          <div className="relative grid h-20 w-20 place-items-center rounded-full bg-[conic-gradient(#16a34a_60%,#e5e7eb_0)]">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-white text-lg font-bold text-slate-600">60%</div>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">ATS Optimization Overview</h2>
+            <p className="text-lg text-slate-500">Adedamola’s CV</p>
+          </div>
         </div>
-      </div>
-
-      {/* Job Description */}
-      <div className="mb-5 pb-5 border-b border-border">
-        <p className="text-xs font-semibold text-foreground mb-1">Job Description</p>
-        <p className="text-sm text-muted-foreground mb-2">{jobTitle || 'Designer'}</p>
-        <button className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors">
-          <Pencil className="h-3 w-3" /> Edit Job Description
-        </button>
-      </div>
-
-      {/* Score bars */}
-      <div className="space-y-4">
-        {bars.map((bar) => (
-          <div key={bar.label}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-foreground flex items-center gap-1">
-                {bar.label}
-                <Info className="h-3 w-3 text-muted-foreground" />
+        <h3 className="mt-8 text-2xl font-bold">Job Description</h3>
+        <p className="mt-4 text-base leading-7 text-slate-600">Vulputate sollicitudin in accumsan at. Mauris enim tortor ut condimentum montes malesuada proin. Nibh non molestie nec proin proin ullamcorper.</p>
+        <OutlineButton className="mt-6">Edit Job Description <Pencil className="h-4 w-4" /></OutlineButton>
+        <div className="my-8 border-t border-slate-200" />
+        <div className="space-y-5 text-base font-semibold text-slate-600">
+          {['Contact Information', 'Professional Summary', 'Experience and Work History', 'Education', 'Skills'].map((item, index) => (
+            <p key={item} className="flex items-center gap-5">
+              <span className={cn('grid h-6 w-6 place-items-center rounded-full text-white', index === 0 || index === 3 ? 'bg-red-500' : 'bg-emerald-500')}>
+                {index === 0 || index === 3 ? '!' : '✓'}
               </span>
-              <span className="text-xs font-semibold text-foreground">{bar.score}%</span>
-            </div>
-            <div className="h-1.5 w-full rounded-full bg-gray-100">
-              <div
-                className="h-1.5 rounded-full bg-green-500 transition-all"
-                style={{ width: `${bar.score}%` }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Step sidebar used on template + title steps
-// ---------------------------------------------------------------------------
-const STEP_LABELS = ['Select a Job Profile', 'Choose Template', 'Job Title', 'Build']
-
-function StepSidebar({ activeIdx }: { activeIdx: number }) {
-  return (
-    <div className="w-52 flex-shrink-0 border-r border-border bg-white px-6 py-8">
-      <div className="space-y-4">
-        {STEP_LABELS.map((label, i) => (
-          <p
-            key={label}
-            className={cn(
-              'text-sm font-medium transition-colors',
-              i === activeIdx ? 'text-primary' : 'text-foreground/50',
-            )}
-          >
-            {label}
-          </p>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
-export default function ResumeBuilder() {
-  const navigate = useNavigate()
-  const { user } = useAuth()
-  const [step, setStep] = useState<BuilderStep>('template')
-  const [view, setView] = useState<BuilderView>('editor')
-  const [selectedTemplate, setSelectedTemplate] = useState('Professional')
-  const [jobTitle, setJobTitle] = useState('')
-  const [jobDesc, setJobDesc] = useState('')
-  const [showDownloadMenu, setShowDownloadMenu] = useState(false)
-
-  const userName = user?.name ?? 'Darnell Smith'
-  const cvName = `${userName}'s CV`
-
-  // -------------------------------------------------------------------------
-  // Top navigation bar — varies by step + view
-  // -------------------------------------------------------------------------
-  function renderTopBar() {
-    // Setup steps (template / title)
-    if (step !== 'build') {
-      return (
-        <div className="flex h-14 flex-shrink-0 items-center justify-between border-b border-border bg-white px-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary"
-          >
-            <ArrowLeft className="h-4 w-4" /> Create Resume
-          </button>
-          <button
-            onClick={() => navigate('/')}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-      )
-    }
-
-    // Build / editor
-    if (view === 'editor') {
-      return (
-        <div className="flex h-14 flex-shrink-0 items-center gap-4 border-b border-border bg-white px-5">
-          {/* Logo */}
-          <div className="flex items-center gap-1.5 mr-2">
-            <LightforthLogo className="h-[22px]" linked={false} />
-          </div>
-          {/* CV name */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold text-foreground">{cvName}</span>
-            <button>
-              <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
-            </button>
-          </div>
-          <div className="flex-1" />
-          {/* Actions */}
-          <span className="flex items-center gap-1 text-xs font-medium text-green-600">
-            <Check className="h-3.5 w-3.5" /> Saved
-          </span>
-          <button
-            onClick={() => setView('ats')}
-            className="flex items-center gap-1.5 rounded-lg border border-green-500 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100"
-          >
-            <div className="h-2 w-2 rounded-full bg-green-500" /> ATS
-          </button>
-          <button
-            onClick={() => setView('preview')}
-            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
-          >
-            Preview
-          </button>
-          <button className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90">
-            <Save className="h-3.5 w-3.5" /> Save
-          </button>
-        </div>
-      )
-    }
-
-    // Build / diff
-    if (view === 'diff') {
-      return (
-        <div className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-white px-6">
-          <div className="flex items-center gap-1.5">
-            <LightforthLogo className="h-[22px]" linked={false} />
-          </div>
-          <div className="flex-1" />
-          <button className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
-            <RefreshCw className="h-4 w-4" /> Regenerate
-          </button>
-          <button className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted">
-            <X className="h-4 w-4" /> Reject
-          </button>
-          <button
-            onClick={() => setView('ats')}
-            className="flex items-center gap-1.5 rounded-lg border border-green-500 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-100"
-          >
-            <Check className="h-4 w-4" /> Accept
-          </button>
-        </div>
-      )
-    }
-
-    // Build / ats
-    if (view === 'ats') {
-      return (
-        <div className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-white px-6">
-          <div className="flex items-center gap-1.5">
-            <LightforthLogo className="h-[22px]" linked={false} />
-          </div>
-          <div className="flex-1" />
-          <button
-            onClick={() => setView('preview')}
-            className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
-          >
-            Preview
-          </button>
-          <button
-            onClick={() => setView('editor')}
-            className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
-          >
-            <Pencil className="h-4 w-4" /> Edit
-          </button>
-        </div>
-      )
-    }
-
-    // Build / preview
-    return (
-      <div className="flex h-14 flex-shrink-0 items-center gap-3 border-b border-border bg-white px-6">
-        <div className="flex items-center gap-1.5">
-          <img src="/logo-B1uc6Mmo.svg" alt="Lightforth" className="h-[22px] w-auto" />
-        </div>
-        <div className="flex-1" />
-        <button
-          onClick={() => setView('ats')}
-          className="flex items-center gap-1.5 rounded-lg border border-green-500 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 hover:bg-green-100"
-        >
-          <div className="h-2 w-2 rounded-full bg-green-500" /> ATS
-        </button>
-        <button
-          onClick={() => setView('editor')}
-          className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
-        >
-          <Pencil className="h-3.5 w-3.5" /> Edit
-        </button>
-        <div className="relative">
-          <button
-            onClick={() => setShowDownloadMenu((m) => !m)}
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90"
-          >
-            <Download className="h-3.5 w-3.5" /> Download
-          </button>
-          {showDownloadMenu && (
-            <div className="absolute right-0 top-full z-10 mt-1 w-48 overflow-hidden rounded-xl border border-border bg-white shadow-xl">
-              {['Export as PDF', 'Export as DOCX', 'Export as Text'].map((opt) => (
-                <button
-                  key={opt}
-                  className="flex w-full items-center justify-between px-4 py-3 text-sm text-foreground hover:bg-muted"
-                >
-                  {opt}
-                  <Share className="h-4 w-4 text-muted-foreground" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  // -------------------------------------------------------------------------
-  // Body layout — varies by step + view
-  // -------------------------------------------------------------------------
-  function renderBody() {
-    // ---- Template step ----
-    if (step === 'template') {
-      return (
-        <div className="flex flex-1 overflow-hidden">
-          <StepSidebar activeIdx={1} />
-
-          {/* Center — template grid */}
-          <div className="flex-1 overflow-y-auto bg-white px-10 py-8">
-            <h2 className="text-xl font-semibold text-foreground mb-1">Choose a resume template</h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              Select a professionally designed template. All templates are ATS-optimized.
+              {item}
             </p>
-
-            <div className="grid grid-cols-2 gap-4 max-w-[500px]">
-              {TEMPLATES.map((t) => (
-                <button
-                  key={t.name}
-                  onClick={() => setSelectedTemplate(t.name)}
-                  className={cn(
-                    'rounded-xl border-2 p-3 text-left transition-all hover:shadow-sm',
-                    selectedTemplate === t.name
-                      ? 'border-primary bg-primary/[0.03]'
-                      : 'border-border bg-white hover:border-primary/30',
-                  )}
-                >
-                  {/* Thumbnail — portrait A4 ratio */}
-                  <div className="relative mb-3 h-56 w-full overflow-hidden rounded-md border border-gray-100 bg-white shadow-sm">
-                    {selectedTemplate === t.name && (
-                      <div className="absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-green-500 shadow">
-                        <Check className="h-3 w-3 text-white" />
-                      </div>
-                    )}
-                    <MiniResumeMockup template={t.name} />
-                  </div>
-                  <p
-                    className={cn(
-                      'text-xs font-bold mb-0.5',
-                      selectedTemplate === t.name ? 'text-primary' : 'text-foreground',
-                    )}
-                  >
-                    {t.name}
-                  </p>
-                  <p className="text-[11px] italic text-muted-foreground leading-relaxed">{t.desc}</p>
-                </button>
-              ))}
-            </div>
-
-            {/* Bottom action */}
-            <div className="mt-8 border-t border-border pt-5 flex items-center justify-between max-w-[500px]">
-              <span className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">{selectedTemplate}</span>{' '}
-                <span className="text-muted-foreground">selected</span>
-              </span>
-              <button
-                onClick={() => setStep('title')}
-                className="rounded-lg bg-primary px-10 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
-              >
-                Proceed
-              </button>
-            </div>
-          </div>
-
-          {/* Right — preview panel */}
-          <div className="w-[340px] flex-shrink-0 border-l border-border bg-gray-50">
-            <div className="sticky top-0 px-5 pt-5 pb-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Template Preview
-              </h3>
-            </div>
-            <div className="px-5 pb-5">
-              <div className="relative overflow-hidden rounded-sm bg-white shadow-md" style={{ height: '600px' }}>
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '750px',
-                    transform: 'scale(0.4)',
-                    transformOrigin: 'top left',
-                  }}
-                >
-                  <ResumeDoc />
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-      )
-    }
-
-    // ---- Title step ----
-    if (step === 'title') {
-      return (
-        <div className="flex flex-1 overflow-hidden">
-          <StepSidebar activeIdx={2} />
-
-          <div className="flex flex-1 items-center justify-center bg-white overflow-y-auto">
-            <div className="w-full max-w-[520px] px-6 py-10">
-              <h2 className="text-3xl font-bold text-foreground mb-3">
-                What position are you applying for?
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6">
-                Enter the job title you're targeting. This will be used to personalize your resume and help
-                you stand out to employers.{' '}
-                {!jobTitle && (
-                  <span className="font-medium text-primary">This field is required.</span>
-                )}
-              </p>
-
-              <div className="mb-4 rounded-xl border border-border bg-gray-50 p-5">
-                <label className="mb-2 block text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Job Title
-                </label>
-                <input
-                  value={jobTitle}
-                  onChange={(e) => setJobTitle(e.target.value)}
-                  placeholder="Ex. Product Designer, Software Engineer"
-                  className="w-full rounded-lg border border-input bg-white px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Popular titles:</span>
-                  {[
-                    'Software Engineer',
-                    'Product Manager',
-                    'UI/UX Designer',
-                    'Data Scientist',
-                    'Marketing Manager',
-                  ].map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setJobTitle(t)}
-                      className="rounded-full border border-border bg-white px-3 py-1 text-xs text-foreground transition-colors hover:border-primary hover:text-primary"
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  if (jobTitle) setStep('build')
-                }}
-                disabled={!jobTitle}
-                className={cn(
-                  'w-full rounded-xl py-3 text-sm font-semibold text-white transition-colors',
-                  jobTitle ? 'bg-primary hover:bg-primary/90' : 'bg-primary/30 cursor-not-allowed',
-                )}
-              >
-                Start Building
-              </button>
+        <div className="my-8 border-t border-slate-200" />
+        <div className="space-y-5">
+          {scores.map(([label, value, color]) => (
+            <div key={label}>
+              <div className="mb-2 flex justify-between text-sm text-slate-500"><span>{label}</span><span>{value}%</span></div>
+              <div className="h-1 rounded-full bg-slate-200"><div className={cn('h-1 rounded-full', color)} style={{ width: `${value}%` }} /></div>
             </div>
-          </div>
+          ))}
         </div>
-      )
-    }
-
-    // ---- Build step — Editor ----
-    if (view === 'editor') {
-      return (
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left panel */}
-          <div className="w-[260px] flex-shrink-0 overflow-y-auto border-r border-border bg-white">
-            <div className="border-b border-border p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <p className="text-sm font-bold text-foreground flex-1">{cvName}</p>
-                <button>
-                  <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
-              </div>
-              <div className="flex overflow-hidden rounded-lg border border-border text-xs font-medium">
-                <button className="flex-1 bg-white py-1.5 text-primary border-r border-border">
-                  Create
-                </button>
-                <button className="flex-1 py-1.5 text-muted-foreground hover:bg-muted transition-colors">
-                  Template
-                </button>
-              </div>
-              {/* Progress ring */}
-              <div className="mt-4 rounded-xl border border-border p-3 flex items-center gap-3">
-                <div className="relative h-14 w-14 flex-shrink-0">
-                  <svg className="h-14 w-14 -rotate-90" viewBox="0 0 56 56">
-                    <circle cx="28" cy="28" r="22" fill="none" stroke="#E2E8F0" strokeWidth="4" />
-                    <circle
-                      cx="28"
-                      cy="28"
-                      r="22"
-                      fill="none"
-                      stroke="#2563EB"
-                      strokeWidth="4"
-                      strokeDasharray={`${2 * Math.PI * 22 * 0.86} ${2 * Math.PI * 22}`}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground">
-                    86%
-                  </span>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-foreground">Your Progress</p>
-                  <p className="text-[11px] text-muted-foreground">Start creating your resume</p>
-                </div>
-              </div>
-            </div>
-            {/* Accordion */}
-            <div>
-              {ACCORDION_SECTIONS.map((s) => (
-                <AccordionItem key={s.label} label={s.label} icon={s.icon} />
-              ))}
-            </div>
-          </div>
-
-          {/* Center — resume document */}
-          <div className="flex-1 overflow-y-auto bg-[#F5F5F5] flex justify-center py-8 px-4">
-            <ResumeDoc userName={userName} />
-          </div>
-
-          {/* Right — ATS tips + job description */}
-          <div className="w-[300px] flex-shrink-0 overflow-y-auto border-l border-border bg-white p-5">
-            <h3 className="mb-3 text-sm font-bold text-foreground">ATS Tips</h3>
-            <div className="mb-4 rounded-lg border border-border p-3">
-              <p className="text-xs text-muted-foreground">Your profile is 86% complete.</p>
-              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div className="h-full w-[86%] rounded-full bg-primary" />
-              </div>
-            </div>
-            <div className="mb-1 text-xs font-semibold text-foreground">Job Description</div>
-            <textarea
-              value={jobDesc}
-              onChange={(e) => setJobDesc(e.target.value)}
-              placeholder="Write or paste the job description here"
-              className="mb-3 h-32 w-full resize-none rounded-lg border border-input px-3 py-2 text-xs outline-none focus:border-primary"
-            />
-            <div className="mb-3 flex items-center justify-between">
-              <Info className="h-4 w-4 text-amber-500" />
-              <button className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-                <Sparkles className="h-3 w-3" /> Suggest for me
-              </button>
-            </div>
-            <button
-              onClick={() => setView('diff')}
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-green-600 py-2.5 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
-            >
-              <Sparkles className="h-4 w-4" /> Tailor my Resume
-            </button>
-            <div className="rounded-lg bg-primary/5 p-3 text-xs text-primary leading-relaxed">
-              Our AI will generate a Resume for you base on this Job Description
-            </div>
-          </div>
-        </div>
-      )
-    }
-
-    // ---- Build step — Diff ----
-    if (view === 'diff') {
-      return (
-        <div className="flex-1 overflow-y-auto bg-[#F5F5F5] flex justify-center py-8 px-4">
-          <ResumeDoc showDiff userName={userName} />
-        </div>
-      )
-    }
-
-    // ---- Build step — ATS ----
-    if (view === 'ats') {
-      return (
-        <div className="flex flex-1 overflow-hidden">
-          <div className="flex-1 overflow-y-auto bg-[#F5F5F5] flex justify-center py-8 px-4">
-            <ResumeDoc userName={userName} />
-          </div>
-          <ATSOverviewPanel jobTitle={jobTitle} />
-        </div>
-      )
-    }
-
-    // ---- Build step — Preview ----
-    return (
-      <div
-        className="flex-1 overflow-y-auto bg-[#F5F5F5] flex justify-center py-8 px-4"
-        onClick={() => setShowDownloadMenu(false)}
-      >
-        <ResumeDoc userName={userName} />
       </div>
-    )
-  }
-
-  return (
-    <div className="flex h-screen flex-col overflow-hidden bg-white">
-      {renderTopBar()}
-      <div className="flex flex-1 overflow-hidden">{renderBody()}</div>
-    </div>
+    </aside>
   )
+}
+
+export default function ResumeBuilder() {
+  const [screen, setScreen] = useState<BuilderScreen>('summary')
+
+  if (screen === 'canvas') return <CanvasScreen setScreen={setScreen} />
+  if (screen === 'ats') return <ATSScreen setScreen={setScreen} />
+  if (screen === 'experienceList') return <ExperienceList setScreen={setScreen} />
+  if (screen === 'experienceForm') return <ExperienceForm setScreen={setScreen} />
+  if (screen === 'educationList') return <EducationList setScreen={setScreen} />
+  if (screen === 'educationForm') return <EducationForm setScreen={setScreen} />
+  if (screen === 'skills') return <SkillsStep setScreen={setScreen} />
+  if (screen === 'contact') return <ContactStep setScreen={setScreen} />
+  if (screen === 'language') return <LanguageStep setScreen={setScreen} />
+  return <SummaryStep setScreen={setScreen} />
 }
