@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, type Dispatch, type FocusEvent, type ReactNode, type SetStateAction } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlignLeft,
@@ -43,6 +43,53 @@ type BuilderScreen =
 type TourStep = 'progress' | 'tips' | 'suggestions' | null
 type ImproveMode = 'closed' | 'menu' | 'synonyms' | 'rewrite'
 
+type ResumeData = {
+  firstName: string
+  lastName: string
+  title: string
+  email: string
+  phone: string
+  city: string
+  portfolio: string
+  linkedin: string
+  summary: string
+  experienceBullets: string
+  education: string
+  school: string
+  certificate: string
+  certificateDate: string
+  skills: string
+  languages: string
+}
+
+const initialResumeData: ResumeData = {
+  firstName: 'John',
+  lastName: 'Doe',
+  title: 'Position',
+  email: 'myemail@gmail.com',
+  phone: '123-456-7890',
+  city: 'Company, Location',
+  portfolio: 'www.myportfolio.com',
+  linkedin: 'John Doe',
+  summary: 'Product manager with experience creating practical, user-focused products and coordinating cross-functional teams.',
+  experienceBullets:
+    'Dolor rutrum diam pulvinar pharetra dignissim id duis parturient.\nVulputate sollicitudin in accumsan at. Mauris enim tortor ut condimentum montes malesuada proin.\nMi aenean fringilla. Fermentum integer senectus.',
+  education: 'Qualification',
+  school: 'Location, School',
+  certificate: 'Award Name',
+  certificateDate: 'Issue Date',
+  skills: 'Program Management, Agile Project Management, Relationship Building, Project Planning, Scrum Master, Management, Project Management, Microsoft Project, Data Analysis, Talent Management',
+  languages: 'English, French, Yoruba',
+}
+
+function updateResumeField(
+  setResume: Dispatch<SetStateAction<ResumeData>>,
+  field: keyof ResumeData,
+  value: string,
+) {
+  setResume((resume) => ({ ...resume, [field]: value }))
+}
+
 const sections = [
   'Professional Summary',
   'Work Experience',
@@ -67,7 +114,7 @@ function BuilderHeader({ title, right }: { title: string; right?: ReactNode }) {
   return (
     <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-10">
       <button
-        onClick={() => navigate('/my-documents')}
+        onClick={() => navigate('/documents')}
         className="inline-flex items-center gap-3 text-base font-semibold text-slate-900"
       >
         <ArrowLeft className="h-5 w-5 text-slate-600" />
@@ -140,13 +187,17 @@ function PreviewRail({ health = false }: { health?: boolean }) {
   )
 }
 
-function BuilderShell({ screen, setScreen, children, showTour }: {
+function BuilderShell({ screen, setScreen, children, showTour, tour: externalTour, setTour: externalSetTour }: {
   screen: BuilderScreen
   setScreen: (screen: BuilderScreen) => void
   children: ReactNode
   showTour?: boolean
+  tour?: TourStep
+  setTour?: (step: TourStep) => void
 }) {
-  const [tour, setTour] = useState<TourStep>(showTour ? 'progress' : null)
+  const [localTour, setLocalTour] = useState<TourStep>(showTour ? 'progress' : null)
+  const activeTour = externalTour ?? localTour
+  const updateTour = externalSetTour ?? setLocalTour
   return (
     <div className="min-h-screen bg-white font-sans text-slate-950">
       <BuilderHeader
@@ -154,7 +205,7 @@ function BuilderShell({ screen, setScreen, children, showTour }: {
         right={<OutlineButton onClick={() => setScreen('ats')}>Check ATS Score <Target className="h-5 w-5" /></OutlineButton>}
       />
       <main className="mx-auto grid w-full max-w-[1500px] grid-cols-[300px_minmax(0,680px)_330px] gap-8 px-10 py-16">
-        <BuilderNav screen={screen} setScreen={setScreen} tour={tour} setTour={setTour} />
+        <BuilderNav screen={screen} setScreen={setScreen} tour={activeTour} setTour={updateTour} />
         <section className="relative min-h-[560px] bg-white px-6">{children}</section>
         <PreviewRail health={screen === 'summary'} />
       </main>
@@ -276,7 +327,7 @@ function TipsLink({ tour, setTour }: { tour?: TourStep; setTour?: (step: TourSte
 function SummaryStep({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
   const [tour, setTour] = useState<TourStep>('progress')
   return (
-    <BuilderShell screen="summary" setScreen={setScreen} showTour>
+    <BuilderShell screen="summary" setScreen={setScreen} showTour tour={tour} setTour={setTour}>
       <StepBack />
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Professional summary</h1>
@@ -386,7 +437,7 @@ function ExperienceForm({ setScreen }: { setScreen: (screen: BuilderScreen) => v
         <DateSelect label="End Date" />
         <label className="col-span-2 flex items-center gap-3 text-base font-semibold">
           <span className="grid h-6 w-6 place-items-center rounded-md bg-[#149cf2] text-white"><Check className="h-4 w-4" /></span>
-          I’m still working here
+          I'm still working here
         </label>
         <Field label="Location" placeholder="London, United States" wide />
         <label className="col-span-2 flex items-center gap-3 text-base font-semibold">
@@ -551,37 +602,99 @@ function ChipList({ items, selected }: { items: string[]; selected: string }) {
   )
 }
 
-function ResumePaper({ editable = false }: { editable?: boolean }) {
+function ResumePaper({
+  editable = false,
+  resume,
+  setResume,
+}: {
+  editable?: boolean
+  resume: ResumeData
+  setResume?: Dispatch<SetStateAction<ResumeData>>
+}) {
+  const fullName = `${resume.firstName} ${resume.lastName}`.trim() || 'John Doe'
+  const bulletItems = resume.experienceBullets
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean)
+  const skills = resume.skills.split(',').map((item) => item.trim()).filter(Boolean)
+  const languages = resume.languages.split(',').map((item) => item.trim()).filter(Boolean)
+
+  function editableText(field: keyof ResumeData, className: string, fallback?: string) {
+    return {
+      contentEditable: editable,
+      suppressContentEditableWarning: true,
+      className,
+      onBlur: (event: FocusEvent<HTMLElement>) => {
+        if (setResume) updateResumeField(setResume, field, event.currentTarget.textContent?.trim() || fallback || '')
+      },
+    }
+  }
+
   return (
     <article className="mx-auto min-h-[1120px] w-[820px] rounded-xl border border-slate-200 bg-white px-16 py-12 shadow-sm">
       <header className="mb-10 flex justify-between gap-8">
         <div>
-          <h1 contentEditable={editable} suppressContentEditableWarning className="text-3xl font-bold uppercase tracking-wide text-[#143763]">John Doe</h1>
-          <p contentEditable={editable} suppressContentEditableWarning className="mt-1 text-base">Position</p>
+          <h1
+            contentEditable={editable}
+            suppressContentEditableWarning
+            className="text-3xl font-bold uppercase tracking-normal text-[#143763]"
+            onBlur={(event) => {
+              if (!setResume) return
+              const [firstName, ...rest] = (event.currentTarget.textContent?.trim() || fullName).split(/\s+/)
+              setResume((current) => ({ ...current, firstName: firstName || current.firstName, lastName: rest.join(' ') || current.lastName }))
+            }}
+          >
+            {fullName}
+          </h1>
+          <p {...editableText('title', 'mt-1 text-base', 'Position')}>{resume.title}</p>
         </div>
         <div className="text-right text-sm leading-6">
-          <p>123-456-7890</p>
-          <p className="text-[#149cf2]">myemail@gmail.com</p>
-          <p>www.myportfolio.com</p>
-          <p>Linkedin: <span className="text-[#149cf2] underline">John Doe</span></p>
+          <p {...editableText('phone', '', '123-456-7890')}>{resume.phone}</p>
+          <p {...editableText('email', 'text-[#149cf2]', 'myemail@gmail.com')}>{resume.email}</p>
+          <p {...editableText('portfolio', '', 'www.myportfolio.com')}>{resume.portfolio}</p>
+          <p>Linkedin: <span {...editableText('linkedin', 'text-[#149cf2] underline', 'John Doe')}>{resume.linkedin}</span></p>
         </div>
       </header>
-      <ResumeSection title="Experience" editable={editable} active />
-      <ResumeSection title="Education" editable={editable} />
-      <ResumeSection title="Certificates" editable={editable} />
+      <ResumeSection title="Experience" editable={editable} active resume={resume} setResume={setResume} bulletItems={bulletItems} />
+      <ResumeSection title="Education" editable={editable} resume={resume} setResume={setResume} />
+      <ResumeSection title="Certificates" editable={editable} resume={resume} setResume={setResume} />
       <section className="mt-8">
         <h2 className="border-b-2 border-slate-900 pb-1 text-xl uppercase">Skills</h2>
         <div className="mt-3 grid grid-cols-2 gap-2 text-sm leading-6">
-          {['Program Management', 'Agile Project Management', 'Relationship Building', 'Project Planning', 'Scrum Master', 'Management', 'Project Management', 'Microsoft Project', 'Data Analysis', 'Talent Management'].map((skill) => (
-            <p key={skill} contentEditable={editable} suppressContentEditableWarning>{skill}</p>
+          {skills.map((skill, index) => (
+            <p
+              key={`${skill}-${index}`}
+              contentEditable={editable}
+              suppressContentEditableWarning
+              onBlur={(event) => {
+                if (!setResume) return
+                const next = [...skills]
+                next[index] = event.currentTarget.textContent?.trim() || ''
+                updateResumeField(setResume, 'skills', next.filter(Boolean).join(', '))
+              }}
+            >
+              {skill}
+            </p>
           ))}
         </div>
       </section>
       <section className="mt-8">
         <h2 className="border-b-2 border-slate-900 pb-1 text-xl uppercase">Languages</h2>
         <div className="mt-3 text-sm leading-6">
-          {['English', 'French', 'Yoruba'].map((item) => (
-            <p key={item} contentEditable={editable} suppressContentEditableWarning>{item}</p>
+          {languages.map((item, index) => (
+            <p
+              key={`${item}-${index}`}
+              contentEditable={editable}
+              suppressContentEditableWarning
+              onBlur={(event) => {
+                if (!setResume) return
+                const next = [...languages]
+                next[index] = event.currentTarget.textContent?.trim() || ''
+                updateResumeField(setResume, 'languages', next.filter(Boolean).join(', '))
+              }}
+            >
+              {item}
+            </p>
           ))}
         </div>
       </section>
@@ -589,28 +702,75 @@ function ResumePaper({ editable = false }: { editable?: boolean }) {
   )
 }
 
-function ResumeSection({ title, editable, active }: { title: string; editable?: boolean; active?: boolean }) {
+function ResumeSection({
+  title,
+  editable,
+  active,
+  resume,
+  setResume,
+  bulletItems = [],
+}: {
+  title: string
+  editable?: boolean
+  active?: boolean
+  resume: ResumeData
+  setResume?: Dispatch<SetStateAction<ResumeData>>
+  bulletItems?: string[]
+}) {
   return (
     <section className="mt-8">
       <h2 className="border-b-2 border-slate-900 pb-1 text-xl uppercase">{title}</h2>
       <div className="mt-3">
         <div className="mb-2 flex justify-between">
           <div>
-            <p className="font-bold">Position <Pencil className="ml-1 inline h-3 w-3" /></p>
-            <p className="text-slate-500">Company, Location</p>
+            <p
+              contentEditable={editable}
+              suppressContentEditableWarning
+              onBlur={(event) => {
+                if (!setResume) return
+                updateResumeField(setResume, title === 'Education' ? 'education' : title === 'Certificates' ? 'certificate' : 'title', event.currentTarget.textContent?.replace(/\s+$/, '') || '')
+              }}
+              className="font-bold"
+            >
+              {title === 'Education' ? resume.education : title === 'Certificates' ? resume.certificate : 'Position'} <Pencil className="ml-1 inline h-3 w-3" />
+            </p>
+            <p
+              contentEditable={editable}
+              suppressContentEditableWarning
+              onBlur={(event) => {
+                if (setResume && title === 'Education') updateResumeField(setResume, 'school', event.currentTarget.textContent?.trim() || '')
+              }}
+              className="text-slate-500"
+            >
+              {title === 'Education' ? resume.school : title === 'Certificates' ? '' : resume.city}
+            </p>
           </div>
-          <p className="text-slate-500">{title === 'Education' ? 'End Date' : 'Start Date - End Date'}</p>
+          <p
+            contentEditable={editable && title === 'Certificates'}
+            suppressContentEditableWarning
+            onBlur={(event) => {
+              if (setResume && title === 'Certificates') updateResumeField(setResume, 'certificateDate', event.currentTarget.textContent?.trim() || '')
+            }}
+            className="text-slate-500"
+          >
+            {title === 'Education' ? 'End Date' : title === 'Certificates' ? resume.certificateDate : 'Start Date - End Date'}
+          </p>
         </div>
         {title === 'Experience' && (
           <div
             contentEditable={editable}
             suppressContentEditableWarning
+            onBlur={(event) => {
+              if (!setResume) return
+              const lines = Array.from(event.currentTarget.querySelectorAll('li'))
+                .map((li) => li.textContent?.trim() || '')
+                .filter(Boolean)
+              updateResumeField(setResume, 'experienceBullets', lines.join('\n'))
+            }}
             className={cn('rounded-md p-3 text-sm leading-6 outline-none', active && 'border border-sky-300')}
           >
             <ul className="list-disc pl-5">
-              <li>Dolor rutrum diam pulvinar pharetra dignissim id duis parturient.</li>
-              <li>Vulputate sollicitudin in accumsan at. Mauris enim tortor ut condimentum montes malesuada proin.</li>
-              <li>Mi aenean fringilla. Fermentum integer senectus.</li>
+              {bulletItems.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}
             </ul>
           </div>
         )}
@@ -619,14 +779,22 @@ function ResumeSection({ title, editable, active }: { title: string; editable?: 
   )
 }
 
-function CanvasScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+function CanvasScreen({
+  setScreen,
+  resume,
+  setResume,
+}: {
+  setScreen: (screen: BuilderScreen) => void
+  resume: ResumeData
+  setResume: Dispatch<SetStateAction<ResumeData>>
+}) {
   const [improveMode, setImproveMode] = useState<ImproveMode>('synonyms')
   const [expanded, setExpanded] = useState('Experience')
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen bg-[#f3f3f3] font-sans text-slate-950">
       <FullscreenTopbar
-        title=""
-        left={<button onClick={() => setScreen('summary')} className="flex items-center gap-2 text-xl font-bold text-[#123667]"><LightforthMark /> Lightforth</button>}
+        left={<button onClick={() => navigate('/documents')} aria-label="Close resume builder" className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50"><X className="h-5 w-5" /></button>}
         right={(
           <>
             <OutlineButton onClick={() => setScreen('ats')}>Check ATS Score <Target className="h-5 w-5" /></OutlineButton>
@@ -640,7 +808,7 @@ function CanvasScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => voi
         <aside className="rounded-md bg-white p-8">
           <div className="mb-8 flex items-center gap-5 text-lg font-bold">
             <Menu className="h-6 w-6 text-[#123667]" />
-            Adedamola’s CV
+            Adedamola's CV
             <Pencil className="h-4 w-4 text-slate-500" />
           </div>
           <div className="mb-7 grid grid-cols-2 rounded-md border border-slate-200 text-center text-sm font-semibold">
@@ -656,49 +824,51 @@ function CanvasScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => voi
                   <span>{expanded === item ? '−' : '+'}</span>
                 </button>
                 {expanded === item && (
-                  <div className=”mt-4 space-y-2.5”>
+                  <div className="mt-4 space-y-2.5">
                     {item === 'Personal Information' && (
                       <>
-                        <div className=”grid grid-cols-2 gap-2”>
-                          <SidebarInput label=”First Name” placeholder=”Darnell” />
-                          <SidebarInput label=”Last Name” placeholder=”Smith” />
+                        <div className="grid grid-cols-2 gap-2">
+                          <SidebarInput label="First Name" value={resume.firstName} onChange={(value) => updateResumeField(setResume, 'firstName', value)} />
+                          <SidebarInput label="Last Name" value={resume.lastName} onChange={(value) => updateResumeField(setResume, 'lastName', value)} />
                         </div>
-                        <SidebarInput label=”Job Title” placeholder=”Product Manager” />
-                        <SidebarInput label=”Email” placeholder=”demo@lightforth.ai” type=”email” />
-                        <div className=”grid grid-cols-2 gap-2”>
-                          <SidebarInput label=”Phone” placeholder=”+1 234 567 8901” />
-                          <SidebarInput label=”City” placeholder=”New York, NY” />
+                        <SidebarInput label="Job Title" value={resume.title} onChange={(value) => updateResumeField(setResume, 'title', value)} />
+                        <SidebarInput label="Email" value={resume.email} onChange={(value) => updateResumeField(setResume, 'email', value)} type="email" />
+                        <div className="grid grid-cols-2 gap-2">
+                          <SidebarInput label="Phone" value={resume.phone} onChange={(value) => updateResumeField(setResume, 'phone', value)} />
+                          <SidebarInput label="City" value={resume.city} onChange={(value) => updateResumeField(setResume, 'city', value)} />
                         </div>
                       </>
                     )}
                     {item === 'Professional Summary' && (
                       <>
-                        <label className=”block”>
-                          <span className=”mb-1 block text-xs text-slate-500”>Summary</span>
+                        <label className="block">
+                          <span className="mb-1 block text-xs text-slate-500">Summary</span>
                           <textarea
                             rows={4}
-                            className=”lf-input h-auto w-full resize-none py-2 text-sm”
-                            placeholder=”Describe yourself in 2–4 sentences…”
+                            className="lf-input h-auto w-full resize-none py-2 text-sm"
+                            value={resume.summary}
+                            onChange={(event) => updateResumeField(setResume, 'summary', event.target.value)}
+                            placeholder="Describe yourself in 2-4 sentences..."
                           />
                         </label>
-                        <button className=”flex items-center gap-1 text-xs font-semibold text-[#149cf2]”>
-                          <Sparkles className=”h-3.5 w-3.5” /> AI Suggestions
+                        <button className="flex items-center gap-1 text-xs font-semibold text-[#149cf2]">
+                          <Sparkles className="h-3.5 w-3.5" /> AI Suggestions
                         </button>
                       </>
                     )}
                     {item === 'Experience' && (
                       <>
-                        <div className=”mb-3 flex gap-4 text-slate-400”>
-                          <b>B</b><i>I</i><b>H</b><span>”</span><span>🔗</span><AlignLeft className=”h-5 w-5” />
+                        <div className="mb-3 flex gap-4 text-slate-400">
+                          <b>B</b><i>I</i><b>H</b><span>"</span><span>🔗</span><AlignLeft className="h-5 w-5" />
                         </div>
-                        <div className=”rounded-md border border-sky-300 p-4”>
-                          <p className=”text-base leading-6”>
-                            Developed numerous marketing programs (logos, <mark className=”bg-purple-100”>brochures</mark>, newsletters, infographics, presentations) and guaranteed that they exceeded the expectations of our clients
+                        <div className="rounded-md border border-sky-300 p-4">
+                          <p className="text-base leading-6">
+                            {resume.experienceBullets.split('\n')[0]} <mark className="bg-purple-100">brochures</mark>
                           </p>
-                          <div className=”mt-10 flex items-center justify-between border-t pt-4”>
-                            <Info className=”h-5 w-5 text-orange-400” />
-                            <button onClick={() => setImproveMode('menu')} className=”rounded-md border border-emerald-500 px-4 py-2 text-sm font-bold text-emerald-600”>
-                              <Pencil className=”mr-2 inline h-4 w-4” /> Improve
+                          <div className="mt-10 flex items-center justify-between border-t pt-4">
+                            <Info className="h-5 w-5 text-orange-400" />
+                            <button onClick={() => setImproveMode('menu')} className="rounded-md border border-emerald-500 px-4 py-2 text-sm font-bold text-emerald-600">
+                              <Pencil className="mr-2 inline h-4 w-4" /> Improve
                             </button>
                           </div>
                         </div>
@@ -706,27 +876,33 @@ function CanvasScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => voi
                     )}
                     {item === 'Education' && (
                       <>
-                        <SidebarInput label=”Degree / Qualification” placeholder=”B.Sc. Computer Science” />
-                        <SidebarInput label=”School / Institution” placeholder=”University of Lagos” />
-                        <div className=”grid grid-cols-2 gap-2”>
-                          <SidebarInput label=”Start Year” placeholder=”2014” />
-                          <SidebarInput label=”End Year” placeholder=”2018” />
+                        <SidebarInput label="Degree / Qualification" value={resume.education} onChange={(value) => updateResumeField(setResume, 'education', value)} />
+                        <SidebarInput label="School / Institution" value={resume.school} onChange={(value) => updateResumeField(setResume, 'school', value)} />
+                        <div className="grid grid-cols-2 gap-2">
+                          <SidebarInput label="Start Year" placeholder="2014" />
+                          <SidebarInput label="End Year" placeholder="2018" />
                         </div>
-                        <label className=”block”>
-                          <span className=”mb-1 block text-xs text-slate-500”>Description (optional)</span>
-                          <textarea rows={2} className=”lf-input h-auto w-full resize-none py-2 text-sm” placeholder=”Relevant coursework, honours…” />
+                        <label className="block">
+                          <span className="mb-1 block text-xs text-slate-500">Description (optional)</span>
+                          <textarea rows={2} className="lf-input h-auto w-full resize-none py-2 text-sm" placeholder="Relevant coursework, honours..." />
                         </label>
                       </>
                     )}
                     {item === 'Skills' && (
                       <>
-                        <label className=”block”>
-                          <span className=”mb-1 block text-xs text-slate-500”>Add skills</span>
-                          <textarea rows={2} className=”lf-input h-auto w-full resize-none py-2 text-sm” placeholder=”e.g. Figma, TypeScript, Agile, SQL…” />
+                        <label className="block">
+                          <span className="mb-1 block text-xs text-slate-500">Add skills</span>
+                          <textarea
+                            rows={2}
+                            className="lf-input h-auto w-full resize-none py-2 text-sm"
+                            value={resume.skills}
+                            onChange={(event) => updateResumeField(setResume, 'skills', event.target.value)}
+                            placeholder="e.g. Figma, TypeScript, Agile, SQL..."
+                          />
                         </label>
-                        <div className=”flex flex-wrap gap-1.5 pt-1”>
+                        <div className="flex flex-wrap gap-1.5 pt-1">
                           {['Figma', 'TypeScript', 'Agile', 'SQL', 'React', 'Leadership'].map((s) => (
-                            <button key={s} className=”rounded-full border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:border-[#149cf2] hover:text-[#149cf2] transition-colors”>
+                            <button key={s} className="rounded-full border border-slate-200 px-2.5 py-1 text-xs text-slate-600 hover:border-[#149cf2] hover:text-[#149cf2] transition-colors">
                               {s}
                             </button>
                           ))}
@@ -735,41 +911,39 @@ function CanvasScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => voi
                     )}
                     {item === 'Language' && (
                       <>
-                        <div className=”grid grid-cols-2 gap-2”>
-                          <SidebarInput label=”Language” placeholder=”English” />
-                          <label className=”block”>
-                            <span className=”mb-1 block text-xs text-slate-500”>Proficiency</span>
-                            <select className=”lf-input w-full pr-3 text-sm”>
+                        <div className="grid grid-cols-2 gap-2">
+                          <SidebarInput label="Language" placeholder="English" />
+                          <label className="block">
+                            <span className="mb-1 block text-xs text-slate-500">Proficiency</span>
+                            <select className="lf-input w-full pr-3 text-sm">
                               {['Native', 'Fluent', 'Advanced', 'Intermediate', 'Basic'].map((l) => (
                                 <option key={l}>{l}</option>
                               ))}
                             </select>
                           </label>
                         </div>
-                        <button className=”flex items-center gap-1 text-xs font-semibold text-[#149cf2]”>
-                          <Plus className=”h-3.5 w-3.5” /> Add another language
+                        <button className="flex items-center gap-1 text-xs font-semibold text-[#149cf2]">
+                          <Plus className="h-3.5 w-3.5" /> Add another language
                         </button>
                       </>
                     )}
                     {item === 'Certificates' && (
                       <>
-                        <SidebarInput label=”Certificate Name” placeholder=”AWS Solutions Architect” />
-                        <div className=”grid grid-cols-2 gap-2”>
-                          <SidebarInput label=”Issuing Organisation” placeholder=”Amazon Web Services” />
-                          <SidebarInput label=”Issue Date” placeholder=”Mar 2023” />
+                          <SidebarInput label="Certificate Name" value={resume.certificate} onChange={(value) => updateResumeField(setResume, 'certificate', value)} />
+                        <div className="grid grid-cols-2 gap-2">
+                          <SidebarInput label="Issuing Organisation" placeholder="Amazon Web Services" />
+                          <SidebarInput label="Issue Date" value={resume.certificateDate} onChange={(value) => updateResumeField(setResume, 'certificateDate', value)} />
                         </div>
                       </>
                     )}
                     {item === 'Website and Social Links' && (
                       <>
-                        <SidebarInput label=”LinkedIn” placeholder=”https://linkedin.com/in/…” type=”url” />
-                        <SidebarInput label=”GitHub” placeholder=”https://github.com/…” type=”url” />
-                        <SidebarInput label=”Portfolio” placeholder=”https://yoursite.com” type=”url” />
-                        <SidebarInput label=”Twitter / X” placeholder=”https://twitter.com/…” type=”url” />
+                        <SidebarInput label="LinkedIn" value={resume.linkedin} onChange={(value) => updateResumeField(setResume, 'linkedin', value)} type="url" />
+                        <SidebarInput label="Portfolio" value={resume.portfolio} onChange={(value) => updateResumeField(setResume, 'portfolio', value)} type="url" />
                       </>
                     )}
                     {item !== 'Experience' && (
-                      <button className=”mt-1 w-full rounded-md bg-[#149cf2]/10 py-2 text-sm font-semibold text-[#149cf2] hover:bg-[#149cf2]/20 transition-colors”>
+                      <button className="mt-1 w-full rounded-md bg-[#149cf2]/10 py-2 text-sm font-semibold text-[#149cf2] hover:bg-[#149cf2]/20 transition-colors">
                         Save
                       </button>
                     )}
@@ -785,7 +959,7 @@ function CanvasScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => voi
         </aside>
 
         <section className="relative rounded-md bg-white px-8 py-8">
-          <ResumePaper editable />
+          <ResumePaper editable resume={resume} setResume={setResume} />
           <ImprovePopover mode={improveMode} setMode={setImproveMode} />
         </section>
 
@@ -932,7 +1106,7 @@ function ATSOverviewPanel() {
           </div>
           <div>
             <h2 className="text-2xl font-bold">ATS Optimization Overview</h2>
-            <p className="text-lg text-slate-500">Adedamola’s CV</p>
+            <p className="text-lg text-slate-500">Adedamola's CV</p>
           </div>
         </div>
         <h3 className="mt-8 text-2xl font-bold">Job Description</h3>
