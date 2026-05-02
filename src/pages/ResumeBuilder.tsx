@@ -19,12 +19,14 @@ import {
   Target,
   Trash2,
   X,
+  Upload,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type BuilderScreen =
+  | 'upload'
   | 'template'
   | 'jobTitle'
   | 'summary'
@@ -1431,6 +1433,96 @@ function PreviewScreen({
   )
 }
 
+// ─── Upload resume screen ─────────────────────────────────────────────────────
+
+function UploadResumeScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+  const navigate = useNavigate()
+  const [file, setFile] = useState<File | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+
+  function handleFile(f: File) {
+    const ok = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(f.type)
+    if (ok && f.size <= 5 * 1024 * 1024) setFile(f)
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(false)
+    const f = e.dataTransfer.files[0]
+    if (f) handleFile(f)
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col bg-white font-sans text-slate-950">
+      <CreateResumeTopbar onBack={() => navigate('/documents')} onClose={() => navigate('/documents')} />
+      <main className="flex flex-1 flex-col items-center justify-center px-8 py-16">
+        <div className="w-full max-w-lg">
+          <h1 className="lf-page-title text-center">Upload your resume</h1>
+          <p className="lf-body mt-2 text-center">
+            Upload your existing resume and we'll parse it for you, then let you pick a new template.
+          </p>
+
+          <label
+            className={cn(
+              'mt-10 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-8 py-16 text-center transition-colors',
+              isDragging ? 'border-primary bg-primary/5' : 'border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50',
+            )}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={onDrop}
+          >
+            <div className={cn('grid h-16 w-16 place-items-center rounded-2xl', file ? 'bg-emerald-100' : 'bg-primary/10')}>
+              {file
+                ? <Check className="h-8 w-8 text-emerald-600" />
+                : <Upload className="h-8 w-8 text-primary" />
+              }
+            </div>
+
+            {file ? (
+              <>
+                <p className="text-base font-bold text-foreground">{file.name}</p>
+                <p className="text-sm text-muted-foreground">{(file.size / 1024).toFixed(0)} KB · ready to import</p>
+                <button
+                  onClick={(e) => { e.preventDefault(); setFile(null) }}
+                  className="text-sm font-semibold text-red-500 hover:underline"
+                >
+                  Remove file
+                </button>
+              </>
+            ) : (
+              <>
+                <div>
+                  <p className="text-base font-semibold text-foreground">Drag & drop your resume here</p>
+                  <p className="mt-1 text-sm text-muted-foreground">or click to browse files</p>
+                </div>
+                <p className="text-xs text-muted-foreground">PDF or DOCX · Max 5 MB</p>
+              </>
+            )}
+            <input
+              type="file"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              className="sr-only"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+            />
+          </label>
+
+          <PrimaryButton
+            onClick={() => file && setScreen('template')}
+            className={cn('mt-8 w-full', !file && 'cursor-not-allowed bg-primary/35 hover:bg-primary/35')}
+          >
+            Continue — Choose Template
+          </PrimaryButton>
+
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Your resume is parsed locally and never stored without your permission.
+          </p>
+        </div>
+      </main>
+      <CreateResumeFooter />
+    </div>
+  )
+}
+
 // ─── Template selection screen ────────────────────────────────────────────────
 
 function TemplateSelectScreen({
@@ -1571,15 +1663,16 @@ function JobTitleScreen({
 export default function ResumeBuilder() {
   const [searchParams] = useSearchParams()
   const mode = searchParams.get('mode') ?? 'scratch'
-  const [screen, setScreen] = useState<BuilderScreen>('template')
+  // resume: upload → template → canvas
+  // scratch: template → jobTitle → summary → … → canvas
+  const [screen, setScreen] = useState<BuilderScreen>(mode === 'resume' ? 'upload' : 'template')
   const [resume, setResume] = useState<ResumeData>(initialResumeData)
   const [templateId, setTemplateId] = useState<string>('t01')
   const [jobDescription, setJobDescription] = useState(initialJobDescription)
 
-  // resume mode: template → canvas
-  // scratch mode: template → jobTitle → summary → … → canvas
   const nextScreenAfterTemplate: BuilderScreen = mode === 'resume' ? 'canvas' : 'jobTitle'
 
+  if (screen === 'upload') return <UploadResumeScreen setScreen={setScreen} />
   if (screen === 'template') return <TemplateSelectScreen setScreen={setScreen} templateId={templateId} setTemplateId={setTemplateId} nextScreen={nextScreenAfterTemplate} />
   if (screen === 'jobTitle') return <JobTitleScreen setScreen={setScreen} resume={resume} setResume={setResume} />
   if (screen === 'canvas') return <CanvasScreen setScreen={setScreen} resume={resume} setResume={setResume} templateId={templateId} setTemplateId={setTemplateId} jobDescription={jobDescription} setJobDescription={setJobDescription} />
