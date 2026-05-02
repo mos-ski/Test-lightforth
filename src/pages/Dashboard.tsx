@@ -65,18 +65,20 @@ export default function Dashboard() {
       {/* Upload / file chip area */}
       {resume ? (
         <div>
-          <div className="flex items-center gap-3 rounded-xl bg-[#1E3A5F] px-5 py-3.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/20">
-              <FileText className="h-5 w-5 text-red-400" />
+          <div className="flex items-center gap-3 rounded-2xl bg-[#102230] px-5 py-3.5">
+            {/* PDF file icon */}
+            <div className="relative flex h-9 w-9 shrink-0 items-end justify-end overflow-hidden rounded-md bg-white pb-1 pr-1">
+              <div className="absolute left-0 top-0 h-full w-full rounded-md bg-red-500/10" />
+              <FileText className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-red-500" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-white">{resume.name}</p>
-              <p className="text-xs text-blue-300">Resume</p>
+              <p className="truncate text-sm font-bold text-white">{resume.name}</p>
+              <p className="text-xs text-blue-300/80">Resume</p>
             </div>
             <button
               onClick={() => setResume(null)}
               aria-label="Remove resume"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/70 transition-colors hover:bg-white/20 hover:text-white"
             >
               <X className="h-4 w-4" />
             </button>

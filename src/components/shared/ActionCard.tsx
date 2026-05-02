@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, type LucideIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface Props {
   Icon: LucideIcon
@@ -11,30 +10,18 @@ interface Props {
   badge?: string
 }
 
-export default function ActionCard({ Icon, title, description, to, active, badge }: Props) {
+export default function ActionCard({ Icon, title, description, to, badge }: Props) {
   return (
     <Link
       to={to}
-      className={cn(
-        'flex flex-col rounded-xl border p-4 transition-all hover:shadow-sm',
-        active
-          ? 'border-primary/40 bg-primary/5'
-          : 'border-border bg-white hover:border-primary/20 hover:bg-primary/5',
-      )}
+      className="flex flex-col rounded-2xl border border-border bg-white p-5 transition-all hover:border-primary/30 hover:shadow-sm"
     >
-      <Icon
-        className={cn('mb-3 h-5 w-5', active ? 'text-primary' : 'text-muted-foreground')}
-      />
-      <p
-        className={cn(
-          'mb-1.5 flex items-center gap-1 text-sm font-medium',
-          active ? 'text-primary' : 'text-foreground',
-        )}
-      >
+      <Icon className="mb-3 h-5 w-5 text-primary" />
+      <p className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-primary">
         {title}
         <ArrowRight className="h-3.5 w-3.5" />
         {badge && (
-          <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">
+          <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase text-white">
             {badge}
           </span>
         )}

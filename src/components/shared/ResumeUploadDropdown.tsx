@@ -28,11 +28,11 @@ export default function ResumeUploadDropdown({ onUpload }: Props) {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="upload-cta-pulse flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-blue-100"
+        className="upload-cta-pulse flex w-full items-center justify-between rounded-2xl bg-[#D6E9FF] px-5 py-4 transition-colors hover:bg-[#c4dfff]"
       >
-        <span className="flex items-center gap-2">
-          <span className="text-lg font-light text-muted-foreground">+</span>
-          <span className="font-medium text-foreground">Upload a Resume</span>
+        <span className="flex items-center gap-2.5 text-sm font-semibold text-foreground">
+          <span className="text-xl font-light text-slate-400">+</span>
+          Upload a Resume
         </span>
         <button
           type="button"
@@ -40,9 +40,9 @@ export default function ResumeUploadDropdown({ onUpload }: Props) {
             e.stopPropagation()
             fileRef.current?.click()
           }}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm hover:bg-muted transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-500/20 transition-colors hover:bg-slate-500/30"
         >
-          <Upload className="h-4 w-4 text-muted-foreground" />
+          <Upload className="h-4 w-4 text-slate-600" />
         </button>
       </button>
 
@@ -50,7 +50,7 @@ export default function ResumeUploadDropdown({ onUpload }: Props) {
         <>
           {/* Backdrop */}
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full z-20 mt-1 w-56 overflow-hidden rounded-lg border border-border bg-white shadow-lg">
+          <div className="absolute left-0 top-full z-20 mt-2 w-60 overflow-hidden rounded-xl border border-border bg-white shadow-lg">
             <button
               onClick={() => {
                 setOpen(false)
