@@ -28,10 +28,10 @@ export default function ResumeUploadDropdown({ onUpload }: Props) {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="upload-cta-pulse flex w-full items-center justify-between rounded-2xl bg-[#D6E9FF] px-5 py-4 transition-colors hover:bg-[#c4dfff]"
+        className="upload-cta-pulse flex w-full items-center justify-between rounded-2xl bg-[#D6E9FF] px-5 py-5 transition-colors hover:bg-[#c4dfff]"
       >
-        <span className="flex items-center gap-2.5 text-sm font-semibold text-foreground">
-          <span className="text-xl font-light text-slate-400">+</span>
+        <span className="flex items-center gap-3 text-base font-semibold text-foreground">
+          <span className="text-2xl font-light text-slate-500">+</span>
           Upload a Resume
         </span>
         <button
@@ -40,9 +40,9 @@ export default function ResumeUploadDropdown({ onUpload }: Props) {
             e.stopPropagation()
             fileRef.current?.click()
           }}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-500/20 transition-colors hover:bg-slate-500/30"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-400 transition-colors hover:bg-slate-500"
         >
-          <Upload className="h-4 w-4 text-slate-600" />
+          <Upload className="h-5 w-5 text-white" />
         </button>
       </button>
 
