@@ -1437,10 +1437,12 @@ function TemplateSelectScreen({
   setScreen,
   templateId,
   setTemplateId,
+  nextScreen,
 }: {
   setScreen: (screen: BuilderScreen) => void
   templateId: string
   setTemplateId: (id: string) => void
+  nextScreen: BuilderScreen
 }) {
   const navigate = useNavigate()
   const selectedTemplate = TEMPLATES.find((template) => template.id === templateId) ?? TEMPLATES[0]
@@ -1479,7 +1481,9 @@ function TemplateSelectScreen({
           </div>
           <div className="sticky bottom-0 mt-6 border-t border-border bg-white pt-4">
             <p className="mb-2 text-center text-xs text-muted-foreground"><b className="text-foreground">{selectedTemplate.name}</b> selected</p>
-            <PrimaryButton onClick={() => setScreen('jobTitle')} className="w-full">Proceed</PrimaryButton>
+            <PrimaryButton onClick={() => setScreen(nextScreen)} className="w-full">
+              {nextScreen === 'canvas' ? 'Open Editor' : 'Proceed'}
+            </PrimaryButton>
           </div>
         </section>
         <section className="bg-slate-50">
@@ -1566,13 +1570,17 @@ function JobTitleScreen({
 
 export default function ResumeBuilder() {
   const [searchParams] = useSearchParams()
-  const initialScreen: BuilderScreen = searchParams.get('mode') === 'resume' ? 'canvas' : 'template'
-  const [screen, setScreen] = useState<BuilderScreen>(initialScreen)
+  const mode = searchParams.get('mode') ?? 'scratch'
+  const [screen, setScreen] = useState<BuilderScreen>('template')
   const [resume, setResume] = useState<ResumeData>(initialResumeData)
   const [templateId, setTemplateId] = useState<string>('t01')
   const [jobDescription, setJobDescription] = useState(initialJobDescription)
 
-  if (screen === 'template') return <TemplateSelectScreen setScreen={setScreen} templateId={templateId} setTemplateId={setTemplateId} />
+  // resume mode: template → canvas
+  // scratch mode: template → jobTitle → summary → … → canvas
+  const nextScreenAfterTemplate: BuilderScreen = mode === 'resume' ? 'canvas' : 'jobTitle'
+
+  if (screen === 'template') return <TemplateSelectScreen setScreen={setScreen} templateId={templateId} setTemplateId={setTemplateId} nextScreen={nextScreenAfterTemplate} />
   if (screen === 'jobTitle') return <JobTitleScreen setScreen={setScreen} resume={resume} setResume={setResume} />
   if (screen === 'canvas') return <CanvasScreen setScreen={setScreen} resume={resume} setResume={setResume} templateId={templateId} setTemplateId={setTemplateId} jobDescription={jobDescription} setJobDescription={setJobDescription} />
   if (screen === 'ats') return <ATSScreen setScreen={setScreen} resume={resume} setResume={setResume} jobDescription={jobDescription} setJobDescription={setJobDescription} />
