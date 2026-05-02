@@ -1566,7 +1566,7 @@ function JobTitleScreen({
 
 export default function ResumeBuilder() {
   const [searchParams] = useSearchParams()
-  const initialScreen = searchParams.get('mode') === 'scratch' ? 'summary' : 'template'
+  const initialScreen: BuilderScreen = searchParams.get('mode') === 'resume' ? 'canvas' : 'template'
   const [screen, setScreen] = useState<BuilderScreen>(initialScreen)
   const [resume, setResume] = useState<ResumeData>(initialResumeData)
   const [templateId, setTemplateId] = useState<string>('t01')
