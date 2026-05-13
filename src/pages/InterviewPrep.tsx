@@ -63,7 +63,7 @@ function OverlayHeader({
   onClose: () => void
 }) {
   return (
-    <header className={cn('flex h-[70px] items-center justify-between border-b px-16', dark ? 'border-white/10 bg-[#0f3266] text-white' : 'bg-white text-foreground')}>
+    <header className={cn('flex min-h-[64px] items-center justify-between gap-3 border-b px-4 py-3 sm:px-6 lg:px-16', dark ? 'border-white/10 bg-[#0f3266] text-white' : 'bg-white text-foreground')}>
       <button onClick={onBack} className="flex items-center gap-3 text-sm font-bold">
         <ArrowLeft className="h-4 w-4" />
         {title}
@@ -241,8 +241,8 @@ function Setup({ onBack, onClose, onNext }: { onBack: () => void; onClose: () =>
   return (
     <div className="fixed inset-0 z-[9999] overflow-hidden bg-background">
       <OverlayHeader onBack={onBack} onClose={onClose} />
-      <main className="flex h-[calc(100vh-70px)] items-center justify-center px-6 py-8">
-      <div className="lf-panel w-full max-w-[620px] p-8">
+      <main className="flex h-[calc(100vh-64px)] items-center justify-center overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
+      <div className="lf-panel w-full max-w-[620px] p-4 sm:p-8">
         <h1 className="lf-overlay-title">Set up your interview prep</h1>
         <p className="lf-body mt-3">
           Practice with an AI interviewer using your target role, resume, and optional job description.
@@ -298,7 +298,7 @@ function Setup({ onBack, onClose, onNext }: { onBack: () => void; onClose: () =>
 function PreferenceModal({ onClose, onNext }: { onClose: () => void; onNext: () => void }) {
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/35 p-4">
-      <div className="lf-panel w-[min(540px,calc(100vw-32px))] p-8 shadow-xl">
+      <div className="lf-panel max-h-[calc(100vh-2rem)] w-[min(540px,calc(100vw-32px))] overflow-y-auto p-4 shadow-xl sm:p-8">
         <div className="mb-8 flex items-center justify-between">
           <h2 className="lf-section-title">Interview Preference</h2>
           <button onClick={onClose}><X className="h-5 w-5 text-muted-foreground" /></button>
@@ -335,7 +335,7 @@ function PreferenceGroup({ title, options, selected }: { title: string; options:
 
 function Waveform() {
   return (
-    <div className="relative mx-auto h-72 w-[760px] max-w-full">
+    <div className="relative mx-auto h-56 w-full max-w-[760px] sm:h-72">
       <div className="absolute left-[4%] right-[4%] top-1/2 h-px bg-white/50" />
       <div className="absolute left-[13%] right-[13%] top-1/2 h-20 -translate-y-1/2 rounded-[50%] bg-blue-300/25 blur-sm" />
       <div className="absolute left-[22%] right-[22%] top-1/2 h-12 -translate-y-1/2 rounded-[50%] bg-white/25" />
@@ -390,7 +390,7 @@ function Voice({ onBack, onClose, onNext }: { onBack: () => void; onClose: () =>
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col bg-[#123466] text-white">
       <OverlayHeader dark onBack={onBack} onClose={onClose} />
-      <div className="flex flex-1 flex-col items-center justify-center px-6 pb-12">
+      <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-8 sm:px-6 sm:pb-12">
         <h1 className="mb-10 max-w-xl text-center text-2xl font-bold leading-tight md:text-3xl">Choose your preferred<br />interviewer voice</h1>
         <Waveform />
         <div className="mt-5 grid w-full max-w-[800px] gap-4 md:grid-cols-2">
@@ -430,21 +430,21 @@ function Instructions({ onBack, onClose, onNext }: { onBack: () => void; onClose
 function Live({ onBack, onEnd }: { onBack: () => void; onEnd: () => void }) {
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col bg-[#123466] text-white">
-      <header className="flex h-[84px] items-center justify-between border-b border-white/10 px-24">
-        <button onClick={onBack} className="flex items-center gap-3 text-base font-bold"><ArrowLeft className="h-5 w-5" />Interview for Product Designer</button>
-        <div className="flex items-center gap-4">
+      <header className="flex min-h-[72px] flex-col items-start justify-between gap-3 border-b border-white/10 px-4 py-3 sm:flex-row sm:items-center sm:px-6 lg:h-[84px] lg:px-24">
+        <button onClick={onBack} className="flex min-w-0 items-center gap-3 text-sm font-bold sm:text-base"><ArrowLeft className="h-5 w-5 shrink-0" /><span className="truncate">Interview for Product Designer</span></button>
+        <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-start sm:gap-4">
           <span className="flex items-center gap-3 rounded-2xl bg-[#082856] px-4 py-3 text-base font-bold"><span className="h-4 w-4 rounded-full border-4 border-white bg-red-500" />03:22</span>
           <Button className="h-11 bg-red-500 px-6 text-sm font-bold hover:bg-red-600" onClick={onEnd}>End Interview</Button>
         </div>
       </header>
-      <main className="grid flex-1 gap-4 overflow-hidden p-8 lg:grid-cols-[2fr_1fr]">
-        <section className="relative flex items-center justify-center overflow-hidden rounded bg-[#06172e]">
+      <main className="grid flex-1 gap-4 overflow-y-auto p-4 sm:p-6 lg:grid-cols-[2fr_1fr] lg:overflow-hidden lg:p-8">
+        <section className="relative min-h-[420px] flex items-center justify-center overflow-hidden rounded bg-[#06172e] lg:min-h-0">
           <Waveform />
-          <p className="absolute bottom-12 left-10 right-10 rounded bg-[#061224]/90 p-5 text-lg font-bold leading-7">
+          <p className="absolute bottom-4 left-4 right-4 max-h-44 overflow-y-auto rounded bg-[#061224]/90 p-4 text-sm font-bold leading-6 sm:bottom-12 sm:left-10 sm:right-10 sm:p-5 sm:text-lg sm:leading-7">
             Hi, Jame, hope you’re having a great day! Welcome, I’m Erik, and I’ll be conducting your interview for the Data Analyst role at Your Favorite Company. Thank you for taking the time to speak with me. This is an opportunity for you to showcase your skills and experiences in your own voice. Please ensure you're in a quiet, well-lit place and can dedicate up to 20 minutes to this. Can we get started?
           </p>
         </section>
-        <aside className="overflow-hidden rounded bg-[#213f77] p-4">
+        <aside className="min-h-[420px] overflow-hidden rounded bg-[#213f77] p-4 lg:min-h-0">
           <div className="relative aspect-video overflow-hidden rounded-lg bg-gradient-to-br from-slate-200 via-blue-100 to-slate-300">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_45%_35%,rgba(255,255,255,0.55),transparent_36%)]" />
             <div className="absolute bottom-4 left-4 flex h-10 w-16 items-center justify-center rounded-full bg-black/25">
@@ -475,8 +475,8 @@ function Complete({ onHome, onReport }: { onHome: () => void; onReport: () => vo
   return (
     <div className="fixed inset-0 z-[9999] bg-background">
       <OverlayHeader onBack={onHome} onClose={onHome} />
-      <main className="flex h-[calc(100vh-70px)] items-center justify-center px-6 py-8">
-      <div className="lf-panel w-full max-w-[620px] p-8">
+      <main className="flex h-[calc(100vh-64px)] items-center justify-center overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
+      <div className="lf-panel w-full max-w-[620px] p-4 sm:p-8">
         <h1 className="lf-overlay-title">Your Interview is complete!</h1>
         <p className="lf-body mt-5">Thank you for completing your AI interview with Your Favorite Company.</p>
         <p className="lf-body mt-8">Your responses have been recorded and will be evaluated by our Lightforth AI. Based on predefined criteria set by the hiring manager, Lightforth will provide an unbiased assessment for the role.</p>
@@ -496,13 +496,13 @@ function Report({ onBack }: { onBack: () => void }) {
   return (
     <div className="fixed inset-0 z-[9999] overflow-y-auto bg-[#f4f4f4]">
       <OverlayHeader title="Product designer interview at Lightforth" onBack={onBack} onClose={onBack} />
-      <main className="mx-auto grid max-w-[1580px] gap-7 p-8 lg:grid-cols-[1fr_1fr]">
+      <main className="mx-auto grid max-w-[1580px] gap-5 p-4 sm:p-6 lg:grid-cols-[1fr_1fr] lg:gap-7 lg:p-8">
         <section className="space-y-7">
           <VideoPreview />
           <div className="rounded-md border bg-white">
             <h2 className="border-b py-6 text-center text-lg font-bold">Interview Questions</h2>
             {questions.map((time, index) => (
-              <div key={time} className={cn('flex gap-4 px-8 py-5', index === 0 && 'bg-blue-50')}>
+              <div key={time} className={cn('flex gap-3 px-4 py-4 sm:gap-4 sm:px-8 sm:py-5', index === 0 && 'bg-blue-50')}>
                 <div className="h-14 w-24 flex-shrink-0 overflow-hidden rounded">
                   <VideoPreview compact />
                 </div>
@@ -561,7 +561,7 @@ function ScoreArc({ value }: { value: string }) {
 
 function FocusReport() {
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <ScoreArc value="63%" />
       <h2 className="lf-section-title mt-8">Good job! Here’s how you performed.</h2>
       {[
@@ -588,7 +588,7 @@ function FocusReport() {
 
 function FeedbackReport() {
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="rounded-md border-4 border-primary bg-white shadow-xl">
         <h2 className="bg-[#123466] px-6 py-4 text-base font-bold text-white">Your strong suite</h2>
         <p className="p-7 text-sm leading-6">Elit fames accumsan lorem nunc sem ante. Nullam accumsan suscipit augue sed. Mattis enim elementum eget et sed vulputate morbi pellentesque.</p>

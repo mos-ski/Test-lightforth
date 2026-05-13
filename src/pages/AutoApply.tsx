@@ -66,7 +66,7 @@ function LabeledInput({
   type?: string
 }) {
   return (
-    <div className={fullWidth ? 'col-span-2' : ''}>
+    <div className={fullWidth ? 'sm:col-span-2' : ''}>
       <label className="lf-label">
         {label}
         {required && <span className="text-red-500 ml-0.5">*</span>}
@@ -102,7 +102,7 @@ function LabeledSelect({
   fullWidth?: boolean
 }) {
   return (
-    <div className={fullWidth ? 'col-span-2' : ''}>
+    <div className={fullWidth ? 'sm:col-span-2' : ''}>
       <label className="lf-label">
         {label}
         {required && <span className="text-red-500 ml-0.5">*</span>}
@@ -193,7 +193,7 @@ function RadioField({
 function StepIndicator({ step }: { step: SetupStep }) {
   const steps = ['Resume', 'Contact Information', 'Job Preferences', 'Additional Information']
   return (
-    <div className="flex items-center">
+    <div className="flex w-full items-start overflow-x-auto pb-2">
       {steps.map((label, i) => {
         const n = (i + 1) as SetupStep
         const done = n < step
@@ -221,7 +221,7 @@ function StepIndicator({ step }: { step: SetupStep }) {
               </span>
             </div>
             {i < steps.length - 1 && (
-              <div className={cn('mx-3 h-0.5 w-16 flex-shrink-0 mb-4', done ? 'bg-primary' : 'bg-border')} />
+              <div className={cn('mx-2 h-0.5 w-8 flex-shrink-0 mb-4 sm:mx-3 sm:w-16', done ? 'bg-primary' : 'bg-border')} />
             )}
           </div>
         )
@@ -240,7 +240,7 @@ function ApplicationScorePanel({ step }: { step: SetupStep }) {
     { label: 'Additional info provided', done: false },
   ]
   return (
-    <div className="w-56 flex-shrink-0">
+    <div className="w-full lg:w-56 lg:flex-shrink-0">
       <div className="rounded-xl border border-border bg-white p-4">
         <h3 className="text-sm font-semibold text-foreground mb-1">Application Score</h3>
         <p className="text-xs text-muted-foreground mb-4">Complete all items to start auto-applying</p>
@@ -269,8 +269,8 @@ function ApplicationScorePanel({ step }: { step: SetupStep }) {
 
 function Step1Resume({ resumeFile }: { resumeFile: string }) {
   return (
-    <div className="lf-panel p-6">
-      <div className="flex items-center justify-between mb-1">
+    <div className="lf-panel p-4 sm:p-6">
+      <div className="mb-1 flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">Resume</h2>
         <TipsButton />
       </div>
@@ -321,8 +321,8 @@ function Step2Contact({
   const set = (key: keyof ContactState) => (v: string) => setContact({ ...contact, [key]: v })
 
   return (
-    <div className="lf-panel p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="lf-panel p-4 sm:p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-foreground">Contact Information</h2>
           <p className="text-xs text-muted-foreground">Your contact details</p>
@@ -330,7 +330,7 @@ function Step2Contact({
         <TipsButton />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <LabeledInput label="Email" value={contact.email} onChange={set('email')} required placeholder="you@example.com" />
         <LabeledInput label="Phone" value={contact.phone} onChange={set('phone')} placeholder="+1" />
         <LabeledInput label="First Name" value={contact.firstName} onChange={set('firstName')} required />
@@ -410,8 +410,8 @@ function Step3JobPrefs({
   }
 
   return (
-    <div className="lf-panel p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="lf-panel p-4 sm:p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-foreground">Job Preferences</h2>
           <p className="text-xs text-muted-foreground">Your job preferences</p>
@@ -421,7 +421,7 @@ function Step3JobPrefs({
 
       <div className="space-y-4">
         {/* Desired Role + Experience Level */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           {/* Desired Role as tag input */}
           <div>
             <label className="lf-label">
@@ -574,7 +574,7 @@ function Step4Additional({
       {/* Demographics */}
       <div>
         <h3 className="text-sm font-semibold text-foreground mb-3">Demographics</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <LabeledSelect
             label="Race/Ethnicity"
             value={info.race}
@@ -616,7 +616,7 @@ function Step4Additional({
       {/* Work Authorization */}
       <div>
         <h3 className="text-sm font-semibold text-foreground mb-3">Work Authorization</h3>
-        <div className="grid grid-cols-2 gap-4 mb-3">
+        <div className="mb-3 grid gap-4 sm:grid-cols-2">
           <LabeledSelect
             label="US Work Authorization"
             value={info.usWorkAuth}
@@ -642,7 +642,7 @@ function Step4Additional({
       {/* Logistics */}
       <div>
         <h3 className="text-sm font-semibold text-foreground mb-3">Logistics</h3>
-        <div className="grid grid-cols-2 gap-4 mb-3">
+        <div className="mb-3 grid gap-4 sm:grid-cols-2">
           <LabeledSelect
             label="When are you willing to start?"
             value={info.willingToStart}
@@ -755,7 +755,7 @@ function PaywallView() {
       </p>
 
       {/* Feature cards */}
-      <div className="grid grid-cols-2 gap-3 w-full max-w-2xl mb-8">
+      <div className="mb-8 grid w-full max-w-2xl gap-3 sm:grid-cols-2">
         {FEATURES.map((f) => (
           <div key={f.title} className="flex items-start gap-3 rounded-xl border border-border bg-white p-4">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -770,7 +770,7 @@ function PaywallView() {
       </div>
 
       {/* Pricing cards */}
-      <div className="grid grid-cols-2 gap-4 w-full max-w-2xl mb-4">
+      <div className="mb-4 grid w-full max-w-2xl gap-4 sm:grid-cols-2">
         {/* PRO */}
         <div className="rounded-2xl border border-border bg-white p-6">
           <div className="flex items-center gap-2 mb-1">
@@ -835,7 +835,7 @@ function StatCard({ title, children }: { title: string; children: React.ReactNod
 
 function StatsRow() {
   return (
-    <div className="grid grid-cols-5 gap-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {/* Applied */}
       <StatCard title="Applied">
         <p className="text-2xl font-bold text-foreground">268</p>
@@ -925,7 +925,7 @@ function JobDetailPanel({
   const isApplied = tab === 'applied'
 
   return (
-    <div className="w-80 flex-shrink-0 rounded-xl border border-border bg-white overflow-y-auto">
+    <div className="w-full flex-shrink-0 rounded-xl border border-border bg-white overflow-y-auto lg:w-80">
       {/* Header with close */}
       <div className="flex items-start justify-between border-b border-border p-4 pb-3">
         <div>
@@ -1022,7 +1022,7 @@ function JobsTab({
   )
 
   return (
-    <div className="mt-4 flex gap-4">
+    <div className="mt-4 flex flex-col gap-4 lg:flex-row">
       <div className="flex-1 min-w-0">
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1099,7 +1099,7 @@ function AppliedTab({
   )
 
   return (
-    <div className="mt-4 flex gap-4">
+    <div className="mt-4 flex flex-col gap-4 lg:flex-row">
       <div className="flex-1 min-w-0">
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1284,8 +1284,8 @@ export default function AutoApply() {
 
       <StepIndicator step={setupStep} />
 
-      <div className="mt-6 flex gap-6">
-        <div className="flex-1">
+      <div className="mt-6 flex flex-col gap-6 lg:flex-row">
+        <div className="min-w-0 flex-1">
           {setupStep === 1 && <Step1Resume resumeFile={resumeFile} />}
           {setupStep === 2 && <Step2Contact contact={contact} setContact={setContact} />}
           {setupStep === 3 && <Step3JobPrefs prefs={prefs} setPrefs={setPrefs} />}
@@ -1293,7 +1293,7 @@ export default function AutoApply() {
             <Step4Additional info={additionalInfo} setInfo={setAdditionalInfo} />
           )}
 
-          <div className="mt-8 flex items-center justify-between">
+          <div className="mt-8 flex items-center justify-between gap-3">
             <button
               onClick={handleBack}
               className="flex items-center gap-1.5 text-sm text-foreground hover:text-primary transition-colors"

@@ -14,7 +14,7 @@ export default function JobProfile() {
       </div>
 
       <section className="lf-panel p-6">
-        <div className="flex items-start justify-between gap-6">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:gap-6">
           <div>
             <h2 className="lf-section-title">Target role</h2>
             <p className="mt-2 text-sm text-muted-foreground">Lightforth uses this to personalize applications and interview prep.</p>
@@ -62,7 +62,7 @@ export default function JobProfile() {
         </div>
 
         <div className="lf-panel p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <h2 className="lf-section-title">Skills</h2>
             <Button variant="outline" size="sm">
               <Plus className="h-4 w-4" />

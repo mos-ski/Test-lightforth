@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Pencil,
   Plus,
+  RotateCcw,
   Save,
   Search,
   Send,
@@ -30,6 +31,7 @@ import {
   ZoomOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import LightforthLogo from '@/components/shared/LightforthLogo'
 
 type BuilderScreen =
   | 'upload'
@@ -335,10 +337,11 @@ const STEP_LIST: [CreateResumeStepId, string][] = [
 
 function CreateResumeTopbar({ onBack, onClose }: { onBack: () => void; onClose: () => void }) {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-white px-6">
+    <header className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-border bg-white px-4 py-3 sm:px-6">
       <button onClick={onBack} className="inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors">
         <ArrowLeft className="h-4 w-4" />
-        Create Resume
+        <span className="hidden sm:inline">Create Resume</span>
+        <span className="sm:hidden">Back</span>
       </button>
       <button onClick={onClose} aria-label="Close" className="rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground">
         <X className="h-4 w-4" />
@@ -349,15 +352,22 @@ function CreateResumeTopbar({ onBack, onClose }: { onBack: () => void; onClose: 
 
 function CreateResumeSteps({ active }: { active: CreateResumeStepId }) {
   const activeIndex = STEP_LIST.findIndex(([id]) => id === active)
+  const progress = Math.round(((activeIndex + 1) / STEP_LIST.length) * 100)
   return (
-    <aside className="shrink-0 border-r border-border bg-white px-6 py-8">
-      <p className="mb-6 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Steps</p>
-      <nav className="space-y-5">
+    <aside className="shrink-0 border-b border-border bg-white px-4 py-4 md:border-b-0 md:border-r md:px-6 md:py-8">
+      <div className="mb-4 flex items-center justify-between md:mb-6">
+        <p className="text-xs font-semibold text-muted-foreground md:text-[11px] md:font-bold md:uppercase md:tracking-widest">Step {activeIndex + 1} of {STEP_LIST.length}</p>
+        <p className="text-xs font-bold text-primary md:hidden">{progress}%</p>
+      </div>
+      <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-muted md:hidden">
+        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+      </div>
+      <nav className="grid grid-cols-8 gap-2 md:block md:space-y-5">
         {STEP_LIST.map(([id, label], index) => {
           const isDone = index < activeIndex
           const isActive = id === active
           return (
-            <div key={id} className="flex items-center gap-3">
+            <div key={id} className="flex min-w-0 items-center justify-center gap-3 md:justify-start">
               <div
                 className={cn(
                   'grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold transition-colors',
@@ -370,7 +380,7 @@ function CreateResumeSteps({ active }: { active: CreateResumeStepId }) {
               </div>
               <p
                 className={cn(
-                  'text-sm font-semibold transition-colors',
+                  'hidden text-sm font-semibold transition-colors md:block',
                   isActive && 'text-primary',
                   isDone && 'text-foreground',
                   !isActive && !isDone && 'text-muted-foreground',
@@ -388,7 +398,7 @@ function CreateResumeSteps({ active }: { active: CreateResumeStepId }) {
 
 function CreateResumeFooter() {
   return (
-    <footer className="fixed bottom-5 left-6 space-y-0.5 text-xs text-muted-foreground">
+    <footer className="hidden fixed bottom-5 left-6 space-y-0.5 text-xs text-muted-foreground md:block">
       <p>© Lightforth AI 2026</p>
       <p>support@lightforth.org</p>
     </footer>
@@ -408,9 +418,9 @@ function BuildStep({
   return (
     <div className="flex min-h-screen flex-col bg-white font-sans text-slate-950">
       <CreateResumeTopbar onBack={onBack} onClose={() => navigate('/documents')} />
-      <main className="grid flex-1 grid-cols-[220px_minmax(0,1fr)] overflow-hidden">
+      <main className="grid flex-1 overflow-hidden md:grid-cols-[220px_minmax(0,1fr)]">
         <CreateResumeSteps active={step} />
-        <section className="overflow-y-auto px-8 py-10">
+        <section className="overflow-y-auto px-4 py-8 sm:px-6 md:px-8 md:py-10">
           <div className="mx-auto max-w-xl pb-16">{children}</div>
         </section>
       </main>
@@ -428,7 +438,7 @@ function SummaryStep({ setScreen }: { setScreen: (screen: BuilderScreen) => void
       <p className="lf-body mt-2">Write a brief summary that captures who you are and what you bring to the table.</p>
 
       <div className="mt-8 space-y-5">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Full Name" placeholder="Adedamola Adewale" />
           <Field label="Job Title" placeholder="Product Manager" />
         </div>
@@ -522,7 +532,7 @@ function ExperienceForm({ setScreen }: { setScreen: (screen: BuilderScreen) => v
       <p className="lf-body mt-2">Fill in the details for this position.</p>
 
       <div className="mt-8 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Job Title" placeholder="Product Manager" />
           <Field label="Company / Employer" placeholder="Google" />
           <DateSelect label="Start Date" />
@@ -610,7 +620,7 @@ function EducationForm({ setScreen }: { setScreen: (screen: BuilderScreen) => vo
       <p className="lf-body mt-2">Fill in your educational details.</p>
 
       <div className="mt-8 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Institution" placeholder="University of Lagos" />
           <Field label="Location" placeholder="Lagos, Nigeria" />
           <Field label="Degree" placeholder="Bachelor of Science" />
@@ -659,18 +669,18 @@ function ContactStep({ setScreen }: { setScreen: (screen: BuilderScreen) => void
       <h1 className="lf-page-title">Contact Information</h1>
       <p className="lf-body mt-2">This appears at the top of your resume. Keep it professional and current.</p>
 
-      <div className="mt-8 grid grid-cols-2 gap-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
         <Field label="First Name" placeholder="Adedamola" />
         <Field label="Last Name" placeholder="Adewale" />
         <Field label="Email Address" placeholder="adedamola@gmail.com" type="email" />
         <Field label="Phone Number" placeholder="+234 810 367 4006" type="tel" />
         <Field label="City" placeholder="Lagos, Nigeria" />
         <Field label="Postal Code" placeholder="100216" />
-        <label className="col-span-2 block">
+        <label className="block sm:col-span-2">
           <span className="lf-label mb-1.5 block">Website / Portfolio (optional)</span>
           <input className="lf-input" placeholder="mo-ski.com" />
         </label>
-        <label className="col-span-2 block">
+        <label className="block sm:col-span-2">
           <span className="lf-label mb-1.5 block">LinkedIn (optional)</span>
           <input className="lf-input" placeholder="linkedin.com/in/adedamola" />
         </label>
@@ -777,7 +787,7 @@ function ResumePaper({
       <ResumeSection title="Certificates" editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} accent={accent} />
       <section className={cn(fitViewport ? 'mt-5' : 'mt-8')}>
         <h2 className={cn('border-b-2 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')} style={{ borderColor: accent }}>Skills</h2>
-        <div className={cn('mt-3 grid grid-cols-2 gap-2', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
+        <div className={cn('mt-3 grid gap-2 sm:grid-cols-2', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
           {skills.map((skill, index) => (
             <p
               key={`${skill}-${index}`}
@@ -920,7 +930,7 @@ function CanvasScreen({
   setJobDescription: Dispatch<SetStateAction<string>>
 }) {
   const [improveMode, setImproveMode] = useState<ImproveMode>('closed')
-  const [expanded, setExpanded] = useState('')
+  const [expanded, setExpanded] = useState('Experience')
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat')
   const [resumeName, setResumeName] = useState("Adedamola's CV")
   const [isEditingName, setIsEditingName] = useState(false)
@@ -930,6 +940,7 @@ function CanvasScreen({
   const [visibleSections, setVisibleSections] = useState(['Personal Information', 'Professional Summary', 'Experience', 'Education', 'Skills', 'Language', 'Certificates', 'Website and Social Links'])
   const [zoom, setZoom] = useState(0.9)
   const [downloadOpen, setDownloadOpen] = useState(false)
+  const [mobileAtsOpen, setMobileAtsOpen] = useState(false)
   const navigate = useNavigate()
   const selectedTemplate = TEMPLATES.find((template) => template.id === templateId) ?? TEMPLATES[0]
   const zoomPercent = Math.round(zoom * 100)
@@ -942,7 +953,7 @@ function CanvasScreen({
     setChatMessages((messages) => [
       ...messages,
       { id: Date.now(), role: 'user', text: 'Rewrite my resume for this job description.' },
-      { id: Date.now() + 1, role: 'ai', text: 'Done. I rewrote the summary, added role keywords to skills, and added a tailored impact bullet. Keep editing here and I will keep the canvas updated.' },
+      { id: Date.now() + 1, role: 'ai', text: 'The resume has been tailored for the job description. Review the changes when you are ready, then download the final version.' },
     ])
   }
 
@@ -950,7 +961,7 @@ function CanvasScreen({
     const trimmed = message.trim()
     const normalized = trimmed.toLowerCase()
     if (!normalized) return
-    let aiText = 'I updated the resume canvas with that direction. You can ask for tone, length, stronger metrics, or a more ATS-focused rewrite next.'
+    let aiText = 'I updated the resume canvas with that direction. Review the changes when you are ready, then download the final version.'
     if (normalized.includes('short')) {
       updateResumeField(setResume, 'summary', resume.summary.split('.').slice(0, 2).join('.').trim())
       aiText = 'I shortened the professional summary while keeping the main positioning intact.'
@@ -964,6 +975,9 @@ function CanvasScreen({
     } else if (normalized.includes('metric') || normalized.includes('impact')) {
       updateResumeField(setResume, 'experienceBullets', `${resume.experienceBullets}\nImproved product activation and delivery quality by aligning roadmap decisions with measurable user and business outcomes.`)
       aiText = 'I added a stronger impact-focused bullet. Add exact numbers later and the ATS score will respond even better.'
+    } else if (normalized.includes('education')) {
+      updateResumeField(setResume, 'education', 'B.Sc. Agriculture')
+      aiText = 'All 4 points you made concerning the education section have been applied. Please review the resume before downloading.'
     }
     setChatMessages((messages) => [
       ...messages,
@@ -980,8 +994,133 @@ function CanvasScreen({
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#f5f6f8] font-sans text-slate-950">
-      <FullscreenTopbar
+    <>
+      <div className="flex min-h-screen flex-col bg-white font-sans text-slate-950 lg:hidden">
+        <MobileEditorHeader
+          resumeName={resumeName}
+          setResumeName={setResumeName}
+          isEditingName={isEditingName}
+          setIsEditingName={setIsEditingName}
+          onClose={() => navigate('/documents')}
+        />
+        <MobileEditorTabs sidebarTab={sidebarTab} setSidebarTab={setSidebarTab} />
+        <main className="min-h-0 flex-1 overflow-y-auto">
+          {sidebarTab === 'chat' && (
+            <section className="flex min-h-[calc(100dvh-8.75rem)] flex-col px-4 pb-4">
+              <div className="flex flex-1 flex-col justify-center py-8 text-center">
+                {chatMessages.length === 0 ? (
+                  <div className="mx-auto max-w-xs">
+                    <h1 className="text-xl font-black leading-tight text-slate-950">Paste your job description</h1>
+                    <p className="mt-3 text-base leading-7 text-slate-500">I can rewrite your resume for the role, then we can refine it together.</p>
+                    <button onClick={() => setMobileAtsOpen(true)} className="mt-6 rounded-full border border-slate-200 px-4 py-2 text-sm font-bold text-[#149cf2]">
+                      View ATS tips
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 text-left">
+                    <div className="ml-auto max-w-[86%] rounded-lg bg-sky-50 px-4 py-3 text-sm leading-6 text-slate-700">
+                      <ul className="list-disc pl-5">
+                        {resume.experienceBullets.split('\n').filter(Boolean).slice(0, 4).map((item, index) => (
+                          <li key={`${item}-${index}`}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <p className="text-base leading-7 text-slate-600">
+                      {chatMessages.filter((message) => message.role === 'ai').at(-1)?.text ?? 'Your edits are ready to review.'}
+                    </p>
+                    <button onClick={() => setMobileAtsOpen(true)} className="flex w-full items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-left">
+                      <span>
+                        <span className="block text-base font-black text-slate-800">ATS Tips</span>
+                        <span className="mt-0.5 block text-sm text-slate-500">Live score and keyword suggestions</span>
+                      </span>
+                      <ChevronDown className="h-5 w-5 rotate-180 text-slate-500" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="sticky bottom-0 space-y-3 border-t border-slate-200 bg-white pt-3">
+                <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+                  {quickPrompts.map((prompt) => (
+                    <button key={prompt} onClick={() => sendChat(prompt)} className="shrink-0 rounded-full border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600">
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex items-end gap-2 rounded-xl border border-slate-200 p-2">
+                  <textarea
+                    value={chatDraft}
+                    onChange={(event) => setChatDraft(event.target.value)}
+                    rows={2}
+                    className="min-w-0 flex-1 resize-none text-base leading-6 text-slate-700 outline-none placeholder:text-slate-400"
+                    placeholder="Message Lightforth AI..."
+                  />
+                  <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#149cf2] text-white">
+                    <Send className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {sidebarTab === 'create' && (
+            <section className="space-y-5 px-4 py-5">
+              <MobileSectionRow icon={<UserIcon />} title="Personal Information" action={<><Eye className="h-5 w-5" /><Plus className="h-5 w-5" /></>} />
+              <MobileSectionRow icon={<FileText className="h-5 w-5" />} title="Professional Summary" action={<Plus className="h-5 w-5" />} />
+              <div className="flex items-center gap-5 px-2 text-slate-400">
+                <b className="text-lg">B</b><i className="text-lg font-bold">I</i><b className="text-lg">H</b><b className="text-base">H</b><span className="text-lg">"</span><span className="text-lg">↔</span><span className="text-lg">▣</span><span className="text-lg">☷</span>
+              </div>
+              <div className="rounded-xl border border-slate-200 p-4">
+                <textarea
+                  value={resume.summary}
+                  onChange={(event) => updateResumeField(setResume, 'summary', event.target.value)}
+                  rows={5}
+                  className="w-full resize-none text-base leading-7 text-slate-600 outline-none"
+                />
+                <div className="mt-6 flex items-end justify-between gap-3 border-t border-slate-200 pt-4">
+                  <Info className="h-5 w-5 text-orange-400" />
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-600 shadow-sm">
+                    <p>Count: {resume.summary.trim().split(/\s+/).filter(Boolean).length}/100</p>
+                    <p>Character: {resume.summary.length.toLocaleString()}</p>
+                  </div>
+                  <button onClick={() => setImproveMode('menu')} className="inline-flex h-10 items-center gap-2 rounded-lg border border-emerald-500 px-3 text-sm font-bold text-emerald-600">
+                    <Pencil className="h-5 w-5" /> Improve
+                  </button>
+                </div>
+              </div>
+              <MobileSectionRow icon={<BriefcaseIcon />} title="Experience" action={<Plus className="h-5 w-5" />} />
+              <MobileResumeFileCard onOpen={() => setScreen('preview')} />
+              <button onClick={() => setMobileAtsOpen(true)} className="w-full rounded-xl border border-slate-200 py-3 text-sm font-bold text-[#149cf2]">
+                View ATS tips
+              </button>
+            </section>
+          )}
+
+          {sidebarTab === 'templates' && (
+            <section className="space-y-5 px-4 py-5">
+              <div className="grid grid-cols-2 gap-x-5 gap-y-6">
+                {TEMPLATES.slice(0, 8).map((tmpl) => (
+                  <button key={tmpl.id} onClick={() => setTemplateId(tmpl.id)} className="relative text-left">
+                    <div className={cn('aspect-[3/4] overflow-hidden bg-white shadow-sm', templateId === tmpl.id && 'opacity-45')}>
+                      <img src={tmpl.src} alt={tmpl.name} className="h-full w-full object-cover object-top" />
+                    </div>
+                    {templateId === tmpl.id && (
+                      <span className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-lg border border-emerald-400 bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-600 shadow-sm">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500" /> Selected
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <MobileResumeFileCard onOpen={() => setScreen('preview')} />
+            </section>
+          )}
+        </main>
+        {mobileAtsOpen && <MobileAtsSheet resume={resume} jobDescription={jobDescription} onClose={() => setMobileAtsOpen(false)} />}
+        <ImprovePopover mode={improveMode} setMode={setImproveMode} />
+      </div>
+
+      <div className="hidden h-screen flex-col overflow-hidden bg-[#f5f6f8] font-sans text-slate-950 lg:flex">
+        <FullscreenTopbar
         left={(
           <div className="flex items-center gap-3">
             <button onClick={() => navigate('/documents')} aria-label="Close resume builder" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50">
@@ -1025,57 +1164,75 @@ function CanvasScreen({
             />
           </>
         )}
-      />
-      <main className="grid min-h-0 flex-1 grid-cols-[250px_minmax(0,1fr)_260px] gap-3 px-4 py-3">
-        <aside className="flex min-h-0 flex-col overflow-hidden rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="mb-5 flex shrink-0 items-center gap-3 text-sm font-bold">
+        />
+        <main className="grid min-h-0 flex-1 grid-cols-[minmax(320px,0.36fr)_minmax(640px,1fr)_minmax(320px,0.36fr)] gap-5 overflow-hidden px-4 py-3">
+        <aside className="flex max-h-[48vh] min-h-[320px] flex-col overflow-hidden rounded-lg bg-white p-4 lg:max-h-none lg:min-h-0">
+          <div className="mb-8 flex shrink-0 items-center gap-4 text-base font-bold">
             <Menu className="h-5 w-5 text-[#123667]" />
-            Resume content
+            <span className="min-w-0 flex-1 truncate">Adedamola’s CV</span>
             <Pencil className="h-4 w-4 text-slate-500" />
           </div>
-          <div className="mb-5 grid shrink-0 grid-cols-3 rounded-md border border-slate-200 bg-slate-50 p-1 text-center text-xs font-semibold">
+          <div className="mb-5 grid shrink-0 grid-cols-3 rounded-lg border border-slate-200 bg-slate-50 p-1 text-center text-sm font-semibold">
             {[
               ['chat', MessageSquare, 'Chat'],
               ['create', FileText, 'Create'],
-              ['templates', LayoutTemplate, 'Templates'],
+              ['templates', LayoutTemplate, 'Template'],
             ].map(([id, Icon, label]) => (
               <button
                 key={id as string}
                 onClick={() => setSidebarTab(id as SidebarTab)}
-                className={cn('flex items-center justify-center gap-1 rounded-md py-2 transition-colors', sidebarTab === id ? 'bg-white shadow-sm' : 'text-slate-500')}
+                className={cn('flex h-10 items-center justify-center gap-1 rounded-md transition-colors', sidebarTab === id ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500')}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-4 w-4" />
                 {label as string}
               </button>
             ))}
           </div>
           {sidebarTab === 'chat' ? (
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="min-h-0 flex-1 space-y-4 overflow-hidden pr-1">
+              <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
                 {chatMessages.length === 0 ? (
                   <div className="flex h-full items-center justify-center text-center">
-                    <div>
-                      <p className="text-lg font-bold text-slate-900">Paste your job description</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-500">I can rewrite your resume for the role, then we can refine it together.</p>
+                    <div className="max-w-xs">
+                      <p className="text-xl font-black text-slate-900">Paste your job description</p>
+                      <p className="mt-3 text-base leading-7 text-slate-500">I can rewrite your resume for the role, then we can refine it together.</p>
                     </div>
                   </div>
                 ) : (
-                  chatMessages.map((message) => (
-                    <div key={message.id} className={cn('flex items-start gap-2', message.role === 'user' && 'justify-end')}>
-                      <div className={cn(
-                        'max-w-[82%] rounded-2xl px-3 py-2 text-sm leading-6',
-                        message.role === 'user' ? 'rounded-tr-sm bg-[#149cf2] text-white' : 'rounded-tl-sm bg-slate-100 text-slate-700',
-                      )}>
-                        {message.text}
-                      </div>
+                  <>
+                    <div className="ml-auto max-w-[78%] rounded-lg bg-sky-50 px-5 py-4 text-sm leading-6 text-slate-700">
+                      <ul className="list-disc pl-5">
+                        {resume.experienceBullets.split('\n').filter(Boolean).slice(0, 4).map((item, index) => (
+                          <li key={`${item}-${index}`}>{item}</li>
+                        ))}
+                      </ul>
                     </div>
-                  ))
+                    <p className="text-base leading-6 text-slate-700">
+                      {chatMessages.filter((message) => message.role === 'ai').at(-1)?.text ?? 'Your edits are ready to review.'}
+                    </p>
+                    <MobileResumeFileCard onOpen={() => setScreen('preview')} />
+                    {chatMessages.slice(-2).map((message) => (
+                      <div key={message.id} className={cn('flex items-start gap-2', message.role === 'user' && 'justify-end')}>
+                        <div className={cn(
+                          'max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6',
+                          message.role === 'user' ? 'rounded-tr-sm bg-sky-50 text-slate-700' : 'rounded-tl-sm bg-slate-100 text-slate-700',
+                        )}>
+                          {message.text}
+                        </div>
+                      </div>
+                    ))}
+                  </>
                 )}
               </div>
               <div className="mt-4 shrink-0 space-y-3 border-t border-slate-200 pt-3">
+                {chatMessages.length > 0 && (
+                  <button onClick={() => setMobileAtsOpen(true)} className="flex items-center gap-2 text-sm font-bold text-[#149cf2]">
+                    <ChevronDown className="h-4 w-4 rotate-180" /> ATS Tips
+                  </button>
+                )}
                 <div className="flex flex-wrap gap-2">
                   {quickPrompts.map((prompt) => (
-                    <button key={prompt} onClick={() => sendChat(prompt)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[#149cf2] hover:text-[#149cf2]">
+                    <button key={prompt} onClick={() => sendChat(prompt)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:border-[#149cf2] hover:text-[#149cf2]">
                       {prompt}
                     </button>
                   ))}
@@ -1101,36 +1258,31 @@ function CanvasScreen({
               </div>
             </div>
           ) : sidebarTab === 'templates' ? (
-            <div className="min-h-0 flex-1 overflow-hidden">
-              <div className="mb-4 rounded-md border border-slate-200 p-3">
-                <p className="text-sm font-bold text-slate-900">{selectedTemplate.name}</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">The main canvas is editable and updates as you switch templates.</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3 overflow-hidden">
-                {TEMPLATES.map((tmpl) => (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-x-5 gap-y-6">
+                {TEMPLATES.slice(0, 12).map((tmpl) => (
                   <button
                     key={tmpl.id}
                     onClick={() => setTemplateId(tmpl.id)}
                     className={cn(
-                      'group relative overflow-hidden rounded-md border-2 transition-all',
-                      templateId === tmpl.id ? 'border-[#149cf2] shadow-md' : 'border-slate-200 hover:border-slate-400',
+                      'group relative overflow-hidden transition-all',
+                      templateId === tmpl.id ? 'shadow-lg' : 'hover:opacity-85',
                     )}
                   >
-                    <img src={tmpl.src} alt={tmpl.name} className="w-full object-cover" />
+                    <img src={tmpl.src} alt={tmpl.name} className={cn('w-full object-cover object-top', templateId === tmpl.id && 'opacity-45')} />
                     {templateId === tmpl.id && (
-                      <div className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#149cf2]">
-                        <Check className="h-3 w-3 text-white" />
-                      </div>
+                      <span className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-full border border-emerald-400 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 shadow-sm">
+                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Selected
+                      </span>
                     )}
-                    <p className="bg-white py-1.5 text-center text-xs font-medium text-slate-600">{tmpl.name}</p>
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="min-h-0 flex-1 overflow-hidden">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <ProgressBadge />
-              <div className="mt-5 divide-y divide-slate-200 overflow-hidden">
+              <div className="mt-5 divide-y divide-slate-200">
                 {visibleSections.map((item) => (
                   <div key={item} className="py-4">
                     <button onClick={() => setExpanded(expanded === item ? '' : item)} className="flex w-full items-center justify-between text-sm font-semibold text-slate-700 transition hover:text-slate-950">
@@ -1141,13 +1293,13 @@ function CanvasScreen({
                       <div className="mt-4 space-y-2.5">
                         {item === 'Personal Information' && (
                           <>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-2">
                               <SidebarInput label="First Name" value={resume.firstName} onChange={(value) => updateResumeField(setResume, 'firstName', value)} />
                               <SidebarInput label="Last Name" value={resume.lastName} onChange={(value) => updateResumeField(setResume, 'lastName', value)} />
                             </div>
                             <SidebarInput label="Job Title" value={resume.title} onChange={(value) => updateResumeField(setResume, 'title', value)} />
                             <SidebarInput label="Email" value={resume.email} onChange={(value) => updateResumeField(setResume, 'email', value)} type="email" />
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-2">
                               <SidebarInput label="Phone" value={resume.phone} onChange={(value) => updateResumeField(setResume, 'phone', value)} />
                               <SidebarInput label="City" value={resume.city} onChange={(value) => updateResumeField(setResume, 'city', value)} />
                             </div>
@@ -1155,7 +1307,7 @@ function CanvasScreen({
                         )}
                         {item === 'Professional Summary' && (
                           <>
-                            <div className="mb-3 grid grid-cols-3 gap-1.5">
+                            <div className="mb-3 grid gap-1.5 sm:grid-cols-3 lg:grid-cols-3">
                               {[
                                 ['Suggest', Wand2],
                                 ['Synonyms', Highlighter],
@@ -1207,7 +1359,7 @@ function CanvasScreen({
                           <>
                             <SidebarInput label="Degree / Qualification" value={resume.education} onChange={(value) => updateResumeField(setResume, 'education', value)} />
                             <SidebarInput label="School / Institution" value={resume.school} onChange={(value) => updateResumeField(setResume, 'school', value)} />
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-2">
                               <SidebarInput label="Start Year" placeholder="2014" />
                               <SidebarInput label="End Year" placeholder="2018" />
                             </div>
@@ -1240,7 +1392,7 @@ function CanvasScreen({
                         )}
                         {item === 'Language' && (
                           <>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-2">
                               <SidebarInput label="Language" value={resume.languages.split(',')[0] ?? ''} onChange={(value) => {
                                 const [, ...rest] = resume.languages.split(',').map((language) => language.trim())
                                 updateResumeField(setResume, 'languages', [value, ...rest].filter(Boolean).join(', '))
@@ -1262,7 +1414,7 @@ function CanvasScreen({
                         {item === 'Certificates' && (
                           <>
                             <SidebarInput label="Certificate Name" value={resume.certificate} onChange={(value) => updateResumeField(setResume, 'certificate', value)} />
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-2">
                               <SidebarInput label="Issuing Organisation" placeholder="Amazon Web Services" />
                               <SidebarInput label="Issue Date" value={resume.certificateDate} onChange={(value) => updateResumeField(setResume, 'certificateDate', value)} />
                             </div>
@@ -1314,7 +1466,7 @@ function CanvasScreen({
           )}
         </aside>
 
-        <section className="relative flex min-h-0 flex-col overflow-hidden rounded-md border border-slate-200 bg-[#eef1f5] shadow-inner">
+        <section className="relative flex min-h-[70vh] flex-col overflow-hidden rounded-md border border-slate-200 bg-[#eef1f5] shadow-inner lg:min-h-0">
           <div className="flex h-10 shrink-0 items-center justify-between border-b border-slate-200 bg-white/80 px-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Canvas</p>
             <div className="flex items-center gap-1 rounded-md border border-slate-200 bg-white p-1 text-slate-500">
@@ -1323,7 +1475,7 @@ function CanvasScreen({
               <button onClick={() => setZoom((value) => Math.min(1.25, Number((value + 0.08).toFixed(2))))} className="grid h-7 w-7 place-items-center rounded hover:bg-slate-50" aria-label="Zoom in"><ZoomIn className="h-4 w-4" /></button>
             </div>
           </div>
-          <div className="relative min-h-0 flex-1 overflow-auto px-5 py-4">
+          <div className="relative min-h-0 flex-1 overflow-auto px-3 py-4 sm:px-5">
             <div className="mx-auto" style={{ width: 816 * zoom, height: 1056 * zoom }}>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
                 <ResumePaper editable resume={resume} setResume={setResume} templateId={templateId} />
@@ -1334,8 +1486,9 @@ function CanvasScreen({
         </section>
 
         <CanvasRightPanel resume={resume} jobDescription={jobDescription} />
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   )
 }
 
@@ -1368,11 +1521,195 @@ function SidebarInput({
   )
 }
 
+function UserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M20 21a8 8 0 0 0-16 0" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
+function BriefcaseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M10 6h4a2 2 0 0 1 2 2v1H8V8a2 2 0 0 1 2-2Z" />
+      <rect x="3" y="9" width="18" height="12" rx="2" />
+    </svg>
+  )
+}
+
+function MobileEditorHeader({
+  resumeName,
+  setResumeName,
+  isEditingName,
+  setIsEditingName,
+  onClose,
+}: {
+  resumeName: string
+  setResumeName: (value: string) => void
+  isEditingName: boolean
+  setIsEditingName: (value: boolean) => void
+  onClose: () => void
+}) {
+  return (
+    <header className="border-b border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        <button onClick={onClose} aria-label="Close resume editor" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-slate-200 text-slate-600">
+          <X className="h-5 w-5" />
+        </button>
+        <div className="min-w-0 flex-1">
+          {isEditingName ? (
+            <input
+              value={resumeName}
+              autoFocus
+              onChange={(event) => setResumeName(event.target.value)}
+              onBlur={() => setIsEditingName(false)}
+              className="h-8 w-full rounded-md border border-slate-200 px-2 text-base font-bold outline-none"
+            />
+          ) : (
+            <button onClick={() => setIsEditingName(true)} className="flex max-w-full items-center gap-2 text-left">
+              <span className="truncate text-base font-bold text-slate-950">{resumeName}</span>
+              <Pencil className="h-4 w-4 shrink-0 text-slate-400" />
+            </button>
+          )}
+          <p className="mt-0.5 text-sm text-slate-500">Resume canvas</p>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-bold text-green-600">
+          <CheckCircle2 className="h-4 w-4" /> Saved
+        </span>
+      </div>
+    </header>
+  )
+}
+
+function MobileEditorTabs({
+  sidebarTab,
+  setSidebarTab,
+}: {
+  sidebarTab: SidebarTab
+  setSidebarTab: (tab: SidebarTab) => void
+}) {
+  const tabs: [SidebarTab, string][] = [
+    ['chat', 'Chat'],
+    ['create', 'Create'],
+    ['templates', 'Template'],
+  ]
+
+  return (
+    <div className="border-b border-slate-200 bg-white px-4 py-3">
+      <div className="grid grid-cols-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+        {tabs.map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setSidebarTab(id)}
+            className={cn(
+              'h-11 text-sm font-bold transition',
+              sidebarTab === id ? 'rounded-xl bg-white text-slate-800 shadow-sm ring-1 ring-slate-200' : 'text-slate-500',
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function MobileSectionRow({ icon, title, action }: { icon: ReactNode; title: string; action: ReactNode }) {
+  return (
+    <div className="flex items-center border-b border-slate-200 py-4 text-slate-700">
+      <span className="mr-4 text-slate-600">{icon}</span>
+      <span className="min-w-0 flex-1 text-base font-bold">{title}</span>
+      <span className="flex items-center gap-4 text-slate-600">{action}</span>
+    </div>
+  )
+}
+
+function MobileResumeFileCard({ onOpen }: { onOpen?: () => void }) {
+  return (
+    <div className="flex items-center gap-4 rounded-xl border border-slate-200 p-4">
+      <div className="grid h-12 w-10 shrink-0 place-items-center rounded-md bg-red-500 text-xs font-black text-white">PDF</div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-base font-bold text-slate-700">Adedamola’s CV</p>
+        <p className="mt-1 text-sm text-slate-500">PDF · 200 KB</p>
+      </div>
+      <button onClick={onOpen} className="h-10 rounded-full border border-slate-200 px-4 text-sm font-bold text-slate-600 transition hover:border-[#149cf2] hover:text-[#149cf2]">Open</button>
+    </div>
+  )
+}
+
+function MobileAtsSheet({
+  resume,
+  jobDescription,
+  onClose,
+}: {
+  resume: ResumeData
+  jobDescription: string
+  onClose: () => void
+}) {
+  const insights = getATSInsights(resume, jobDescription)
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-950/25 backdrop-blur-sm">
+      <div className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto rounded-t-3xl bg-white px-4 pb-8 pt-5">
+        <button onClick={onClose} aria-label="Close ATS tips" className="mb-6 text-slate-400">
+          <X className="h-6 w-6" />
+        </button>
+        <h2 className="mb-6 text-2xl font-black text-slate-950">ATS Tips</h2>
+        <section className="rounded-xl border border-slate-200 p-4">
+          <div className="mb-6 flex items-center gap-4">
+            <div className="relative grid h-20 w-20 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#149cf2 ${insights.score}%, #f1f2f4 0)` }}>
+              <div className="grid h-14 w-14 place-items-center rounded-full bg-white text-xl font-black text-slate-600">{insights.score}%</div>
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-slate-950">Live ATS score</h3>
+              <p className="mt-1 text-sm leading-6 text-slate-500">Updates as you edit the resume and chat prompt.</p>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {insights.scores.map(([label, value]) => (
+              <div key={label}>
+                <div className="mb-2 flex justify-between text-sm font-bold text-slate-500"><span>{label}</span><span>{value}%</span></div>
+                <div className="h-2 rounded-full bg-slate-200"><div className="h-2 rounded-full bg-emerald-500" style={{ width: `${value}%` }} /></div>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="mt-4 rounded-xl border border-slate-200 p-4">
+          <h3 className="mb-5 flex items-center gap-2 text-lg font-black text-slate-950"><Info className="h-5 w-5" /> Live ATS tips</h3>
+          <div className="space-y-4">
+            {insights.checks.map((check) => (
+              <p key={check.label} className="flex items-start gap-3 text-base leading-7 text-slate-600">
+                <span className={cn('grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm font-black text-white', check.done ? 'bg-emerald-500' : 'bg-amber-500')}>
+                  {check.done ? '✓' : '!'}
+                </span>
+                {check.label}
+              </p>
+            ))}
+          </div>
+          {insights.missingKeywords.length > 0 && (
+            <div className="mt-6 rounded-xl bg-amber-50 p-4">
+              <p className="text-base font-black text-amber-800">Recommended keywords</p>
+              <p className="mt-2 text-sm leading-6 text-amber-700">{insights.missingKeywords.join(', ')}</p>
+            </div>
+          )}
+          {insights.matchedKeywords.length > 0 && (
+            <div className="mt-4 rounded-xl bg-emerald-50 p-4">
+              <p className="text-base font-black text-emerald-800">Already matched</p>
+              <p className="mt-2 text-sm leading-6 text-emerald-700">{insights.matchedKeywords.join(', ')}</p>
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  )
+}
+
 function FullscreenTopbar({ left, title, right }: { left?: ReactNode; title?: string; right?: ReactNode }) {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-sm">
+    <header className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-2 shadow-sm sm:px-4">
       <div className="min-w-0">{left ?? <span className="text-base font-semibold">{title}</span>}</div>
-      <div className="flex items-center gap-2">{right}</div>
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">{right}</div>
     </header>
   )
 }
@@ -1420,7 +1757,7 @@ function ActionMenu({
 function ImprovePopover({ mode, setMode }: { mode: ImproveMode; setMode: (mode: ImproveMode) => void }) {
   if (mode === 'closed') return null
   return (
-    <div className="absolute left-4 top-4 z-30 w-[360px] overflow-hidden rounded-md border-2 border-[#123667] bg-white shadow-2xl">
+    <div className="absolute left-3 right-3 top-4 z-30 overflow-hidden rounded-md border-2 border-[#123667] bg-white shadow-2xl sm:left-4 sm:right-auto sm:w-[360px]">
       <div className="flex h-10 items-center justify-between bg-[#123667] px-3 text-white">
         <span className="font-semibold">✦ Improve</span>
         <button onClick={() => setMode('closed')}><X className="h-5 w-5" /></button>
@@ -1473,32 +1810,32 @@ function CanvasRightPanel({
 }) {
   const insights = getATSInsights(resume, jobDescription)
   return (
-    <aside className="min-h-0 space-y-4 overflow-hidden rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-      <section className="rounded-md border border-slate-200 p-4">
+    <aside className="hidden min-h-0 space-y-5 overflow-y-auto rounded-lg border border-slate-200 bg-white p-4 lg:block">
+      <section className="rounded-lg border border-slate-200 p-5">
         <div className="flex items-center gap-4">
-          <div className="relative grid h-16 w-16 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#16a34a ${insights.score}%, #e5e7eb 0)` }}>
-            <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-sm font-bold text-slate-700">{insights.score}%</div>
+          <div className="relative grid h-20 w-20 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#149cf2 ${insights.score}%, #f1f2f4 0)` }}>
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-white text-2xl font-black text-slate-600">{insights.score}%</div>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Live ATS score</h3>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Updates as you edit the resume and the chat job prompt.</p>
+            <h3 className="text-lg font-black text-slate-900">Live ATS score</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500">Updates as you edit the resume and the chat job prompt.</p>
           </div>
         </div>
-        <div className="mt-5 space-y-3">
+        <div className="mt-6 space-y-4">
           {insights.scores.map(([label, value]) => (
             <div key={label}>
-              <div className="mb-1 flex justify-between text-xs font-semibold text-slate-500"><span>{label}</span><span>{value}%</span></div>
-              <div className="h-1.5 rounded-full bg-slate-200"><div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${value}%` }} /></div>
+              <div className="mb-2 flex justify-between text-sm font-bold text-slate-500"><span>{label}</span><span>{value}%</span></div>
+              <div className="h-2 rounded-full bg-slate-200"><div className="h-2 rounded-full bg-emerald-500" style={{ width: `${value}%` }} /></div>
             </div>
           ))}
         </div>
       </section>
-      <section className="rounded-md border border-slate-200 p-4">
-        <h3 className="mb-3 flex items-center gap-2 text-sm font-bold"><Info className="h-4 w-4" /> Live ATS tips</h3>
-        <div className="space-y-2.5">
+      <section className="rounded-lg border border-slate-200 p-5">
+        <h3 className="mb-5 flex items-center gap-2 text-lg font-black"><Info className="h-5 w-5" /> Live ATS tips</h3>
+        <div className="space-y-4">
           {insights.checks.map((check) => (
-            <p key={check.label} className="flex items-start gap-2 text-sm leading-5 text-slate-600">
-              <span className={cn('mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white', check.done ? 'bg-emerald-500' : 'bg-amber-500')}>
+            <p key={check.label} className="flex items-start gap-3 text-sm leading-6 text-slate-600">
+              <span className={cn('grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm font-bold text-white', check.done ? 'bg-emerald-500' : 'bg-amber-500')}>
                 {check.done ? '✓' : '!'}
               </span>
               {check.label}
@@ -1506,15 +1843,15 @@ function CanvasRightPanel({
           ))}
         </div>
         {insights.missingKeywords.length > 0 && (
-          <div className="mt-4 rounded-md bg-amber-50 p-3">
-            <p className="text-xs font-bold text-amber-800">Recommended keywords</p>
-            <p className="mt-1 text-xs leading-5 text-amber-700">{insights.missingKeywords.join(', ')}</p>
+          <div className="mt-6 rounded-lg bg-amber-50 p-4">
+            <p className="text-sm font-bold text-amber-800">Recommended keywords</p>
+            <p className="mt-2 text-sm leading-6 text-amber-700">{insights.missingKeywords.join(', ')}</p>
           </div>
         )}
         {insights.matchedKeywords.length > 0 && (
-          <div className="mt-3 rounded-md bg-emerald-50 p-3">
-            <p className="text-xs font-bold text-emerald-800">Already matched</p>
-            <p className="mt-1 text-xs leading-5 text-emerald-700">{insights.matchedKeywords.join(', ')}</p>
+          <div className="mt-4 rounded-lg bg-emerald-50 p-4">
+            <p className="text-sm font-bold text-emerald-800">Already matched</p>
+            <p className="mt-2 text-sm leading-6 text-emerald-700">{insights.matchedKeywords.join(', ')}</p>
           </div>
         )}
       </section>
@@ -1541,7 +1878,7 @@ function ATSScreen({
   const [downloadOpen, setDownloadOpen] = useState(false)
   const [saveOpen, setSaveOpen] = useState(false)
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#f5f6f8] font-sans">
+    <div className="flex min-h-screen flex-col bg-[#f5f6f8] font-sans lg:h-screen lg:overflow-hidden">
       <FullscreenTopbar
         left={<button onClick={() => setScreen('canvas')} className="inline-flex items-center gap-2 text-sm font-semibold"><ArrowLeft className="h-4 w-4" /> Back to canvas</button>}
         right={(
@@ -1567,8 +1904,8 @@ function ATSScreen({
           </>
         )}
       />
-      <main className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_460px] gap-4 px-5 py-4">
-        <section className="flex min-h-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-[#eef1f5] p-4 shadow-inner">
+      <main className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto px-3 py-4 sm:px-5 lg:grid-cols-[minmax(0,1fr)_460px] lg:overflow-hidden">
+        <section className="flex min-h-[70vh] items-center justify-center overflow-auto rounded-md border border-slate-200 bg-[#eef1f5] p-3 shadow-inner sm:p-4 lg:min-h-0 lg:overflow-hidden">
           <ResumePaper editable resume={resume} setResume={setResume} fitViewport />
         </section>
         <ATSOverviewPanel jobDescription={jobDescription} setJobDescription={setJobDescription} />
@@ -1593,7 +1930,7 @@ function ATSOverviewPanel({
     ['Total Score', 86, 'bg-emerald-500'],
   ] as const
   return (
-    <aside className="min-h-0 overflow-y-auto rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+    <aside className="min-h-0 overflow-y-auto rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="rounded-lg border border-slate-200 p-5">
         <div className="flex items-center gap-5">
           <div className="relative grid h-16 w-16 place-items-center rounded-full bg-[conic-gradient(#16a34a_86%,#e5e7eb_0)]">
@@ -1635,6 +1972,117 @@ function ATSOverviewPanel({
   )
 }
 
+function DiffInlineActions() {
+  return (
+    <div className="mt-3 flex items-center justify-end gap-2">
+      <button className="inline-flex h-8 items-center gap-1 rounded-full border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 shadow-sm">
+        <RotateCcw className="h-3.5 w-3.5" /> Regenerate
+      </button>
+      <button className="inline-flex h-8 items-center gap-1 rounded-full border border-red-200 bg-white px-3 text-xs font-bold text-red-500 shadow-sm">
+        <X className="h-3.5 w-3.5" /> Reject
+      </button>
+      <button className="inline-flex h-8 items-center gap-1 rounded-full border border-emerald-200 bg-white px-3 text-xs font-bold text-emerald-600 shadow-sm">
+        <Check className="h-3.5 w-3.5" /> Accept
+      </button>
+    </div>
+  )
+}
+
+function DiffResumePaper({ resume }: { resume: ResumeData }) {
+  const bullets = resume.experienceBullets.split('\n').map((item) => item.trim()).filter(Boolean)
+  const skills = resume.skills.split(',').map((item) => item.trim()).filter(Boolean)
+  const removedSummary = '8 years building and shipping fintech, AI, and crypto products across Africa. Portfolio of 12 live apps spanning payment infrastructure, wealth management, and AI tools.'
+  const removedBullets = [
+    'Scaled platform from 0 to 300 active users, driving 60K in transaction volume over 2 years.',
+    'Launched merchant payment links and APIs, increasing transactions 30 within 90 days.',
+  ]
+
+  return (
+    <article className="min-h-[1056px] w-[816px] border border-slate-100 bg-white px-16 py-12 font-serif text-[13px] leading-5 text-slate-950">
+      <header className="text-center">
+        <h1 className="text-2xl font-bold uppercase tracking-normal">{`${resume.firstName} ${resume.lastName}`}</h1>
+        <p className="mt-1 text-sm text-[#149cf2] underline">{resume.email} <span className="mx-2 text-slate-700 no-underline">|</span> {resume.city}</p>
+      </header>
+
+      <section className="mt-8">
+        <h2 className="border-b-2 border-slate-800 pb-1 text-base font-bold uppercase">Professional Summary</h2>
+        <p className="mt-3 italic">
+          <span className="bg-red-100 text-red-700 line-through decoration-red-700">{removedSummary}</span>{' '}
+          <span className="bg-emerald-100 text-emerald-800">{resume.summary}</span>
+        </p>
+        <DiffInlineActions />
+      </section>
+
+      <section className="mt-8">
+        <h2 className="border-b-2 border-slate-800 pb-1 text-base font-bold uppercase">Experience</h2>
+        <div className="mt-4">
+          <div className="flex justify-between gap-4">
+            <div>
+              <p className="font-bold"><span className="bg-red-100 text-red-700 line-through">Lightforth</span><span className="bg-emerald-100 text-emerald-800">DeeXoptions</span></p>
+              <p className="italic"><span className="bg-red-100 text-red-700 line-through">Product Manager</span> <span className="bg-emerald-100 text-emerald-800">Head of Product & Design Engineering</span></p>
+            </div>
+            <span className="text-sm text-slate-500">Jan 2024 - Present</span>
+          </div>
+          <ul className="mt-3 list-disc space-y-1 pl-5">
+            <li><span className="bg-emerald-100 text-emerald-800">Spearheaded the design and development of multiple tech products, achieving a 25% increase in user engagement.</span></li>
+            {bullets.slice(0, 4).map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}
+          </ul>
+          <DiffInlineActions />
+        </div>
+
+        <div className="mt-8">
+          <p className="font-bold"><span className="bg-red-100 text-red-700 line-through">Syarpa</span><span className="bg-emerald-100 text-emerald-800"> Celler (Tampay)</span></p>
+          <p className="italic">Product Manager</p>
+          <ul className="mt-3 list-disc space-y-1 pl-5">
+            <li><span className="bg-emerald-100 text-emerald-800">Coordinated the redesign of the user experience for a leading digital platform, boosting customer satisfaction by 30%.</span></li>
+            <li>Implemented engineering solutions to enhance product features, leading to a 40% increase in functionality efficiency.</li>
+            <li>Collaborated with engineering teams to integrate sustainable materials into product design, reducing environmental impact.</li>
+            <li>Managed end-to-end product lifecycle with a focus on seamless integration of design and technical components.</li>
+          </ul>
+        </div>
+
+        <div className="mt-8">
+          <p className="font-bold"><span className="bg-red-100 text-red-700 line-through">Givito</span><span className="bg-emerald-100 text-emerald-800"> Syarpa</span></p>
+          <p className="italic">Product Manager</p>
+          <ul className="mt-3 list-disc space-y-1 pl-5">
+            <li><span className="bg-emerald-100 text-emerald-800">Directed design projects that aligned product features with market demands, increasing market share by 15%.</span></li>
+            <li>Guided engineering teams in the development of design prototypes, accelerating the design validation process by 25%.</li>
+            <li>Conducted design workshops that stimulated innovative thinking and collaborative problem-solving.</li>
+          </ul>
+        </div>
+
+        <div className="mt-8">
+          <p className="font-bold"><span className="bg-red-100 text-red-700 line-through">Nazza</span></p>
+          <p className="italic"><span className="bg-red-100 text-red-700 line-through">Product Manager</span></p>
+          <ul className="mt-3 list-disc space-y-1 pl-5">
+            {removedBullets.map((item) => <li key={item}><span className="bg-red-100 text-red-700 line-through">{item}</span></li>)}
+            <li>Designed merchant payment workflows that reduced manual transaction errors.</li>
+            <li>Optimized onboarding and wallet creation, boosting sign-up to KYC conversion.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="border-b-2 border-slate-800 pb-1 text-base font-bold uppercase">Education</h2>
+        <div className="mt-3 flex justify-between gap-4">
+          <div>
+            <p className="font-bold">{resume.education}</p>
+            <p>{resume.school}</p>
+          </div>
+          <p className="text-sm text-slate-500">2023-01-01</p>
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <h2 className="border-b-2 border-slate-800 pb-1 text-base font-bold uppercase">Skills</h2>
+        <div className="mt-3 grid grid-cols-2 gap-x-10 gap-y-1">
+          {skills.map((skill) => <p key={skill}>{skill}</p>)}
+        </div>
+      </section>
+    </article>
+  )
+}
+
 // ─── Preview screen ───────────────────────────────────────────────────────────
 
 function PreviewScreen({
@@ -1646,44 +2094,161 @@ function PreviewScreen({
 }) {
   const navigate = useNavigate()
   const [downloadOpen, setDownloadOpen] = useState(false)
+  const [accepted, setAccepted] = useState(false)
+  const [acceptedChanges, setAcceptedChanges] = useState<string[]>([])
+  const mobileChanges = [
+    {
+      id: 'summary',
+      title: 'Professional Summary',
+      removed: '8 years building and shipping fintech, AI, and crypto products across Africa.',
+      added: resume.summary,
+    },
+    {
+      id: 'role',
+      title: 'Experience headline',
+      removed: 'Product Manager at Lightforth',
+      added: 'Head of Product & Design Engineering at DeeXoptions',
+    },
+    {
+      id: 'impact',
+      title: 'Impact bullet',
+      removed: 'Managed product work across multiple tools.',
+      added: resume.experienceBullets.split('\n').filter(Boolean)[0] ?? 'Spearheaded product delivery with measurable business impact.',
+    },
+  ]
+  const allMobileChangesAccepted = acceptedChanges.length === mobileChanges.length
+
+  function acceptMobileChange(id: string) {
+    setAcceptedChanges((current) => current.includes(id) ? current : [...current, id])
+  }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#f5f6f8] font-sans">
-      <FullscreenTopbar
-        left={(
-          <div className="flex items-center gap-3">
-            <button onClick={() => setScreen('canvas')} aria-label="Back to editor" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50">
-              <ArrowLeft className="h-4 w-4" />
+    <>
+      <div className="flex min-h-screen flex-col bg-white font-sans lg:hidden">
+        <header className="border-b border-slate-200 bg-white px-4 py-4">
+          <div className="grid grid-cols-3 items-center">
+            <button onClick={() => setScreen('canvas')} className="flex items-center gap-2 text-base text-slate-600">
+              <ArrowLeft className="h-5 w-5" /> Back
             </button>
-            <div>
-              <p className="text-sm font-bold text-slate-950">Preview</p>
-              <p className="text-xs text-slate-500">Scroll to review every page</p>
-            </div>
+            <h1 className="text-center text-base font-black text-slate-950">{accepted ? 'Review Changes' : 'Review Changes'}</h1>
+            <button onClick={() => navigate('/documents')} aria-label="Close preview" className="justify-self-end text-slate-600">
+              <X className="h-5 w-5" />
+            </button>
           </div>
-        )}
-        right={(
-          <>
-            <OutlineButton onClick={() => setScreen('canvas')} className="h-9">Edit <Pencil className="h-4 w-4" /></OutlineButton>
+        </header>
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
+          {accepted ? (
+            <>
+              <h2 className="text-lg font-black text-slate-950">Resume Ready!</h2>
+              <span className="inline-flex items-center gap-2 text-base font-bold text-green-600">
+                <CheckCircle2 className="h-5 w-5" /> Saved
+              </span>
+            </>
+          ) : (
+            <>
+              <div>
+                <h2 className="text-lg font-black text-slate-950">Review individual changes</h2>
+                <p className="mt-1 text-sm text-slate-500">{acceptedChanges.length} of {mobileChanges.length} accepted</p>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="inline-flex items-center gap-1 text-emerald-600"><span className="h-2 w-2 rounded-full bg-emerald-400" /> Added</span>
+                <span className="inline-flex items-center gap-1 text-red-500"><span className="h-2 w-2 rounded-full bg-red-300" /> Removed</span>
+              </div>
+            </>
+          )}
+        </div>
+        <main className="flex-1 overflow-y-auto bg-[#eef1f5] px-4 py-5">
+          {accepted ? (
+            <div className="mx-auto h-[calc(100dvh-13.5rem)] min-h-[480px] max-w-[680px] overflow-hidden rounded-lg bg-white shadow-sm">
+              <ResumePaper editable resume={resume} fitViewport />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {mobileChanges.map((change) => {
+                const isAccepted = acceptedChanges.includes(change.id)
+                return (
+                  <section key={change.id} className={cn('rounded-xl border bg-white p-4 shadow-sm', isAccepted ? 'border-emerald-200' : 'border-slate-200')}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-black text-slate-900">{change.title}</h3>
+                        {isAccepted && <p className="mt-1 text-sm font-bold text-emerald-600">Accepted</p>}
+                      </div>
+                      {isAccepted && <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />}
+                    </div>
+                    <div className="mt-4 space-y-3 text-sm leading-6">
+                      <p className="rounded-lg bg-red-50 p-3 text-red-700 line-through decoration-red-700">{change.removed}</p>
+                      <p className="rounded-lg bg-emerald-50 p-3 text-emerald-800">{change.added}</p>
+                    </div>
+                    <div className="mt-4 grid grid-cols-3 gap-2">
+                      <button className="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-slate-200 text-xs font-bold text-[#149cf2]">
+                        <RotateCcw className="h-3.5 w-3.5" /> Regen
+                      </button>
+                      <button className="inline-flex h-10 items-center justify-center gap-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700">
+                        <X className="h-3.5 w-3.5" /> Reject
+                      </button>
+                      <button onClick={() => acceptMobileChange(change.id)} className={cn('inline-flex h-10 items-center justify-center gap-1 rounded-lg text-xs font-bold', isAccepted ? 'bg-emerald-100 text-emerald-700' : 'bg-[#149cf2] text-white')}>
+                        <Check className="h-3.5 w-3.5" /> {isAccepted ? 'Done' : 'Accept'}
+                      </button>
+                    </div>
+                  </section>
+                )
+              })}
+            </div>
+          )}
+        </main>
+        <div className="sticky bottom-0 grid grid-cols-2 gap-3 border-t border-slate-200 bg-white px-4 py-4">
+          <button onClick={() => accepted ? navigate('/') : setScreen('canvas')} className="h-12 rounded-lg border border-slate-200 text-base font-bold text-slate-700">
+            {accepted ? 'Dashboard' : 'Back'}
+          </button>
+          {accepted ? (
             <ActionMenu
               open={downloadOpen}
               setOpen={setDownloadOpen}
               alignRight
-              button={<PrimaryButton className="h-9">Download <Download className="ml-2 h-4 w-4" /></PrimaryButton>}
+              button={<button className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#149cf2] text-base font-bold text-white">Download <Download className="h-5 w-5" /></button>}
               items={['Export as PDF', 'Export as DOCX', 'Export as Text']}
             />
-            <button onClick={() => navigate('/documents')} aria-label="Close preview" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50">
-              <X className="h-4 w-4" />
+          ) : (
+            <button
+              onClick={() => setAccepted(true)}
+              disabled={!allMobileChangesAccepted}
+              className={cn('h-12 rounded-lg text-base font-bold text-white', allMobileChangesAccepted ? 'bg-emerald-600' : 'bg-emerald-300')}
+            >
+              Accept Changes
             </button>
-          </>
-        )}
-      />
-      <main className="min-h-0 flex-1 overflow-y-auto px-6 py-8">
-        <div className="mx-auto flex w-fit flex-col gap-8">
-          <ResumePaper resume={resume} />
-          <ResumePaper resume={{ ...resume, firstName: '', lastName: 'Additional Experience' }} />
+          )}
         </div>
-      </main>
-    </div>
+      </div>
+
+      <div className="hidden h-screen flex-col overflow-hidden bg-[#f3f3f4] font-sans lg:flex">
+        <header className="flex h-20 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-8">
+          <LightforthLogo className="h-8" />
+          <div className="flex items-center gap-3">
+            <button onClick={() => setAccepted(false)} className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-5 text-sm font-bold text-[#149cf2] shadow-sm transition hover:bg-slate-50">
+              Regenerate <RotateCcw className="h-4 w-4" />
+            </button>
+            <button onClick={() => setScreen('canvas')} className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+              Reject <X className="h-4 w-4" />
+            </button>
+            <button onClick={() => setAccepted(true)} className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#149cf2] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#0f8add]">
+              Accept <Check className="h-4 w-4" />
+            </button>
+          </div>
+        </header>
+        <main className="min-h-0 flex-1 overflow-auto px-8 py-12">
+          <div className="mx-auto w-fit rounded-lg bg-white p-6 shadow-xl">
+            {accepted ? <ResumePaper resume={resume} /> : <DiffResumePaper resume={resume} />}
+          </div>
+        </main>
+        <button
+          onClick={() => setScreen('canvas')}
+          aria-label="Open chat"
+          className="fixed bottom-8 right-8 grid h-16 w-16 place-items-center rounded-full bg-[#123667] text-white shadow-2xl transition hover:-translate-y-0.5 hover:bg-[#0f2d57]"
+        >
+          <MessageSquare className="h-7 w-7" />
+        </button>
+      </div>
+    </>
   )
 }
 
@@ -1709,7 +2274,7 @@ function UploadResumeScreen({ setScreen }: { setScreen: (screen: BuilderScreen) 
   return (
     <div className="flex min-h-screen flex-col bg-white font-sans text-slate-950">
       <CreateResumeTopbar onBack={() => navigate('/documents')} onClose={() => navigate('/documents')} />
-      <main className="flex flex-1 flex-col items-center justify-center px-8 py-16">
+      <main className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-8 sm:py-16">
         <div className="w-full max-w-lg">
           <h1 className="lf-page-title text-center">Upload your resume</h1>
           <p className="lf-body mt-2 text-center">
@@ -1718,7 +2283,7 @@ function UploadResumeScreen({ setScreen }: { setScreen: (screen: BuilderScreen) 
 
           <label
             className={cn(
-              'mt-10 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-8 py-16 text-center transition-colors',
+              'mt-10 flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed px-4 py-12 text-center transition-colors sm:px-8 sm:py-16',
               isDragging ? 'border-primary bg-primary/5' : 'border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50',
             )}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
@@ -1793,14 +2358,14 @@ function TemplateSelectScreen({
   const navigate = useNavigate()
   const selectedTemplate = TEMPLATES.find((template) => template.id === templateId) ?? TEMPLATES[0]
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-white font-sans text-slate-950">
+    <div className="flex min-h-screen flex-col bg-white font-sans text-slate-950 lg:h-screen lg:overflow-hidden">
       <CreateResumeTopbar onBack={() => navigate(-1)} onClose={() => navigate('/documents')} />
-      <main className="grid min-h-0 flex-1 grid-cols-[220px_minmax(0,560px)_1fr] bg-white">
+      <main className="grid min-h-0 flex-1 bg-white md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[220px_minmax(0,560px)_1fr]">
         <CreateResumeSteps active="template" />
-        <section className="min-h-0 overflow-y-auto border-r border-border px-6 py-8">
-          <h1 className="text-xl font-bold text-foreground">Choose a resume template</h1>
+        <section className="min-h-0 overflow-y-auto border-border px-4 py-7 pb-28 sm:px-6 md:border-r md:py-8 lg:pb-8">
+          <h1 className="text-2xl font-bold leading-tight text-foreground md:text-xl">Choose a resume template</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Select a professionally designed template. All templates are ATS-optimized.</p>
-          <div className="mt-6 grid grid-cols-2 gap-4">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
             {TEMPLATES.slice(0, 8).map((tmpl) => (
               <button
                 key={tmpl.id}
@@ -1810,7 +2375,7 @@ function TemplateSelectScreen({
                   templateId === tmpl.id ? 'border-primary ring-2 ring-primary/15' : 'border-border',
                 )}
               >
-                <div className="relative h-56 overflow-hidden bg-muted">
+                <div className="relative aspect-[3/4] overflow-hidden bg-muted md:h-56 md:aspect-auto">
                   <img src={tmpl.src} alt={tmpl.name} className="h-full w-full object-cover object-top" />
                   {templateId === tmpl.id && (
                     <span className="absolute left-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-green-500 text-white">
@@ -1818,21 +2383,21 @@ function TemplateSelectScreen({
                     </span>
                   )}
                 </div>
-                <div className="p-3">
+                <div className="p-3 sm:p-3">
                   <p className={cn('text-sm font-bold', templateId === tmpl.id ? 'text-primary' : 'text-foreground')}>{tmpl.name}</p>
                   <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">Clean ATS-friendly resume layout for professional applications.</p>
                 </div>
               </button>
             ))}
           </div>
-          <div className="sticky bottom-0 mt-6 border-t border-border bg-white pt-4">
+          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-white/95 px-4 py-3 shadow-[0_-10px_25px_rgba(15,23,42,0.08)] backdrop-blur md:left-[220px] lg:sticky lg:bottom-0 lg:left-auto lg:mt-6 lg:px-0 lg:pt-4 lg:shadow-none lg:backdrop-blur-none">
             <p className="mb-2 text-center text-xs text-muted-foreground"><b className="text-foreground">{selectedTemplate.name}</b> selected</p>
             <PrimaryButton onClick={() => setScreen(nextScreen)} className="w-full">
               {nextScreen === 'canvas' ? 'Open Editor' : 'Proceed'}
             </PrimaryButton>
           </div>
         </section>
-        <section className="flex min-h-0 flex-col bg-slate-50">
+        <section className="hidden min-h-0 flex-col bg-slate-50 lg:flex">
           <div className="border-b border-border bg-white px-6 py-4">
             <h2 className="text-base font-bold text-foreground">Template Preview</h2>
           </div>
@@ -1866,7 +2431,7 @@ function JobTitleScreen({
   return (
     <div className="flex min-h-screen flex-col bg-white font-sans text-slate-950">
       <CreateResumeTopbar onBack={() => setScreen('template')} onClose={() => navigate('/documents')} />
-      <main className="grid flex-1 grid-cols-[220px_minmax(0,1fr)] bg-white">
+      <main className="grid flex-1 bg-white md:grid-cols-[220px_minmax(0,1fr)]">
         <CreateResumeSteps active="jobTitle" />
         <section className="px-6 py-14">
           <div className="mx-auto max-w-xl">

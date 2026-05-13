@@ -11,23 +11,23 @@ type AuthMode = 'choice' | 'email' | 'password' | 'sent' | 'login' | 'forgot'
 function AuthShell({ children, showFooter = true }: { children: React.ReactNode; showFooter?: boolean }) {
   return (
     <div className="flex min-h-screen flex-col bg-white font-sans">
-      <header className="flex h-20 items-center justify-between border-b px-8 md:px-16">
+      <header className="flex min-h-16 items-center justify-between gap-3 border-b px-4 py-3 md:h-20 md:px-16">
         <LightforthLogo className="h-8" />
         <a
           href="https://help.lightforth.ai"
           target="_blank"
           rel="noreferrer"
-          className="flex h-10 items-center gap-2 rounded-full border border-primary/50 px-5 text-sm font-semibold text-primary hover:bg-blue-50"
+          className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-primary/50 px-4 text-sm font-semibold text-primary hover:bg-blue-50 sm:px-5"
         >
-          Get Help
+          <span className="hidden sm:inline">Get Help</span>
           <Headphones className="h-4 w-4" />
         </a>
       </header>
 
-      <main className="flex flex-1 items-start justify-center px-6 pt-28 md:pt-32">{children}</main>
+      <main className="flex flex-1 items-start justify-center px-4 py-10 sm:px-6 md:pt-32">{children}</main>
 
       {showFooter && (
-        <footer className="flex items-center justify-between px-8 py-5 text-sm font-medium text-muted-foreground md:px-16">
+        <footer className="flex flex-col items-center justify-between gap-3 px-4 py-5 text-sm font-medium text-muted-foreground sm:flex-row md:px-16">
           <span>© Lightforth AI 2026</span>
           <a href="mailto:support@lightforth.org" className="flex items-center gap-2 hover:text-primary">
             <Mail className="h-4 w-4" />
@@ -64,7 +64,7 @@ function AuthButton({ children, onClick }: { children: React.ReactNode; onClick?
 
 function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   return (
-    <div className="fixed right-8 top-24 z-50 flex h-12 items-center gap-3 rounded-xl bg-[#16A34A] px-5 text-sm font-semibold text-white shadow-lg">
+    <div className="fixed left-4 right-4 top-20 z-50 flex min-h-12 items-center gap-3 rounded-xl bg-[#16A34A] px-4 py-3 text-sm font-semibold text-white shadow-lg sm:left-auto sm:right-8 sm:top-24 sm:w-auto sm:px-5">
       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20">
         <Check className="h-3.5 w-3.5" />
       </span>
@@ -151,7 +151,7 @@ export default function Auth() {
   if (mode === 'sent') {
     return (
       <AuthShell showFooter={false}>
-        <section className="w-full max-w-[600px] bg-white px-10 py-8 text-center">
+        <section className="w-full max-w-[600px] bg-white px-4 py-8 text-center sm:px-10">
           <div className="mx-auto mb-6 flex h-24 w-24 rotate-[-14deg] items-center justify-center rounded-2xl bg-slate-50">
             <Mail className="h-14 w-14 text-slate-100" />
             <span className="absolute right-2 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white">
@@ -199,7 +199,7 @@ export default function Auth() {
   if (mode === 'login') {
     return (
       <AuthShell showFooter={false}>
-        <section className="w-full max-w-[520px] bg-white px-8 py-8">
+        <section className="w-full max-w-[520px] bg-white px-0 py-8 sm:px-8">
           <h1 className="lf-page-title">Log in</h1>
           <p className="mt-3 text-sm text-slate-600">Welcome back. Continue your job search with Lightforth.</p>
           <div className="mt-7 space-y-4">
@@ -231,7 +231,7 @@ export default function Auth() {
     return (
       <AuthShell showFooter={false}>
         {toast && <Toast message={toast} onClose={() => setToast(null)} />}
-        <section className="relative w-full max-w-[560px] bg-white px-8 py-8">
+        <section className="relative w-full max-w-[560px] bg-white px-0 py-8 sm:px-8">
           <h1 className="lf-page-title">Create an account</h1>
           <p className="mt-4 text-sm text-slate-600">Enter your email address to begin.</p>
           <div className="mt-5 space-y-4">
@@ -243,7 +243,7 @@ export default function Auth() {
               </div>
             </div>
           </div>
-          <label className="mt-5 flex items-center gap-3 text-sm text-slate-600">
+          <label className="mt-5 flex flex-wrap items-center gap-2 text-sm text-slate-600 sm:gap-3">
             <input className="h-5 w-5 rounded accent-primary" type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
             By signing up, you agree with Lightforth's
             <a className="font-semibold text-primary underline" href="#">Terms & Conditions</a>
@@ -268,7 +268,7 @@ export default function Auth() {
     return (
       <AuthShell showFooter={false}>
         {toast && <Toast message={toast} onClose={() => setToast(null)} />}
-        <section className="w-full max-w-[560px] bg-white px-8 py-8">
+        <section className="w-full max-w-[560px] bg-white px-0 py-8 sm:px-8">
           <h1 className="lf-page-title">Create an account</h1>
           <p className="mt-4 text-sm text-slate-600">Enter your email address to begin.</p>
           <div className="mt-5 space-y-6">
@@ -289,7 +289,7 @@ export default function Auth() {
 
   return (
     <AuthShell showFooter={false}>
-      <section className="w-full max-w-[700px] bg-white px-8 py-8">
+      <section className="w-full max-w-[700px] bg-white px-0 py-8 sm:px-8">
         <h1 className="lf-page-title">Create an account</h1>
         <p className="mt-5 text-base text-foreground">
           By continuing you agree to our{' '}

@@ -38,12 +38,12 @@ function Field({ label, value, wide, disabled }: { label: string; value: string;
 
 function ProfileTab() {
   return (
-    <section className="lf-panel p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <section className="lf-panel p-4 sm:p-8">
+      <div className="mb-8 flex items-center justify-between gap-3">
         <h2 className="lf-section-title">Profile</h2>
         <Button>Update</Button>
       </div>
-      <div className="mb-8 flex items-center gap-4">
+      <div className="mb-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-sm font-black">PROFI</div>
         <div>
           <Button variant="outline">
@@ -69,8 +69,8 @@ function ProfileTab() {
 function SecurityTab() {
   return (
     <div className="space-y-6">
-      <section className="lf-panel p-8">
-        <div className="mb-8 flex items-center justify-between">
+      <section className="lf-panel p-4 sm:p-8">
+        <div className="mb-8 flex items-center justify-between gap-3">
           <h2 className="lf-section-title">Password</h2>
           <Button>Update</Button>
         </div>
@@ -86,7 +86,7 @@ function SecurityTab() {
           ))}
         </div>
       </section>
-      <section className="lf-panel flex items-center justify-between p-8">
+      <section className="lf-panel flex flex-col items-start justify-between gap-4 p-4 sm:flex-row sm:items-center sm:p-8">
         <div>
           <h2 className="font-bold text-foreground">Two-step verification</h2>
           <p className="text-sm text-muted-foreground">We recommend 2FA for better security</p>
@@ -95,7 +95,7 @@ function SecurityTab() {
           <span className="block h-5 w-5 rounded-full bg-white" />
         </span>
       </section>
-      <section className="lf-panel flex items-center justify-between p-8">
+      <section className="lf-panel flex flex-col items-start justify-between gap-4 p-4 sm:flex-row sm:items-center sm:p-8">
         <div>
           <h2 className="font-bold text-foreground">Delete Account</h2>
           <p className="text-sm text-muted-foreground">Permanently delete your Lightforth account.</p>
@@ -109,16 +109,16 @@ function SecurityTab() {
 function ReferralTab() {
   return (
     <div className="space-y-8">
-      <section className="lf-panel p-8">
+      <section className="lf-panel p-4 sm:p-8">
         <h2 className="lf-section-title">Referral</h2>
-        <div className="mt-8 rounded-3xl bg-blue-50 p-8">
+        <div className="mt-8 rounded-2xl bg-blue-50 p-4 sm:rounded-3xl sm:p-8">
           <div className="grid gap-8 lg:grid-cols-[1fr_260px]">
             <div>
               <h3 className="text-2xl font-black leading-tight text-foreground">Earn 5 free credits</h3>
               <p className="mt-4 text-sm text-muted-foreground">You get 5 free credit when your invite signs up and subscribe.</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 {['https://lifeforth-app-v2-dev-fronten...', 'Adedamolaios...'].map((value, index) => (
-                  <div key={value} className="min-w-52 rounded-md border border-violet-400 bg-white px-4 py-3">
+                  <div key={value} className="min-w-0 flex-1 rounded-md border border-violet-400 bg-white px-4 py-3 sm:min-w-52">
                     <p className="text-xs text-muted-foreground">{index === 0 ? 'Referral Link' : 'Referral Code'}</p>
                     <div className="flex items-center gap-3">
                       <p className="truncate text-sm font-bold text-violet-500">{value}</p>
@@ -154,7 +154,7 @@ function ReferralTab() {
         </div>
       </section>
 
-      <section className="lf-panel p-8">
+      <section className="lf-panel p-4 sm:p-8">
         <h2 className="lf-section-title">Previous Referrals</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {[

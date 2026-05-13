@@ -67,7 +67,7 @@ export default function TopNav() {
       .toUpperCase() ?? 'U'
 
   return (
-    <header className="flex h-14 flex-shrink-0 items-center justify-end gap-2 border-b border-border bg-white px-6">
+    <header className="flex h-14 flex-shrink-0 items-center justify-end gap-1.5 border-b border-border bg-white px-3 sm:gap-2 sm:px-6">
       <DropdownMenu>
         <DropdownMenuTrigger
           className="relative rounded-full p-2 transition-colors hover:bg-muted"
@@ -78,7 +78,7 @@ export default function TopNav() {
             {remainingCredits}
           </span>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" sideOffset={12} className="w-72 rounded-xl bg-white p-4 shadow-xl">
+        <DropdownMenuContent align="end" sideOffset={12} className="w-[calc(100vw-2rem)] max-w-72 rounded-xl bg-white p-4 shadow-xl">
           <div className="mb-5 flex items-center justify-between gap-3">
             <p className="text-base font-semibold text-foreground">Credits</p>
             <Link
@@ -132,7 +132,7 @@ export default function TopNav() {
         {notifOpen && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-            <div className="absolute right-0 top-full z-50 mt-2 w-96 overflow-hidden rounded-xl border border-border bg-white shadow-xl">
+            <div className="absolute right-0 top-full z-50 mt-2 w-[calc(100vw-1.5rem)] max-w-96 overflow-hidden rounded-xl border border-border bg-white shadow-xl">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <p className="text-sm font-semibold text-foreground">
@@ -200,7 +200,7 @@ export default function TopNav() {
         <DropdownMenuTrigger className="rounded-full p-2 transition-colors hover:bg-muted" aria-label="Open help">
           <HelpCircle className="h-5 w-5 text-primary" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" sideOffset={12} className="w-80 overflow-hidden rounded-xl bg-white p-0 shadow-xl">
+        <DropdownMenuContent align="end" sideOffset={12} className="w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-xl bg-white p-0 shadow-xl">
           <div className="flex items-center justify-between bg-emerald-50 px-4 py-3">
             <p className="text-base font-bold text-emerald-600">Whats new? *</p>
             <button
@@ -277,7 +277,7 @@ export default function TopNav() {
             </span>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" sideOffset={14} className="w-72 overflow-hidden rounded-xl bg-white p-0 shadow-xl">
+        <DropdownMenuContent align="end" sideOffset={14} className="w-[calc(100vw-2rem)] max-w-72 overflow-hidden rounded-xl bg-white p-0 shadow-xl">
           <div className="flex items-center gap-3 rounded-t-xl bg-blue-100 px-4 py-4">
             <div className="relative h-11 w-11 flex-shrink-0 overflow-hidden rounded-full bg-slate-200">
               {user?.avatarUrl ? (

@@ -83,11 +83,11 @@
   }
 
   .lf-table-wrap {
-    @apply overflow-hidden rounded-lg border border-border bg-white;
+    @apply overflow-x-auto rounded-lg border border-border bg-white;
   }
 
   .lf-table {
-    @apply w-full text-left text-sm;
+    @apply min-w-[720px] w-full text-left text-sm;
   }
 
   .lf-table-head {

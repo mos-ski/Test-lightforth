@@ -49,8 +49,8 @@ export default function Billing() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <section className="lf-panel p-6">
-          <div className="flex items-start justify-between mb-1">
-            <div className="flex items-center gap-3">
+          <div className="mb-1 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
               <strong className="text-lg font-bold text-foreground">You're on Starter plan</strong>
               <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground">Monthly</span>
             </div>
@@ -59,7 +59,7 @@ export default function Billing() {
             </p>
           </div>
           <p className="text-sm text-muted-foreground mb-6">Renews Sep 1, 2025</p>
-          <div className="flex items-center justify-between border-t border-border pt-5">
+          <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
             <Button variant="outline" className="rounded-xl border border-border font-semibold px-5 text-foreground hover:bg-muted">
               Manage Plan
             </Button>
@@ -89,7 +89,7 @@ export default function Billing() {
       </div>
 
       <section className="lf-panel p-6">
-        <div className="mb-8 flex items-center justify-between gap-4">
+        <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <h2 className="lf-section-title">Update plan</h2>
           <div className="flex items-center gap-2 text-sm font-semibold">
             <span className="h-5 w-9 rounded-full bg-slate-300 p-0.5">

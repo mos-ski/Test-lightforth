@@ -78,7 +78,7 @@ export default function MyDocuments() {
       <p className="text-sm font-semibold text-foreground mb-1">Create a new resume</p>
       <p className="text-xs text-muted-foreground mb-4">Choose a starting point for your resume</p>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Card 1: Create from scratch */}
         <div
           className="lf-panel cursor-pointer p-5 transition-all hover:border-violet-300 hover:shadow-sm"
@@ -142,8 +142,8 @@ export default function MyDocuments() {
       </div>
 
       {/* Search + view toggle row */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
@@ -153,7 +153,7 @@ export default function MyDocuments() {
             className="lf-input pl-9"
           />
         </div>
-        <div className="flex items-center gap-1 ml-4">
+        <div className="flex items-center gap-1 sm:ml-4">
           <button
             className={cn(
               'p-1.5 rounded transition-colors',
@@ -176,11 +176,11 @@ export default function MyDocuments() {
       </div>
 
       {viewMode === 'grid' ? (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filteredResumes.map((resume) => (
             <article key={resume.id} className="group">
               <button className="w-full rounded-lg border border-border bg-white p-4 transition hover:border-primary/50 hover:shadow-sm">
-                <div className="flex h-[420px] items-start justify-center overflow-hidden rounded-md bg-slate-50 p-4">
+                <div className="flex aspect-[3/4] max-h-[420px] items-start justify-center overflow-hidden rounded-md bg-slate-50 p-4">
                   <img src={resume.preview} alt={`${resume.title} preview`} className="h-full w-full object-contain object-top shadow-sm" />
                 </div>
               </button>

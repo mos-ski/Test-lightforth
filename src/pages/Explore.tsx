@@ -101,7 +101,7 @@ export default function Explore() {
                 </div>
                 <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">{card.description}</p>
               </div>
-              <div className="mt-4 flex items-center justify-between border-t pt-3">
+              <div className="mt-4 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between">
                 <CreditPill offer={card.offer} />
                 <Link to={card.to} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
                   {card.action}

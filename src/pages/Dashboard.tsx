@@ -54,19 +54,19 @@ export default function Dashboard() {
     <div className="lf-page-shell space-y-6">
 
       {/* ── Hero card ── */}
-      <div className="rounded-3xl bg-[#EEF4FF] px-8 py-8">
+      <div className="rounded-2xl bg-[#EEF4FF] px-5 py-6 sm:rounded-3xl sm:px-8 sm:py-8">
         {/* Date + greeting */}
         <p className="mb-1 text-sm text-muted-foreground">
           {format(new Date(), 'EEEE, MMMM do')}
         </p>
-        <h1 className="mb-8 text-2xl font-bold text-foreground">
+        <h1 className="mb-6 text-2xl font-bold leading-tight text-foreground sm:mb-8">
           Welcome {firstName}, let's get you hired.
         </h1>
 
         {/* Upload / file chip */}
         {resume ? (
           <div>
-            <div className="flex items-center gap-3 rounded-2xl bg-[#102230] px-5 py-3.5">
+            <div className="flex items-center gap-3 rounded-2xl bg-[#102230] px-4 py-3.5 sm:px-5">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/20">
                 <FileText className="h-5 w-5 text-red-400" />
               </div>
@@ -110,7 +110,7 @@ export default function Dashboard() {
           <p className="mb-3 text-sm text-muted-foreground">
             Resume uploaded. What do you want to do next?
           </p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <ActionCard
               Icon={FileText}
               title="Tailor my Resume"
