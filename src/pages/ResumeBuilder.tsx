@@ -1155,8 +1155,8 @@ function CanvasScreen({
         <FullscreenTopbar
         left={(
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/documents')} aria-label="Close resume builder" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50">
-              <X className="h-4 w-4" />
+            <button onClick={() => navigate('/documents')} aria-label="Close resume builder" className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50">
+              <X className="h-3.5 w-3.5" />
             </button>
             <div className="min-w-0">
               {isEditingName ? (
@@ -1168,43 +1168,43 @@ function CanvasScreen({
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') setIsEditingName(false)
                   }}
-                  className="h-8 w-52 rounded-md border border-slate-200 px-2 text-sm font-bold outline-none focus:border-[#149cf2]"
+                  className="h-7 w-44 rounded-md border border-slate-200 px-2 text-xs font-bold outline-none focus:border-[#149cf2]"
                 />
               ) : (
-                <button onClick={() => setIsEditingName(true)} className="flex max-w-56 items-center gap-1 text-left text-sm font-bold text-slate-950">
+                <button onClick={() => setIsEditingName(true)} className="flex max-w-48 items-center gap-1 text-left text-xs font-bold text-slate-950">
                   <span className="truncate">{resumeName || 'Untitled resume'}</span>
                   <Pencil className="h-3.5 w-3.5 text-slate-400" />
                 </button>
               )}
-              <p className="text-xs text-slate-500">Resume canvas</p>
+              <p className="text-[11px] text-slate-500">Resume canvas</p>
             </div>
           </div>
         )}
         right={(
           <>
-            <span className="mr-2 hidden items-center gap-1.5 text-sm font-semibold text-green-600 lg:inline-flex">
-              <CheckCircle2 className="h-4 w-4" />
+            <span className="mr-2 hidden items-center gap-1.5 text-xs font-semibold text-green-600 lg:inline-flex">
+              <CheckCircle2 className="h-3.5 w-3.5" />
               Saved
             </span>
-            <OutlineButton onClick={() => setScreen('preview')} className="h-9">Preview <Eye className="h-4 w-4" /></OutlineButton>
+            <OutlineButton onClick={() => setScreen('preview')} className="h-8 px-3 text-xs">Preview <Eye className="h-3.5 w-3.5" /></OutlineButton>
             <ActionMenu
               open={downloadOpen}
               setOpen={setDownloadOpen}
               alignRight
-              button={<PrimaryButton className="h-9">Download <Download className="ml-2 h-4 w-4" /></PrimaryButton>}
+              button={<PrimaryButton className="h-8 px-3 text-xs">Download <Download className="ml-2 h-3.5 w-3.5" /></PrimaryButton>}
               items={['Export as PDF', 'Export as DOCX', 'Export as Text']}
             />
           </>
         )}
         />
-        <main className="grid min-h-0 flex-1 grid-cols-[280px_minmax(640px,1fr)_290px] gap-4 overflow-hidden px-4 py-3">
-        <aside className="flex max-h-[48vh] min-h-[320px] flex-col overflow-hidden rounded-lg bg-white p-4 lg:max-h-none lg:min-h-0">
-          <div className="mb-8 flex shrink-0 items-center gap-4 text-base font-bold">
-            <Menu className="h-5 w-5 text-[#123667]" />
+        <main className="grid min-h-0 flex-1 grid-cols-[224px_minmax(640px,1fr)_232px] gap-3 overflow-hidden px-3 py-2">
+        <aside className="flex max-h-[48vh] min-h-[320px] flex-col overflow-hidden rounded-md bg-white p-3 lg:max-h-none lg:min-h-0">
+          <div className="mb-6 flex shrink-0 items-center gap-3 text-sm font-bold">
+            <Menu className="h-4 w-4 text-[#123667]" />
             <span className="min-w-0 flex-1 truncate">Adedamola’s CV</span>
-            <Pencil className="h-4 w-4 text-slate-500" />
+            <Pencil className="h-3.5 w-3.5 text-slate-500" />
           </div>
-          <div className="mb-5 grid shrink-0 grid-cols-3 rounded-lg border border-slate-200 bg-slate-50 p-1 text-center text-sm font-semibold">
+          <div className="mb-4 grid shrink-0 grid-cols-3 rounded-md border border-slate-200 bg-slate-50 p-1 text-center text-xs font-semibold">
             {[
               ['chat', 'Chat'],
               ['create', 'Create'],
@@ -1213,7 +1213,7 @@ function CanvasScreen({
               <button
                 key={id as string}
                 onClick={() => setSidebarTab(id as SidebarTab)}
-                className={cn('flex h-10 items-center justify-center rounded-md transition-colors', sidebarTab === id ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500')}
+                className={cn('flex h-8 items-center justify-center rounded transition-colors', sidebarTab === id ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500')}
               >
                 {label as string}
               </button>
@@ -1224,9 +1224,9 @@ function CanvasScreen({
               <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
                 {chatMessages.length === 0 ? (
                   <div className="flex h-full items-center justify-center text-center">
-                    <div className="max-w-xs">
-                      <p className="text-xl font-black text-slate-900">Paste your job description</p>
-                      <p className="mt-3 text-base leading-7 text-slate-500">I can rewrite your resume for the role, then we can refine it together.</p>
+                    <div className="max-w-[13rem]">
+                      <p className="text-base font-black text-slate-900">Paste your job description</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-500">I can rewrite your resume for the role, then we can refine it together.</p>
                     </div>
                   </div>
                 ) : (
@@ -1255,7 +1255,7 @@ function CanvasScreen({
                   </>
                 )}
               </div>
-              <div className="mt-4 shrink-0 space-y-3 border-t border-slate-200 pt-3">
+              <div className="mt-3 shrink-0 space-y-2.5 border-t border-slate-200 pt-3">
                 {chatMessages.length > 0 && (
                   <button onClick={() => setMobileAtsOpen(true)} className="flex items-center gap-2 text-sm font-bold text-[#149cf2]">
                     <ChevronDown className="h-4 w-4 rotate-180" /> ATS Tips
@@ -1263,12 +1263,12 @@ function CanvasScreen({
                 )}
                 <div className="flex flex-wrap gap-2">
                   {quickPrompts.map((prompt) => (
-                    <button key={prompt} onClick={() => sendChat(prompt)} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:border-[#149cf2] hover:text-[#149cf2]">
+                    <button key={prompt} onClick={() => sendChat(prompt)} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:border-[#149cf2] hover:text-[#149cf2]">
                       {prompt}
                     </button>
                   ))}
                 </div>
-                <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-white p-2">
+                <div className="flex items-end gap-2 rounded-lg border border-slate-200 bg-white p-1.5">
                   <textarea
                     value={chatDraft}
                     onChange={(event) => setChatDraft(event.target.value)}
@@ -1279,11 +1279,11 @@ function CanvasScreen({
                       }
                     }}
                     rows={2}
-                    className="min-w-0 flex-1 resize-none text-sm leading-5 outline-none"
+                    className="min-w-0 flex-1 resize-none text-xs leading-5 outline-none"
                     placeholder="Message Lightforth AI..."
                   />
-                  <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#149cf2] text-white">
-                    <Send className="h-4 w-4" />
+                  <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#149cf2] text-white">
+                    <Send className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -1314,13 +1314,13 @@ function CanvasScreen({
             <div className="min-h-0 flex-1 overflow-y-auto">
               <div className="divide-y divide-slate-200">
                 {visibleSections.map((item) => (
-                  <div key={item} className="py-4">
-                    <button onClick={() => setExpanded(expanded === item ? '' : item)} className="flex w-full items-center justify-between text-sm font-semibold text-slate-700 transition hover:text-slate-950">
+                  <div key={item} className="py-3">
+                    <button onClick={() => setExpanded(expanded === item ? '' : item)} className="flex w-full items-center justify-between text-xs font-semibold text-slate-700 transition hover:text-slate-950">
                       {item}
                       <span>{expanded === item ? '−' : '+'}</span>
                     </button>
                     {expanded === item && (
-                      <div className="mt-4 space-y-2.5">
+                      <div className="mt-3 space-y-2">
                         {item === 'Personal Information' && (
                           <>
                             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-2">
@@ -1559,13 +1559,13 @@ function SidebarInput({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs text-slate-500">{label}</span>
+      <span className="mb-1 block text-[11px] text-slate-500">{label}</span>
       <input
         type={type}
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange?.(event.target.value)}
-        className="lf-input w-full text-sm"
+        className="lf-input h-9 w-full text-xs"
       />
     </label>
   )
@@ -1601,11 +1601,11 @@ function CreateTextActions({
   const [open, setOpen] = useState(false)
   const [round, setRound] = useState(0)
   return (
-    <div className="relative space-y-3">
-      <button onClick={() => setOpen(true)} className="flex items-center gap-2 text-sm font-bold text-[#149cf2]">
-        <Sparkles className="h-4 w-4" /> AI Suggestions
+    <div className="relative space-y-2.5">
+      <button onClick={() => setOpen(true)} className="flex items-center gap-1.5 text-xs font-bold text-[#149cf2]">
+        <Sparkles className="h-3.5 w-3.5" /> AI Suggestions
       </button>
-      <button className="h-11 w-full rounded-lg bg-[#149cf2]/10 text-base font-bold text-[#149cf2] hover:bg-[#149cf2]/20 transition-colors">
+      <button className="h-9 w-full rounded-md bg-[#149cf2]/10 text-sm font-bold text-[#149cf2] hover:bg-[#149cf2]/20 transition-colors">
         Save
       </button>
       {open && (
@@ -1616,7 +1616,7 @@ function CreateTextActions({
           onClose={() => setOpen(false)}
           onSuggestMore={() => setRound((value) => value + 1)}
           onApply={(value) => {
-            onApply(value)
+            onApply(applySuggestedFieldValue(kind, currentValue, value))
             setOpen(false)
           }}
         />
@@ -1626,6 +1626,13 @@ function CreateTextActions({
 }
 
 type SuggestionKind = 'summary' | 'experience' | 'education' | 'skills' | 'generic'
+
+function applySuggestedFieldValue(kind: SuggestionKind, currentValue: string, suggestion: string) {
+  if (kind !== 'experience') return suggestion
+  const currentLines = currentValue.split('\n').map((line) => line.trim()).filter(Boolean)
+  if (currentLines.includes(suggestion)) return currentLines.join('\n')
+  return [...currentLines, suggestion].join('\n')
+}
 
 function AISuggesterPanel({
   kind,
@@ -2043,8 +2050,8 @@ function escapeRegExp(value: string) {
 
 function FullscreenTopbar({ left, title, right }: { left?: ReactNode; title?: string; right?: ReactNode }) {
   return (
-    <header className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-2 shadow-sm sm:px-4">
-      <div className="min-w-0">{left ?? <span className="text-base font-semibold">{title}</span>}</div>
+    <header className="flex min-h-12 shrink-0 items-center justify-between gap-2 border-b border-slate-200 bg-white px-3 py-1.5 shadow-sm">
+      <div className="min-w-0">{left ?? <span className="text-sm font-semibold">{title}</span>}</div>
       <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">{right}</div>
     </header>
   )
@@ -2146,32 +2153,32 @@ function CanvasRightPanel({
 }) {
   const insights = getATSInsights(resume, jobDescription)
   return (
-    <aside className="hidden min-h-0 space-y-4 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3 lg:block">
-      <section className="rounded-lg border border-slate-200 p-4">
-        <div className="flex items-center gap-3">
-          <div className="relative grid h-16 w-16 shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#149cf2 ${insights.score}%, #f1f2f4 0)` }}>
-            <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-base font-black text-slate-600">{insights.score}%</div>
+    <aside className="hidden min-h-0 space-y-3 overflow-y-auto rounded-md border border-slate-200 bg-white p-2.5 lg:block">
+      <section className="rounded-md border border-slate-200 p-3">
+        <div className="flex items-center gap-2.5">
+          <div className="relative grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#149cf2 ${insights.score}%, #f1f2f4 0)` }}>
+            <div className="grid h-9 w-9 place-items-center rounded-full bg-white text-sm font-black text-slate-600">{insights.score}%</div>
           </div>
           <div>
-            <h3 className="text-base font-black text-slate-900">Live ATS score</h3>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Updates as you edit the resume and chat prompt.</p>
+            <h3 className="text-sm font-black text-slate-900">Live ATS score</h3>
+            <p className="mt-1 text-[11px] leading-4 text-slate-500">Updates as you edit the resume and chat prompt.</p>
           </div>
         </div>
-        <div className="mt-5 space-y-3">
+        <div className="mt-4 space-y-2.5">
           {insights.scores.map(([label, value]) => (
             <div key={label}>
-              <div className="mb-1.5 flex justify-between text-xs font-bold text-slate-500"><span>{label}</span><span>{value}%</span></div>
-              <div className="h-1.5 rounded-full bg-slate-200"><div className="h-1.5 rounded-full bg-emerald-500" style={{ width: `${value}%` }} /></div>
+              <div className="mb-1 flex justify-between text-[11px] font-bold text-slate-500"><span>{label}</span><span>{value}%</span></div>
+              <div className="h-1 rounded-full bg-slate-200"><div className="h-1 rounded-full bg-emerald-500" style={{ width: `${value}%` }} /></div>
             </div>
           ))}
         </div>
       </section>
-      <section className="rounded-lg border border-slate-200 p-4">
-        <h3 className="mb-4 flex items-center gap-2 text-base font-black"><Info className="h-4 w-4" /> Live ATS tips</h3>
-        <div className="space-y-3">
+      <section className="rounded-md border border-slate-200 p-3">
+        <h3 className="mb-3 flex items-center gap-1.5 text-sm font-black"><Info className="h-3.5 w-3.5" /> Live ATS tips</h3>
+        <div className="space-y-2.5">
           {insights.checks.map((check) => (
-            <p key={check.label} className="flex items-start gap-2.5 text-sm leading-5 text-slate-600">
-              <span className={cn('grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold text-white', check.done ? 'bg-emerald-500' : 'bg-amber-500')}>
+            <p key={check.label} className="flex items-start gap-2 text-xs leading-5 text-slate-600">
+              <span className={cn('grid h-5 w-5 shrink-0 place-items-center rounded-full text-[10px] font-bold text-white', check.done ? 'bg-emerald-500' : 'bg-amber-500')}>
                 {check.done ? '✓' : '!'}
               </span>
               {check.label}
@@ -2179,15 +2186,15 @@ function CanvasRightPanel({
           ))}
         </div>
         {insights.missingKeywords.length > 0 && (
-          <div className="mt-4 rounded-lg bg-amber-50 p-3">
-            <p className="text-xs font-bold text-amber-800">Recommended keywords</p>
-            <p className="mt-1 text-xs leading-5 text-amber-700">{insights.missingKeywords.join(', ')}</p>
+          <div className="mt-3 rounded-md bg-amber-50 p-2.5">
+            <p className="text-[11px] font-bold text-amber-800">Recommended keywords</p>
+            <p className="mt-1 text-[11px] leading-4 text-amber-700">{insights.missingKeywords.join(', ')}</p>
           </div>
         )}
         {insights.matchedKeywords.length > 0 && (
-          <div className="mt-3 rounded-lg bg-emerald-50 p-3">
-            <p className="text-xs font-bold text-emerald-800">Already matched</p>
-            <p className="mt-1 text-xs leading-5 text-emerald-700">{insights.matchedKeywords.join(', ')}</p>
+          <div className="mt-2.5 rounded-md bg-emerald-50 p-2.5">
+            <p className="text-[11px] font-bold text-emerald-800">Already matched</p>
+            <p className="mt-1 text-[11px] leading-4 text-emerald-700">{insights.matchedKeywords.join(', ')}</p>
           </div>
         )}
       </section>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   Check, Search, ArrowUpRight, X, FileText,
   Bot, Zap, Briefcase, Network, Sparkles, AlertTriangle,
-  ArrowDown, ChevronDown
+  ArrowDown, ChevronDown, Link as LinkIcon, Clock3
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
@@ -10,6 +10,30 @@ import { cn } from '@/lib/utils'
 type AutoApplyView = 'setup' | 'paywall' | 'loading' | 'dashboard'
 type SetupStep = 1 | 2 | 3 | 4
 type DashboardTab = 'setup' | 'jobs' | 'applied'
+type IssueStatus = 'needs_review' | 'retrying' | 'resolved'
+type ManualApplication = {
+  id: string
+  title: string
+  company: string
+  location: string
+  salary: string
+  source: string
+  url: string
+  date: string
+  status: 'pending'
+  resumeUsed: string
+  coverLetterUsed: string
+}
+type AutoApplyIssue = {
+  id: string
+  jobId: string
+  title: string
+  company: string
+  source: string
+  reason: string
+  fallback: string
+  status: IssueStatus
+}
 
 // ─── Mock Data ──────────────────────────────────────────────────────────────
 
@@ -35,6 +59,30 @@ const FEATURES = [
 
 const EMPLOYMENT_TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Temporary', 'Volunteer']
 const LOCATION_TYPES = ['Onsite', 'Remote', 'Hybrid']
+
+function inferApplicationFromUrl(url: string): ManualApplication {
+  let host = 'Job link'
+  try {
+    host = new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    host = url.replace(/^https?:\/\//, '').split('/')[0] || 'Job link'
+  }
+  const company = host.split('.')[0]?.replace(/[-_]/g, ' ') || 'Company'
+  const companyName = company.replace(/\b\w/g, (letter) => letter.toUpperCase())
+  return {
+    id: `manual-${Date.now()}`,
+    title: 'Job application',
+    company: companyName,
+    location: 'Parsing job link',
+    salary: 'Pending',
+    source: host,
+    url,
+    date: 'Today',
+    status: 'pending',
+    resumeUsed: `Resume_Tailored_${companyName.replace(/\s+/g, '_')}.pdf`,
+    coverLetterUsed: `Cover_Letter_${companyName.replace(/\s+/g, '_')}.pdf`,
+  }
+}
 
 // ─── Shared sub-components ───────────────────────────────────────────────────
 
@@ -833,7 +881,7 @@ function StatCard({ title, children }: { title: string; children: React.ReactNod
   )
 }
 
-function StatsRow() {
+function StatsRow({ issueCount, onSeeIssues }: { issueCount: number; onSeeIssues: () => void }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {/* Applied */}
@@ -861,10 +909,12 @@ function StatsRow() {
       {/* Errors */}
       <StatCard title="Errors">
         <div className="flex items-center gap-1.5 mt-0.5">
-          <AlertTriangle className="h-4 w-4 text-amber-400 flex-shrink-0" />
-          <span className="text-2xl font-bold text-red-500">2</span>
+          <AlertTriangle className={cn('h-4 w-4 flex-shrink-0', issueCount > 0 ? 'text-amber-400' : 'text-green-500')} />
+          <span className={cn('text-2xl font-bold', issueCount > 0 ? 'text-red-500' : 'text-green-600')}>{issueCount}</span>
         </div>
-        <button className="text-xs text-primary hover:underline mt-0.5">See issues</button>
+        <button onClick={onSeeIssues} className="text-xs text-primary hover:underline mt-0.5">
+          {issueCount > 0 ? 'See issues' : 'View history'}
+        </button>
       </StatCard>
 
       {/* Credits */}
@@ -876,6 +926,92 @@ function StatsRow() {
         <p className="text-xs text-muted-foreground mt-0.5">93 remaining</p>
       </StatCard>
     </div>
+  )
+}
+
+const AUTO_APPLY_ISSUES: AutoApplyIssue[] = [
+  {
+    id: 'issue-1',
+    jobId: '2',
+    title: 'Product Designer',
+    company: 'Apple',
+    source: 'LinkedIn',
+    reason: 'Application form requested a portfolio URL before submission.',
+    fallback: 'Resume and cover letter were generated.',
+    status: 'needs_review',
+  },
+  {
+    id: 'issue-2',
+    jobId: '4',
+    title: 'UX Researcher',
+    company: 'Amazon',
+    source: 'Monster',
+    reason: 'The job page required a one-time verification step.',
+    fallback: 'Application is saved for manual review.',
+    status: 'needs_review',
+  },
+]
+
+function IssuesPanel({
+  issues,
+  onClose,
+  onReview,
+  onRetry,
+}: {
+  issues: AutoApplyIssue[]
+  onClose: () => void
+  onReview: (issue: AutoApplyIssue) => void
+  onRetry: (issue: AutoApplyIssue) => void
+}) {
+  return (
+    <section className="mt-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
+            <AlertTriangle className="h-4 w-4 text-amber-500" /> Auto-apply issues
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">These applications need your attention before Lightforth can finish them.</p>
+        </div>
+        <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:bg-white hover:text-foreground" aria-label="Close issues">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="grid gap-3 lg:grid-cols-2">
+        {issues.map((issue) => (
+          <article key={issue.id} className={cn('rounded-lg border bg-white p-4', issue.status === 'resolved' ? 'border-green-200' : 'border-amber-200')}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-foreground">{issue.title}</h3>
+                <p className="text-xs text-muted-foreground">{issue.company} · {issue.source}</p>
+              </div>
+              <span className={cn(
+                'rounded-full px-2.5 py-1 text-xs font-semibold',
+                issue.status === 'resolved' ? 'bg-green-100 text-green-700' : issue.status === 'retrying' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700',
+              )}>
+                {issue.status === 'resolved' ? 'Resolved' : issue.status === 'retrying' ? 'Retrying' : 'Needs review'}
+              </span>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-700">{issue.reason}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{issue.fallback}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                onClick={() => onReview(issue)}
+                className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90"
+              >
+                Review now
+              </button>
+              <button
+                onClick={() => onRetry(issue)}
+                disabled={issue.status !== 'needs_review'}
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {issue.status === 'retrying' ? 'Retrying...' : issue.status === 'resolved' ? 'Retried' : 'Retry'}
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -910,19 +1046,75 @@ function DashboardTabs({
   )
 }
 
+function ManualApplyCard({
+  onAddApplication,
+}: {
+  onAddApplication: (application: ManualApplication) => void
+}) {
+  const [jobLink, setJobLink] = useState('')
+
+  function submitLink() {
+    const trimmed = jobLink.trim()
+    if (!trimmed) return
+    onAddApplication(inferApplicationFromUrl(trimmed))
+    setJobLink('')
+  }
+
+  return (
+    <section className="mt-5 rounded-xl border border-border bg-white p-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10 text-primary">
+              <LinkIcon className="h-4 w-4" />
+            </span>
+            <div>
+              <h2 className="text-base font-bold text-foreground">Manual auto-apply</h2>
+              <p className="text-sm text-muted-foreground">Paste a job link. We add it as pending while AI fills the application details.</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex min-w-0 flex-1 gap-2 lg:max-w-xl">
+          <input
+            value={jobLink}
+            onChange={(event) => setJobLink(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') submitLink()
+            }}
+            className="lf-input min-w-0 flex-1"
+            placeholder="Paste job link..."
+          />
+          <button
+            onClick={submitLink}
+            className="shrink-0 rounded-lg bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+          >
+            Add job
+          </button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── Job Detail Panel ─────────────────────────────────────────────────────────
 
 function JobDetailPanel({
   jobId,
   tab,
   onClose,
+  issue,
+  onRetryIssue,
 }: {
   jobId: string
   tab: 'jobs' | 'applied'
   onClose: () => void
+  issue?: AutoApplyIssue
+  onRetryIssue?: (issue: AutoApplyIssue) => void
 }) {
   const job = MOCK_JOBS.find((j) => j.id === jobId)!
-  const isApplied = tab === 'applied'
+  const hasFailed = tab === 'applied' && issue && issue.status !== 'resolved'
+  const isRetrying = issue?.status === 'retrying'
+  const isApplied = tab === 'applied' && !hasFailed
 
   return (
     <div className="w-full flex-shrink-0 rounded-xl border border-border bg-white overflow-y-auto lg:w-80">
@@ -939,7 +1131,11 @@ function JobDetailPanel({
       <div className="p-4">
       {/* Tags */}
       <div className="flex flex-wrap gap-1.5 mb-4">
-        {isApplied ? (
+        {hasFailed ? (
+          <span className={cn('rounded-full px-2.5 py-1 text-xs font-semibold', isRetrying ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700')}>
+            {isRetrying ? 'Retrying' : 'Failed'}
+          </span>
+        ) : isApplied ? (
           <span className="rounded-full bg-green-500 px-2.5 py-1 text-xs font-semibold text-white">Applied</span>
         ) : (
           <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">NEW</span>
@@ -964,7 +1160,45 @@ function JobDetailPanel({
         </a>
       </div>
 
-      {isApplied ? (
+      {tab === 'applied' && (
+        <div className="mb-4">
+          <p className="text-xs font-semibold text-foreground mb-1">Cover Letter</p>
+          <a href="#" className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <FileText className="h-3 w-3" /> Cover_Letter_{job.company}.pdf
+          </a>
+        </div>
+      )}
+
+      {hasFailed && issue ? (
+        <>
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
+            <p className="text-xs font-semibold text-red-700">Why it failed</p>
+            <p className="mt-1 text-xs leading-5 text-red-700">{issue.reason}</p>
+            <p className="mt-2 text-xs text-red-600">{issue.fallback}</p>
+          </div>
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-foreground mb-2">Activity Log</p>
+            <div className="space-y-1.5">
+              {['Opened job page', 'Filled available application fields', 'Uploaded tailored resume', `Blocked: ${issue.reason}`].map((step, index) => (
+                <div key={step} className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', index === 3 ? 'bg-red-500' : 'bg-green-500')} />
+                  {step}
+                </div>
+              ))}
+              <button className="flex items-center gap-1 text-xs text-primary hover:underline mt-1">
+                ▷ See Replay
+              </button>
+            </div>
+          </div>
+          <button
+            onClick={() => onRetryIssue?.(issue)}
+            disabled={issue.status !== 'needs_review'}
+            className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isRetrying ? 'Retrying...' : 'Retry application'}
+          </button>
+        </>
+      ) : isApplied ? (
         <>
           {/* Activity Log */}
           <div className="mb-4">
@@ -1087,12 +1321,31 @@ function JobsTab({
 function AppliedTab({
   selectedJob,
   setSelectedJob,
+  manualApplications,
+  issues,
+  onRetryIssue,
 }: {
   selectedJob: string | null
   setSelectedJob: (id: string | null) => void
+  manualApplications: ManualApplication[]
+  issues: AutoApplyIssue[]
+  onRetryIssue: (issue: AutoApplyIssue) => void
 }) {
   const [search, setSearch] = useState('')
-  const filtered = MOCK_JOBS.filter(
+  const getActiveIssue = (jobId: string) => issues.find((issue) => issue.jobId === jobId && issue.status !== 'resolved')
+  const appliedJobs = [
+    ...manualApplications,
+    ...MOCK_JOBS.map((job) => {
+      const issue = getActiveIssue(job.id)
+      return {
+        ...job,
+        status: issue?.status === 'retrying' ? 'retrying' as const : issue ? 'failed' as const : 'applied' as const,
+        url: '#',
+        coverLetterUsed: `Cover_Letter_${job.company}.pdf`,
+      }
+    }),
+  ]
+  const filtered = appliedJobs.filter(
     (j) =>
       j.title.toLowerCase().includes(search.toLowerCase()) ||
       j.company.toLowerCase().includes(search.toLowerCase())
@@ -1138,8 +1391,13 @@ function AppliedTab({
                   </td>
                   <td className="lf-table-cell text-muted-foreground">{job.source}</td>
                   <td className="lf-table-cell text-right">
-                    <span className="rounded-full bg-green-500 px-3 py-1 text-xs font-semibold text-white">
-                      Applied
+                    <span className={cn(
+                      'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold',
+                      job.status === 'pending' ? 'bg-amber-100 text-amber-700' : job.status === 'failed' ? 'bg-red-100 text-red-700' : job.status === 'retrying' ? 'bg-blue-100 text-blue-700' : 'bg-green-500 text-white',
+                    )}>
+                      {job.status === 'pending' && <Clock3 className="h-3 w-3" />}
+                      {job.status === 'retrying' && <Clock3 className="h-3 w-3" />}
+                      {job.status === 'pending' ? 'Pending' : job.status === 'failed' ? 'Failed' : job.status === 'retrying' ? 'Retrying' : 'Applied'}
                     </span>
                   </td>
                 </tr>
@@ -1150,9 +1408,93 @@ function AppliedTab({
         <button className="mt-3 w-full text-center text-sm text-primary hover:underline">Load more</button>
       </div>
 
-      {selectedJob && (
-        <JobDetailPanel jobId={selectedJob} tab="applied" onClose={() => setSelectedJob(null)} />
+      {selectedJob && selectedJob.startsWith('manual-') && (
+        <ManualApplicationPanel
+          application={manualApplications.find((job) => job.id === selectedJob)!}
+          onClose={() => setSelectedJob(null)}
+        />
       )}
+      {selectedJob && !selectedJob.startsWith('manual-') && (
+        <JobDetailPanel
+          jobId={selectedJob}
+          tab="applied"
+          onClose={() => setSelectedJob(null)}
+          issue={issues.find((issue) => issue.jobId === selectedJob)}
+          onRetryIssue={onRetryIssue}
+        />
+      )}
+    </div>
+  )
+}
+
+function ManualApplicationPanel({
+  application,
+  onClose,
+}: {
+  application: ManualApplication
+  onClose: () => void
+}) {
+  if (!application) return null
+  return (
+    <div className="w-full flex-shrink-0 overflow-y-auto rounded-xl border border-border bg-white lg:w-80">
+      <div className="flex items-start justify-between border-b border-border p-4 pb-3">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">{application.title}</h3>
+          <p className="text-xs text-muted-foreground">{application.company} · {application.location}</p>
+        </div>
+        <button onClick={onClose} className="ml-2 flex-shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="p-4">
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+            <Clock3 className="h-3 w-3" /> Pending
+          </span>
+          <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">{application.salary}</span>
+          <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">{application.date}</span>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-foreground mb-1">Job Listing</p>
+          <a href={application.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 break-all text-xs text-primary hover:underline">
+            <ArrowUpRight className="h-3 w-3 shrink-0" /> {application.url}
+          </a>
+        </div>
+
+        <div className="mt-4">
+          <p className="text-xs font-semibold text-foreground mb-1">Resume Used</p>
+          <a href="#" className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <FileText className="h-3 w-3" /> {application.resumeUsed}
+          </a>
+        </div>
+
+        <div className="mt-4">
+          <p className="text-xs font-semibold text-foreground mb-1">Cover Letter</p>
+          <a href="#" className="flex items-center gap-1 text-xs text-primary hover:underline">
+            <FileText className="h-3 w-3" /> {application.coverLetterUsed}
+          </a>
+        </div>
+
+        <div className="mt-5">
+          <p className="text-xs font-semibold text-foreground mb-2">Activity Log</p>
+          <div className="space-y-1.5">
+            {[
+              ['Queued job link', true],
+              ['Reading job metadata', true],
+              ['Filling application form', false],
+              ['Submitting application', false],
+            ].map(([step, done]) => (
+              <div key={step as string} className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className={cn('h-1.5 w-1.5 flex-shrink-0 rounded-full', done ? 'bg-green-500' : 'bg-amber-400')} />
+                {step as string}
+              </div>
+            ))}
+            <button className="flex items-center gap-1 text-xs text-primary hover:underline mt-1">
+              ▷ See Replay
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1165,6 +1507,10 @@ export default function AutoApply() {
   const [setupStep, setSetupStep] = useState<SetupStep>(1)
   const [dashTab, setDashTab] = useState<DashboardTab>('jobs')
   const [selectedJob, setSelectedJob] = useState<string | null>(null)
+  const [manualApplications, setManualApplications] = useState<ManualApplication[]>([])
+  const [issuesOpen, setIssuesOpen] = useState(false)
+  const [issues, setIssues] = useState<AutoApplyIssue[]>(AUTO_APPLY_ISSUES)
+  const activeIssueCount = issues.filter((issue) => issue.status !== 'resolved').length
 
   // Form state — kept at top level to preserve across steps
   const [resumeFile] = useState('Darnell_Smith_Product_Manager_2026.pdf')
@@ -1234,6 +1580,28 @@ export default function AutoApply() {
     if (setupStep > 1) setSetupStep((s) => (s - 1) as SetupStep)
   }
 
+  function addManualApplication(application: ManualApplication) {
+    setManualApplications((current) => [application, ...current])
+    setDashTab('applied')
+    setSelectedJob(application.id)
+  }
+
+  function reviewIssue(issue: AutoApplyIssue) {
+    setDashTab('applied')
+    setSelectedJob(issue.jobId)
+    setIssuesOpen(false)
+  }
+
+  function retryIssue(issue: AutoApplyIssue) {
+    if (issue.status !== 'needs_review') return
+    setIssues((current) => current.map((item) => item.id === issue.id ? { ...item, status: 'retrying' } : item))
+    window.setTimeout(() => {
+      setIssues((current) => current.map((item) => item.id === issue.id ? { ...item, status: 'resolved', fallback: 'Retry completed and application was submitted.' } : item))
+      setDashTab('applied')
+      setSelectedJob(issue.jobId)
+    }, 900)
+  }
+
   if (view === 'loading') return <LoadingView />
   if (view === 'paywall') return <PaywallView />
 
@@ -1246,7 +1614,16 @@ export default function AutoApply() {
             Set your preferences and let Lightforth apply for you
           </p>
         </div>
-        <StatsRow />
+        <StatsRow issueCount={activeIssueCount} onSeeIssues={() => setIssuesOpen((open) => !open)} />
+        {issuesOpen && (
+          <IssuesPanel
+            issues={issues}
+            onClose={() => setIssuesOpen(false)}
+            onReview={reviewIssue}
+            onRetry={retryIssue}
+          />
+        )}
+        <ManualApplyCard onAddApplication={addManualApplication} />
         <DashboardTabs
           tab={dashTab}
           setTab={(t) => {
@@ -1262,7 +1639,13 @@ export default function AutoApply() {
           <JobsTab selectedJob={selectedJob} setSelectedJob={setSelectedJob} />
         )}
         {dashTab === 'applied' && (
-          <AppliedTab selectedJob={selectedJob} setSelectedJob={setSelectedJob} />
+          <AppliedTab
+            selectedJob={selectedJob}
+            setSelectedJob={setSelectedJob}
+            manualApplications={manualApplications}
+            issues={issues}
+            onRetryIssue={retryIssue}
+          />
         )}
       </div>
     )
