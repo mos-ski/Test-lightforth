@@ -71,7 +71,7 @@ export default function TopNav({ onMenuClick }: { onMenuClick?: () => void }) {
     <header className="flex h-14 flex-shrink-0 items-center justify-end gap-1.5 border-b border-border bg-white px-3 sm:gap-2 sm:px-6">
       <button
         onClick={onMenuClick}
-        className="mr-1 rounded-md p-2 transition-colors hover:bg-muted md:hidden"
+        className="mr-auto rounded-md p-2 transition-colors hover:bg-muted md:hidden"
         aria-label="Open menu"
       >
         <Menu className="h-5 w-5 text-foreground" />
