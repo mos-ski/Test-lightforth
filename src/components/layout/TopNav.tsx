@@ -11,6 +11,7 @@ import {
   HelpCircle,
   LogOut,
   Mail,
+  Menu,
   MessageCircle,
   Settings,
   Tag,
@@ -40,7 +41,7 @@ const NOTIFICATIONS = [
   { id: '6', icon: Tag, color: 'text-rose-500 bg-rose-50', title: '🎉 50% off Premium — this week only', desc: 'Upgrade to Premium and get 100 credits/month', time: '1d ago', read: true },
 ]
 
-export default function TopNav() {
+export default function TopNav({ onMenuClick }: { onMenuClick?: () => void }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [notifOpen, setNotifOpen] = useState(false)
@@ -68,6 +69,13 @@ export default function TopNav() {
 
   return (
     <header className="flex h-14 flex-shrink-0 items-center justify-end gap-1.5 border-b border-border bg-white px-3 sm:gap-2 sm:px-6">
+      <button
+        onClick={onMenuClick}
+        className="mr-1 rounded-md p-2 transition-colors hover:bg-muted md:hidden"
+        aria-label="Open menu"
+      >
+        <Menu className="h-5 w-5 text-foreground" />
+      </button>
       <DropdownMenu>
         <DropdownMenuTrigger
           className="relative rounded-full p-2 transition-colors hover:bg-muted"

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -10,6 +11,8 @@ import {
   CreditCard,
   Settings,
   ChevronDown,
+  X,
+  Menu,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import UpgradeCard from '@/components/shared/UpgradeCard'
@@ -36,14 +39,12 @@ function NavItem({
   label,
   end,
   chevron,
-  redDot,
 }: {
   to: string
   icon: React.ElementType
   label: string
   end?: boolean
   chevron?: boolean
-  redDot?: boolean
 }) {
   return (
     <NavLink
@@ -67,7 +68,6 @@ function NavItem({
             )}
           />
           <span className="flex-1 truncate">{label}</span>
-          {redDot && <span className="h-2 w-2 flex-shrink-0 rounded-full bg-red-500" />}
           {chevron && (
             <ChevronDown className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
           )}
@@ -77,18 +77,30 @@ function NavItem({
   )
 }
 
-export default function Sidebar() {
-  const mobileNav = [...PRIMARY_NAV, SECONDARY_NAV[0], SECONDARY_NAV[3]]
+const NAV_ITEMS = [...PRIMARY_NAV, ...SECONDARY_NAV]
 
+function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <>
-      <aside className="hidden h-screen w-56 flex-shrink-0 flex-col border-r border-border bg-white md:flex">
-        {/* Logo */}
-        <div className="flex h-14 items-center gap-2 px-4">
+      {open && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm md:hidden"
+          onClick={onClose}
+        />
+      )}
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white shadow-xl transition-transform duration-300 ease-in-out md:hidden',
+          open ? 'translate-x-0' : '-translate-x-full',
+        )}
+      >
+        <div className="flex h-14 items-center justify-between px-4">
           <LightforthLogo className="h-7" />
+          <button onClick={onClose} className="rounded-md p-1.5 hover:bg-muted" aria-label="Close menu">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-2">
           {PRIMARY_NAV.map((item) => (
             <NavItem key={item.to} {...item} />
@@ -102,7 +114,6 @@ export default function Sidebar() {
 
           <div className="my-2 border-t border-border" />
 
-          {/* How to use — YouTube-style */}
           <NavLink
             to="/how-to-use"
             className={({ isActive }) =>
@@ -119,30 +130,55 @@ export default function Sidebar() {
           </NavLink>
         </nav>
 
-        {/* Upgrade card */}
         <div className="p-3">
           <UpgradeCard />
         </div>
       </aside>
-
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-border bg-white/95 px-1 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
-        {mobileNav.slice(0, 6).map(({ to, icon: Icon, label, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              cn(
-                'flex min-w-0 flex-col items-center justify-center gap-1 rounded-md px-1 py-1.5 text-[10px] font-semibold transition-colors',
-                isActive ? 'text-primary' : 'text-muted-foreground',
-              )
-            }
-          >
-            <Icon className="h-5 w-5 shrink-0" />
-            <span className="w-full truncate text-center">{label.replace('Interview ', '')}</span>
-          </NavLink>
-        ))}
-      </nav>
     </>
+  )
+}
+
+export { NAV_ITEMS, MobileSidebar }
+
+export default function Sidebar() {
+  return (
+    <aside className="hidden h-screen w-56 flex-shrink-0 flex-col border-r border-border bg-white md:flex">
+      <div className="flex h-14 items-center gap-2 px-4">
+        <LightforthLogo className="h-7" />
+      </div>
+
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-2">
+        {PRIMARY_NAV.map((item) => (
+          <NavItem key={item.to} {...item} />
+        ))}
+
+        <div className="my-2 border-t border-border" />
+
+        {SECONDARY_NAV.map((item) => (
+          <NavItem key={item.to} {...item} />
+        ))}
+
+        <div className="my-2 border-t border-border" />
+
+        <NavLink
+          to="/how-to-use"
+          className={({ isActive }) =>
+            cn(
+              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              isActive ? 'bg-primary/5 text-primary' : 'text-foreground hover:bg-muted',
+            )
+          }
+        >
+          <span className="flex h-5 w-7 flex-shrink-0 items-center justify-center rounded bg-red-600">
+            <span className="border-y-[5px] border-l-[8px] border-y-transparent border-l-white" />
+          </span>
+          How to use
+        </NavLink>
+      </nav>
+
+      <div className="p-3">
+        <UpgradeCard />
+      </div>
+    </aside>
   )
 }
