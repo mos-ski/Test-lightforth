@@ -59,7 +59,7 @@ function LightningLogo({ size = 28 }: { size?: number }) {
 function MacWindow({ children, blendBar }: { children: React.ReactNode; blendBar?: boolean }) {
   return (
     <div className="flex min-h-screen items-center justify-center p-6" style={{ background: '#0a1628' }}>
-      <div className="w-full max-w-[960px] overflow-hidden rounded-2xl shadow-2xl" style={{ background: BG }}>
+      <div className="flex w-full max-w-[960px] flex-col overflow-hidden rounded-2xl shadow-2xl" style={{ background: BG, height: 700 }}>
         {/* Title bar */}
         <div
           className="flex h-10 flex-shrink-0 items-center px-4"
@@ -70,7 +70,9 @@ function MacWindow({ children, blendBar }: { children: React.ReactNode; blendBar
             <div className="h-3 w-3 rounded-full" style={{ background: '#ffbd2e' }} />
           </div>
         </div>
-        {children}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {children}
+        </div>
       </div>
     </div>
   )
@@ -674,7 +676,7 @@ export default function DesktopCopilotPreview() {
   const [jobTitle, setJobTitle] = useState('Software Engineer')
 
   return (
-    <MacWindow blendBar={view === 'splash' || view === 'onboarding' || view === 'complete'} tall={view === 'live'}>
+    <MacWindow blendBar={view === 'splash' || view === 'onboarding' || view === 'complete'}>
       {view === 'splash'     && <SplashScreen    onDone={() => setView('onboarding')} />}
       {view === 'onboarding' && <OnboardingScreen onContinue={() => setView('setup')} />}
       {view === 'setup'      && <SetupScreen      onContinue={t => { setJobTitle(t); setView('live') }} />}
