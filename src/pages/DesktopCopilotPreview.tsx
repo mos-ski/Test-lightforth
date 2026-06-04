@@ -577,16 +577,6 @@ function LiveCanvas({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }
                     <div><p className="text-sm font-medium text-slate-200">Always on Top</p><p className="mt-0.5 text-xs text-slate-500">Keeps Copilot above all other windows</p></div>
                     <Toggle on={alwaysOnTop} onToggle={() => setAlwaysOnTop(s => !s)} />
                   </div>
-                  <div>
-                    <div className="mb-2 flex justify-between"><p className="text-sm font-medium text-slate-200">Auto Scroll Speed</p><span className="text-xs text-slate-400">{scrollSpeed}</span></div>
-                    <input type="range" min={1} max={5} value={scrollSpeed} onChange={e => setScrollSpeed(Number(e.target.value))} className="w-full accent-primary" />
-                    <p className="mt-1.5 text-xs text-slate-500">Controls how fast the response panel scrolls</p>
-                  </div>
-                  <div>
-                    <div className="mb-2 flex justify-between"><p className="text-sm font-medium text-slate-200">Font Size</p><span className="text-xs text-slate-400">{fontSize}px</span></div>
-                    <input type="range" min={12} max={20} value={fontSize} onChange={e => setFontSize(Number(e.target.value))} className="w-full accent-primary" />
-                    <p className="mt-1.5 text-xs text-slate-500">Adjusts the size of the response text</p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -607,7 +597,18 @@ function LiveCanvas({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }
           </div>
           <span className="italic text-slate-400">{statusText[copilotStatus]}</span>
         </div>
-        <span className="text-[10px] italic text-slate-600">Press Space to advance</span>
+        <div className="flex items-center gap-4 text-xs text-slate-300">
+          <label className="flex items-center gap-2">
+            Auto scroll
+            <input type="range" min={1} max={5} value={scrollSpeed} onChange={e => setScrollSpeed(Number(e.target.value))} className="w-20 accent-primary" />
+            <span className="w-3 text-slate-500">{scrollSpeed}</span>
+          </label>
+          <label className="flex items-center gap-2">
+            Font size
+            <input type="range" min={12} max={20} value={fontSize} onChange={e => setFontSize(Number(e.target.value))} className="w-20 accent-primary" />
+            <span className="w-5 text-slate-500">{fontSize}</span>
+          </label>
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden p-2">
