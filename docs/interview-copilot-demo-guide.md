@@ -146,6 +146,18 @@ Interview Copilot is available on **Pro and Premium plans only**.
 - Make sure you have enough credits before your interview
 - Check your credit balance in your account settings before going live
 
+### Always Do a Test Run First
+
+Before your real interview, always test that Copilot is listening and responding correctly:
+
+1. Open YouTube and play this interview simulation video: [https://www.youtube.com/watch?v=srw4r3htm4U&t=415s](https://www.youtube.com/watch?v=srw4r3htm4U&t=415s)
+2. Start a Copilot session and share the YouTube tab (web version) or make sure your audio is connected (stealth version)
+3. Check that Copilot picks up the audio and starts generating responses
+4. If it's working — you're good to go for the real interview
+5. If it's not — troubleshoot your audio/permissions before the interview starts, not during
+
+> **This also uses a credit** — factor that into your credit balance before the actual interview.
+
 ---
 
 ## 7. Closing CTA
