@@ -336,131 +336,110 @@ function SetupScreen({ onContinue }: { onContinue: (title: string) => void }) {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-6 py-3">
-        <div className="mx-auto max-w-[600px]">
-          <h1 className="mb-2 text-center text-xl font-bold text-white">👋 Hola, Welcome to Interview Co-Pilot</h1>
+      {/* Content — single centred card, everything visible */}
+      <div className="flex flex-1 items-center justify-center px-8 py-3">
+        <div className="w-full max-w-[600px] rounded-2xl p-5" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
 
-          {/* Mode tabs */}
-          <div className="mb-3 flex justify-center">
+          <h1 className="mb-3 text-center text-base font-bold text-white">👋 Hola, Welcome to Interview Co-Pilot</h1>
+
+          {/* Tabs */}
+          <div className="mb-4 flex justify-center">
             <div className="flex gap-1 rounded-xl p-1" style={{ background: INPUT_BG }}>
-              <button
-                onClick={() => setTab('live')}
-                className={cn('flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors', tab === 'live' ? 'text-white' : 'text-white/50 hover:text-white/80')}
-                style={{ background: tab === 'live' ? BLUE : 'transparent' }}
-              >
+              <button onClick={() => setTab('live')} className={cn('flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors', tab === 'live' ? 'text-white' : 'text-white/50')} style={{ background: tab === 'live' ? BLUE : 'transparent' }}>
                 <Video className="h-3.5 w-3.5" /> Live Interview
               </button>
-              <button
-                onClick={() => setTab('coding')}
-                className={cn('flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors', tab === 'coding' ? 'text-white' : 'text-white/50 hover:text-white/80')}
-                style={{ background: tab === 'coding' ? BLUE : 'transparent' }}
-              >
+              <button onClick={() => setTab('coding')} className={cn('flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors', tab === 'coding' ? 'text-white' : 'text-white/50')} style={{ background: tab === 'coding' ? BLUE : 'transparent' }}>
                 <Code2 className="h-3.5 w-3.5" /> Coding
               </button>
             </div>
           </div>
 
-          <div className="space-y-2">
+          {/* Row 1: Position + Audio side by side */}
+          <div className="mb-3 grid grid-cols-2 gap-3">
             {/* Position */}
-            <div className="rounded-xl p-3" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
+            <div>
               <p className="mb-1.5 text-xs font-semibold text-white">Position</p>
               <input
                 value={jobTitle}
                 onChange={e => setJobTitle(e.target.value)}
                 placeholder="Enter job role"
                 className="w-full rounded-lg px-3 py-2 text-xs placeholder:text-white/30"
-                style={inputStyle}
+                style={{ background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none' }}
               />
-              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
-                <span style={{ color: 'rgba(255,255,255,0.4)' }}>Suggestions:</span>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
+                <span style={{ color: 'rgba(255,255,255,0.35)' }}>Suggestions:</span>
                 {['Product Designer', 'Product Manager'].map(s => (
                   <button key={s} onClick={() => setJobTitle(s)} className="font-semibold text-blue-400 hover:underline">{s}</button>
                 ))}
               </div>
             </div>
 
-            {/* Resume */}
-            <div className="rounded-xl p-3" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-              <p className="mb-1.5 text-xs font-semibold text-white">Choose Resume</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button className="flex h-9 items-center justify-center gap-2 rounded-lg text-xs font-semibold text-white/70 hover:bg-white/10 transition-colors" style={{ border: `1px solid ${BORDER}` }}>
-                  <Upload className="h-3.5 w-3.5" /> Upload a Resume
-                </button>
-                <button
-                  onClick={() => setShowResumeModal(true)}
-                  className="relative flex h-9 items-center justify-center gap-2 rounded-lg text-xs font-semibold transition-colors"
-                  style={{ background: 'rgba(26,122,255,0.15)', border: `1px solid ${BLUE}`, color: '#60a5fa' }}
-                >
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full px-2 py-0.5 text-[9px] font-bold text-blue-400" style={{ background: BG, border: `1px solid ${BLUE}` }}>RECOMMENDED</span>
-                  <LightningLogo size={14} /> Use Lightforth Resume
-                </button>
-              </div>
-              {selectedResume && (
-                <div className="mt-1.5 flex items-center gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                  <FileText className="h-3.5 w-3.5 fill-red-400 text-red-400" />
-                  <span>{selectedResume}</span>
-                  <button onClick={() => setSelectedResume(null)}><X className="h-3 w-3 hover:text-white" /></button>
-                </div>
-              )}
-            </div>
-
-            {/* Job description */}
-            <div className="rounded-xl p-3" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-              <p className="mb-1.5 text-xs font-semibold text-white">Job description <span className="font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>(optional)</span></p>
-              <div className="relative">
-                <textarea
-                  value={jobDesc}
-                  onChange={e => setJobDesc(e.target.value)}
-                  placeholder="Write or paste here..."
-                  className="w-full resize-none rounded-lg px-3 py-2 text-xs placeholder:text-white/30"
-                  style={{ ...inputStyle, height: 56 }}
-                />
-                <button
-                  onClick={() => setJobDesc("We're looking for a talented individual to join our growing team. You'll collaborate cross-functionally to deliver innovative solutions that drive real user impact.")}
-                  className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold text-white hover:bg-white/20"
-                  style={{ background: 'rgba(255,255,255,0.1)' }}
-                >
-                  <Sparkles className="h-2.5 w-2.5" /> Suggest for me
-                </button>
-              </div>
-            </div>
-
             {/* Audio */}
-            <div className="rounded-xl p-3" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
+            <div>
               <div className="mb-1.5 flex items-center justify-between">
                 <p className="text-xs font-semibold text-white">Select Audio</p>
                 {audioConnected && <span className="text-[10px] font-semibold text-green-400">Connected</span>}
               </div>
-              <button onClick={() => setAudioConnected(true)} className="flex h-8 w-full items-center justify-between rounded-lg px-3 text-xs text-white/80 hover:bg-white/10" style={{ border: `1px solid ${INPUT_BD}` }}>
-                <span className="flex items-center gap-2">
-                  <Mic className="h-3.5 w-3.5 text-white/50" />
-                  {audioConnected ? 'Default - Adewale\' Airpod Pro' : 'No audio device selected'}
-                </span>
+              <button onClick={() => setAudioConnected(true)} className="flex h-[34px] w-full items-center justify-between rounded-lg px-3 text-xs text-white/80 hover:bg-white/10 transition-colors" style={{ border: `1px solid ${INPUT_BD}`, background: INPUT_BG }}>
+                <span className="flex items-center gap-2"><Mic className="h-3.5 w-3.5 text-white/50" />{audioConnected ? "Adewale' Airpod Pro" : 'No device selected'}</span>
                 <ChevronDown className="h-3.5 w-3.5 text-white/50" />
               </button>
-              <button
-                onClick={() => setAudioConnected(true)}
-                className="mt-2 h-8 w-full rounded-lg text-xs font-semibold text-white hover:opacity-90"
-                style={{ background: 'rgba(26,122,255,0.3)', border: `1px solid rgba(26,122,255,0.4)` }}
-              >
+              <button onClick={() => setAudioConnected(true)} className="mt-1.5 h-7 w-full rounded-lg text-[11px] font-semibold text-white hover:opacity-90" style={{ background: 'rgba(26,122,255,0.35)' }}>
                 Enable Microphone Access
               </button>
             </div>
+          </div>
 
-            {/* Don't ask again */}
-            <label className="flex cursor-pointer select-none items-center gap-2.5 px-1">
+          {/* Row 2: Resume */}
+          <div className="mb-3">
+            <p className="mb-1.5 text-xs font-semibold text-white">Choose Resume</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button className="flex h-9 items-center justify-center gap-2 rounded-lg text-xs font-semibold text-white/70 hover:bg-white/10 transition-colors" style={{ border: `1px solid ${BORDER}` }}>
+                <Upload className="h-3.5 w-3.5" /> Upload a Resume
+              </button>
+              <button onClick={() => setShowResumeModal(true)} className="relative flex h-9 items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-colors" style={{ background: 'rgba(26,122,255,0.15)', border: `1px solid ${BLUE}`, color: '#60a5fa' }}>
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-2 py-0.5 text-[8px] font-bold text-blue-400" style={{ background: '#0c1d48', border: `1px solid ${BLUE}` }}>RECOMMENDED</span>
+                <LightningLogo size={12} /> Use Lightforth Resume
+              </button>
+            </div>
+            {selectedResume && (
+              <div className="mt-1.5 flex items-center gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                <FileText className="h-3.5 w-3.5 fill-red-400 text-red-400" />
+                <span>{selectedResume}</span>
+                <button onClick={() => setSelectedResume(null)}><X className="h-3 w-3 hover:text-white" /></button>
+              </div>
+            )}
+          </div>
+
+          {/* Row 3: Job description */}
+          <div className="mb-4">
+            <p className="mb-1.5 text-xs font-semibold text-white">Job description <span className="font-normal text-white/40">(optional)</span></p>
+            <div className="relative">
+              <textarea
+                value={jobDesc}
+                onChange={e => setJobDesc(e.target.value)}
+                placeholder="Write or paste here..."
+                className="w-full resize-none rounded-lg px-3 py-2 text-xs placeholder:text-white/30"
+                style={{ background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none', height: 52 }}
+              />
+              <button onClick={() => setJobDesc("We're looking for a talented individual to join our growing team. You'll collaborate cross-functionally to deliver innovative solutions.")} className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold text-white/70 hover:text-white" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <Sparkles className="h-2.5 w-2.5" /> Suggest for me
+              </button>
+            </div>
+          </div>
+
+          {/* Footer: checkbox + continue */}
+          <div className="flex items-center justify-between">
+            <label className="flex cursor-pointer select-none items-center gap-2">
               <div className={cn('h-4 w-4 flex-shrink-0 rounded flex items-center justify-center', dontAskAgain ? 'bg-blue-500' : 'border border-white/30')} onClick={() => setDontAskAgain(a => !a)}>
                 {dontAskAgain && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
               </div>
-              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.7)' }}>Don't ask again</span>
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.65)' }}>Don't ask again</span>
             </label>
-
-            {/* Continue */}
             <button
               onClick={() => { if (jobTitle) setShowPreference(true) }}
-              className="h-10 w-full rounded-xl text-sm font-bold text-white transition-opacity"
-              style={{ background: BLUE, opacity: jobTitle ? 1 : 0.5 }}
+              className="h-9 rounded-xl px-8 text-sm font-bold text-white transition-opacity"
+              style={{ background: BLUE, opacity: jobTitle ? 1 : 0.45 }}
             >
               Continue
             </button>
