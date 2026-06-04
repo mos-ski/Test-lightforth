@@ -56,14 +56,23 @@ function LightningLogo({ size = 28 }: { size?: number }) {
 // ---------------------------------------------------------------------------
 // Mac Window Frame (2 traffic lights only, as in Figma)
 // ---------------------------------------------------------------------------
-function MacWindow({ children, blendBar }: { children: React.ReactNode; blendBar?: boolean }) {
+function MacWindow({ children, blendBar, transparency = 0 }: { children: React.ReactNode; blendBar?: boolean; transparency?: number }) {
+  const bgAlpha = (100 - transparency) / 100
+  const windowBg = `rgba(12, 29, 72, ${bgAlpha})`
+
   return (
-    <div className="flex min-h-screen items-center justify-center p-6" style={{ background: '#0a1628' }}>
-      <div className="flex w-full max-w-[960px] flex-col overflow-hidden rounded-2xl shadow-2xl" style={{ background: BG, height: 700 }}>
+    <div
+      className="flex min-h-screen items-center justify-center p-6"
+      style={{ background: 'linear-gradient(145deg, #060e22 0%, #0a1628 50%, #050c1e 100%)' }}
+    >
+      <div
+        className="flex w-full max-w-[960px] flex-col overflow-hidden rounded-2xl shadow-2xl transition-all duration-150"
+        style={{ background: windowBg, height: 700, backdropFilter: `blur(${Math.round(transparency / 10)}px)` }}
+      >
         {/* Title bar */}
         <div
           className="flex h-10 flex-shrink-0 items-center px-4"
-          style={{ background: blendBar ? BG : 'rgba(0,0,0,0.15)' }}
+          style={{ background: blendBar ? windowBg : `rgba(0,0,0,${0.15 * bgAlpha + 0.05})` }}
         >
           <div className="flex gap-2">
             <div className="h-3 w-3 rounded-full" style={{ background: '#ff5f57' }} />
@@ -481,7 +490,7 @@ function SetupScreen({ onContinue }: { onContinue: (title: string) => void }) {
 // ---------------------------------------------------------------------------
 // Screen 3: Live Canvas
 // ---------------------------------------------------------------------------
-function LiveCanvas({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }) {
+function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { jobTitle: string; onEnd: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
   const [questionIndex, setQuestionIndex] = useState(0)
   const [qDisplayed, setQDisplayed] = useState('')
@@ -491,7 +500,6 @@ function LiveCanvas({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }
   const [showSettings, setShowSettings] = useState(false)
   const [stealthMode, setStealthMode] = useState(true)
   const [alwaysOnTop, setAlwaysOnTop] = useState(false)
-  const [transparency, setTransparency] = useState(85)
   const [fontSize, setFontSize] = useState(14)
   const [scrollSpeed, setScrollSpeed] = useState(3)
 
@@ -572,7 +580,7 @@ function LiveCanvas({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }
                   </div>
                   <div>
                     <div className="mb-2 flex justify-between"><p className="text-sm font-medium text-slate-200">Transparent Background</p><span className="text-xs text-slate-400">{transparency}%</span></div>
-                    <input type="range" min={0} max={100} value={transparency} onChange={e => setTransparency(Number(e.target.value))} className="w-full accent-primary" />
+                    <input type="range" min={0} max={100} value={transparency} onChange={e => onTransparencyChange(Number(e.target.value))} className="w-full accent-primary" />
                     <p className="mt-1.5 text-xs text-slate-500">Adjust window transparency over other apps</p>
                   </div>
                   <div className="flex items-start justify-between gap-4">
@@ -674,13 +682,14 @@ function CompleteScreen({ onGoHome }: { onGoHome: () => void }) {
 export default function DesktopCopilotPreview() {
   const [view, setView] = useState<DesktopView>('splash')
   const [jobTitle, setJobTitle] = useState('Software Engineer')
+  const [transparency, setTransparency] = useState(0)
 
   return (
-    <MacWindow blendBar={view === 'splash' || view === 'onboarding' || view === 'complete'}>
+    <MacWindow blendBar={view === 'splash' || view === 'onboarding' || view === 'complete'} transparency={view === 'live' ? transparency : 0}>
       {view === 'splash'     && <SplashScreen    onDone={() => setView('onboarding')} />}
       {view === 'onboarding' && <OnboardingScreen onContinue={() => setView('setup')} />}
       {view === 'setup'      && <SetupScreen      onContinue={t => { setJobTitle(t); setView('live') }} />}
-      {view === 'live'       && <LiveCanvas       jobTitle={jobTitle} onEnd={() => setView('complete')} />}
+      {view === 'live'       && <LiveCanvas       jobTitle={jobTitle} onEnd={() => setView('complete')} transparency={transparency} onTransparencyChange={setTransparency} />}
       {view === 'complete'   && <CompleteScreen   onGoHome={() => setView('splash')} />}
     </MacWindow>
   )
