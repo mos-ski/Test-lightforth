@@ -629,7 +629,7 @@ function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { j
 // ---------------------------------------------------------------------------
 function CompleteScreen({ onGoHome }: { onGoHome: () => void }) {
   return (
-    <div className="flex min-h-[560px] flex-col justify-center px-12 py-16" style={{ background: 'linear-gradient(145deg, #0c1d48 0%, #0d3285 55%, #1a5aff 100%)' }}>
+    <div className="flex flex-1 flex-col justify-center px-12 py-16" style={{ background: 'linear-gradient(145deg, #0c1d48 0%, #0d3285 55%, #1a5aff 100%)' }}>
       <div className="max-w-[520px]">
         <h1 className="mb-5 text-4xl font-bold leading-tight text-white">👏 Your Interview is complete!</h1>
         <p className="mb-6 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.75)' }}>
