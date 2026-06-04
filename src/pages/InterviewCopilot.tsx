@@ -537,24 +537,21 @@ function LiveInterview({
   type CopilotStatus = 'listening' | 'processing' | 'answering' | 'paused'
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
 
+  const statusCycle: CopilotStatus[] = ['listening', 'processing', 'answering']
+
   useEffect(() => {
     if (liveState !== 'interviewing') return
-    const cycle: { status: CopilotStatus; duration: number }[] = [
-      { status: 'listening', duration: 4000 },
-      { status: 'processing', duration: 1500 },
-      { status: 'answering', duration: 5000 },
-    ]
-    let step = 0
-    const tick = () => {
-      step = (step + 1) % cycle.length
-      setCopilotStatus(cycle[step].status)
-      return cycle[step].duration
-    }
-    let id: ReturnType<typeof setTimeout>
-    const schedule = () => { id = setTimeout(() => { const next = tick(); schedule(); void next }, cycle[step].duration) }
     setCopilotStatus('listening')
-    schedule()
-    return () => clearTimeout(id)
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return
+      e.preventDefault()
+      setCopilotStatus(prev => {
+        const idx = statusCycle.indexOf(prev)
+        return statusCycle[(idx + 1) % statusCycle.length]
+      })
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
   }, [liveState])
 
   const statusConfig: Record<CopilotStatus, { text: string }> = {
@@ -607,6 +604,10 @@ function LiveInterview({
         @keyframes audioBar {
           0%, 100% { transform: scaleY(0.35); opacity: 0.5; }
           50% { transform: scaleY(1); opacity: 1; }
+        }
+        @keyframes glowPulse {
+          0%, 100% { box-shadow: 0 0 6px rgba(34,197,94,0.3), 0 0 14px rgba(34,197,94,0.1); }
+          50% { box-shadow: 0 0 12px rgba(34,197,94,0.45), 0 0 24px rgba(34,197,94,0.15); }
         }
       `}</style>
       <div className="flex flex-col gap-3 border-b border-white/10 px-4 py-2 lg:flex-row lg:items-center lg:justify-between" style={{ background: '#0F2340' }}>
@@ -671,7 +672,11 @@ function LiveInterview({
         {/* Left: Live Interview Response */}
         <div
           className="flex min-h-[420px] w-full flex-col overflow-hidden rounded-xl lg:min-h-0 lg:w-[70%]"
-          style={{ background: '#0D1929', border: '1px solid #1E2D45' }}
+          style={{
+            background: '#0D1929',
+            border: copilotStatus === 'listening' && liveState === 'interviewing' ? '1px solid #22c55e' : '1px solid #1E2D45',
+            ...(copilotStatus === 'listening' && liveState === 'interviewing' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}),
+          }}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#1E2D45' }}>
             <div className="flex items-center gap-2 text-sm font-medium text-white">
