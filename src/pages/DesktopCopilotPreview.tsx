@@ -500,9 +500,92 @@ function LiveCanvas({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }
         <span className="text-[10px] italic text-slate-600">Press Space to advance</span>
       </div>
 
-      {/* Panels */}
-      <div className="flex flex-1 gap-2 overflow-hidden p-2">
-        {/* Left: Response panel */}
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+            {/* Modal header */}
+            <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: '#1E2D45' }}>
+              <p className="text-sm font-semibold text-white">Settings</p>
+              <button onClick={() => setShowSettings(false)}>
+                <X className="h-4 w-4 text-slate-400 hover:text-white" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-6">
+              {/* Session Preferences */}
+              <div>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Session Preferences</p>
+                <div className="space-y-2 rounded-lg p-3 text-xs" style={{ background: '#0A1628' }}>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Role</span>
+                    <span className="max-w-[160px] truncate font-medium text-slate-200">{jobTitle}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Resume</span>
+                    <span className="font-medium text-slate-200">Lightforth Resume</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Skip setup</span>
+                    <span className="font-medium text-green-400">On</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="mt-3 w-full rounded-lg py-2 text-xs font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+                  style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  Reset — show setup next time
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t" style={{ borderColor: '#1E2D45' }} />
+
+              {/* Window Settings */}
+              <div>
+                <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Window Settings</p>
+                <div className="space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-slate-200">Stealth Mode</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-slate-500">Hides Copilot from screen share and recording</p>
+                    </div>
+                    <Toggle on={stealthMode} onToggle={() => setStealthMode(s => !s)} />
+                  </div>
+
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-sm font-medium text-slate-200">Transparent Background</p>
+                      <span className="text-xs text-slate-400">{transparency}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={transparency}
+                      onChange={e => setTransparency(Number(e.target.value))}
+                      className="w-full accent-primary"
+                    />
+                    <p className="mt-1.5 text-xs leading-relaxed text-slate-500">Adjust how transparent the window appears over other apps</p>
+                  </div>
+
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-slate-200">Always on Top</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-slate-500">Keeps Copilot floating above all other windows</p>
+                    </div>
+                    <Toggle on={alwaysOnTop} onToggle={() => setAlwaysOnTop(s => !s)} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full-width response panel */}
+      <div className="flex flex-1 overflow-hidden p-2">
         <div
           className="flex flex-1 flex-col overflow-hidden rounded-xl transition-all duration-500"
           style={{
@@ -517,39 +600,9 @@ function LiveCanvas({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }
               Live Interview Response
               <div className="h-2 w-2 rounded-full bg-red-500" />
             </div>
-            <div className="relative">
-              <button onClick={() => setShowSettings(s => !s)}>
-                <Settings className={cn('h-4 w-4 transition-colors', showSettings ? 'text-white' : 'text-slate-400 hover:text-white')} />
-              </button>
-              {showSettings && (
-                <div className="absolute right-0 top-7 z-20 w-56 rounded-xl p-4 shadow-2xl" style={{ background: '#0A1628', border: '1px solid #1E2D45' }}>
-                  <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-400">Session Preferences</p>
-                  <div className="mb-4 space-y-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Role</span>
-                      <span className="max-w-[120px] truncate font-medium text-slate-200">{jobTitle}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Resume</span>
-                      <span className="font-medium text-slate-200">Lightforth Resume</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Skip setup</span>
-                      <span className="font-medium text-green-400">On</span>
-                    </div>
-                  </div>
-                  <div className="border-t border-white/10 pt-3">
-                    <button
-                      onClick={() => setShowSettings(false)}
-                      className="w-full rounded-lg py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
-                      style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-                    >
-                      Reset — show setup next time
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <button onClick={() => setShowSettings(true)}>
+              <Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" />
+            </button>
           </div>
 
           {/* Panel content */}
@@ -613,45 +666,8 @@ function LiveCanvas({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }
             </div>
           </div>
         </div>
-
-        {/* Right: Window Settings */}
-        <div className="w-52 flex-shrink-0 overflow-y-auto rounded-xl p-4" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
-          <p className="mb-5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">Window Settings</p>
-          <div className="space-y-6">
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <p className="text-xs font-medium text-slate-200">Stealth Mode</p>
-                <Toggle on={stealthMode} onToggle={() => setStealthMode(s => !s)} />
-              </div>
-              <p className="text-[10px] leading-relaxed text-slate-500">Hides Copilot from screen share and recording software</p>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs font-medium text-slate-200">Transparent Background</p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={transparency}
-                  onChange={e => setTransparency(Number(e.target.value))}
-                  className="flex-1 accent-primary"
-                />
-                <span className="w-8 text-right text-[10px] text-slate-400">{transparency}%</span>
-              </div>
-              <p className="mt-1.5 text-[10px] leading-relaxed text-slate-500">Adjust how transparent the window appears over other apps</p>
-            </div>
-
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <p className="text-xs font-medium text-slate-200">Always on Top</p>
-                <Toggle on={alwaysOnTop} onToggle={() => setAlwaysOnTop(s => !s)} />
-              </div>
-              <p className="text-[10px] leading-relaxed text-slate-500">Keeps Copilot floating above all other active windows</p>
-            </div>
-          </div>
-        </div>
       </div>
+
     </div>
   )
 }
