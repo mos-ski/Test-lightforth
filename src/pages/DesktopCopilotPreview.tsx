@@ -315,7 +315,7 @@ function SetupScreen({ onContinue }: { onContinue: (title: string) => void }) {
   const inputStyle = { background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none' }
 
   return (
-    <div style={{ background: BG }}>
+    <div className="flex flex-1 flex-col min-h-0" style={{ background: BG }}>
       {/* Top nav */}
       <div className="flex h-14 items-center justify-between border-b px-6" style={{ borderColor: BORDER }}>
         <div className="flex items-center gap-2">
@@ -337,7 +337,7 @@ function SetupScreen({ onContinue }: { onContinue: (title: string) => void }) {
       </div>
 
       {/* Content — single column, naturally scrollable */}
-      <div className="flex-1 overflow-y-auto px-10 py-6">
+      <div className="min-h-0 flex-1 overflow-y-auto px-10 py-6">
         <div className="mx-auto max-w-[520px]">
 
           <h1 className="mb-4 text-center text-xl font-bold text-white">👋 Hola, Welcome to Interview Co-Pilot</h1>
