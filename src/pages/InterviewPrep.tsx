@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import {
   ArrowLeft,
@@ -296,6 +297,16 @@ function Setup({ onBack, onClose, onNext }: { onBack: () => void; onClose: () =>
 }
 
 function PreferenceModal({ onClose, onNext }: { onClose: () => void; onNext: () => void }) {
+  const [stage, setStage] = useState('General/Introductory')
+  const [difficulty, setDifficulty] = useState('Easy')
+  const [responseStyle, setResponseStyle] = useState('Default')
+
+  const styleDescriptions: Record<string, string> = {
+    Default: 'A full, natural-sounding answer you can read out directly.',
+    Headlines: 'Structured bullet points (STAR format) to hit every key point.',
+    Coaching: 'Brief tips and pointers to guide your own answer.',
+  }
+
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/35 p-4">
       <div className="lf-panel max-h-[calc(100vh-2rem)] w-[min(540px,calc(100vw-32px))] overflow-y-auto p-4 shadow-xl sm:p-8">
@@ -303,8 +314,18 @@ function PreferenceModal({ onClose, onNext }: { onClose: () => void; onNext: () 
           <h2 className="lf-section-title">Interview Preference</h2>
           <button onClick={onClose}><X className="h-5 w-5 text-muted-foreground" /></button>
         </div>
-        <PreferenceGroup title="Interview Stage" options={['General/Introductory', 'Technical', 'Culture Fit']} selected="General/Introductory" />
-        <PreferenceGroup title="Level of Difficulty" options={['Easy', 'Medium', 'Strict']} selected="Easy" />
+        <PreferenceGroup title="Interview Stage" options={['General/Introductory', 'Technical', 'Culture Fit']} selected={stage} onChange={setStage} />
+        <PreferenceGroup title="Level of Difficulty" options={['Easy', 'Medium', 'Strict']} selected={difficulty} onChange={setDifficulty} />
+        <div>
+          <div className="mb-5 flex items-center gap-2">
+            <p className="text-sm font-medium text-slate-700">Response Style</p>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">Matches Copilot</span>
+          </div>
+          <PreferenceGroup title="" options={['Default', 'Headlines', 'Coaching']} selected={responseStyle} onChange={setResponseStyle} />
+          <p className="-mt-4 mb-8 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground leading-relaxed">
+            {styleDescriptions[responseStyle]}
+          </p>
+        </div>
         <Button className="mt-7 h-11 w-full" onClick={onNext}>Next</Button>
         <Button variant="outline" className="mt-3 h-11 w-full">
           <LinkIcon className="h-4 w-4" />
@@ -315,13 +336,13 @@ function PreferenceModal({ onClose, onNext }: { onClose: () => void; onNext: () 
   )
 }
 
-function PreferenceGroup({ title, options, selected }: { title: string; options: string[]; selected: string }) {
+function PreferenceGroup({ title, options, selected, onChange }: { title: string; options: string[]; selected: string; onChange?: (v: string) => void }) {
   return (
     <div className="mb-8">
       <p className="mb-5 text-sm font-medium text-slate-700">{title}</p>
       <div className="space-y-3">
         {options.map((option) => (
-          <button key={option} className={cn('flex h-12 w-full items-center gap-4 rounded-md border px-4 text-left text-base font-medium', option === selected ? 'border-primary' : 'border-slate-200')}>
+          <button key={option} onClick={() => onChange?.(option)} className={cn('flex h-12 w-full items-center gap-4 rounded-md border px-4 text-left text-base font-medium', option === selected ? 'border-primary' : 'border-slate-200')}>
             <span className={cn('flex h-5 w-5 items-center justify-center rounded-full border', option === selected ? 'border-primary' : 'border-slate-300')}>
               {option === selected && <span className="h-3 w-3 rounded-full bg-primary" />}
             </span>
@@ -471,7 +492,7 @@ function Live({ onBack, onEnd }: { onBack: () => void; onEnd: () => void }) {
   )
 }
 
-function Complete({ onHome, onReport }: { onHome: () => void; onReport: () => void }) {
+function Complete({ onHome, onReport, onCopilot }: { onHome: () => void; onReport: () => void; onCopilot: () => void }) {
   return (
     <div className="fixed inset-0 z-[9999] bg-background">
       <OverlayHeader onBack={onHome} onClose={onHome} />
@@ -483,6 +504,21 @@ function Complete({ onHome, onReport }: { onHome: () => void; onReport: () => vo
         <div className="mt-10 grid gap-3 md:grid-cols-2">
           <Button variant="outline" className="h-11 font-bold" onClick={onHome}>Go Home</Button>
           <Button className="h-11 font-bold" onClick={onReport}>See Report</Button>
+        </div>
+        <div className="mt-5 rounded-xl border border-primary/25 bg-primary/5 p-5">
+          <div className="flex items-start gap-3">
+            <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">Ready for the real thing?</p>
+              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                Use Interview Copilot in your actual interview — it listens in real time and puts the right answers on your screen before you even have to think.
+              </p>
+              <Button className="mt-4 h-10 w-full text-sm" onClick={onCopilot}>
+                <Sparkles className="h-4 w-4" />
+                Try Interview Copilot
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
       </main>
@@ -609,13 +645,14 @@ function FeedbackReport() {
 }
 
 export default function InterviewPrep() {
+  const navigate = useNavigate()
   const [view, setView] = useState<PrepView>('home')
 
   if (view === 'setup') return <InterviewPortal><Setup onBack={() => setView('home')} onClose={() => setView('home')} onNext={() => setView('voice')} /></InterviewPortal>
   if (view === 'voice') return <InterviewPortal><Voice onBack={() => setView('setup')} onClose={() => setView('home')} onNext={() => setView('instructions')} /></InterviewPortal>
   if (view === 'instructions') return <InterviewPortal><Instructions onBack={() => setView('voice')} onClose={() => setView('home')} onNext={() => setView('live')} /></InterviewPortal>
   if (view === 'live') return <InterviewPortal><Live onBack={() => setView('instructions')} onEnd={() => setView('complete')} /></InterviewPortal>
-  if (view === 'complete') return <InterviewPortal><Complete onHome={() => setView('home')} onReport={() => setView('report')} /></InterviewPortal>
+  if (view === 'complete') return <InterviewPortal><Complete onHome={() => setView('home')} onReport={() => setView('report')} onCopilot={() => navigate('/interview-copilot')} /></InterviewPortal>
   if (view === 'report') return <InterviewPortal><Report onBack={() => setView('home')} /></InterviewPortal>
 
   return <Home onStart={() => setView('setup')} onReport={() => setView('report')} />

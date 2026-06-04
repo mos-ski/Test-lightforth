@@ -2,7 +2,7 @@ import { useState, useEffect, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, X, Settings, Upload, FileText, Mic, Sparkles,
-  ChevronDown, Search, Play, Monitor,
+  ChevronDown, Search, Play, Monitor, Video, Phone, MoreVertical, MessageSquare, Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -245,6 +245,8 @@ function SetupContent({
   setJobDesc,
   audioConnected,
   setAudioConnected,
+  dontAskAgain,
+  setDontAskAgain,
   onBack,
   onContinue,
 }: {
@@ -256,6 +258,8 @@ function SetupContent({
   setJobDesc: (v: string) => void
   audioConnected: boolean
   setAudioConnected: (v: boolean) => void
+  dontAskAgain: boolean
+  setDontAskAgain: (v: boolean) => void
   onBack: () => void
   onContinue: () => void
 }) {
@@ -377,10 +381,19 @@ function SetupContent({
 
         <button
           onClick={() => setAudioConnected(true)}
-          className="mb-2 h-11 w-full rounded-lg border border-border bg-white text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+          className="mb-4 h-11 w-full rounded-lg border border-border bg-white text-sm font-semibold text-foreground transition-colors hover:bg-muted"
         >
           Enable Microphone Access
         </button>
+        <label className="mb-3 flex cursor-pointer items-center gap-2.5 select-none">
+          <input
+            type="checkbox"
+            checked={dontAskAgain}
+            onChange={e => setDontAskAgain(e.target.checked)}
+            className="h-4 w-4 rounded border-border accent-primary"
+          />
+          <span className="text-sm text-muted-foreground">Don't ask me again — skip setup next time</span>
+        </label>
         <button
           onClick={onContinue}
           className={cn(
@@ -397,6 +410,108 @@ function SetupContent({
 }
 
 // ---------------------------------------------------------------------------
+// Google Meet Mock
+// ---------------------------------------------------------------------------
+
+function GoogleMeetMock() {
+  return (
+    <div className="relative h-full w-full overflow-hidden" style={{ background: '#202124' }}>
+      {/* Interviewer video tile */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #2a2d3a 0%, #1c1f2b 60%, #141720 100%)' }}>
+        {/* Room/office background suggestion */}
+        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(ellipse at 50% 30%, #3a4060 0%, transparent 65%)' }} />
+
+        {/* Person silhouette */}
+        <div className="absolute inset-0 flex items-end justify-center" style={{ paddingBottom: '14%' }}>
+          {/* Shoulders / upper body */}
+          <div className="relative flex flex-col items-center">
+            <div
+              className="relative z-10 rounded-full"
+              style={{
+                width: 52, height: 52,
+                background: 'radial-gradient(circle at 40% 35%, #c8a882 0%, #a07850 55%, #7a5c38 100%)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+              }}
+            >
+              {/* Hair */}
+              <div className="absolute -top-1 left-0 right-0 h-6 rounded-t-full" style={{ background: '#2c1a0e' }} />
+              {/* Eye suggestion */}
+              <div className="absolute top-5 left-3 h-1.5 w-1.5 rounded-full bg-gray-800/60" />
+              <div className="absolute top-5 right-3 h-1.5 w-1.5 rounded-full bg-gray-800/60" />
+            </div>
+            {/* Neck + shoulders */}
+            <div className="relative -mt-1 z-0" style={{ width: 90, height: 38, background: 'linear-gradient(180deg, #4a5568 0%, #374151 100%)', borderRadius: '40% 40% 0 0' }}>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-5" style={{ background: '#a07850' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Subtle desk/table line */}
+        <div className="absolute bottom-[14%] left-0 right-0 h-px opacity-20" style={{ background: 'linear-gradient(90deg, transparent, #fff, transparent)' }} />
+      </div>
+
+      {/* Top bar — Google Meet style */}
+      <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-3 py-2" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.55) 0%, transparent 100%)' }}>
+        <div className="flex items-center gap-1.5">
+          <div className="flex gap-0.5">
+            <span className="text-[10px] font-bold" style={{ color: '#4285F4' }}>G</span>
+            <span className="text-[10px] font-bold" style={{ color: '#EA4335' }}>o</span>
+            <span className="text-[10px] font-bold" style={{ color: '#FBBC05' }}>o</span>
+            <span className="text-[10px] font-bold" style={{ color: '#4285F4' }}>g</span>
+            <span className="text-[10px] font-bold" style={{ color: '#34A853' }}>l</span>
+            <span className="text-[10px] font-bold" style={{ color: '#EA4335' }}>e</span>
+          </div>
+          <span className="text-[10px] text-white/70 font-medium">Meet</span>
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-white/60">
+          <div className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
+          <span>REC</span>
+        </div>
+      </div>
+
+      {/* Interviewer name badge */}
+      <div className="absolute bottom-10 left-2 flex items-center gap-1.5 rounded px-2 py-1" style={{ background: 'rgba(0,0,0,0.65)' }}>
+        <Mic className="h-2.5 w-2.5 text-white/70" />
+        <span className="text-[10px] font-medium text-white">Sarah Chen</span>
+      </div>
+
+      {/* Self-view PiP */}
+      <div className="absolute bottom-10 right-2 overflow-hidden rounded shadow-lg" style={{ width: 52, height: 38, background: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)' }}>
+        <div className="flex h-full items-center justify-center">
+          <div className="flex flex-col items-center">
+            <div className="h-5 w-5 rounded-full" style={{ background: 'radial-gradient(circle at 40% 35%, #d4a574 0%, #a07850 100%)' }} />
+            <div className="mt-0.5 h-3 w-8 rounded-t-full" style={{ background: '#4b5563' }} />
+          </div>
+        </div>
+        <div className="absolute bottom-0.5 left-1 text-[8px] text-white/60">You</div>
+      </div>
+
+      {/* Bottom controls bar */}
+      <div className="absolute bottom-0 left-0 right-0 flex h-9 items-center justify-center gap-2.5" style={{ background: 'rgba(32,33,36,0.92)' }}>
+        <button className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.12)' }}>
+          <Mic className="h-3 w-3 text-white" />
+        </button>
+        <button className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.12)' }}>
+          <Video className="h-3 w-3 text-white" />
+        </button>
+        <button className="flex h-6 w-16 items-center justify-center rounded-full bg-red-500">
+          <Phone className="h-3 w-3 rotate-[135deg] text-white" />
+        </button>
+        <button className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.12)' }}>
+          <MessageSquare className="h-3 w-3 text-white" />
+        </button>
+        <button className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.12)' }}>
+          <Users className="h-3 w-3 text-white" />
+        </button>
+        <button className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: 'rgba(255,255,255,0.12)' }}>
+          <MoreVertical className="h-3 w-3 text-white" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Live Interview Overlay
 // ---------------------------------------------------------------------------
 
@@ -406,34 +521,18 @@ function LiveInterview({
   setLiveState,
   elapsed,
   onEnd,
+  onResetPrefs,
 }: {
   jobTitle: string
   liveState: LiveState
   setLiveState: (s: LiveState) => void
   elapsed: number
   onEnd: () => void
+  onResetPrefs: () => void
 }) {
-  const [responseWidth, setResponseWidth] = useState(70)
-  const [transcriptHeight, setTranscriptHeight] = useState(34)
-
-  const applyPreset = (preset: 'balanced' | 'response' | 'mirror' | 'transcript') => {
-    if (preset === 'balanced') {
-      setResponseWidth(70)
-      setTranscriptHeight(34)
-    }
-    if (preset === 'response') {
-      setResponseWidth(82)
-      setTranscriptHeight(26)
-    }
-    if (preset === 'mirror') {
-      setResponseWidth(54)
-      setTranscriptHeight(18)
-    }
-    if (preset === 'transcript') {
-      setResponseWidth(58)
-      setTranscriptHeight(58)
-    }
-  }
+  const [fontSize, setFontSize] = useState(14)
+  const [scrollSpeed, setScrollSpeed] = useState(3)
+  const [showSettings, setShowSettings] = useState(false)
 
   return (
     <>
@@ -473,42 +572,89 @@ function LiveInterview({
         </div>
       </div>
 
-      {/* Two-panel body */}
+      {/* Status bar */}
+      <style>{`
+        @keyframes audioBar {
+          0%, 100% { transform: scaleY(0.35); opacity: 0.5; }
+          50% { transform: scaleY(1); opacity: 1; }
+        }
+      `}</style>
       <div className="flex flex-col gap-3 border-b border-white/10 px-4 py-2 lg:flex-row lg:items-center lg:justify-between" style={{ background: '#0F2340' }}>
-        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-300">
-          <span>Canvas layout</span>
-          {(['balanced', 'response', 'mirror', 'transcript'] as const).map((preset) => (
-            <button
-              key={preset}
-              onClick={() => applyPreset(preset)}
-              className="rounded-full border border-white/15 px-3 py-1 capitalize hover:border-white/40 hover:text-white"
-            >
-              {preset}
-            </button>
-          ))}
+        {/* Left: Network + Audio */}
+        <div className="flex flex-wrap items-center gap-5 text-xs text-slate-300">
+          {/* Network strength */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-end gap-[3px]">
+              {[5, 8, 11, 14].map((h, i) => (
+                <div
+                  key={i}
+                  className="w-[3px] rounded-sm"
+                  style={{ height: h, background: i < 4 ? '#22c55e' : '#334155' }}
+                />
+              ))}
+            </div>
+            <span className="text-green-400">Strong</span>
+          </div>
+
+          {/* Audio indicator */}
+          <div className="flex items-center gap-2">
+            {liveState === 'interviewing' ? (
+              <>
+                <div className="flex items-center gap-[3px]">
+                  {[7, 12, 9, 14, 8, 13, 10].map((h, i) => (
+                    <div
+                      key={i}
+                      className="w-[3px] rounded-full bg-green-400"
+                      style={{
+                        height: h,
+                        transformOrigin: 'bottom',
+                        animation: `audioBar ${0.5 + i * 0.07}s ease-in-out infinite`,
+                        animationDelay: `${i * 0.08}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+                <span className="text-green-400">Listening</span>
+              </>
+            ) : liveState === 'sharing' ? (
+              <>
+                <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                <span className="text-amber-400">Connecting audio...</span>
+              </>
+            ) : (
+              <>
+                <div className="h-2 w-2 rounded-full bg-slate-500" />
+                <span className="text-slate-500">Audio idle</span>
+              </>
+            )}
+          </div>
         </div>
-        <div className="hidden items-center gap-4 text-xs text-slate-300 md:flex">
+
+        {/* Right: Auto scroll + Font size */}
+        <div className="flex items-center gap-5 text-xs text-slate-300">
           <label className="flex items-center gap-2">
-            Response
+            Auto scroll
             <input
               type="range"
-              min="52"
-              max="84"
-              value={responseWidth}
-              onChange={(event) => setResponseWidth(Number(event.target.value))}
-              className="w-28 accent-primary"
+              min="1"
+              max="5"
+              value={scrollSpeed}
+              onChange={(e) => setScrollSpeed(Number(e.target.value))}
+              className="w-24 accent-primary"
             />
+            <span className="w-3 text-slate-400">{scrollSpeed}</span>
           </label>
           <label className="flex items-center gap-2">
-            Transcript
+            Font size
             <input
               type="range"
-              min="18"
-              max="60"
-              value={transcriptHeight}
-              onChange={(event) => setTranscriptHeight(Number(event.target.value))}
-              className="w-28 accent-primary"
+              min="12"
+              max="20"
+              value={fontSize}
+              onChange={(e) => setFontSize(Number(e.target.value))}
+              className="w-24 accent-primary"
             />
+            <span className="w-5 text-slate-400">{fontSize}</span>
           </label>
         </div>
       </div>
@@ -516,20 +662,52 @@ function LiveInterview({
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-3 lg:flex-row lg:overflow-hidden">
         {/* Left: Live Interview Response */}
         <div
-          className="flex min-h-[420px] w-full flex-col overflow-hidden rounded-xl lg:min-h-0 lg:[width:var(--response-width)]"
-          style={{ '--response-width': `${responseWidth}%`, background: '#0D1929', border: '1px solid #1E2D45' } as CSSProperties}
+          className="flex min-h-[420px] w-full flex-col overflow-hidden rounded-xl lg:min-h-0 lg:w-[70%]"
+          style={{ background: '#0D1929', border: '1px solid #1E2D45' }}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#1E2D45' }}>
             <div className="flex items-center gap-2 text-sm font-medium text-white">
               Live Interview Response
               <div className="h-2 w-2 rounded-full bg-red-500" />
             </div>
-            <button><Settings className="h-4 w-4 text-slate-400" /></button>
+            <div className="relative">
+              <button onClick={() => setShowSettings(s => !s)}>
+                <Settings className={cn('h-4 w-4 transition-colors', showSettings ? 'text-white' : 'text-slate-400 hover:text-white')} />
+              </button>
+              {showSettings && (
+                <div className="absolute right-0 top-7 z-20 w-60 rounded-xl p-4 shadow-2xl" style={{ background: '#0A1628', border: '1px solid #1E2D45' }}>
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Session Preferences</p>
+                  <div className="mb-4 space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Role</span>
+                      <span className="text-slate-200 font-medium truncate max-w-[120px]">{jobTitle || 'Not set'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Resume</span>
+                      <span className="text-slate-200 font-medium">Lightforth Resume</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Skip setup</span>
+                      <span className="text-green-400 font-medium">On</span>
+                    </div>
+                  </div>
+                  <div className="border-t border-white/10 pt-3">
+                    <button
+                      onClick={() => { onResetPrefs(); setShowSettings(false) }}
+                      className="w-full rounded-lg py-2 text-xs font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                      style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      Reset — show setup next time
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-5">
             {liveState === 'interviewing' ? (
-              <div className="space-y-4 text-sm leading-relaxed text-slate-200">
+              <div className="space-y-4 leading-relaxed text-slate-200" style={{ fontSize }}>
                 <p>
                   One of my greatest strengths is my ability to own the full product lifecycle, from strategy all the way to delivering a working product. My background as both a product manager and a design engineer allows me to not only define the vision but also execute and iterate quickly with lean teams. This combination has been instrumental in reducing time-to-market and shipping 12 live apps across fintech, crypto, and AI spaces.
                 </p>
@@ -577,7 +755,7 @@ function LiveInterview({
         {/* Right: Your Interview + Your Transcript */}
         <div className="flex min-w-0 flex-1 flex-col gap-2 lg:min-w-[280px]">
           {/* Your Interview */}
-          <div className="flex flex-col overflow-hidden rounded-xl" style={{ height: `${100 - transcriptHeight}%`, background: '#0D1929', border: '1px solid #1E2D45' }}>
+          <div className="flex flex-col overflow-hidden rounded-xl" style={{ height: '66%', background: '#0D1929', border: '1px solid #1E2D45' }}>
             <div className="px-4 py-3 border-b text-sm font-medium text-white" style={{ borderColor: '#1E2D45' }}>
               Your Interview
             </div>
@@ -602,12 +780,8 @@ function LiveInterview({
               )}
               {(liveState === 'sharing' || liveState === 'interviewing') && (
                 <div className="relative h-full">
-                  <div className="h-full w-full" style={{ background: '#1A2533' }}>
-                    <div className="flex h-full flex-col items-center justify-center">
-                      <div className="w-full h-48 bg-gray-700 rounded-lg mx-2 flex items-center justify-center text-xs text-gray-400">
-                        [Interview Screen]
-                      </div>
-                    </div>
+                  <div className="h-full w-full">
+                    <GoogleMeetMock />
                   </div>
                   {liveState === 'sharing' && (
                     <div className="absolute right-2 top-2 w-44 rounded-lg p-3 text-xs shadow-lg" style={{ background: '#1E3A5F' }}>
@@ -624,7 +798,7 @@ function LiveInterview({
           </div>
 
           {/* Your Transcript */}
-          <div className="flex flex-col overflow-hidden rounded-xl" style={{ height: `${transcriptHeight}%`, background: '#0D1929', border: '1px solid #1E2D45' }}>
+          <div className="flex flex-col overflow-hidden rounded-xl" style={{ height: '34%', background: '#0D1929', border: '1px solid #1E2D45' }}>
             <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#1E2D45' }}>
               <span className="text-sm font-medium text-white">Your Transcript</span>
               <button className="h-5 w-9 rounded-full bg-slate-600 flex items-center px-0.5">
@@ -769,6 +943,8 @@ function ReportPage({ onBack }: { onBack: () => void }) {
 // Main Component
 // ---------------------------------------------------------------------------
 
+const PREFS_KEY = 'lf_copilot_prefs'
+
 export default function InterviewCopilot() {
   const navigate = useNavigate()
   const [view, setView] = useState<CopilotView>('landing')
@@ -779,8 +955,21 @@ export default function InterviewCopilot() {
   const [resumeType, setResumeType] = useState<'upload' | 'lightforth'>('lightforth')
   const [jobDesc, setJobDesc] = useState('')
   const [audioConnected, setAudioConnected] = useState(false)
+  const [dontAskAgain, setDontAskAgain] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [, setSelectedHistoryId] = useState<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(PREFS_KEY)
+      if (saved) {
+        const p = JSON.parse(saved)
+        if (p.jobTitle) setJobTitle(p.jobTitle)
+        if (p.resumeType) setResumeType(p.resumeType)
+        if (p.responseType) setResponseType(p.responseType)
+      }
+    } catch {}
+  }, [])
 
   useEffect(() => {
     if (liveState !== 'interviewing') return
@@ -788,7 +977,20 @@ export default function InterviewCopilot() {
     return () => clearInterval(id)
   }, [liveState])
 
+  function handleStartInterview() {
+    const hasSaved = !!localStorage.getItem(PREFS_KEY)
+    if (hasSaved) {
+      setView('live')
+      setLiveState('waiting')
+    } else {
+      setView('setup')
+    }
+  }
+
   function goToLive() {
+    if (dontAskAgain) {
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ jobTitle, resumeType, responseType }))
+    }
     setShowPreference(false)
     setView('live')
     setLiveState('waiting')
@@ -796,6 +998,10 @@ export default function InterviewCopilot() {
 
   function handleContinue() {
     if (jobTitle) setShowPreference(true)
+  }
+
+  function handleResetPrefs() {
+    localStorage.removeItem(PREFS_KEY)
   }
 
   function handleEndInterview() {
@@ -813,7 +1019,7 @@ export default function InterviewCopilot() {
     <>
       {/* Landing content (within AppLayout) */}
       <LandingContent
-        onStart={() => setView('setup')}
+        onStart={handleStartInterview}
         onSelectHistory={handleSelectHistory}
         onDownload={() => navigate('/downloads')}
       />
@@ -830,6 +1036,8 @@ export default function InterviewCopilot() {
             setJobDesc={setJobDesc}
             audioConnected={audioConnected}
             setAudioConnected={setAudioConnected}
+            dontAskAgain={dontAskAgain}
+            setDontAskAgain={setDontAskAgain}
             onBack={() => setView('landing')}
             onContinue={handleContinue}
           />
@@ -853,6 +1061,7 @@ export default function InterviewCopilot() {
             setLiveState={setLiveState}
             elapsed={elapsed}
             onEnd={handleEndInterview}
+            onResetPrefs={handleResetPrefs}
           />
         </div>
       )}
