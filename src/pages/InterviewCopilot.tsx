@@ -534,6 +534,36 @@ function LiveInterview({
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [showSettings, setShowSettings] = useState(false)
 
+  type CopilotStatus = 'listening' | 'processing' | 'answering' | 'paused'
+  const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
+
+  useEffect(() => {
+    if (liveState !== 'interviewing') return
+    const cycle: { status: CopilotStatus; duration: number }[] = [
+      { status: 'listening', duration: 4000 },
+      { status: 'processing', duration: 1500 },
+      { status: 'answering', duration: 5000 },
+    ]
+    let step = 0
+    const tick = () => {
+      step = (step + 1) % cycle.length
+      setCopilotStatus(cycle[step].status)
+      return cycle[step].duration
+    }
+    let id: ReturnType<typeof setTimeout>
+    const schedule = () => { id = setTimeout(() => { const next = tick(); schedule(); void next }, cycle[step].duration) }
+    setCopilotStatus('listening')
+    schedule()
+    return () => clearTimeout(id)
+  }, [liveState])
+
+  const statusConfig: Record<CopilotStatus, { text: string }> = {
+    listening:  { text: 'Listening...'  },
+    processing: { text: 'Processing...' },
+    answering:  { text: 'Answering...'  },
+    paused:     { text: 'Paused...'     },
+  }
+
   return (
     <>
       {/* Top bar */}
@@ -599,33 +629,11 @@ function LiveInterview({
           {/* Audio indicator */}
           <div className="flex items-center gap-2">
             {liveState === 'interviewing' ? (
-              <>
-                <div className="flex items-center gap-[3px]">
-                  {[7, 12, 9, 14, 8, 13, 10].map((h, i) => (
-                    <div
-                      key={i}
-                      className="w-[3px] rounded-full bg-green-400"
-                      style={{
-                        height: h,
-                        transformOrigin: 'bottom',
-                        animation: `audioBar ${0.5 + i * 0.07}s ease-in-out infinite`,
-                        animationDelay: `${i * 0.08}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-                <span className="text-green-400">Listening</span>
-              </>
+              <span className="italic text-slate-400">{statusConfig[copilotStatus].text}</span>
             ) : liveState === 'sharing' ? (
-              <>
-                <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                <span className="text-amber-400">Connecting audio...</span>
-              </>
+              <span className="italic text-slate-500">Connecting...</span>
             ) : (
-              <>
-                <div className="h-2 w-2 rounded-full bg-slate-500" />
-                <span className="text-slate-500">Audio idle</span>
-              </>
+              <span className="italic text-slate-600">Idle...</span>
             )}
           </div>
         </div>
