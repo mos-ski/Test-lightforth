@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties } from 'react'
+import { useState, useEffect, useRef, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, X, Settings, Upload, FileText, Mic, Sparkles,
@@ -13,6 +13,53 @@ import { cn } from '@/lib/utils'
 type CopilotView = 'landing' | 'setup' | 'live' | 'complete' | 'report'
 type ResponseType = 'default' | 'headlines' | 'coaching'
 type LiveState = 'waiting' | 'sharing' | 'interviewing'
+
+// ---------------------------------------------------------------------------
+// Mock Q&A — 10 questions for demo/testing
+// ---------------------------------------------------------------------------
+
+const MOCK_QA = [
+  {
+    q: "Can you tell me a little bit about yourself and your background?",
+    a: "I'm a product designer and manager with over 6 years of experience building digital products across fintech, crypto, and AI spaces. I've shipped 12 live applications and led cross-functional teams from ideation all the way to launch. What drives me is the intersection of user empathy and business impact — I love creating products that are not just beautiful but genuinely solve real problems for real people.",
+  },
+  {
+    q: "What would you say is your greatest professional strength?",
+    a: "My greatest strength is owning the full product lifecycle. I can sit in a strategy meeting in the morning, run a user research session in the afternoon, and review a design prototype by evening. That end-to-end ownership reduces handoff friction and speeds up delivery. I've used this to cut time-to-market by over 40% on my last two major products.",
+  },
+  {
+    q: "What are some areas where you feel you could still improve?",
+    a: "Earlier in my career I focused heavily on execution without always ensuring long-term strategy and scalability were equally prioritized. I've since adopted frameworks like RICE and MoSCoW to balance short-term wins with long-term vision. I've also been intentional about improving how I communicate across larger cross-functional teams as they scale.",
+  },
+  {
+    q: "Why are you interested in this role and our company specifically?",
+    a: "I've been following your company's trajectory closely. The focus on emerging markets and user-centric innovation aligns deeply with the work I've been doing in Africa's fintech ecosystem. What drew me most is the mission — building products that matter in markets often underserved by traditional tech. I believe my background positions me to contribute meaningfully from day one.",
+  },
+  {
+    q: "Can you walk me through how you approach a brand new product or feature?",
+    a: "I start with the problem, not the solution. I run discovery sessions — user interviews, competitive analysis, data review — to understand the pain point deeply. From there I map out user journeys, define success metrics, and ideate collaboratively with engineering and design. I prototype early, test with real users, and iterate before any major development investment. The key is keeping the user at the centre at every stage.",
+  },
+  {
+    q: "Tell me about a time you had a conflict with a stakeholder. How did you handle it?",
+    a: "On one project a senior stakeholder wanted to ship a feature I believed would hurt retention based on our research. Instead of pushing back directly, I prepared a data brief showing the risk alongside two alternative approaches that met their business goal differently. We aligned on a smaller version of the feature with a 30-day review gate. It shipped, performed well, and actually strengthened the relationship.",
+  },
+  {
+    q: "How do you prioritize features when you have limited time and resources?",
+    a: "I use a combination of RICE scoring and stakeholder alignment sessions. RICE helps me quantify reach, impact, confidence, and effort objectively. But I pair that with qualitative input from customer success and sales — they often catch signals the data misses. The output is a ranked backlog everyone can see and challenge transparently. It removes a lot of the politics from prioritization.",
+  },
+  {
+    q: "How do you measure the success of a product or feature after it launches?",
+    a: "Success starts with defining the right metrics before launch — not after. I work with the team to agree on a north star metric and two to three supporting KPIs tied directly to the problem we set out to solve. Post-launch I review these weekly for the first month, then monthly. I also run qualitative follow-ups with users to catch anything the numbers don't show.",
+  },
+  {
+    q: "Where do you see yourself professionally in the next three to five years?",
+    a: "I see myself leading product strategy at a company building something with genuine societal impact — either as a VP of Product or a founder. I'm deeply interested in how AI can be layered into product experiences to make them smarter and more personalised. I'm also passionate about building and mentoring strong product teams, not just shipping great products myself.",
+  },
+  {
+    q: "Do you have any questions for us about the role or the team?",
+    a: "Yes, a few. First — what does success look like for this role in the first 90 days? Second — how does the product team collaborate with engineering and design today, and where do you see room to improve that? And third — what's the biggest unsolved problem the product team is wrestling with right now? That last one tells me a lot about where I'd be spending my energy.",
+  },
+]
 
 // ---------------------------------------------------------------------------
 // Mock Data
@@ -536,23 +583,75 @@ function LiveInterview({
 
   type CopilotStatus = 'listening' | 'processing' | 'answering' | 'paused'
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const [qDisplayed, setQDisplayed] = useState('')
+  const [aDisplayed, setADisplayed] = useState('')
+  const [history, setHistory] = useState<{ q: string; a: string }[]>([])
+  const statusRef = useRef(copilotStatus)
+  const qIndexRef = useRef(questionIndex)
+  const panelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { statusRef.current = copilotStatus }, [copilotStatus])
+  useEffect(() => { qIndexRef.current = questionIndex }, [questionIndex])
 
-  const statusCycle: CopilotStatus[] = ['listening', 'processing', 'answering']
+  // Auto-scroll panel to bottom as content grows
+  useEffect(() => {
+    panelRef.current?.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' })
+  }, [qDisplayed, aDisplayed, copilotStatus])
 
+  // Spacebar cycles: listening → processing → answering → (next Q) listening
   useEffect(() => {
     if (liveState !== 'interviewing') return
     setCopilotStatus('listening')
+    setQuestionIndex(0)
+    setHistory([])
     const handleKey = (e: KeyboardEvent) => {
       if (e.code !== 'Space') return
       e.preventDefault()
-      setCopilotStatus(prev => {
-        const idx = statusCycle.indexOf(prev)
-        return statusCycle[(idx + 1) % statusCycle.length]
-      })
+      const cur = statusRef.current
+      const qi = qIndexRef.current
+      if (cur === 'listening') {
+        setQDisplayed(MOCK_QA[qi].q)
+        setCopilotStatus('processing')
+      } else if (cur === 'processing') {
+        setCopilotStatus('answering')
+      } else if (cur === 'answering') {
+        setHistory(h => [...h, { q: MOCK_QA[qi].q, a: MOCK_QA[qi].a }])
+        setQuestionIndex(i => (i + 1) % MOCK_QA.length)
+        setCopilotStatus('listening')
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
   }, [liveState])
+
+  // Question typewriter — medium speed, feels like live transcription
+  useEffect(() => {
+    if (copilotStatus !== 'listening' || liveState !== 'interviewing') return
+    setQDisplayed('')
+    setADisplayed('')
+    const text = MOCK_QA[questionIndex].q
+    let i = 0
+    const id = setInterval(() => {
+      i++
+      setQDisplayed(text.slice(0, i))
+      if (i >= text.length) clearInterval(id)
+    }, 22)
+    return () => clearInterval(id)
+  }, [copilotStatus, questionIndex, liveState])
+
+  // Answer typewriter — fast stream
+  useEffect(() => {
+    if (copilotStatus !== 'answering' || liveState !== 'interviewing') return
+    setADisplayed('')
+    const text = MOCK_QA[questionIndex].a
+    let i = 0
+    const id = setInterval(() => {
+      i += 6
+      setADisplayed(text.slice(0, i))
+      if (i >= text.length) clearInterval(id)
+    }, 10)
+    return () => clearInterval(id)
+  }, [copilotStatus, liveState, questionIndex])
 
   const statusConfig: Record<CopilotStatus, { text: string }> = {
     listening:  { text: 'Listening...'  },
@@ -608,6 +707,18 @@ function LiveInterview({
         @keyframes glowPulse {
           0%, 100% { box-shadow: 0 0 6px rgba(34,197,94,0.3), 0 0 14px rgba(34,197,94,0.1); }
           50% { box-shadow: 0 0 12px rgba(34,197,94,0.45), 0 0 24px rgba(34,197,94,0.15); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        @keyframes processingDot {
+          0%, 100% { transform: translateY(0); opacity: 0.35; }
+          50% { transform: translateY(-5px); opacity: 1; }
         }
       `}</style>
       <div className="flex flex-col gap-3 border-b border-white/10 px-4 py-2 lg:flex-row lg:items-center lg:justify-between" style={{ background: '#0F2340' }}>
@@ -718,48 +829,69 @@ function LiveInterview({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-5">
+          <div ref={panelRef} className="flex-1 overflow-y-auto p-5 space-y-6">
             {liveState === 'interviewing' ? (
-              <div className="space-y-4 leading-relaxed text-slate-200" style={{ fontSize }}>
-                <p>
-                  One of my greatest strengths is my ability to own the full product lifecycle, from strategy all the way to delivering a working product. My background as both a product manager and a design engineer allows me to not only define the vision but also execute and iterate quickly with lean teams. This combination has been instrumental in reducing time-to-market and shipping 12 live apps across fintech, crypto, and AI spaces.
-                </p>
-                <p>
-                  Additionally, I thrive in data-driven environments, where I can continuously measure KPIs and make informed decisions to improve user retention and feature adoption. As for areas of improvement, earlier in my career I focused heavily on execution without always ensuring that long-term strategy and scalability were equally prioritized. Over time, I realized the importance of balancing{' '}
-                  <span className="text-primary font-medium">short-term wins with long-term product vision</span>. I&apos;ve proactively adopted more structured roadmapping and prioritization frameworks like RICE and MoSCoW.
-                </p>
-                <p>
-                  I&apos;ve also identified that{' '}
-                  <span className="text-primary font-medium">communication across larger cross-functional teams</span>{' '}
-                  can be an area for growth, especially as teams scale. To improve in this area, I&apos;ve adopted more structured sprint planning and improved stakeholder updates.
-                </p>
-
-                <div>
-                  <p className="text-xs text-slate-400 mb-1">Interviewer:</p>
-                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
-                    <p className="text-white text-sm">All right.</p>
+              <>
+                {/* Completed Q&A history */}
+                {history.map((item, i) => (
+                  <div key={i} className="space-y-3">
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Interviewer</p>
+                      <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
+                        <p className="text-sm text-white">{item.q}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm leading-relaxed text-slate-200" style={{ fontSize }}>{item.a}</p>
                   </div>
+                ))}
+
+                {/* Current exchange */}
+                <div className="space-y-3">
+                  {/* Question bubble */}
+                  {qDisplayed && (
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Interviewer</p>
+                      <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
+                        <p className="text-sm text-white">
+                          {qDisplayed}
+                          {copilotStatus === 'listening' && qDisplayed.length < MOCK_QA[questionIndex].q.length && (
+                            <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Processing dots */}
+                  {copilotStatus === 'processing' && (
+                    <div className="flex items-center gap-1.5 py-1">
+                      {[0, 1, 2].map(i => (
+                        <div
+                          key={i}
+                          className="h-2 w-2 rounded-full bg-slate-500"
+                          style={{ animation: `processingDot 0.9s ease-in-out infinite`, animationDelay: `${i * 0.18}s` }}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Answer streaming */}
+                  {copilotStatus === 'answering' && aDisplayed && (
+                    <p className="leading-relaxed text-slate-200" style={{ fontSize }}>
+                      {aDisplayed}
+                      {aDisplayed.length < MOCK_QA[questionIndex].a.length && (
+                        <span
+                          className="ml-px inline-block w-[2px] bg-primary align-middle"
+                          style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }}
+                        />
+                      )}
+                    </p>
+                  )}
                 </div>
-
-                <p className="text-slate-300">Thank you! Let me know if there&apos;s any specific area you&apos;d like me to expand on.</p>
-
-                <div>
-                  <p className="text-xs text-slate-400 mb-1">Interviewer:</p>
-                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
-                    <p className="text-white text-sm">Why are you interviewing with me today? What made you apply for this job and why do you want to work here?</p>
-                  </div>
-                </div>
-
-                <p>
-                  I&apos;m excited to be here today because I see a strong alignment between my background and the direction of your company. I&apos;ve spent the past several years building and shipping fintech, crypto, and AI-driven products across emerging markets, particularly in Africa. Your company&apos;s focus on driving innovation in similar domains resonates deeply with my experience and passion.
-                </p>
-                <p>
-                  One of the main reasons I was drawn to this role is the emphasis on delivering user-centric solutions. Throughout my career, I&apos;ve been focused on creating products that are not just technologically advanced but also solve real pain points for users. I see that same commitment here, and I believe I can contribute significantly to that mission.
-                </p>
-              </div>
+              </>
             ) : (
               <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-slate-500">Lightforth will analyze the interview questions and give target response...</p>
+                <p className="text-center text-sm text-slate-500">Lightforth will analyze the interview questions and give target responses...</p>
               </div>
             )}
           </div>
