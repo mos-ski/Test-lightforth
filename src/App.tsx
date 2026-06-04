@@ -18,6 +18,7 @@ const Downloads = lazy(() => import('@/pages/Downloads'))
 const Billing = lazy(() => import('@/pages/Billing'))
 const Settings = lazy(() => import('@/pages/Settings'))
 const HowToUse = lazy(() => import('@/pages/HowToUse'))
+const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="/explore" element={<AppRoute><Suspense fallback={null}><Explore /></Suspense></AppRoute>} />
             <Route path="/downloads" element={<AppRoute><Suspense fallback={null}><Downloads /></Suspense></AppRoute>} />
             <Route path="/how-to-use" element={<AppRoute><Suspense fallback={null}><HowToUse /></Suspense></AppRoute>} />
+            <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
           </Routes>
           <Toaster position="top-right" richColors />
         </AuthProvider>
