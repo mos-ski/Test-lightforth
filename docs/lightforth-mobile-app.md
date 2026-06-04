@@ -83,6 +83,104 @@ Jobs are surfaced based on the user's career profile — their experience, targe
 
 ---
 
+## Notification Strategy for Auto Apply
+
+Keeping users informed about their applications is critical — but getting the notification experience wrong (too many, too vague, wrong timing) will cause users to turn them off entirely. The goal is to make every notification feel relevant and worth acting on.
+
+---
+
+### Push Notifications
+
+Push notifications should be reserved for events that are time-sensitive or require the user's attention. They should never feel like marketing blasts.
+
+**What triggers a push notification:**
+
+| Event | Example copy |
+|---|---|
+| Application submitted | "Your application to Stripe has been sent ✓" |
+| Employer viewed your application | "Someone at Stripe viewed your application — stay ready" |
+| Application shortlisted | "Good news — you've been shortlisted for the Product Designer role at Stripe" |
+| Interview request received | "Stripe wants to schedule an interview. Tap to respond" |
+| Application rejected | "Your application to Stripe wasn't selected this time. Keep going" |
+| New job matches | "3 new roles match your profile — including one at Google" |
+| Low credit balance | "You have 1 credit left. Top up before your next interview" |
+
+**Best practices:**
+
+- **Be specific, not generic.** Always include the job title and company name. "Your application was viewed" tells the user nothing. "Someone at Stripe viewed your Product Designer application" tells them everything.
+- **One tap, one destination.** Every notification deep-links directly to the relevant screen — not the home screen. Interview request notification goes straight to the interview scheduling screen. Rejection goes to the application detail.
+- **Cap daily volume.** No more than 2–3 push notifications per day per user. If multiple events happen in a short window, batch them: "2 updates on your applications — tap to see."
+- **Respect quiet hours.** No pushes between 10pm and 8am in the user's local timezone by default. Users can adjust this in settings.
+- **Urgent events fire immediately.** Interview requests and rejections go out the moment they happen. Job match alerts are batched and sent once a day at a reasonable time (e.g. 9am).
+
+---
+
+### In-App Notifications
+
+The notification centre is the source of truth for everything that happened — whether the user dismissed the push or never saw it.
+
+**How it works:**
+
+- Accessible from a bell icon in the app's top navigation bar, with an unread badge count
+- Every event that triggers a push also creates an in-app notification, stored with a timestamp
+- Notifications are grouped into three categories:
+  - **Application Updates** — status changes, views, shortlists, rejections, interview requests
+  - **Job Matches** — new roles that fit the user's profile
+  - **Account & Credits** — credit balance warnings, billing updates, plan changes
+- Tapping any notification takes the user directly to the relevant screen
+- Users can mark individual items as read or clear all at once
+- Notifications older than 30 days are automatically archived
+
+---
+
+### Email Digests
+
+Email is not for instant alerts — it's for summaries and reflection. Users check email at a different pace, and the content should match that.
+
+**Weekly digest (every Monday morning):**
+- A summary of all applications submitted that week
+- Current status of each (submitted, viewed, shortlisted, etc.)
+- Top 3–5 new job matches based on their profile
+- One clear CTA: "See all your applications"
+
+**Triggered emails (sent immediately, not in the digest):**
+- Interview request received — this is high-stakes, users need it now
+- Application rejection — users should know promptly so they can move on and apply elsewhere
+
+**Email design principles:**
+- Each application listed as a clean row: company logo, job title, status badge, one action button
+- No walls of text — scannable in under 30 seconds
+- Plain, professional design that matches the Lightforth brand
+- Unsubscribing from digest emails does not affect push or in-app notifications
+
+---
+
+### Notification Preferences
+
+Users need control. A user who can't customise notifications will turn them all off. Give them granular options without making it overwhelming.
+
+**Settings screen layout:**
+
+**Application Updates**
+- Push notifications: On / Off
+- Email alerts: On / Off (for triggered emails like interview requests and rejections)
+
+**Job Matches**
+- Push notifications: On / Off
+- Frequency: Immediately / Daily digest / Weekly digest
+- Email digest: On / Off
+
+**Account & Credits**
+- Push notifications: On / Off (credit warnings, plan updates)
+
+**Quiet Hours**
+- Default: 10pm – 8am (local timezone)
+- User can set custom start and end time
+
+Users should be able to reach this screen from the in-app notification centre with one tap, so there's no friction when they want to dial something back.
+
+---
+
 ## Important Product Notes
 
 **Mobile is the companion, not a replacement.** The web and desktop apps are where users build their resume, manage their profile, and do deeper prep work. Mobile is for staying active on the go — applying to jobs while commuting, or having Copilot available on interview day without needing a second device.
