@@ -13,6 +13,7 @@ import {
   ChevronDown,
   X,
   Menu,
+  Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import UpgradeCard from '@/components/shared/UpgradeCard'
@@ -24,6 +25,7 @@ const PRIMARY_NAV = [
   { to: '/auto-apply', icon: Briefcase, label: 'Auto-Apply' },
   { to: '/interview-prep', icon: Target, label: 'Interview Prep' },
   { to: '/interview-copilot', icon: Headphones, label: 'Interview Co-Pilot' },
+  { to: '/career-specialist', icon: Users, label: 'Career Specialist' },
 ]
 
 const SECONDARY_NAV = [
