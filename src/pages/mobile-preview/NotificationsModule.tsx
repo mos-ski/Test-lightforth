@@ -1,6 +1,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react'
 import { ArrowLeft, Bell, Briefcase, CreditCard, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Toggle } from './PhoneFrame'
 import type { MockNotification, NotificationCategory } from './mockData'
 
 type NotificationsView = { name: 'centre' } | { name: 'preferences' }
@@ -68,13 +69,80 @@ export function NotificationsModule({ notifications, onNotificationsChange }: No
 }
 
 function PreferencesScreen({ onBack }: { onBack: () => void }) {
+  const [appPush, setAppPush] = useState(true)
+  const [appEmail, setAppEmail] = useState(true)
+  const [matchPush, setMatchPush] = useState(true)
+  const [matchFrequency, setMatchFrequency] = useState<'immediately' | 'daily' | 'weekly'>('daily')
+  const [matchEmail, setMatchEmail] = useState(false)
+  const [accountPush, setAccountPush] = useState(true)
+  const [quietStart, setQuietStart] = useState('22:00')
+  const [quietEnd, setQuietEnd] = useState('08:00')
+
+  const FREQUENCIES: { id: typeof matchFrequency; label: string }[] = [
+    { id: 'immediately', label: 'Immediately' }, { id: 'daily', label: 'Daily digest' }, { id: 'weekly', label: 'Weekly digest' },
+  ]
+
   return (
     <div className="flex h-full flex-col">
       <header className="flex items-center gap-3 px-5 pb-2 pt-4">
         <button onClick={onBack}><ArrowLeft size={20} /></button>
         <h1 className="text-base font-semibold text-neutral-900">Notification settings</h1>
       </header>
-      <div className="flex-1 px-5 pb-4 text-sm text-neutral-400">Preferences coming soon.</div>
+      <div className="flex-1 space-y-6 overflow-y-auto px-5 pb-6">
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Application Updates</h2>
+          <div className="mt-2 space-y-3 rounded-xl border border-neutral-200 p-3">
+            <Row label="Push notifications" control={<Toggle on={appPush} onToggle={() => setAppPush((v) => !v)} />} />
+            <Row label="Email alerts" control={<Toggle on={appEmail} onToggle={() => setAppEmail((v) => !v)} />} />
+          </div>
+        </section>
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Job Matches</h2>
+          <div className="mt-2 space-y-3 rounded-xl border border-neutral-200 p-3">
+            <Row label="Push notifications" control={<Toggle on={matchPush} onToggle={() => setMatchPush((v) => !v)} />} />
+            <div>
+              <p className="mb-2 text-sm text-neutral-700">Frequency</p>
+              <div className="flex gap-2">
+                {FREQUENCIES.map((f) => (
+                  <button key={f.id} onClick={() => setMatchFrequency(f.id)} className={cn('rounded-full border px-3 py-1.5 text-xs font-medium', matchFrequency === f.id ? 'border-[#2563EB] bg-[#2563EB]/10 text-[#2563EB]' : 'border-neutral-200 text-neutral-500')}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <Row label="Email digest" control={<Toggle on={matchEmail} onToggle={() => setMatchEmail((v) => !v)} />} />
+          </div>
+        </section>
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Account & Credits</h2>
+          <div className="mt-2 rounded-xl border border-neutral-200 p-3">
+            <Row label="Push notifications" control={<Toggle on={accountPush} onToggle={() => setAccountPush((v) => !v)} />} />
+          </div>
+        </section>
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Quiet Hours</h2>
+          <div className="mt-2 flex items-center gap-3 rounded-xl border border-neutral-200 p-3 text-sm">
+            <label className="flex flex-1 flex-col gap-1 text-xs text-neutral-500">
+              Start
+              <input type="time" value={quietStart} onChange={(e) => setQuietStart(e.target.value)} className="rounded-lg border border-neutral-200 px-2 py-1.5 text-sm text-neutral-900" />
+            </label>
+            <label className="flex flex-1 flex-col gap-1 text-xs text-neutral-500">
+              End
+              <input type="time" value={quietEnd} onChange={(e) => setQuietEnd(e.target.value)} className="rounded-lg border border-neutral-200 px-2 py-1.5 text-sm text-neutral-900" />
+            </label>
+          </div>
+          <p className="mt-1 text-xs text-neutral-400">No notifications between {quietStart} and {quietEnd} in your local timezone.</p>
+        </section>
+      </div>
+    </div>
+  )
+}
+
+function Row({ label, control }: { label: string; control: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-neutral-700">{label}</span>
+      {control}
     </div>
   )
 }
