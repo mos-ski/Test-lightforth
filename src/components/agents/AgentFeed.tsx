@@ -38,11 +38,10 @@ export default function AgentFeed({ events }: Props) {
     <div className="lf-panel overflow-hidden">
       {/* Tab bar */}
       <div className="flex items-center justify-between border-b border-border px-4">
-        <div className="lf-tabs border-b-0 gap-0">
+        <div className="flex">
           {TABS.map(tab => (
             <button
               key={tab.value}
-              role="button"
               aria-label={tab.label}
               onClick={() => setActiveTab(tab.value)}
               className={cn(
