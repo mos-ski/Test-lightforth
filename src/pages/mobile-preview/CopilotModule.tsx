@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { ArrowLeft, Check, FileText, Mic, Sparkles, Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowLeft, Check, FileText, Mic, Settings, Sparkles, Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Toggle } from './PhoneFrame'
-import { MOCK_RESUMES } from './mockData'
+import { MOCK_QA, MOCK_RESUMES } from './mockData'
 
 type ResponseStyle = 'default' | 'headlines' | 'coaching'
 type CopilotView =
@@ -21,7 +21,9 @@ export function CopilotModule() {
   if (view.name === 'entry') return <EntryScreen onStart={() => setView({ name: 'onboarding' })} />
   if (view.name === 'onboarding') return <OnboardingScreen onContinue={() => setView({ name: 'setup' })} />
   if (view.name === 'setup') return <SetupScreen onBack={() => setView({ name: 'onboarding' })} onContinue={(jobTitle) => setView({ name: 'style', jobTitle })} />
-  // 'style' | 'live' | 'complete' handled in Task 7
+  if (view.name === 'style') return <ResponseStyleScreen jobTitle={view.jobTitle} onSelect={(style) => setView({ name: 'live', jobTitle: view.jobTitle, style })} />
+  if (view.name === 'live') return <LiveCanvasScreen jobTitle={view.jobTitle} onEnd={() => setView({ name: 'complete' })} />
+  // 'complete' handled in Task 8
   return null
 }
 
@@ -52,6 +54,88 @@ function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
         </div>
       </div>
       <button onClick={onContinue} className="mt-auto rounded-xl bg-[#1a7aff] py-3 text-center text-sm font-semibold text-white">Continue</button>
+    </div>
+  )
+}
+
+const STYLES: { id: ResponseStyle; title: string; desc: string }[] = [
+  { id: 'default', title: 'Default', desc: 'Full natural-sounding answer to read aloud' },
+  { id: 'headlines', title: 'Headlines', desc: 'STAR-format bullet points' },
+  { id: 'coaching', title: 'Coaching', desc: 'Short tips to guide your own response' },
+]
+
+function ResponseStyleScreen({ jobTitle, onSelect }: { jobTitle: string; onSelect: (style: ResponseStyle) => void }) {
+  return (
+    <div className="flex h-full flex-col justify-end px-5 pb-8 text-white" style={{ background: NAVY }}>
+      <div className="rounded-2xl bg-white/[0.07] p-5">
+        <h2 className="text-base font-semibold">How should Copilot present answers?</h2>
+        <p className="mt-1 text-xs text-white/50">For your {jobTitle} session</p>
+        <div className="mt-4 space-y-2">
+          {STYLES.map((s) => (
+            <button key={s.id} onClick={() => onSelect(s.id)} className="block w-full rounded-xl border border-white/15 p-3 text-left">
+              <p className="text-sm font-semibold">{s.title}</p>
+              <p className="text-xs text-white/50">{s.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+type CopilotStatus = 'listening' | 'processing' | 'answering'
+
+function LiveCanvasScreen({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }) {
+  const [index, setIndex] = useState(0)
+  const [status, setStatus] = useState<CopilotStatus>('listening')
+  const [streamed, setStreamed] = useState('')
+
+  useEffect(() => {
+    const qa = MOCK_QA[index % MOCK_QA.length]
+    setStatus('listening')
+    setStreamed('')
+    const t1 = setTimeout(() => setStatus('processing'), 1400)
+    const t2 = setTimeout(() => setStatus('answering'), 2600)
+    let charTimer: ReturnType<typeof setInterval>
+    const t3 = setTimeout(() => {
+      let i = 0
+      charTimer = setInterval(() => {
+        i += 4
+        setStreamed(qa.a.slice(0, i))
+        if (i >= qa.a.length) {
+          clearInterval(charTimer)
+          setTimeout(() => setIndex((n) => n + 1), 2200)
+        }
+      }, 30)
+    }, 2600)
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearInterval(charTimer) }
+  }, [index])
+
+  const qa = MOCK_QA[index % MOCK_QA.length]
+  const STATUS_LABEL: Record<CopilotStatus, string> = { listening: 'Listening…', processing: 'Processing…', answering: 'Answering…' }
+
+  return (
+    <div className="flex h-full flex-col text-white" style={{ background: NAVY }}>
+      <header className="flex items-center justify-between px-5 pt-4">
+        <span className="truncate text-xs text-white/50">{jobTitle} session</span>
+        <Settings size={16} className="text-white/50" />
+      </header>
+      <div className="flex items-center gap-2 px-5 pt-2">
+        <span className={cn('h-2 w-2 rounded-full', status === 'listening' && 'bg-green-400 shadow-[0_0_8px_2px_rgba(74,222,128,0.6)]', status === 'processing' && 'bg-amber-400', status === 'answering' && 'bg-blue-400')} />
+        <span className="text-xs text-white/60">{STATUS_LABEL[status]}</span>
+      </div>
+      <div className="flex-1 overflow-y-auto px-5 py-4">
+        <p className="text-sm font-medium text-white/70">{qa.q}</p>
+        {status === 'processing' && (
+          <div className="mt-4 flex gap-1">
+            {[0, 1, 2].map((i) => <span key={i} className="h-2 w-2 animate-bounce rounded-full bg-white/40" style={{ animationDelay: `${i * 0.15}s` }} />)}
+          </div>
+        )}
+        {status === 'answering' && <p className="mt-4 text-base leading-relaxed text-white">{streamed}<span className="animate-pulse">▋</span></p>}
+      </div>
+      <div className="flex-shrink-0 p-4">
+        <button onClick={onEnd} className="w-full rounded-xl bg-white/10 py-3 text-center text-sm font-semibold text-white">End session</button>
+      </div>
     </div>
   )
 }
