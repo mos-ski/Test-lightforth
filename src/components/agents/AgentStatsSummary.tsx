@@ -1,6 +1,6 @@
 import type { AgentSessionStats } from '@/hooks/useAgentSession'
 
-interface Props {
+export interface Props {
   stats: AgentSessionStats
 }
 
