@@ -23,7 +23,7 @@ export function CopilotModule() {
   if (view.name === 'setup') return <SetupScreen onBack={() => setView({ name: 'onboarding' })} onContinue={(jobTitle) => setView({ name: 'style', jobTitle })} />
   if (view.name === 'style') return <ResponseStyleScreen jobTitle={view.jobTitle} onSelect={(style) => setView({ name: 'live', jobTitle: view.jobTitle, style })} />
   if (view.name === 'live') return <LiveCanvasScreen jobTitle={view.jobTitle} onEnd={() => setView({ name: 'complete' })} />
-  // 'complete' handled in Task 8
+  if (view.name === 'complete') return <CompleteScreen onGoHome={() => setView({ name: 'entry' })} />
   return null
 }
 
@@ -135,6 +135,19 @@ function LiveCanvasScreen({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => 
       <div className="flex-shrink-0 p-4">
         <button onClick={onEnd} className="w-full rounded-xl bg-white/10 py-3 text-center text-sm font-semibold text-white">End session</button>
       </div>
+    </div>
+  )
+}
+
+function CompleteScreen({ onGoHome }: { onGoHome: () => void }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center text-white" style={{ background: NAVY }}>
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
+        <Check className="text-green-400" size={28} />
+      </div>
+      <h1 className="text-lg font-semibold">Session complete</h1>
+      <p className="text-sm text-white/60">Nice work. Your Copilot session has ended — you can review your preferences any time before your next interview.</p>
+      <button onClick={onGoHome} className="mt-2 rounded-xl bg-[#1a7aff] px-6 py-3 text-sm font-semibold text-white">Go Home</button>
     </div>
   )
 }
