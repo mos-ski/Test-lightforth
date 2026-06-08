@@ -1,7 +1,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react'
 import { ArrowLeft, Bell, Briefcase, CreditCard, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { type MockNotification, type NotificationCategory } from './mockData'
+import type { MockNotification, NotificationCategory } from './mockData'
 
 type NotificationsView = { name: 'centre' } | { name: 'preferences' }
 
