@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Search, Filter as FilterIcon, Scissors, Send, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { FeedEvent, AgentName } from '@/hooks/useAgentSession'
+import type { FeedLink } from '@/hooks/useAgentSession'
 
 export interface Props {
   events: FeedEvent[]
@@ -100,6 +101,23 @@ export default function AgentFeed({ events }: Props) {
                   'text-sm leading-relaxed',
                   isTopLevel ? 'text-foreground' : 'text-muted-foreground',
                 )}>{event.message}</p>
+                {event.thought && (
+                  <p className="mt-1 text-xs italic text-muted-foreground/70">{event.thought}</p>
+                )}
+                {event.links && event.links.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+                    {event.links.map((link: FeedLink) => (
+                      <a
+                        key={link.label}
+                        href={link.url}
+                        className="text-xs text-blue-600 hover:underline"
+                        onClick={e => e.preventDefault()}
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )
