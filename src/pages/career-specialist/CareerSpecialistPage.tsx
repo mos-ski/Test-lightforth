@@ -21,8 +21,8 @@ export default function CareerSpecialistPage() {
               {student.initials}
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">{student.name}</p>
-              <p className="text-xs text-muted-foreground">{student.role} · {student.location}</p>
+              <p className="lf-card-title">{student.name}</p>
+              <p className="lf-body">{student.role} · {student.location}</p>
             </div>
             <span className="ml-auto text-xs text-muted-foreground">View agents →</span>
           </Link>

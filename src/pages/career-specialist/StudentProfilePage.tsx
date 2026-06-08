@@ -38,7 +38,6 @@ export default function StudentProfilePage() {
         {TABS.map(tab => (
           <button
             key={tab.value}
-            aria-label={tab.label}
             onClick={() => setActiveTab(tab.value)}
             className={cn('lf-tab', activeTab === tab.value && 'lf-tab-active')}
           >
