@@ -72,11 +72,17 @@ export default function AgentFeed({ events }: Props) {
         {filtered.map((event, i) => {
           const colors = AGENT_COLORS[event.agent] ?? AGENT_COLORS.system
           const isLast = i === filtered.length - 1
+          const isTopLevel = event.agent === 'scout' || event.agent === 'system'
+
           return (
-            <div key={event.id} className="flex gap-3">
-              {/* Icon + vertical line */}
+            <div key={event.id} className={cn('flex gap-3', !isTopLevel && 'ml-5')}>
+              {/* Dot + vertical line */}
               <div className="flex flex-col items-center">
-                <span className={cn('mt-1 h-2 w-2 shrink-0 rounded-full', colors.dot)} />
+                <span className={cn(
+                  'mt-1 shrink-0 rounded-full',
+                  isTopLevel ? 'h-2 w-2' : 'h-1.5 w-1.5',
+                  colors.dot,
+                )} />
                 {!isLast && <span className="mt-1 w-px flex-1 bg-border" />}
               </div>
 
