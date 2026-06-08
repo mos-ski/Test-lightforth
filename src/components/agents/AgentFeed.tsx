@@ -16,6 +16,13 @@ const TABS: { value: TabValue; label: string }[] = [
   { value: 'driver', label: 'Driver' },
 ]
 
+const AGENT_BADGE: Record<string, string> = {
+  scout:  'bg-blue-50 text-blue-700',
+  filter: 'bg-violet-50 text-violet-700',
+  tailor: 'bg-amber-50 text-amber-700',
+  driver: 'bg-green-50 text-green-700',
+}
+
 function formatTime(d: Date) {
   return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
@@ -65,15 +72,23 @@ export default function AgentFeed({ events }: Props) {
           <div
             key={event.id}
             className={cn(
-              'grid gap-0 border-b border-border/40 px-4 py-3 text-sm last:border-b-0',
-              'grid-cols-[52px_60px_1fr]',
+              'flex items-start gap-3 border-b border-border/40 px-4 py-3 text-sm last:border-b-0',
               i % 2 === 1 && 'bg-[#fafbff]',
             )}
           >
-            <span className="text-muted-foreground pt-0.5">{formatTime(event.timestamp)}</span>
-            <span className="font-medium text-muted-foreground capitalize pt-0.5">
-              {event.agent === 'system' ? '—' : event.agent}
+            <span className="shrink-0 text-xs text-muted-foreground pt-0.5 w-[46px]">
+              {formatTime(event.timestamp)}
             </span>
+            {event.agent === 'system' ? (
+              <span className="shrink-0 text-xs text-muted-foreground pt-0.5 w-[52px]">—</span>
+            ) : (
+              <span className={cn(
+                'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+                AGENT_BADGE[event.agent] ?? 'bg-slate-100 text-slate-500',
+              )}>
+                {event.agent}
+              </span>
+            )}
             <span className="text-foreground leading-relaxed">{event.message}</span>
           </div>
         ))}
