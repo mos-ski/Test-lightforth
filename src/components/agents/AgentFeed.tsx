@@ -16,11 +16,12 @@ const TABS: { value: TabValue; label: string }[] = [
   { value: 'driver', label: 'Driver' },
 ]
 
-const AGENT_BADGE: Record<string, string> = {
-  scout:  'bg-blue-50 text-blue-700',
-  filter: 'bg-violet-50 text-violet-700',
-  tailor: 'bg-amber-50 text-amber-700',
-  driver: 'bg-green-50 text-green-700',
+const AGENT_COLORS: Record<string, { badge: string; dot: string }> = {
+  scout:  { badge: 'bg-blue-50 text-blue-700',   dot: 'bg-blue-400' },
+  filter: { badge: 'bg-violet-50 text-violet-700', dot: 'bg-violet-400' },
+  tailor: { badge: 'bg-amber-50 text-amber-700',  dot: 'bg-amber-400' },
+  driver: { badge: 'bg-green-50 text-green-700',  dot: 'bg-green-400' },
+  system: { badge: 'bg-slate-100 text-slate-500', dot: 'bg-slate-300' },
 }
 
 function formatTime(d: Date) {
@@ -66,32 +67,37 @@ export default function AgentFeed({ events }: Props) {
         </div>
       </div>
 
-      {/* Feed rows */}
-      <div className="max-h-[480px] overflow-y-auto">
-        {filtered.map((event, i) => (
-          <div
-            key={event.id}
-            className={cn(
-              'flex items-start gap-3 border-b border-border/40 px-4 py-3 text-sm last:border-b-0',
-              i % 2 === 1 && 'bg-[#fafbff]',
-            )}
-          >
-            <span className="shrink-0 text-xs text-muted-foreground pt-0.5 w-[46px]">
-              {formatTime(event.timestamp)}
-            </span>
-            {event.agent === 'system' ? (
-              <span className="shrink-0 text-xs text-muted-foreground pt-0.5 w-[52px]">—</span>
-            ) : (
-              <span className={cn(
-                'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
-                AGENT_BADGE[event.agent] ?? 'bg-slate-100 text-slate-500',
-              )}>
-                {event.agent}
-              </span>
-            )}
-            <span className="text-foreground leading-relaxed">{event.message}</span>
-          </div>
-        ))}
+      {/* Timeline feed */}
+      <div className="max-h-[480px] overflow-y-auto px-4 py-3">
+        {filtered.map((event, i) => {
+          const colors = AGENT_COLORS[event.agent] ?? AGENT_COLORS.system
+          const isLast = i === filtered.length - 1
+          return (
+            <div key={event.id} className="flex gap-3">
+              {/* Icon + vertical line */}
+              <div className="flex flex-col items-center">
+                <span className={cn('mt-1 h-2 w-2 shrink-0 rounded-full', colors.dot)} />
+                {!isLast && <span className="mt-1 w-px flex-1 bg-border" />}
+              </div>
+
+              {/* Content */}
+              <div className={cn('pb-4 min-w-0', isLast && 'pb-1')}>
+                <div className="flex items-center gap-2 mb-0.5">
+                  {event.agent !== 'system' && (
+                    <span className={cn(
+                      'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
+                      colors.badge,
+                    )}>
+                      {event.agent}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground">{formatTime(event.timestamp)}</span>
+                </div>
+                <p className="text-sm text-foreground leading-relaxed">{event.message}</p>
+              </div>
+            </div>
+          )
+        })}
         <div ref={bottomRef} />
       </div>
     </div>
