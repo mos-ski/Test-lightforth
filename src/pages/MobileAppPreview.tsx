@@ -6,7 +6,7 @@ import { HomeScreen } from './mobile-preview/HomeScreen'
 import { AutoApplyModule } from './mobile-preview/AutoApplyModule'
 import { CopilotModule } from './mobile-preview/CopilotModule'
 import { NotificationsModule } from './mobile-preview/NotificationsModule'
-import { MOCK_NOTIFICATIONS } from './mobile-preview/mockData'
+import { MOCK_NOTIFICATIONS, type MockNotification } from './mobile-preview/mockData'
 
 export type ActiveTab = 'home' | 'jobs' | 'copilot' | 'notifications'
 
@@ -19,7 +19,8 @@ const TABS: { id: ActiveTab; label: string; icon: typeof Home }[] = [
 
 export default function MobileAppPreview() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('home')
-  const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.read).length
+  const [notifications, setNotifications] = useState<MockNotification[]>(MOCK_NOTIFICATIONS)
+  const unreadCount = notifications.filter((n) => !n.read).length
 
   return (
     <PhoneFrame>
@@ -28,7 +29,7 @@ export default function MobileAppPreview() {
           {activeTab === 'home' && <HomeScreen onNavigate={setActiveTab} />}
           {activeTab === 'jobs' && <AutoApplyModule />}
           {activeTab === 'copilot' && <CopilotModule />}
-          {activeTab === 'notifications' && <NotificationsModule />}
+          {activeTab === 'notifications' && <NotificationsModule notifications={notifications} onNotificationsChange={setNotifications} />}
         </div>
         <nav className="flex flex-shrink-0 items-center justify-around border-t border-neutral-200 bg-white py-2">
           {TABS.map(({ id, label, icon: Icon }) => (

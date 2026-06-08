@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, type Dispatch, type SetStateAction } from 'react'
 import { ArrowLeft, Bell, Briefcase, CreditCard, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_NOTIFICATIONS, type MockNotification, type NotificationCategory } from './mockData'
+import { type MockNotification, type NotificationCategory } from './mockData'
 
 type NotificationsView = { name: 'centre' } | { name: 'preferences' }
 
@@ -11,12 +11,16 @@ const CATEGORY_META: Record<NotificationCategory, { label: string; icon: typeof 
   account: { label: 'Account & Credits', icon: CreditCard },
 }
 
-export function NotificationsModule() {
-  const [view, setView] = useState<NotificationsView>({ name: 'centre' })
-  const [notifications, setNotifications] = useState<MockNotification[]>(MOCK_NOTIFICATIONS)
+interface NotificationsModuleProps {
+  notifications: MockNotification[]
+  onNotificationsChange: Dispatch<SetStateAction<MockNotification[]>>
+}
 
-  const markAllRead = () => setNotifications((list) => list.map((n) => ({ ...n, read: true })))
-  const markRead = (id: string) => setNotifications((list) => list.map((n) => (n.id === id ? { ...n, read: true } : n)))
+export function NotificationsModule({ notifications, onNotificationsChange }: NotificationsModuleProps) {
+  const [view, setView] = useState<NotificationsView>({ name: 'centre' })
+
+  const markAllRead = () => onNotificationsChange((list) => list.map((n) => ({ ...n, read: true })))
+  const markRead = (id: string) => onNotificationsChange((list) => list.map((n) => (n.id === id ? { ...n, read: true } : n)))
 
   if (view.name === 'preferences') return <PreferencesScreen onBack={() => setView({ name: 'centre' })} />
 
