@@ -76,10 +76,7 @@ export default function AgentFeed({ events }: Props) {
           const isTopLevel = event.agent === 'scout' || event.agent === 'system'
 
           return (
-            <div key={event.id} className={cn(
-              'flex gap-3',
-              !isTopLevel && 'ml-5 opacity-60',
-            )}>
+            <div key={event.id} className={cn('flex gap-3', !isTopLevel && 'ml-5')}>
               {/* Icon + vertical line */}
               <div className="flex flex-col items-center pt-0.5">
                 <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -90,13 +87,19 @@ export default function AgentFeed({ events }: Props) {
               <div className={cn('pb-4 min-w-0', isLast && 'pb-1')}>
                 <div className="flex items-center gap-2 mb-0.5">
                   {event.agent !== 'system' && (
-                    <span className="text-xs font-semibold capitalize text-foreground">
+                    <span className={cn(
+                      'text-xs font-semibold capitalize',
+                      isTopLevel ? 'text-foreground' : 'text-muted-foreground',
+                    )}>
                       {event.agent}
                     </span>
                   )}
                   <span className="text-xs text-muted-foreground">{formatTime(event.timestamp)}</span>
                 </div>
-                <p className="text-sm text-foreground leading-relaxed">{event.message}</p>
+                <p className={cn(
+                  'text-sm leading-relaxed',
+                  isTopLevel ? 'text-foreground' : 'text-muted-foreground',
+                )}>{event.message}</p>
               </div>
             </div>
           )
