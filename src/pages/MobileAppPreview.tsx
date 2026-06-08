@@ -8,7 +8,7 @@ import { CopilotModule } from './mobile-preview/CopilotModule'
 import { NotificationsModule } from './mobile-preview/NotificationsModule'
 import { MOCK_NOTIFICATIONS } from './mobile-preview/mockData'
 
-type ActiveTab = 'home' | 'jobs' | 'copilot' | 'notifications'
+export type ActiveTab = 'home' | 'jobs' | 'copilot' | 'notifications'
 
 const TABS: { id: ActiveTab; label: string; icon: typeof Home }[] = [
   { id: 'home', label: 'Home', icon: Home },
