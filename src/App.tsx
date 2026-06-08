@@ -61,7 +61,7 @@ export default function App() {
             <Route path="/downloads" element={<AppRoute><Suspense fallback={null}><Downloads /></Suspense></AppRoute>} />
             <Route path="/how-to-use" element={<AppRoute><Suspense fallback={null}><HowToUse /></Suspense></AppRoute>} />
             <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
-            <Route path="/mobile-app-preview" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
+            <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
           </Routes>
           <Toaster position="top-right" richColors />
         </AuthProvider>
