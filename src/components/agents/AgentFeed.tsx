@@ -73,7 +73,7 @@ export default function AgentFeed({ events }: Props) {
         {filtered.map((event, i) => {
           const Icon = AGENT_ICON[event.agent] ?? Zap
           const isLast = i === filtered.length - 1
-          const isTopLevel = event.agent === 'scout' || event.agent === 'system'
+          const isTopLevel = activeTab !== 'all' || event.agent === 'scout' || event.agent === 'system'
 
           return (
             <div key={event.id} className={cn('flex gap-3', !isTopLevel && 'ml-5')}>
