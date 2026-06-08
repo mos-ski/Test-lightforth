@@ -16,12 +16,12 @@ const TABS: { value: TabValue; label: string }[] = [
   { value: 'driver', label: 'Driver' },
 ]
 
-const AGENT_COLORS: Record<string, { badge: string; dot: string }> = {
-  scout:  { badge: 'bg-blue-50 text-blue-700',   dot: 'bg-blue-400' },
-  filter: { badge: 'bg-violet-50 text-violet-700', dot: 'bg-violet-400' },
-  tailor: { badge: 'bg-amber-50 text-amber-700',  dot: 'bg-amber-400' },
-  driver: { badge: 'bg-green-50 text-green-700',  dot: 'bg-green-400' },
-  system: { badge: 'bg-slate-100 text-slate-500', dot: 'bg-slate-300' },
+const AGENT_COLORS: Record<string, { text: string; dot: string }> = {
+  scout:  { text: 'text-blue-600',   dot: 'bg-blue-400' },
+  filter: { text: 'text-violet-600', dot: 'bg-violet-400' },
+  tailor: { text: 'text-amber-600',  dot: 'bg-amber-400' },
+  driver: { text: 'text-green-600',  dot: 'bg-green-400' },
+  system: { text: 'text-slate-400',  dot: 'bg-slate-300' },
 }
 
 function formatTime(d: Date) {
@@ -84,10 +84,7 @@ export default function AgentFeed({ events }: Props) {
               <div className={cn('pb-4 min-w-0', isLast && 'pb-1')}>
                 <div className="flex items-center gap-2 mb-0.5">
                   {event.agent !== 'system' && (
-                    <span className={cn(
-                      'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
-                      colors.badge,
-                    )}>
+                    <span className={cn('text-xs font-semibold capitalize', colors.text)}>
                       {event.agent}
                     </span>
                   )}
