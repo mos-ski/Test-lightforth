@@ -85,13 +85,15 @@ function ResponseStyleScreen({ jobTitle, onSelect }: { jobTitle: string; onSelec
 
 type CopilotStatus = 'listening' | 'processing' | 'answering'
 
+const COPILOT_STATUS_LABEL: Record<CopilotStatus, string> = { listening: 'Listening…', processing: 'Processing…', answering: 'Answering…' }
+
 function LiveCanvasScreen({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }) {
   const [index, setIndex] = useState(0)
   const [status, setStatus] = useState<CopilotStatus>('listening')
   const [streamed, setStreamed] = useState('')
+  const qa = MOCK_QA[index % MOCK_QA.length]
 
   useEffect(() => {
-    const qa = MOCK_QA[index % MOCK_QA.length]
     setStatus('listening')
     setStreamed('')
     const t1 = setTimeout(() => setStatus('processing'), 1400)
@@ -111,9 +113,6 @@ function LiveCanvasScreen({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => 
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearInterval(charTimer) }
   }, [index])
 
-  const qa = MOCK_QA[index % MOCK_QA.length]
-  const STATUS_LABEL: Record<CopilotStatus, string> = { listening: 'Listening…', processing: 'Processing…', answering: 'Answering…' }
-
   return (
     <div className="flex h-full flex-col text-white" style={{ background: NAVY }}>
       <header className="flex items-center justify-between px-5 pt-4">
@@ -122,7 +121,7 @@ function LiveCanvasScreen({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => 
       </header>
       <div className="flex items-center gap-2 px-5 pt-2">
         <span className={cn('h-2 w-2 rounded-full', status === 'listening' && 'bg-green-400 shadow-[0_0_8px_2px_rgba(74,222,128,0.6)]', status === 'processing' && 'bg-amber-400', status === 'answering' && 'bg-blue-400')} />
-        <span className="text-xs text-white/60">{STATUS_LABEL[status]}</span>
+        <span className="text-xs text-white/60">{COPILOT_STATUS_LABEL[status]}</span>
       </div>
       <div className="flex-1 overflow-y-auto px-5 py-4">
         <p className="text-sm font-medium text-white/70">{qa.q}</p>
