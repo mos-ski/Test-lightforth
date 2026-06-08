@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Check, Loader2, MapPin } from 'lucide-react'
-import { MOCK_JOBS, MOCK_APPLICATIONS, type ApplicationStatus, type MockApplication, type MockJob } from './mockData'
+import { MOCK_JOBS, MOCK_APPLICATIONS, type ApplicationStatus, type MockJob } from './mockData'
 
 type AutoApplyView =
   | { name: 'feed' }
@@ -134,8 +134,9 @@ function HistoryScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (id
 }
 
 function ApplicationDetailScreen({ applicationId, onBack }: { applicationId: string; onBack: () => void }) {
-  const app = MOCK_APPLICATIONS.find((a) => a.id === applicationId) as MockApplication
+  const app = MOCK_APPLICATIONS.find((a) => a.id === applicationId)
   const STAGES: ApplicationStatus[] = ['submitted', 'viewed', 'shortlisted', 'interview']
+  if (!app) return <div className="p-5 text-sm text-neutral-500">Application not found.</div>
   const currentIndex = STAGES.indexOf(app.status)
   return (
     <div className="flex h-full flex-col">
