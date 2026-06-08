@@ -59,8 +59,6 @@ const TICK_STEPS: TickStep[] = [
   { agent: 'scout',  message: 'Found "Compliance Analyst" at Goldman Sachs — 92% match',  statsInc: { found: 1 },    agentPatch: { name: 'scout',  status: 'running', currentTask: 'Continuing scan...' } },
 ]
 
-let _counter = 0
-
 export function useAgentSession(_studentId: string): AgentSession {
   const [session, setSession] = useState<AgentSession>({
     stats: { found: 0, matched: 0, tailored: 0, applied: 0 },
@@ -72,6 +70,7 @@ export function useAgentSession(_studentId: string): AgentSession {
   })
 
   const stepRef = useRef(0)
+  const counterRef = useRef(0)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -92,7 +91,7 @@ export function useAgentSession(_studentId: string): AgentSession {
             )
           : prev.agents
         const newEvent: FeedEvent = {
-          id: `tick-${++_counter}`,
+          id: `tick-${++counterRef.current}`,
           timestamp: new Date(),
           agent: step.agent,
           message: step.message,
