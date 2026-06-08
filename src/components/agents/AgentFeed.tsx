@@ -59,8 +59,8 @@ export default function AgentFeed({ events }: Props) {
         </div>
       </div>
 
-      {/* Feed rows — grows like a live chat, no fixed height */}
-      <div>
+      {/* Feed rows */}
+      <div className="max-h-[480px] overflow-y-auto">
         {filtered.map((event, i) => (
           <div
             key={event.id}
