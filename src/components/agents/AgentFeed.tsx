@@ -59,22 +59,22 @@ export default function AgentFeed({ events }: Props) {
         </div>
       </div>
 
-      {/* Feed rows */}
-      <div className="max-h-72 overflow-y-auto">
+      {/* Feed rows — grows like a live chat, no fixed height */}
+      <div>
         {filtered.map((event, i) => (
           <div
             key={event.id}
             className={cn(
-              'grid gap-0 border-b border-border/40 px-4 py-2.5 text-sm last:border-b-0',
+              'grid gap-0 border-b border-border/40 px-4 py-3 text-sm last:border-b-0',
               'grid-cols-[52px_60px_1fr]',
               i % 2 === 1 && 'bg-[#fafbff]',
             )}
           >
-            <span className="text-muted-foreground">{formatTime(event.timestamp)}</span>
-            <span className="font-medium text-muted-foreground capitalize">
+            <span className="text-muted-foreground pt-0.5">{formatTime(event.timestamp)}</span>
+            <span className="font-medium text-muted-foreground capitalize pt-0.5">
               {event.agent === 'system' ? '—' : event.agent}
             </span>
-            <span className="text-foreground">{event.message}</span>
+            <span className="text-foreground leading-relaxed">{event.message}</span>
           </div>
         ))}
         <div ref={bottomRef} />

@@ -14,6 +14,7 @@ import {
   X,
   Menu,
   Users,
+  ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import UpgradeCard from '@/components/shared/UpgradeCard'
@@ -33,6 +34,10 @@ const SECONDARY_NAV = [
   { to: '/downloads', icon: Download, label: 'Downloads' },
   { to: '/billing', icon: CreditCard, label: 'Billing & subscription' },
   { to: '/settings', icon: Settings, label: 'Settings' },
+]
+
+const ADMIN_NAV = [
+  { to: '/admin', icon: ShieldCheck, label: 'Admin' },
 ]
 
 function NavItem({
@@ -130,6 +135,12 @@ function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }
             </span>
             How to use
           </NavLink>
+
+          <div className="my-2 border-t border-border" />
+
+          {ADMIN_NAV.map((item) => (
+            <NavItem key={item.to} {...item} />
+          ))}
         </nav>
 
         <div className="p-3">
@@ -176,6 +187,12 @@ export default function Sidebar() {
           </span>
           How to use
         </NavLink>
+
+        <div className="my-2 border-t border-border" />
+
+        {ADMIN_NAV.map((item) => (
+          <NavItem key={item.to} {...item} />
+        ))}
       </nav>
 
       <div className="p-3">

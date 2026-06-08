@@ -18,7 +18,7 @@ export function PhoneFrame({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         {/* Screen content */}
-        <div className="relative flex-1 overflow-hidden">{children}</div>
+        <div className="relative flex flex-1 flex-col overflow-hidden">{children}</div>
         {/* Home indicator */}
         <div className="flex h-8 flex-shrink-0 items-center justify-center">
           <div className="h-1 w-32 rounded-full bg-neutral-900" />

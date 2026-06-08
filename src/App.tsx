@@ -20,6 +20,11 @@ const Settings = lazy(() => import('@/pages/Settings'))
 const HowToUse = lazy(() => import('@/pages/HowToUse'))
 const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview'))
 const MobileAppPreview = lazy(() => import('@/pages/MobileAppPreview'))
+const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
+const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
+const AdminRevenue = lazy(() => import('@/pages/admin/AdminRevenue'))
+const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'))
+const AdminOKR = lazy(() => import('@/pages/admin/AdminOKR'))
 const CareerSpecialistPage = lazy(() => import('@/pages/career-specialist/CareerSpecialistPage'))
 const StudentProfilePage = lazy(() => import('@/pages/career-specialist/StudentProfilePage'))
 
@@ -66,6 +71,21 @@ export default function App() {
             <Route path="/career-specialist/students/:id" element={<AppRoute><Suspense fallback={null}><StudentProfilePage /></Suspense></AppRoute>} />
             <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={null}>
+                    <AdminLayout />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Suspense fallback={null}><AdminOverview /></Suspense>} />
+              <Route path="revenue" element={<Suspense fallback={null}><AdminRevenue /></Suspense>} />
+              <Route path="users" element={<Suspense fallback={null}><AdminUsers /></Suspense>} />
+              <Route path="okr" element={<Suspense fallback={null}><AdminOKR /></Suspense>} />
+            </Route>
           </Routes>
           <Toaster position="top-right" richColors />
         </AuthProvider>
