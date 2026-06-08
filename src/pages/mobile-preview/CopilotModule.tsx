@@ -86,6 +86,8 @@ type CopilotStatus = 'listening' | 'processing' | 'answering'
 
 const COPILOT_STATUS_LABEL: Record<CopilotStatus, string> = { listening: 'Listening…', processing: 'Processing…', answering: 'Answering…' }
 
+const QUICK_TITLES = ['Product Designer', 'Software Engineer', 'Product Manager']
+
 function LiveCanvasScreen({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => void }) {
   const [index, setIndex] = useState(0)
   const [status, setStatus] = useState<CopilotStatus>('listening')
@@ -98,6 +100,7 @@ function LiveCanvasScreen({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => 
     const t1 = setTimeout(() => setStatus('processing'), 1400)
     const t2 = setTimeout(() => setStatus('answering'), 2600)
     let charTimer: ReturnType<typeof setInterval>
+    let advanceTimer: ReturnType<typeof setTimeout>
     const t3 = setTimeout(() => {
       let i = 0
       charTimer = setInterval(() => {
@@ -105,11 +108,11 @@ function LiveCanvasScreen({ jobTitle, onEnd }: { jobTitle: string; onEnd: () => 
         setStreamed(qa.a.slice(0, i))
         if (i >= qa.a.length) {
           clearInterval(charTimer)
-          setTimeout(() => setIndex((n) => n + 1), 2200)
+          advanceTimer = setTimeout(() => setIndex((n) => n + 1), 2200)
         }
       }, 30)
     }, 2600)
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearInterval(charTimer) }
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearInterval(charTimer); clearTimeout(advanceTimer) }
   }, [index])
 
   return (
@@ -157,7 +160,6 @@ function SetupScreen({ onBack, onContinue }: { onBack: () => void; onContinue: (
   const [jd, setJd] = useState('')
   const [micConnected, setMicConnected] = useState(false)
   const [dontAsk, setDontAsk] = useState(false)
-  const QUICK_TITLES = ['Product Designer', 'Software Engineer', 'Product Manager']
 
   return (
     <div className="flex h-full flex-col text-white" style={{ background: NAVY }}>

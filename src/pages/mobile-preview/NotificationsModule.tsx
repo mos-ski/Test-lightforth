@@ -5,6 +5,13 @@ import { Toggle } from './PhoneFrame'
 import type { MockNotification, NotificationCategory } from './mockData'
 
 type NotificationsView = { name: 'centre' } | { name: 'preferences' }
+type MatchFrequency = 'immediately' | 'daily' | 'weekly'
+
+const FREQUENCIES: { id: MatchFrequency; label: string }[] = [
+  { id: 'immediately', label: 'Immediately' },
+  { id: 'daily', label: 'Daily digest' },
+  { id: 'weekly', label: 'Weekly digest' },
+]
 
 const CATEGORY_META: Record<NotificationCategory, { label: string; icon: typeof Bell }> = {
   applications: { label: 'Application Updates', icon: Briefcase },
@@ -72,15 +79,11 @@ function PreferencesScreen({ onBack }: { onBack: () => void }) {
   const [appPush, setAppPush] = useState(true)
   const [appEmail, setAppEmail] = useState(true)
   const [matchPush, setMatchPush] = useState(true)
-  const [matchFrequency, setMatchFrequency] = useState<'immediately' | 'daily' | 'weekly'>('daily')
+  const [matchFrequency, setMatchFrequency] = useState<MatchFrequency>('daily')
   const [matchEmail, setMatchEmail] = useState(false)
   const [accountPush, setAccountPush] = useState(true)
   const [quietStart, setQuietStart] = useState('22:00')
   const [quietEnd, setQuietEnd] = useState('08:00')
-
-  const FREQUENCIES: { id: typeof matchFrequency; label: string }[] = [
-    { id: 'immediately', label: 'Immediately' }, { id: 'daily', label: 'Daily digest' }, { id: 'weekly', label: 'Weekly digest' },
-  ]
 
   return (
     <div className="flex h-full flex-col">

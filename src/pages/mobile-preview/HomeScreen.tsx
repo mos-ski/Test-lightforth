@@ -1,9 +1,9 @@
 import { ArrowRight, Briefcase, Sparkles } from 'lucide-react'
-import { MOCK_NOTIFICATIONS } from './mockData'
+import type { MockNotification } from './mockData'
 import type { ActiveTab } from '../MobileAppPreview'
 
-export function HomeScreen({ onNavigate }: { onNavigate: (tab: ActiveTab) => void }) {
-  const recent = MOCK_NOTIFICATIONS.slice(0, 3)
+export function HomeScreen({ notifications, onNavigate }: { notifications: MockNotification[]; onNavigate: (tab: ActiveTab) => void }) {
+  const recent = notifications.slice(0, 3)
 
   return (
     <div className="flex flex-col gap-5 bg-white p-5">
@@ -25,6 +25,7 @@ export function HomeScreen({ onNavigate }: { onNavigate: (tab: ActiveTab) => voi
             <p className="text-sm text-neutral-500">Credit balance</p>
             <p className="mt-1 text-lg font-semibold text-neutral-900">2 credits remaining</p>
           </div>
+          {/* No billing screen in this prototype — Top up routes to Copilot as a stand-in */}
           <button
             onClick={() => onNavigate('copilot')}
             className="rounded-full bg-[#2563EB] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#1d4ed8]"

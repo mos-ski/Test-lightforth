@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Check, Loader2, MapPin } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { MOCK_JOBS, MOCK_APPLICATIONS, type ApplicationStatus, type MockJob } from './mockData'
 
 type AutoApplyView =
@@ -105,6 +106,9 @@ function AppliedScreen({ job, onDone }: { job: MockJob; onDone: () => void }) {
 const STATUS_LABEL: Record<ApplicationStatus, string> = {
   submitted: 'Submitted', viewed: 'Viewed', shortlisted: 'Shortlisted', interview: 'Interview', rejected: 'Not selected',
 }
+
+// 'rejected' is excluded: handled by a separate branch in ApplicationDetailScreen
+const STAGES: ApplicationStatus[] = ['submitted', 'viewed', 'shortlisted', 'interview']
 const STATUS_COLOR: Record<ApplicationStatus, string> = {
   submitted: 'bg-neutral-100 text-neutral-600', viewed: 'bg-blue-100 text-blue-700',
   shortlisted: 'bg-amber-100 text-amber-700', interview: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-700',
@@ -125,7 +129,7 @@ function HistoryScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (id
               <p className="truncate font-semibold text-neutral-900">{app.jobTitle}</p>
               <p className="truncate text-sm text-neutral-500">{app.company} · {app.appliedOn}</p>
             </div>
-            <span className={`flex-shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${STATUS_COLOR[app.status]}`}>{STATUS_LABEL[app.status]}</span>
+            <span className={cn('flex-shrink-0 rounded-full px-2 py-1 text-[11px] font-medium', STATUS_COLOR[app.status])}>{STATUS_LABEL[app.status]}</span>
           </button>
         ))}
       </div>
@@ -135,7 +139,6 @@ function HistoryScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (id
 
 function ApplicationDetailScreen({ applicationId, onBack }: { applicationId: string; onBack: () => void }) {
   const app = MOCK_APPLICATIONS.find((a) => a.id === applicationId)
-  const STAGES: ApplicationStatus[] = ['submitted', 'viewed', 'shortlisted', 'interview']
   if (!app) return <div className="p-5 text-sm text-neutral-500">Application not found.</div>
   const currentIndex = STAGES.indexOf(app.status)
   return (
@@ -158,10 +161,10 @@ function ApplicationDetailScreen({ applicationId, onBack }: { applicationId: str
           <ol className="space-y-3">
             {STAGES.map((stage, i) => (
               <li key={stage} className="flex items-center gap-3">
-                <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold ${i <= currentIndex ? 'bg-[#2563EB] text-white' : 'bg-neutral-200 text-neutral-400'}`}>
+                <div className={cn('flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold', i <= currentIndex ? 'bg-[#2563EB] text-white' : 'bg-neutral-200 text-neutral-400')}>
                   {i <= currentIndex ? <Check size={12} /> : i + 1}
                 </div>
-                <span className={`text-sm ${i <= currentIndex ? 'font-medium text-neutral-900' : 'text-neutral-400'}`}>{STATUS_LABEL[stage]}</span>
+                <span className={cn('text-sm', i <= currentIndex ? 'font-medium text-neutral-900' : 'text-neutral-400')}>{STATUS_LABEL[stage]}</span>
               </li>
             ))}
           </ol>

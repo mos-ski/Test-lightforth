@@ -26,7 +26,7 @@ export default function MobileAppPreview() {
     <PhoneFrame>
       <div className="flex h-full flex-col">
         <div className="flex-1 overflow-y-auto">
-          {activeTab === 'home' && <HomeScreen onNavigate={setActiveTab} />}
+          {activeTab === 'home' && <HomeScreen notifications={notifications} onNavigate={setActiveTab} />}
           {activeTab === 'jobs' && <AutoApplyModule />}
           {activeTab === 'copilot' && <CopilotModule />}
           {activeTab === 'notifications' && <NotificationsModule notifications={notifications} onNotificationsChange={setNotifications} />}
