@@ -38,6 +38,12 @@ export interface MockQA {
   a: string
 }
 
+export interface MockResume {
+  name: string
+  role: string
+  date: string
+}
+
 export const MOCK_JOBS: MockJob[] = [
   { id: 'job-1', title: 'Product Designer', company: 'Stripe', location: 'Remote', logoColor: '#635BFF', matchTag: '95% match', postedAgo: '2h ago', description: 'Design end-to-end payment experiences used by millions of businesses worldwide. You will partner with engineering and research to ship polished, accessible interfaces.' },
   { id: 'job-2', title: 'Senior Frontend Engineer', company: 'Notion', location: 'Remote · US', logoColor: '#000000', matchTag: '91% match', postedAgo: '5h ago', description: 'Build the editor experiences that power millions of workspaces. Strong React and performance instincts required.' },
@@ -69,7 +75,7 @@ export const MOCK_QA: MockQA[] = [
   { q: 'Walk me through how you approach a brand new feature.', a: 'I start with the problem, not the solution — talking to users, reviewing data, mapping the journey. Then I prototype early and test before committing to a full build.' },
 ]
 
-export const MOCK_RESUMES = [
+export const MOCK_RESUMES: MockResume[] = [
   { name: 'Darnell Smith', role: 'Product Designer', date: '1st Jun, 2026' },
   { name: 'Darnell Smith', role: 'UI/UX Designer', date: '15th Apr, 2026' },
 ]
