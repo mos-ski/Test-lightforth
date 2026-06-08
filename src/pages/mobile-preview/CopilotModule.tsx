@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Check, FileText, Mic, Settings, Sparkles, Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Toggle } from './PhoneFrame'
 import { MOCK_QA, MOCK_RESUMES } from './mockData'
 
 type ResponseStyle = 'default' | 'headlines' | 'coaching'
