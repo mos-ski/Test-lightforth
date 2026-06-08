@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Search, Filter as FilterIcon, Scissors, Send, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { FeedEvent, AgentName } from '@/hooks/useAgentSession'
 
@@ -16,12 +17,12 @@ const TABS: { value: TabValue; label: string }[] = [
   { value: 'driver', label: 'Driver' },
 ]
 
-const AGENT_COLORS: Record<string, { text: string; dot: string }> = {
-  scout:  { text: 'text-foreground', dot: 'bg-slate-400' },
-  filter: { text: 'text-foreground', dot: 'bg-slate-300' },
-  tailor: { text: 'text-foreground', dot: 'bg-slate-300' },
-  driver: { text: 'text-foreground', dot: 'bg-slate-300' },
-  system: { text: 'text-muted-foreground', dot: 'bg-slate-200' },
+const AGENT_ICON: Record<string, React.ElementType> = {
+  scout:  Search,
+  filter: FilterIcon,
+  tailor: Scissors,
+  driver: Send,
+  system: Zap,
 }
 
 function formatTime(d: Date) {
@@ -70,19 +71,20 @@ export default function AgentFeed({ events }: Props) {
       {/* Timeline feed */}
       <div className="max-h-[480px] overflow-y-auto px-4 py-3">
         {filtered.map((event, i) => {
-          const colors = AGENT_COLORS[event.agent] ?? AGENT_COLORS.system
+          const Icon = AGENT_ICON[event.agent] ?? Zap
           const isLast = i === filtered.length - 1
           const isTopLevel = event.agent === 'scout' || event.agent === 'system'
 
           return (
             <div key={event.id} className={cn('flex gap-3', !isTopLevel && 'ml-5')}>
-              {/* Dot + vertical line */}
+              {/* Icon + vertical line */}
               <div className="flex flex-col items-center">
                 <span className={cn(
-                  'mt-1 shrink-0 rounded-full',
-                  isTopLevel ? 'h-2 w-2' : 'h-1.5 w-1.5',
-                  colors.dot,
-                )} />
+                  'mt-0.5 flex shrink-0 items-center justify-center rounded-md border border-border bg-white',
+                  isTopLevel ? 'h-6 w-6' : 'h-5 w-5',
+                )}>
+                  <Icon className={cn('text-muted-foreground', isTopLevel ? 'h-3.5 w-3.5' : 'h-3 w-3')} />
+                </span>
                 {!isLast && <span className="mt-1 w-px flex-1 bg-border" />}
               </div>
 
@@ -90,7 +92,7 @@ export default function AgentFeed({ events }: Props) {
               <div className={cn('pb-4 min-w-0', isLast && 'pb-1')}>
                 <div className="flex items-center gap-2 mb-0.5">
                   {event.agent !== 'system' && (
-                    <span className={cn('text-xs font-semibold capitalize', colors.text)}>
+                    <span className="text-xs font-semibold capitalize text-foreground">
                       {event.agent}
                     </span>
                   )}
