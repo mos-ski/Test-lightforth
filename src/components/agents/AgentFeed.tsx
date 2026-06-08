@@ -17,11 +17,11 @@ const TABS: { value: TabValue; label: string }[] = [
 ]
 
 const AGENT_COLORS: Record<string, { text: string; dot: string }> = {
-  scout:  { text: 'text-blue-600',   dot: 'bg-blue-400' },
-  filter: { text: 'text-violet-600', dot: 'bg-violet-400' },
-  tailor: { text: 'text-amber-600',  dot: 'bg-amber-400' },
-  driver: { text: 'text-green-600',  dot: 'bg-green-400' },
-  system: { text: 'text-slate-400',  dot: 'bg-slate-300' },
+  scout:  { text: 'text-foreground', dot: 'bg-slate-400' },
+  filter: { text: 'text-foreground', dot: 'bg-slate-300' },
+  tailor: { text: 'text-foreground', dot: 'bg-slate-300' },
+  driver: { text: 'text-foreground', dot: 'bg-slate-300' },
+  system: { text: 'text-muted-foreground', dot: 'bg-slate-200' },
 }
 
 function formatTime(d: Date) {
