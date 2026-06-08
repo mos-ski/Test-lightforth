@@ -20,6 +20,8 @@ const Settings = lazy(() => import('@/pages/Settings'))
 const HowToUse = lazy(() => import('@/pages/HowToUse'))
 const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview'))
 const MobileAppPreview = lazy(() => import('@/pages/MobileAppPreview'))
+const CareerSpecialistPage = lazy(() => import('@/pages/career-specialist/CareerSpecialistPage'))
+const StudentProfilePage = lazy(() => import('@/pages/career-specialist/StudentProfilePage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +62,8 @@ export default function App() {
             <Route path="/explore" element={<AppRoute><Suspense fallback={null}><Explore /></Suspense></AppRoute>} />
             <Route path="/downloads" element={<AppRoute><Suspense fallback={null}><Downloads /></Suspense></AppRoute>} />
             <Route path="/how-to-use" element={<AppRoute><Suspense fallback={null}><HowToUse /></Suspense></AppRoute>} />
+            <Route path="/career-specialist" element={<AppRoute><Suspense fallback={null}><CareerSpecialistPage /></Suspense></AppRoute>} />
+            <Route path="/career-specialist/students/:id" element={<AppRoute><Suspense fallback={null}><StudentProfilePage /></Suspense></AppRoute>} />
             <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
           </Routes>
