@@ -1,137 +1,145 @@
 # Agents Module — Product Requirements Document
 
-**Product:** Lightforth Career Specialist  
-**Module:** Agents Tab  
-**Status:** v1.0 — Live  
-**Owner:** Lightforth Product  
-**Last updated:** 2026-06-09
+**Product:** Lightforth  
+**Feature:** AI Agents Monitoring — Career Specialist Dashboard  
+**Version:** 1.0  
+**Status:** Ready for development  
+**Last updated:** June 2026
 
 ---
 
-## Overview
+## Background
 
-The Agents Module is a real-time monitoring interface inside the Career Specialist dashboard. It allows Student Success Managers (SSMs) to observe the AI pipeline working on behalf of each student — from job discovery through application submission — without needing to manually intervene.
+Lightforth automates the job application process for students using a pipeline of four AI agents. These agents run continuously on each student's behalf — finding relevant jobs, scoring matches, tailoring resumes, and submitting applications.
 
-The module lives as the default tab on the Student Profile page at `/career-specialist/students/:id`.
+Student Success Managers (SSMs) are Lightforth staff who manage a portfolio of students enrolled in the auto-apply programme. Currently, SSMs have no visibility into what the agents are doing for each student. They cannot confirm the pipeline is running, understand why certain jobs were prioritised or rejected, or know when an application was submitted.
 
----
-
-## Problem Statement
-
-Student Success Managers have no visibility into what the AI agents are doing on behalf of their students. Without a monitoring surface, SSMs cannot:
-
-- Confirm that agents are actively running for a student
-- Understand why certain jobs were rejected or prioritised
-- Know when a resume was tailored or an application was submitted
-- Intervene or escalate if the pipeline stalls
+This feature adds an **Agents monitoring tab** inside each student's profile in the Career Specialist dashboard, giving SSMs real-time visibility into the full agent pipeline.
 
 ---
 
-## Goals
+## Objective
 
-1. Give SSMs real-time visibility into all four AI agents running for each student
-2. Surface enough context per action that SSMs understand the *why*, not just the *what*
-3. Keep the interface view-only — SSMs monitor, they do not control
-4. Match Lightforth's design system so the module feels native to the product
+Build a live, view-only monitoring interface that lets SSMs observe AI agent activity for any student — from job discovery through application submission — in a single screen.
 
 ---
 
-## Non-Goals
+## Users
 
-- SSMs cannot pause, restart, or configure agents from this screen
-- The module does not replace the Applications tab (detailed application records live there)
-- No backend integration in v1 — all data is simulated
-
----
-
-## User
-
-**Primary:** Student Success Managers (SSMs)  
-Student-facing staff who manage a portfolio of students enrolled in the Lightforth auto-apply programme. They check this screen to stay informed and to prepare for student check-in calls.
+**Student Success Managers (SSMs)**  
+Internal Lightforth staff. They are not technical users. They use this screen to stay informed about a student's pipeline and to prepare for student check-in calls. They do not control the agents — they only observe.
 
 ---
 
 ## The Four Agents
 
-| Agent | Role | Trigger |
-|---|---|---|
-| **Scout** | Scans job boards (LinkedIn, Greenhouse, Workday, Lever, Indeed) for roles matching the student's profile | Always running |
-| **Filter** | Scores each job Scout finds against the student's profile. Passes roles ≥85% match, rejects the rest | Triggered by Scout |
-| **Tailor** | Rewrites the student's resume for each passed role. Runs ATS simulation and generates a cover letter | Triggered by Filter |
-| **Driver** | Submits the tailored application to the employer's ATS or application portal | Triggered by Tailor |
+The pipeline runs in sequence. Each agent depends on the output of the one before it.
 
----
-
-## UI Sections
-
-### 1. Stats Summary
-
-Four stat cards in a grid showing running totals for the current session:
-
-| Stat | Definition |
+| Agent | What it does |
 |---|---|
-| **Found** | Total unique job postings discovered by Scout |
-| **Matched** | Jobs that passed Filter's ≥85% threshold |
-| **Tailored** | Resumes successfully tailored by Tailor |
-| **Applied** | Applications successfully submitted by Driver |
-
-### 2. Agent Status Cards
-
-One card per agent showing:
-
-- Agent name
-- Current status badge: `running` (green) / `working` (amber) / `idle` (grey)
-- One-line description of the current task
-
-### 3. Live Activity Feed
-
-A vertical timeline of agent events, updating every ~4 seconds. Each event includes:
-
-- **Agent icon** — unique icon per agent (Scout: Search, Filter: Filter, Tailor: Scissors, Driver: Send)
-- **Agent name** — coloured by hierarchy (Scout full-weight, downstream agents muted) on the All tab
-- **Timestamp**
-- **Message** — what the agent did, with enough context to understand the decision
-- **Thought** *(italic)* — the agent's internal reasoning (e.g. scoring weights, keyword matching logic)
-- **Links** *(blue text)* — clickable references to jobs, tailored resumes, cover letters, and submitted applications
-
-#### Tab Filtering
-
-The feed has five tabs: **All / Scout / Filter / Tailor / Driver**
-
-- **All tab**: Scout events sit at root level; Filter, Tailor, Driver events are indented beneath them to show pipeline hierarchy. Downstream agents render in muted grey text.
-- **Per-agent tabs**: All events for that agent render at full weight with no indentation — flat view.
-
-The feed auto-scrolls to the latest event as new items arrive.
+| **Scout** | Continuously scans job boards — LinkedIn, Greenhouse, Workday, Lever, Indeed — for open roles matching the student's profile (target title, location, seniority, certifications, salary range) |
+| **Filter** | Scores every job Scout finds against the student's profile. Jobs scoring 85% or above are passed down the pipeline. The rest are rejected with a reason |
+| **Tailor** | For each job that passes Filter, rewrites the student's base resume to match the specific job description. Runs an ATS simulation to verify keyword coverage. Generates a tailored cover letter |
+| **Driver** | Takes the tailored resume and cover letter and submits the application through the employer's ATS or application portal. Fills all required form fields automatically |
 
 ---
 
-## Design Principles
+## Feature Requirements
 
-- **White/light theme** — matches Lightforth's existing design system (`#eef4ff` background, white cards, `border-border` borders)
-- **Instrument Sans** — consistent with the rest of the product
-- **Minimal** — no decorative chrome; typography and hierarchy do the work
-- **Information density** — each event carries enough context to be useful on its own
+### 1. Student Profile Shell
 
----
+Each student in the Career Specialist dashboard has a profile page. It includes a header with the student's name, target role, and location, and a tab navigation bar with three tabs: **Overview**, **Agents**, and **Applications**.
 
-## Technical Notes
-
-- **Route:** `/career-specialist/students/:id` (Agents tab is default active)
-- **Data:** Mock real-time simulation via `useAgentSession(studentId)` hook — `setInterval` fires every 4 seconds, cycling through 12 pre-scripted tick steps
-- **State:** Fully client-side; no backend dependency in v1
-- **Components:**
-  - `AgentsTab` — orchestrator
-  - `AgentStatsSummary` — stats grid
-  - `AgentStatusCards` — agent cards
-  - `AgentFeed` — tabbed timeline feed
-  - `useAgentSession` — data hook
+The **Agents** tab should be the default active tab when a student profile is opened.
 
 ---
 
-## v2 Considerations
+### 2. Stats Summary
 
-- Connect to real agent event stream (WebSocket or polling)
-- Allow SSMs to add notes or flags to individual events
-- Show per-student session history (previous runs, not just current)
-- Add application status tracking (interview invited, rejected, ghosted)
-- Export feed as a PDF summary for student check-in calls
+At the top of the Agents tab, display four counters showing running totals for the current agent session:
+
+- **Found** — total job postings discovered by Scout
+- **Matched** — jobs that passed Filter's scoring threshold
+- **Tailored** — resumes successfully tailored by Tailor
+- **Applied** — applications successfully submitted by Driver
+
+The counters update in real time as the agents work.
+
+---
+
+### 3. Agent Status Cards
+
+Below the stats, show one card for each of the four agents. Each card displays:
+
+- The agent's name
+- Its current status: **Running**, **Working**, or **Idle**
+  - Running = actively scanning or processing
+  - Working = engaged in a specific task (e.g. tailoring a resume)
+  - Idle = waiting for input from an upstream agent
+- A one-line description of what the agent is currently doing (e.g. "Scanning Workday and Lever" or "Building resume for Goldman Sachs")
+
+Status and task descriptions update live.
+
+---
+
+### 4. Live Activity Feed
+
+Below the agent cards, a full-width panel displays a chronological log of all agent activity. New entries appear at the bottom and the feed auto-scrolls to the latest event.
+
+**Each event in the feed includes:**
+
+- The name of the agent that fired the event
+- A timestamp
+- A plain-English description of the action taken — written with enough context to be useful. For example: *"Scored 6 LinkedIn jobs — 4 passed (≥85% match), 2 rejected. Top match: GRC Analyst at Barclays (91%). Passed roles queued for resume tailoring."*
+- An **internal reasoning line** shown in smaller, muted italic text below the main message — the agent's internal logic for the decision. For example: *"Rejected: KPMG requires Big 4 background not in profile. EY title mismatch."*
+- **Blue text links** for any documents or job postings associated with the event. For example:
+  - When Tailor creates a resume: links to "Resume — Company Name.pdf" and "Cover letter — Company Name.pdf"
+  - When Scout finds a job: link to the job posting
+  - When Driver submits: link to the submitted application record
+
+**Tab filtering**
+
+Above the feed, a tab bar lets the SSM filter the log by agent: **All / Scout / Filter / Tailor / Driver**.
+
+On the **All** tab, Scout events appear at the primary level and downstream agent events (Filter, Tailor, Driver) are visually indented beneath them, showing that they are working on Scout's output. Downstream events also appear in a slightly lighter text weight to reinforce the hierarchy.
+
+On a **per-agent tab**, all events for that agent appear at full visual weight with no indentation — a flat view focused on one agent only.
+
+A **Live** indicator in the top-right corner of the feed panel confirms the feed is active.
+
+---
+
+## Design Direction
+
+- Clean, minimal interface — typography and layout carry the hierarchy, not decorative elements
+- White card panels on a light blue-grey background (`#eef4ff`)
+- Consistent with Lightforth's existing design system — fonts, colours, and component styles should match the rest of the product
+- The feed should feel like a live activity log, not a data table
+
+---
+
+## What This Feature Is Not
+
+- SSMs cannot pause, restart, or modify agent behaviour from this screen
+- This screen does not show historical sessions from previous days
+- This is not a student-facing feature — students do not see this view
+- The Applications tab (separate) handles detailed application records and status tracking
+
+---
+
+## Success Criteria
+
+- An SSM can open any student profile and immediately understand what the agents are doing right now
+- The feed updates without requiring a page refresh
+- Each feed event contains enough information that the SSM does not need to ask a developer what happened
+- The interface matches the visual quality of the rest of the Lightforth product
+
+---
+
+## Out of Scope for v1
+
+- Real-time backend integration (v1 uses simulated data)
+- SSM ability to flag or annotate events
+- Session history across multiple days
+- Export or share feed as a report
+- Push notifications when an application is submitted
