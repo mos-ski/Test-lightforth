@@ -1,10 +1,16 @@
 // src/pages/career-specialist/CareerSpecialistPage.tsx
 import { Link } from 'react-router-dom'
 import { MOCK_STUDENTS } from '@/data/mockStudents'
+import LightforthLogo from '@/components/shared/LightforthLogo'
 
 export default function CareerSpecialistPage() {
   return (
-    <div className="lf-page-stack py-6">
+    <div className="min-h-screen bg-[#eef4ff]">
+      <header className="border-b border-border bg-white px-6 py-3 flex items-center gap-3">
+        <LightforthLogo className="h-6" />
+        <span className="text-xs font-medium text-muted-foreground border-l border-border pl-3">Career Specialist</span>
+      </header>
+      <div className="lf-page-stack py-6">
       <div className="lf-page-header">
         <h1 className="lf-page-title">Career Specialist</h1>
         <p className="lf-body mt-1">Monitor agent activity for each student.</p>
@@ -28,6 +34,7 @@ export default function CareerSpecialistPage() {
           </Link>
         ))}
       </div>
+    </div>
     </div>
   )
 }

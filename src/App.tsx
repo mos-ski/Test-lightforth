@@ -67,8 +67,8 @@ export default function App() {
             <Route path="/explore" element={<AppRoute><Suspense fallback={null}><Explore /></Suspense></AppRoute>} />
             <Route path="/downloads" element={<AppRoute><Suspense fallback={null}><Downloads /></Suspense></AppRoute>} />
             <Route path="/how-to-use" element={<AppRoute><Suspense fallback={null}><HowToUse /></Suspense></AppRoute>} />
-            <Route path="/career-specialist" element={<AppRoute><Suspense fallback={null}><CareerSpecialistPage /></Suspense></AppRoute>} />
-            <Route path="/career-specialist/students/:id" element={<AppRoute><Suspense fallback={null}><StudentProfilePage /></Suspense></AppRoute>} />
+            <Route path="/career-specialist" element={<Suspense fallback={null}><CareerSpecialistPage /></Suspense>} />
+            <Route path="/career-specialist/students/:id" element={<Suspense fallback={null}><StudentProfilePage /></Suspense>} />
             <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
             <Route
