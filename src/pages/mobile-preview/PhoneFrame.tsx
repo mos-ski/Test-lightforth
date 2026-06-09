@@ -4,7 +4,7 @@ export function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
     <>
       {/* Mobile: full-screen native feel */}
-      <div className="flex min-h-screen flex-col md:hidden">
+      <div className="flex h-screen flex-col md:hidden">
         {children}
       </div>
       {/* Desktop: phone mockup */}

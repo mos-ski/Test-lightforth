@@ -146,7 +146,7 @@ export default function MobileAppPreview() {
           {activeTab === 'activities' && <ActivitiesScreen />}
           {activeTab === 'profile' && <ProfileScreen />}
         </div>
-        <nav className="relative flex flex-shrink-0 items-center justify-around border-t border-neutral-200 bg-white px-2 py-1">
+        <nav className="relative flex flex-shrink-0 items-center justify-around border-t border-neutral-200 bg-white px-2 pb-2 pt-1 md:px-2 md:py-1">
           {TABS.map(({ id, label, icon: Icon }) => {
             const isCopilot = id === 'copilot'
             return (
@@ -154,22 +154,22 @@ export default function MobileAppPreview() {
                 key={id}
                 onClick={() => setActiveTab(id)}
                 className={cn(
-                  'relative flex flex-col items-center gap-0.5 px-2 py-1 text-[10px] font-medium transition-colors',
+                  'relative flex flex-col items-center gap-0.5 px-3 py-1.5 text-[11px] font-medium transition-colors md:px-2 md:py-1 md:text-[10px]',
                   activeTab === id ? 'text-[#2563EB]' : 'text-neutral-400'
                 )}
               >
                 {isCopilot ? (
                   <span className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-full transition-colors',
+                    'flex h-10 w-10 items-center justify-center rounded-full transition-colors md:h-9 md:w-9',
                     activeTab === 'copilot' ? 'bg-[#2563EB] text-white shadow-sm' : 'bg-neutral-100 text-neutral-400'
                   )}>
-                    <Icon size={18} />
+                    <Icon size={20} />
                   </span>
                 ) : (
-                  <Icon size={20} />
+                  <Icon size={22} />
                 )}
                 {id === 'activities' && unreadCount > 0 && !isCopilot && (
-                  <span className="absolute right-0 top-0 h-3.5 w-3.5 rounded-full bg-red-500 text-center text-[8px] leading-3.5 text-white">
+                  <span className="absolute -right-0.5 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-center text-[9px] font-bold text-white md:h-3.5 md:w-3.5 md:text-[8px]">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
