@@ -1,26 +1,28 @@
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 
-function SettingRow({
-  label,
-  description,
-  children,
-}: {
-  label: string
-  description?: string
-  children: React.ReactNode
-}) {
+function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
-    <div className="flex items-center justify-between gap-6 py-3">
-      <div className="min-w-0">
-        <p className="text-sm font-medium">{label}</p>
-        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+    <button
+      role="switch"
+      aria-checked={checked}
+      onClick={onChange}
+      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+        checked ? 'bg-primary' : 'bg-muted-foreground/30'
+      }`}
+    >
+      <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+        checked ? 'translate-x-4' : 'translate-x-0'
+      }`} />
+    </button>
+  )
+}
+
+function Row({ label, desc, children }: { label: string; desc?: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-6 py-3.5 border-b border-border last:border-0">
+      <div>
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        {desc && <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
@@ -28,149 +30,124 @@ function SettingRow({
 }
 
 const INTEGRATIONS = [
-  { name: 'Paystack',    role: 'Payment gateway',       status: 'connected' },
-  { name: 'Mailgun',     role: 'Email service',          status: 'connected' },
-  { name: 'Claude AI',   role: 'AI model (Sonnet 4.6)',  status: 'connected' },
-  { name: 'LinkedIn',    role: 'Job board',              status: 'limited'   },
-  { name: 'Greenhouse',  role: 'Job board',              status: 'connected' },
-  { name: 'Workday',     role: 'Job board',              status: 'connected' },
+  { name: 'Paystack',   role: 'Payment gateway',      status: 'connected' },
+  { name: 'Mailgun',    role: 'Email service',         status: 'connected' },
+  { name: 'Claude AI',  role: 'AI model (Sonnet 4.6)', status: 'connected' },
+  { name: 'LinkedIn',   role: 'Job board',             status: 'limited'   },
+  { name: 'Greenhouse', role: 'Job board',             status: 'connected' },
+  { name: 'Workday',    role: 'Job board',             status: 'connected' },
 ]
 
-const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
-  connected: { label: 'Connected', variant: 'default'   },
-  limited:   { label: 'Rate limited', variant: 'outline' },
-  down:      { label: 'Down',      variant: 'secondary' },
+const INT_STYLE: Record<string, string> = {
+  connected: 'bg-emerald-50 text-emerald-700',
+  limited:   'bg-amber-50 text-amber-700',
+  down:      'bg-red-50 text-red-600',
+}
+
+const INT_LABEL: Record<string, string> = {
+  connected: 'Connected',
+  limited:   'Rate limited',
+  down:      'Down',
 }
 
 export default function AdminSettings() {
-  const [maintenance, setMaintenance] = useState(false)
-  const [appName, setAppName]         = useState('Lightforth')
-  const [supportEmail, setSupportEmail] = useState('support@lightforth.io')
+  const [maintenance,   setMaintenance]   = useState(false)
+  const [appName,       setAppName]       = useState('Lightforth')
+  const [supportEmail,  setSupportEmail]  = useState('support@lightforth.io')
+  const [timezone,      setTimezone]      = useState('lag')
   const [flags, setFlags] = useState({
-    autoApply:        true,
-    interviewCopilot: true,
-    careerSpecialist: true,
-    mobileApp:        true,
-    resumeAI:         true,
+    autoApply: true, interviewCopilot: true, careerSpecialist: true, mobileApp: true, resumeAI: true,
   })
 
   const FLAG_LABELS: Record<keyof typeof flags, string> = {
-    autoApply:        'Auto-Apply',
-    interviewCopilot: 'Interview Copilot',
-    careerSpecialist: 'Career Specialist',
-    mobileApp:        'Mobile App',
-    resumeAI:         'Resume AI',
+    autoApply: 'Auto-Apply', interviewCopilot: 'Interview Copilot',
+    careerSpecialist: 'Career Specialist', mobileApp: 'Mobile App', resumeAI: 'Resume AI',
   }
 
-  const toggleFlag = (key: keyof typeof flags) =>
-    setFlags(f => ({ ...f, [key]: !f[key] }))
-
   return (
-    <div className="p-6 space-y-6 max-w-3xl">
+    <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">Platform configuration and feature management</p>
+        <h1 className="lf-page-title">Settings</h1>
+        <p className="lf-body mt-0.5">Platform configuration and feature management</p>
       </div>
 
       {/* General */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">General</CardTitle>
-          <CardDescription>Core application settings</CardDescription>
-        </CardHeader>
-        <CardContent className="divide-y divide-border">
-          <SettingRow label="App Name">
-            <Input
-              value={appName}
-              onChange={e => setAppName(e.target.value)}
-              className="w-40 h-8 text-sm"
-            />
-          </SettingRow>
-          <SettingRow label="Support Email">
-            <Input
-              value={supportEmail}
-              onChange={e => setSupportEmail(e.target.value)}
-              className="w-56 h-8 text-sm"
-            />
-          </SettingRow>
-          <SettingRow label="Timezone" description="Used for scheduled broadcasts and reports">
-            <Select defaultValue="lag">
-              <SelectTrigger className="w-44 h-8 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="utc">UTC+0 — London</SelectItem>
-                <SelectItem value="lag">UTC+1 — Lagos</SelectItem>
-                <SelectItem value="nyc">UTC−5 — New York</SelectItem>
-              </SelectContent>
-            </Select>
-          </SettingRow>
-          <SettingRow
-            label="Maintenance Mode"
-            description="Takes the app offline for all users"
+      <div className="lf-panel p-5">
+        <p className="lf-card-title mb-0.5">General</p>
+        <p className="lf-body text-xs mb-4">Core application settings</p>
+        <Row label="App Name">
+          <input
+            value={appName}
+            onChange={e => setAppName(e.target.value)}
+            className="lf-input w-40 h-8 text-sm"
+          />
+        </Row>
+        <Row label="Support Email">
+          <input
+            value={supportEmail}
+            onChange={e => setSupportEmail(e.target.value)}
+            className="lf-input w-52 h-8 text-sm"
+          />
+        </Row>
+        <Row label="Timezone" desc="Used for scheduled broadcasts and reports">
+          <select
+            value={timezone}
+            onChange={e => setTimezone(e.target.value)}
+            className="lf-select w-44 h-8 text-sm"
           >
-            <Switch
-              checked={maintenance}
-              onCheckedChange={setMaintenance}
-            />
-          </SettingRow>
-        </CardContent>
-      </Card>
+            <option value="utc">UTC+0 — London</option>
+            <option value="lag">UTC+1 — Lagos</option>
+            <option value="nyc">UTC−5 — New York</option>
+          </select>
+        </Row>
+        <Row label="Maintenance Mode" desc="Takes the app offline for all users">
+          <Toggle checked={maintenance} onChange={() => setMaintenance(v => !v)} />
+        </Row>
+      </div>
 
       {/* Feature flags */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Feature Flags</CardTitle>
-          <CardDescription>Enable or disable features for all users</CardDescription>
-        </CardHeader>
-        <CardContent className="divide-y divide-border">
-          {(Object.keys(flags) as (keyof typeof flags)[]).map(key => (
-            <SettingRow key={key} label={FLAG_LABELS[key]}>
-              <Switch
-                checked={flags[key]}
-                onCheckedChange={() => toggleFlag(key)}
-              />
-            </SettingRow>
-          ))}
-        </CardContent>
-      </Card>
+      <div className="lf-panel p-5">
+        <p className="lf-card-title mb-0.5">Feature Flags</p>
+        <p className="lf-body text-xs mb-4">Enable or disable features for all users</p>
+        {(Object.keys(flags) as (keyof typeof flags)[]).map(key => (
+          <Row key={key} label={FLAG_LABELS[key]}>
+            <Toggle checked={flags[key]} onChange={() => setFlags(f => ({ ...f, [key]: !f[key] }))} />
+          </Row>
+        ))}
+      </div>
 
       {/* Integrations */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Integrations</CardTitle>
-          <CardDescription>Connected services and their current status</CardDescription>
-        </CardHeader>
-        <CardContent className="divide-y divide-border">
-          {INTEGRATIONS.map(int => (
-            <div key={int.name} className="flex items-center justify-between py-3">
-              <div>
-                <p className="text-sm font-medium">{int.name}</p>
-                <p className="text-xs text-muted-foreground">{int.role}</p>
-              </div>
-              <Badge variant={STATUS_CONFIG[int.status].variant} className="text-xs">
-                {STATUS_CONFIG[int.status].label}
-              </Badge>
+      <div className="lf-panel p-5">
+        <p className="lf-card-title mb-0.5">Integrations</p>
+        <p className="lf-body text-xs mb-4">Connected services and their current status</p>
+        {INTEGRATIONS.map(int => (
+          <div key={int.name} className="flex items-center justify-between py-3.5 border-b border-border last:border-0">
+            <div>
+              <p className="text-sm font-medium text-foreground">{int.name}</p>
+              <p className="text-xs text-muted-foreground">{int.role}</p>
             </div>
-          ))}
-        </CardContent>
-      </Card>
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${INT_STYLE[int.status]}`}>
+              {INT_LABEL[int.status]}
+            </span>
+          </div>
+        ))}
+      </div>
 
       {/* Danger zone */}
-      <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-base text-destructive">Danger Zone</CardTitle>
-          <CardDescription>Irreversible actions — proceed with caution</CardDescription>
-        </CardHeader>
-        <CardContent className="divide-y divide-border">
-          <SettingRow label="Export All Data" description="Download a full CSV of all user and application data">
-            <Button variant="outline" size="sm">Export</Button>
-          </SettingRow>
-          <SettingRow label="Reset Demo Data" description="Restore all mock data to its original state">
-            <Button variant="destructive" size="sm">Reset</Button>
-          </SettingRow>
-        </CardContent>
-      </Card>
+      <div className="lf-panel border-red-200 p-5">
+        <p className="lf-card-title text-red-600 mb-0.5">Danger Zone</p>
+        <p className="lf-body text-xs mb-4">Irreversible actions — proceed with caution</p>
+        <Row label="Export All Data" desc="Download a full CSV of all user and application data">
+          <button className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Export
+          </button>
+        </Row>
+        <Row label="Reset Demo Data" desc="Restore all mock data to its original state">
+          <button className="rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-600 transition-colors">
+            Reset
+          </button>
+        </Row>
+      </div>
     </div>
   )
 }

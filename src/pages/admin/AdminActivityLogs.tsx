@@ -1,27 +1,19 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
 
 type LogStatus   = 'success' | 'failed' | 'pending'
 type LogCategory = 'logins' | 'applications' | 'payments' | 'admin'
+type TabKey = 'all' | LogCategory
 
 interface LogEntry {
-  id: string
-  time: string
-  user: string
-  action: string
-  resource: string
-  ip: string
-  status: LogStatus
-  category: LogCategory
+  id: string; time: string; user: string; action: string
+  resource: string; ip: string; status: LogStatus; category: LogCategory
 }
 
-const STATUS_VARIANT: Record<LogStatus, 'default' | 'destructive' | 'secondary'> = {
-  success: 'default',
-  failed:  'destructive',
-  pending: 'secondary',
+const STATUS_COLORS: Record<LogStatus, string> = {
+  success: 'bg-emerald-50 text-emerald-700',
+  failed:  'bg-red-50 text-red-600',
+  pending: 'bg-amber-50 text-amber-700',
 }
 
 const LOGS: LogEntry[] = [
@@ -42,74 +34,74 @@ const LOGS: LogEntry[] = [
   { id: '15', time: '09:07:58', user: 'admin@lightforth.io', action: 'User Suspended',        resource: 'user#4821',      ip: '10.0.0.1',     status: 'success', category: 'admin'        },
 ]
 
+const TABS: { key: TabKey; label: string }[] = [
+  { key: 'all',          label: 'All'          },
+  { key: 'logins',       label: 'Logins'       },
+  { key: 'applications', label: 'Applications' },
+  { key: 'payments',     label: 'Payments'     },
+  { key: 'admin',        label: 'Admin'        },
+]
+
 function LogTable({ logs }: { logs: LogEntry[] }) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-20">Time</TableHead>
-          <TableHead>User</TableHead>
-          <TableHead>Action</TableHead>
-          <TableHead className="hidden md:table-cell">Resource</TableHead>
-          <TableHead className="hidden lg:table-cell">IP</TableHead>
-          <TableHead className="w-24">Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {logs.map(log => (
-          <TableRow key={log.id}>
-            <TableCell className="font-mono text-xs text-muted-foreground">{log.time}</TableCell>
-            <TableCell className="text-xs">{log.user}</TableCell>
-            <TableCell className="font-medium">{log.action}</TableCell>
-            <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{log.resource}</TableCell>
-            <TableCell className="hidden lg:table-cell font-mono text-xs text-muted-foreground">{log.ip}</TableCell>
-            <TableCell>
-              <Badge variant={STATUS_VARIANT[log.status]} className="capitalize text-[10px]">
-                {log.status}
-              </Badge>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div className="overflow-x-auto">
+      <table className="lf-table">
+        <thead className="lf-table-head">
+          <tr>
+            <th className="lf-table-th w-20">Time</th>
+            <th className="lf-table-th">User</th>
+            <th className="lf-table-th">Action</th>
+            <th className="lf-table-th hidden md:table-cell">Resource</th>
+            <th className="lf-table-th hidden lg:table-cell">IP</th>
+            <th className="lf-table-th w-24">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {logs.map(log => (
+            <tr key={log.id} className="lf-table-row">
+              <td className="lf-table-cell font-mono text-xs text-muted-foreground">{log.time}</td>
+              <td className="lf-table-cell text-xs">{log.user}</td>
+              <td className="lf-table-cell font-medium text-foreground">{log.action}</td>
+              <td className="lf-table-cell hidden md:table-cell text-muted-foreground">{log.resource}</td>
+              <td className="lf-table-cell hidden lg:table-cell font-mono text-xs text-muted-foreground">{log.ip}</td>
+              <td className="lf-table-cell">
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${STATUS_COLORS[log.status]}`}>
+                  {log.status}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
 
 export default function AdminActivityLogs() {
+  const [tab, setTab] = useState<TabKey>('all')
+  const filtered = tab === 'all' ? LOGS : LOGS.filter(l => l.category === tab)
+
   return (
-    <div className="p-6 space-y-6 max-w-6xl">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Activity Logs</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">System-wide event log — last 24 hours</p>
+        <h1 className="lf-page-title">Activity Logs</h1>
+        <p className="lf-body mt-0.5">System-wide event log — last 24 hours</p>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <Tabs defaultValue="all">
-            <div className="border-b px-4 pt-1">
-              <TabsList className="h-10 bg-transparent gap-0 p-0">
-                {(['all', 'logins', 'applications', 'payments', 'admin'] as const).map(tab => (
-                  <TabsTrigger
-                    key={tab}
-                    value={tab}
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary capitalize px-4 h-10"
-                  >
-                    {tab}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-            <TabsContent value="all" className="mt-0">
-              <LogTable logs={LOGS} />
-            </TabsContent>
-            {(['logins', 'applications', 'payments', 'admin'] as const).map(cat => (
-              <TabsContent key={cat} value={cat} className="mt-0">
-                <LogTable logs={LOGS.filter(l => l.category === cat)} />
-              </TabsContent>
-            ))}
-          </Tabs>
-        </CardContent>
-      </Card>
+      <div className="lf-panel overflow-hidden">
+        <div className="lf-tabs px-4 pt-1 gap-0">
+          {TABS.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={cn('lf-tab px-4 py-2.5', tab === t.key && 'lf-tab-active')}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <LogTable logs={filtered} />
+      </div>
     </div>
   )
 }

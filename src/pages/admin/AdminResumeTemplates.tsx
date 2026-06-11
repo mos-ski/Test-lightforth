@@ -1,25 +1,16 @@
 import { useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
 
 type Category = 'Professional' | 'Creative' | 'ATS-Optimised'
 
 interface Template {
-  id: string
-  name: string
-  category: Category
-  usageCount: number
-  atsScore: number
-  lastUpdated: string
-  active: boolean
+  id: string; name: string; category: Category
+  usageCount: number; atsScore: number; lastUpdated: string; active: boolean
 }
 
-const CATEGORY_VARIANT: Record<Category, 'default' | 'secondary' | 'outline'> = {
-  'Professional':  'default',
-  'Creative':      'secondary',
-  'ATS-Optimised': 'outline',
+const CATEGORY_COLORS: Record<Category, string> = {
+  'Professional':  'bg-primary text-white',
+  'Creative':      'bg-violet-100 text-violet-700',
+  'ATS-Optimised': 'bg-teal-50 text-teal-700',
 }
 
 const INITIAL_TEMPLATES: Template[] = [
@@ -33,83 +24,84 @@ const INITIAL_TEMPLATES: Template[] = [
   { id: '8', name: 'Finance Pro',    category: 'ATS-Optimised', usageCount: 612,  atsScore: 95, lastUpdated: 'Jun 3',  active: true  },
 ]
 
-function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
-    <Card>
-      <CardContent className="pt-5 pb-4">
-        <p className="text-xs font-medium text-muted-foreground">{label}</p>
-        <p className="mt-1.5 text-2xl font-bold tracking-tight">{value}</p>
-        {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
-      </CardContent>
-    </Card>
+    <button
+      role="switch"
+      aria-checked={checked}
+      onClick={onChange}
+      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+        checked ? 'bg-primary' : 'bg-muted-foreground/30'
+      }`}
+    >
+      <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+        checked ? 'translate-x-4' : 'translate-x-0'
+      }`} />
+    </button>
   )
 }
 
 export default function AdminResumeTemplates() {
   const [templates, setTemplates] = useState<Template[]>(INITIAL_TEMPLATES)
+  const toggle = (id: string) => setTemplates(ts => ts.map(t => t.id === id ? { ...t, active: !t.active } : t))
 
-  const toggle = (id: string) =>
-    setTemplates(ts => ts.map(t => t.id === id ? { ...t, active: !t.active } : t))
-
-  const activeCount    = templates.filter(t => t.active).length
-  const usedThisMonth  = templates.filter(t => t.active).reduce((s, t) => s + Math.round(t.usageCount * 0.12), 0)
-  const avgAts         = Math.round(templates.reduce((s, t) => s + t.atsScore, 0) / templates.length)
+  const activeCount   = templates.filter(t => t.active).length
+  const usedThisMonth = templates.filter(t => t.active).reduce((s, t) => s + Math.round(t.usageCount * 0.12), 0)
+  const avgAts        = Math.round(templates.reduce((s, t) => s + t.atsScore, 0) / templates.length)
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Resume Templates</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">Manage templates available to all students</p>
+          <h1 className="lf-page-title">Resume Templates</h1>
+          <p className="lf-body mt-0.5">Manage templates available to all students</p>
         </div>
-        <Button size="sm">+ Add Template</Button>
+        <button className="rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
+          + Add Template
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Total Templates" value={String(templates.length)} />
-        <StatCard label="Active"          value={String(activeCount)} sub={`${templates.length - activeCount} inactive`} />
-        <StatCard label="Used This Month" value={usedThisMonth.toLocaleString()} sub="across all students" />
-        <StatCard label="Avg ATS Score"   value={`${avgAts}/100`} sub="across all templates" />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[
+          { label: 'Total Templates', value: String(templates.length),         sub: undefined                                    },
+          { label: 'Active',          value: String(activeCount),              sub: `${templates.length - activeCount} inactive` },
+          { label: 'Used This Month', value: usedThisMonth.toLocaleString(),   sub: 'across all students'                        },
+          { label: 'Avg ATS Score',   value: `${avgAts}/100`,                  sub: 'across all templates'                       },
+        ].map(({ label, value, sub }) => (
+          <div key={label} className="lf-panel p-5">
+            <p className="text-xs text-muted-foreground">{label}</p>
+            <p className="mt-1.5 text-2xl font-bold text-foreground">{value}</p>
+            {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
+          </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {templates.map(t => (
-          <Card key={t.id} className={!t.active ? 'opacity-60' : ''}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate">{t.name}</p>
-                  <Badge variant={CATEGORY_VARIANT[t.category]} className="mt-1 text-[10px]">
-                    {t.category}
-                  </Badge>
-                </div>
-                <Switch
-                  checked={t.active}
-                  onCheckedChange={() => toggle(t.id)}
-                  className="shrink-0 mt-0.5"
-                />
+          <div key={t.id} className={`lf-panel p-4 ${!t.active ? 'opacity-60' : ''}`}>
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{t.name}</p>
+                <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium ${CATEGORY_COLORS[t.category]}`}>
+                  {t.category}
+                </span>
               </div>
+              <Toggle checked={t.active} onChange={() => toggle(t.id)} />
+            </div>
 
-              <div className="space-y-1 text-xs text-muted-foreground border-t border-border pt-3">
-                <div className="flex justify-between">
-                  <span>Uses</span>
-                  <span className="font-medium text-foreground">{t.usageCount.toLocaleString()}</span>
+            <div className="space-y-1.5 text-xs border-t border-border pt-3">
+              {[['Uses', t.usageCount.toLocaleString()], ['ATS Score', `${t.atsScore}/100`], ['Updated', t.lastUpdated]].map(([k, v]) => (
+                <div key={k} className="flex justify-between">
+                  <span className="text-muted-foreground">{k}</span>
+                  <span className="font-medium text-foreground">{v}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>ATS Score</span>
-                  <span className="font-medium text-foreground">{t.atsScore}/100</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Updated</span>
-                  <span>{t.lastUpdated}</span>
-                </div>
-              </div>
+              ))}
+            </div>
 
-              <Button variant="ghost" size="sm" className="w-full mt-3 h-7 text-xs">
-                Preview
-              </Button>
-            </CardContent>
-          </Card>
+            <button className="mt-3 w-full rounded-lg border border-border py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+              Preview
+            </button>
+          </div>
         ))}
       </div>
     </div>
