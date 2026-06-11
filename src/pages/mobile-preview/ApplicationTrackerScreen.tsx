@@ -1,9 +1,38 @@
 import { useState } from 'react'
-import { ArrowLeft, ArrowUpRight, Bookmark, Briefcase, Clock3, FileText, Mail, MessageSquare, Search, SlidersHorizontal, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Bookmark, Briefcase, Clock3, FileText, Mail, MessageSquare, Paperclip, Search, SlidersHorizontal, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ApplicationStatus } from './mockData'
 
 type TrackerStatus = ApplicationStatus | 'pending' | 'retrying' | 'applied'
+
+interface TimelineEvent {
+  label: string
+  time: string
+}
+
+interface TimelineGroup {
+  date: string
+  events: TimelineEvent[]
+}
+
+interface PersonalInfoField {
+  label: string
+  value: string
+  incomplete?: boolean
+  pills?: string[]
+  selectedPill?: string
+}
+
+interface ApplicationAttachment {
+  label: string
+  filename: string
+}
+
+interface ApplicationQuestion {
+  question: string
+  answer: string
+  incomplete?: boolean
+}
 
 interface TrackerApp {
   id: string
@@ -17,6 +46,10 @@ interface TrackerApp {
   resumeUsed: string
   coverLetterUsed: string
   log: { label: string; done: boolean }[]
+  timeline?: TimelineGroup[]
+  personalInfo?: PersonalInfoField[]
+  attachments?: ApplicationAttachment[]
+  applicationQuestions?: ApplicationQuestion[]
 }
 
 interface BookmarkedJob {
@@ -41,12 +74,67 @@ interface InboxMessage {
 }
 
 const TRACKER_APPS: TrackerApp[] = [
-  { id: '1', title: 'Senior Frontend Engineer', company: 'Google', location: 'Mountain View, CA', salary: '$180k', source: 'Indeed', date: 'Feb 8, 2026', status: 'applied', resumeUsed: 'Resume_Tailored_Google.pdf', coverLetterUsed: 'Cover_Letter_Google.pdf', log: [
-    { label: 'Opened job page', done: true }, { label: 'Filled application form', done: true }, { label: 'Uploaded tailored resume', done: true }, { label: 'Submitted application', done: true },
-  ]},
-  { id: '2', title: 'Product Designer', company: 'Apple', location: 'Cupertino, CA', salary: 'Bonus', source: 'LinkedIn', date: 'Feb 7, 2026', status: 'failed', resumeUsed: 'Resume_Tailored_Apple.pdf', coverLetterUsed: 'Cover_Letter_Apple.pdf', log: [
-    { label: 'Opened job page', done: true }, { label: 'Filled available fields', done: true }, { label: 'Uploaded tailored resume', done: true }, { label: 'Blocked: portfolio required', done: false },
-  ]},
+  {
+    id: '1', title: 'Senior Frontend Engineer', company: 'Google', location: 'Mountain View, CA', salary: '$180k', source: 'Indeed', date: 'Feb 8, 2026', status: 'applied',
+    resumeUsed: 'Resume_Tailored_Google.pdf', coverLetterUsed: 'Cover_Letter_Google.pdf',
+    log: [
+      { label: 'Opened job page', done: true }, { label: 'Filled application form', done: true }, { label: 'Uploaded tailored resume', done: true }, { label: 'Submitted application', done: true },
+    ],
+    timeline: [
+      { date: 'FEB 8', events: [{ label: 'You swiped right', time: '09:14 AM' }, { label: 'Application submitted', time: '09:18 AM' }] },
+    ],
+    personalInfo: [
+      { label: 'First Name', value: 'Darnell' },
+      { label: 'Last Name', value: 'Brooks' },
+      { label: 'Phone', value: '+12025550173' },
+      { label: 'Address', value: '204 Oak Street' },
+      { label: 'City', value: 'San Francisco' },
+      { label: 'ZIP', value: '94102' },
+      { label: 'LinkedIn URL', value: 'linkedin.com/in/darnellbrooks' },
+      { label: 'Date Available', value: '2026-03' },
+      { label: 'Desired Pay', value: '180000' },
+      { label: 'Website, Blog or Portfolio', value: '', incomplete: true },
+      { label: 'Country', value: '', pills: ['United States', 'Canada', 'United Kingdom', 'Australia'], selectedPill: 'United States' },
+      { label: 'State / Province', value: 'California' },
+    ],
+    attachments: [
+      { label: 'Upload your resume', filename: 'Resume_Tailored_Google.pdf' },
+    ],
+    applicationQuestions: [
+      {
+        question: 'Please answer the screening questions. Only completed applications will be reviewed.',
+        answer: 'Throughout my career as a Frontend Engineer, I have consistently integrated scalable UI patterns with performance-first thinking. My recent work involved rebuilding a design system used by 40+ engineers.',
+      },
+      {
+        question: 'Tell us something about yourself that isn\'t on your resume.',
+        answer: 'Outside of my work as a Frontend Engineer, I am an avid open-source contributor. I find that maintaining public libraries — where users are strangers with real expectations — forces a level of rigor and documentation discipline that has directly improved how I approach production codebases.',
+      },
+    ],
+  },
+  {
+    id: '2', title: 'Product Designer', company: 'Apple', location: 'Cupertino, CA', salary: 'Bonus', source: 'LinkedIn', date: 'Feb 7, 2026', status: 'failed',
+    resumeUsed: 'Resume_Tailored_Apple.pdf', coverLetterUsed: 'Cover_Letter_Apple.pdf',
+    log: [
+      { label: 'Opened job page', done: true }, { label: 'Filled available fields', done: true }, { label: 'Uploaded tailored resume', done: true }, { label: 'Blocked: portfolio required', done: false },
+    ],
+    timeline: [
+      { date: 'FEB 7', events: [{ label: 'You swiped right', time: '02:30 PM' }, { label: 'Application blocked', time: '02:34 PM' }] },
+    ],
+    personalInfo: [
+      { label: 'First Name', value: 'Darnell' },
+      { label: 'Last Name', value: 'Brooks' },
+      { label: 'Phone', value: '+12025550173' },
+      { label: 'Website, Blog or Portfolio', value: '', incomplete: true },
+      { label: 'Country', value: '', pills: ['United States', 'Canada', 'United Kingdom', 'Australia'], selectedPill: 'United States' },
+      { label: 'State / Province', value: 'California' },
+    ],
+    attachments: [
+      { label: 'Upload your resume', filename: 'Resume_Tailored_Apple.pdf' },
+    ],
+    applicationQuestions: [
+      { question: 'Share a link to your design portfolio.', answer: '', incomplete: true },
+    ],
+  },
   { id: '3', title: 'Data Scientist', company: 'Meta', location: 'Menlo Park, CA', salary: 'Stock', source: 'Workable', date: 'Feb 6, 2026', status: 'applied', resumeUsed: 'Resume_Tailored_Meta.pdf', coverLetterUsed: 'Cover_Letter_Meta.pdf', log: [
     { label: 'Opened job page', done: true }, { label: 'Filled application form', done: true }, { label: 'Uploaded tailored resume', done: true }, { label: 'Submitted application', done: true },
   ]},
@@ -298,7 +386,7 @@ function BookmarkedTab() {
 /* ─── Inbox ─── */
 
 function InboxTab() {
-  const [messages, setMessages] = useState(InboxMessages)
+  const [messages, setMessages] = useState(INBOX_MESSAGES)
 
   const markRead = (id: string) => {
     setMessages((prev) => prev.map((m) => m.id === id ? { ...m, read: true } : m))
@@ -414,6 +502,7 @@ function DetailScreen({ app, onBack }: { app: TrackerApp; onBack: () => void }) 
         <h1 className="truncate text-base font-semibold text-neutral-900">{app.company}</h1>
       </div>
       <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4">
+        {/* Job header */}
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EEF4FF] text-[#2563EB]">
             <Briefcase size={22} />
@@ -424,6 +513,7 @@ function DetailScreen({ app, onBack }: { app: TrackerApp; onBack: () => void }) 
           </div>
         </div>
 
+        {/* Status + meta badges */}
         <div className="flex flex-wrap gap-1.5">
           <span className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold', meta.className)}>
             {Icon && <Icon size={12} />}{meta.label}
@@ -432,6 +522,61 @@ function DetailScreen({ app, onBack }: { app: TrackerApp; onBack: () => void }) 
           <span className="rounded-full border border-neutral-200 px-2.5 py-1 text-xs text-neutral-500">{app.date}</span>
         </div>
 
+        {/* Applied on + Job Description link */}
+        <div className="flex items-center justify-between text-xs text-neutral-400 border-b border-neutral-100 pb-3">
+          <span>Applied on {app.date}</span>
+          <a href="#" className="flex items-center gap-1 font-medium text-[#2563EB] hover:underline">
+            Job Description <ArrowUpRight size={12} />
+          </a>
+        </div>
+
+        {/* Timeline */}
+        {app.timeline ? (
+          <div>
+            {app.timeline.map((group) => (
+              <div key={group.date}>
+                <p className="mb-2 text-[10px] font-semibold tracking-wider text-neutral-400">{group.date}</p>
+                <div className="space-y-0">
+                  {group.events.map((ev, i) => (
+                    <div key={ev.label} className="flex items-start gap-3">
+                      <div className="flex flex-col items-center">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500 text-white text-[9px] font-bold">✓</span>
+                        {i < group.events.length - 1 && <span className="w-px flex-1 bg-neutral-200 my-0.5" style={{ minHeight: '20px' }} />}
+                      </div>
+                      <div className="flex flex-1 items-center justify-between pb-3">
+                        <p className="text-sm font-medium text-neutral-800">{ev.label}</p>
+                        <p className="text-xs text-neutral-400">{ev.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* Fallback activity log for apps without timeline */
+          <div>
+            <p className="mb-2 text-xs font-semibold text-neutral-700">Activity Log</p>
+            <div className="rounded-xl border border-neutral-200 bg-white p-4">
+              <div className="space-y-2">
+                {app.log.map((step, i) => {
+                  const isLastBlocked = !step.done && i === app.log.length - 1 && isFailed
+                  return (
+                    <div key={step.label} className="flex items-center gap-2 text-xs">
+                      <div className={cn('h-2 w-2 shrink-0 rounded-full', step.done ? 'bg-green-500' : isLastBlocked ? 'bg-red-500' : 'bg-amber-400')} />
+                      <span className={step.done ? 'text-neutral-700' : 'text-neutral-500'}>{step.label}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <button className="mt-1 flex items-center gap-1 text-xs text-[#2563EB] hover:underline">
+                ▷ See Replay
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Job Listing / Resume / Cover Letter */}
         <div>
           <p className="mb-1 text-xs font-semibold text-neutral-700">Job Listing</p>
           <a href="#" className="inline-flex items-center gap-1 text-xs text-[#2563EB] hover:underline">
@@ -453,26 +598,7 @@ function DetailScreen({ app, onBack }: { app: TrackerApp; onBack: () => void }) 
           </a>
         </div>
 
-        <div>
-          <p className="mb-2 text-xs font-semibold text-neutral-700">Activity Log</p>
-          <div className="rounded-xl border border-neutral-200 bg-white p-4">
-            <div className="space-y-2">
-              {app.log.map((step, i) => {
-                const isLastBlocked = !step.done && i === app.log.length - 1 && isFailed
-                return (
-                  <div key={step.label} className="flex items-center gap-2 text-xs">
-                    <div className={cn('h-2 w-2 shrink-0 rounded-full', step.done ? 'bg-green-500' : isLastBlocked ? 'bg-red-500' : 'bg-amber-400')} />
-                    <span className={step.done ? 'text-neutral-700' : 'text-neutral-500'}>{step.label}</span>
-                  </div>
-                )
-              })}
-            </div>
-            <button className="mt-1 flex items-center gap-1 text-xs text-[#2563EB] hover:underline">
-              ▷ See Replay
-            </button>
-          </div>
-        </div>
-
+        {/* Credits */}
         {!isFailed && !isRetrying && (
           <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
             <p className="text-xs font-semibold text-neutral-700">24/50 Credit Left</p>
@@ -480,6 +606,7 @@ function DetailScreen({ app, onBack }: { app: TrackerApp; onBack: () => void }) 
           </div>
         )}
 
+        {/* Failed reason */}
         {isFailed && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4">
             <p className="text-xs font-semibold text-red-700">Why it failed</p>
@@ -487,8 +614,58 @@ function DetailScreen({ app, onBack }: { app: TrackerApp; onBack: () => void }) 
             <p className="mt-1 text-xs text-red-600">Resume and cover letter were generated.</p>
           </div>
         )}
+
+        {/* ── Application Details ── */}
+        {(app.personalInfo || app.attachments || app.applicationQuestions) && (
+          <div className="space-y-4 border-t border-neutral-100 pt-2">
+            <p className="text-base font-bold text-neutral-900">Application Details</p>
+
+            {/* Personal Info */}
+            {app.personalInfo && (
+              <div>
+                <p className="mb-2 text-sm font-semibold text-neutral-800">Personal Info</p>
+                <div className="space-y-2">
+                  {app.personalInfo.map((field) => (
+                    <PersonalInfoCard key={field.label} field={field} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Attachments */}
+            {app.attachments && app.attachments.length > 0 && (
+              <div>
+                <p className="mb-2 text-sm font-semibold text-neutral-800">Attachments</p>
+                <div className="space-y-2">
+                  {app.attachments.map((att) => (
+                    <div key={att.label} className="rounded-xl border border-neutral-200 bg-white p-3.5">
+                      <p className="text-xs text-neutral-400">{att.label}</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Paperclip size={13} className="text-green-500 shrink-0" />
+                        <p className="text-sm text-neutral-800">{att.filename}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Application Questions */}
+            {app.applicationQuestions && app.applicationQuestions.length > 0 && (
+              <div>
+                <p className="mb-2 text-sm font-semibold text-neutral-800">Application Questions</p>
+                <div className="space-y-2">
+                  {app.applicationQuestions.map((q, i) => (
+                    <QuestionCard key={i} q={q} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
+      {/* Bottom CTA */}
       <div className="flex-shrink-0 border-t border-neutral-200 p-4">
         {(isFailed || isRetrying) ? (
           <button className="w-full rounded-xl bg-[#2563EB] py-3 text-center text-sm font-semibold text-white">
@@ -504,6 +681,94 @@ function DetailScreen({ app, onBack }: { app: TrackerApp; onBack: () => void }) 
           </button>
         )}
       </div>
+    </div>
+  )
+}
+
+/* ─── Personal Info Card ─── */
+
+function PersonalInfoCard({ field }: { field: PersonalInfoField }) {
+  const PILL_OVERFLOW = 4
+
+  if (field.pills) {
+    const visible = field.pills.slice(0, PILL_OVERFLOW)
+    const remaining = field.pills.length - PILL_OVERFLOW
+    return (
+      <div className="rounded-xl border border-neutral-200 bg-white p-3.5">
+        <div className="flex items-start justify-between">
+          <p className="text-xs text-neutral-400">{field.label}</p>
+          <span className="text-neutral-300">···</span>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {visible.map((pill) => (
+            <span
+              key={pill}
+              className={cn(
+                'rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors',
+                field.selectedPill === pill
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-neutral-200 text-neutral-600'
+              )}
+            >
+              {pill}
+            </span>
+          ))}
+          {remaining > 0 && (
+            <span className="flex items-center gap-1 rounded-full border border-neutral-200 px-2.5 py-0.5 text-xs text-neutral-500">
+              +{remaining} more ▾
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white p-3.5">
+      <div className="flex items-start justify-between">
+        <p className="text-xs text-neutral-400">{field.label}</p>
+        <span className="text-neutral-300">···</span>
+      </div>
+      <p className={cn('mt-1 text-sm', field.incomplete || !field.value ? 'italic text-neutral-400' : 'text-neutral-800')}>
+        {field.value || 'Not answered'}
+      </p>
+    </div>
+  )
+}
+
+/* ─── Question Card ─── */
+
+function QuestionCard({ q }: { q: ApplicationQuestion }) {
+  const PREVIEW_LENGTH = 120
+  const [expanded, setExpanded] = useState(false)
+  const needsTruncation = q.answer.length > PREVIEW_LENGTH
+
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white p-3.5">
+      <div className="flex items-start justify-between gap-2">
+        <p className={cn('text-xs leading-relaxed', q.incomplete ? 'text-amber-600' : 'text-neutral-400')}>
+          {q.incomplete && '⚠️ '}
+          {q.question}
+        </p>
+        <span className="shrink-0 text-neutral-300">···</span>
+      </div>
+      {q.answer ? (
+        <div className="mt-1.5">
+          <p className="text-sm leading-relaxed text-neutral-800">
+            {needsTruncation && !expanded ? q.answer.slice(0, PREVIEW_LENGTH) + '…' : q.answer}
+          </p>
+          {needsTruncation && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-1 text-xs font-medium text-green-600 hover:underline"
+            >
+              {expanded ? 'Show less' : 'Show more'}
+            </button>
+          )}
+        </div>
+      ) : (
+        <p className="mt-1.5 italic text-sm text-neutral-400">Not answered</p>
+      )}
     </div>
   )
 }
