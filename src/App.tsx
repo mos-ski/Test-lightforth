@@ -33,6 +33,7 @@ const AdminBroadcast = lazy(() => import('@/pages/admin/AdminBroadcast'))
 const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings'))
 const AdminNotifications = lazy(() => import('@/pages/admin/AdminNotifications'))
 const AdminSupport = lazy(() => import('@/pages/admin/AdminSupport'))
+const AdminUserDetail = lazy(() => import('@/pages/admin/AdminUserDetail'))
 const CareerSpecialistPage = lazy(() => import('@/pages/career-specialist/CareerSpecialistPage'))
 const StudentProfilePage = lazy(() => import('@/pages/career-specialist/StudentProfilePage'))
 
@@ -90,6 +91,7 @@ export default function App() {
               <Route index element={<Suspense fallback={null}><AdminOverview /></Suspense>} />
               <Route path="revenue" element={<Suspense fallback={null}><AdminRevenue /></Suspense>} />
               <Route path="users" element={<Suspense fallback={null}><AdminUsers /></Suspense>} />
+              <Route path="users/:id" element={<Suspense fallback={null}><AdminUserDetail /></Suspense>} />
               <Route path="okr" element={<Suspense fallback={null}><AdminOKR /></Suspense>} />
               <Route path="analytics" element={<Suspense fallback={null}><AdminAnalytics /></Suspense>} />
               <Route path="resume-templates" element={<Suspense fallback={null}><AdminResumeTemplates /></Suspense>} />

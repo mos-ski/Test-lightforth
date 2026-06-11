@@ -1,63 +1,62 @@
+import { useState } from 'react'
 import { format } from 'date-fns'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 
-type Trend = 'up' | 'down' | 'flat'
+type Period = '12m' | '30d' | '7d' | '24h'
 
-function StatCard({
-  label,
-  value,
-  target,
-  progress,
-  trend,
-  trendLabel,
-}: {
-  label: string
-  value: string
-  target?: string
-  progress?: number
-  trend?: Trend
-  trendLabel?: string
-}) {
-  const TrendIcon = trend === 'up' ? TrendingUp : trend === 'down' ? TrendingDown : Minus
-  const trendColor = trend === 'up' ? 'text-emerald-600' : trend === 'down' ? 'text-red-500' : 'text-muted-foreground'
-
+function ChangeBadge({ value }: { value: string }) {
+  const isDown = value.startsWith('-')
   return (
-    <Card>
+    <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold ${
+      isDown ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
+    }`}>
+      {isDown ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+      {value}
+    </span>
+  )
+}
+
+function StatCard({ label, value, change, hero }: { label: string; value: string; change: string; hero?: boolean }) {
+  return (
+    <Card className={hero ? 'border-primary/20 bg-primary/5' : ''}>
       <CardContent className="pt-5 pb-4">
         <p className="text-xs font-medium text-muted-foreground">{label}</p>
-        <p className="mt-1.5 text-2xl font-bold tracking-tight">{value}</p>
-        {progress !== undefined && (
-          <Progress value={progress} className="mt-3 h-1.5" />
-        )}
-        <div className="mt-2 flex items-center justify-between">
-          {target && <span className="text-xs text-muted-foreground">Target: {target}</span>}
-          {trendLabel && (
-            <span className={`flex items-center gap-1 text-xs font-medium ${trendColor}`}>
-              <TrendIcon className="h-3 w-3" />
-              {trendLabel}
-            </span>
-          )}
+        <p className={`mt-1.5 text-2xl font-bold tracking-tight ${hero ? 'text-primary' : ''}`}>{value}</p>
+        <div className="mt-2 flex items-center gap-1.5">
+          <ChangeBadge value={change} />
+          <span className="text-xs text-muted-foreground">vs last month</span>
         </div>
       </CardContent>
     </Card>
   )
 }
 
-function SectionGrid({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section>
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">{title}</h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{children}</div>
-    </section>
-  )
-}
+const MONTHLY_SIGNUPS = [
+  { month: 'Jan', value: 110 },
+  { month: 'Feb', value: 2440 },
+  { month: 'Mar', value: 890 },
+  { month: 'Apr', value: 780 },
+  { month: 'May', value: 95 },
+  { month: 'Jun', value: 40 },
+]
+const maxSignup = Math.max(...MONTHLY_SIGNUPS.map(m => m.value))
+
+const PRODUCT_BREAKDOWN = [
+  { label: 'Resume Builder',              pct: 38, color: 'bg-blue-500'   },
+  { label: 'Auto Apply',                  pct: 28, color: 'bg-violet-500' },
+  { label: 'Personalized Job Recs',       pct: 18, color: 'bg-teal-400'   },
+  { label: 'Interview Prep',              pct: 10, color: 'bg-sky-400'    },
+  { label: 'Co Pilot',                    pct: 6,  color: 'bg-slate-400'  },
+]
 
 export default function AdminOverview() {
+  const [period, setPeriod] = useState<Period>('30d')
+
   return (
-    <div className="p-6 space-y-8 max-w-6xl">
+    <div className="p-6 space-y-6 max-w-6xl">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -69,75 +68,111 @@ export default function AdminOverview() {
         <Badge variant="outline" className="text-xs">Live</Badge>
       </div>
 
-      {/* Hero KPIs */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="pt-5 pb-4">
-            <p className="text-xs font-medium text-primary/70">Paid Users</p>
-            <p className="mt-1.5 text-2xl font-bold tracking-tight text-primary">281</p>
-            <Progress value={56} className="mt-3 h-1.5" />
-            <p className="mt-1.5 text-xs text-muted-foreground">56% of 500 target</p>
+      {/* Time filter */}
+      <div className="flex items-center gap-1">
+        {(['12m', '30d', '7d', '24h'] as Period[]).map(p => (
+          <button
+            key={p}
+            onClick={() => setPeriod(p)}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              period === p
+                ? 'bg-foreground text-background'
+                : 'border border-border text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+
+      {/* Revenue */}
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground mb-3">Revenue</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard label="Total Earned" value="$525,658.7" change="+3890%" hero />
+          <StatCard label="Total Payout" value="$0"         change="+0%"    />
+          <StatCard label="Total Sales"  value="168"        change="-2%"    />
+          <StatCard label="Cancelled"    value="31"         change="+288%"  />
+        </div>
+      </section>
+
+      {/* Users */}
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground mb-3">Users</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <StatCard label="Subscribed" value="2"     change="+100%"  />
+          <StatCard label="Returning"  value="2"     change="+100%"  />
+          <StatCard label="Active"     value="9,395" change="+2532%" />
+          <StatCard label="Leads"      value="2"     change="+100%"  />
+        </div>
+      </section>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Product donut */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Product</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              {/* Simple donut via conic-gradient */}
+              <div
+                className="h-32 w-32 shrink-0 rounded-full"
+                style={{
+                  background: `conic-gradient(
+                    #3b82f6 0% 38%,
+                    #8b5cf6 38% 66%,
+                    #2dd4bf 66% 84%,
+                    #38bdf8 84% 94%,
+                    #94a3b8 94% 100%
+                  )`,
+                  mask: 'radial-gradient(circle at center, transparent 40%, black 41%)',
+                  WebkitMask: 'radial-gradient(circle at center, transparent 40%, black 41%)',
+                }}
+              />
+              <div className="space-y-2">
+                {PRODUCT_BREAKDOWN.map(item => (
+                  <div key={item.label} className="flex items-center gap-2">
+                    <span className={`h-2.5 w-2.5 rounded-sm shrink-0 ${item.color}`} />
+                    <span className="text-xs text-muted-foreground">{item.label}</span>
+                    <span className="text-xs font-medium ml-auto pl-3">{item.pct}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="pt-5 pb-4">
-            <p className="text-xs font-medium text-primary/70">MRR (NGN)</p>
-            <p className="mt-1.5 text-2xl font-bold tracking-tight text-primary">₦440,750</p>
-            <p className="mt-3 text-xs text-muted-foreground">+$859 USD equivalent</p>
-          </CardContent>
-        </Card>
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="pt-5 pb-4">
-            <p className="text-xs font-medium text-primary/70">Free → Paid Conv.</p>
-            <p className="mt-1.5 text-2xl font-bold tracking-tight text-primary">2.0%</p>
-            <Progress value={36} className="mt-3 h-1.5" />
-            <p className="mt-1.5 text-xs text-muted-foreground">Target: 5.5%</p>
-          </CardContent>
-        </Card>
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="pt-5 pb-4">
-            <p className="text-xs font-medium text-primary/70">Payment Success</p>
-            <p className="mt-1.5 text-2xl font-bold tracking-tight text-primary">78%</p>
-            <Progress value={85} className="mt-3 h-1.5" />
-            <p className="mt-1.5 text-xs text-muted-foreground">Target: 92%</p>
+
+        {/* Sign ups bar chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Sign Ups</CardTitle>
+            <CardDescription>+4,993 total</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-2 h-36">
+              {MONTHLY_SIGNUPS.map(({ month, value }) => (
+                <div key={month} className="flex flex-1 flex-col items-center gap-1.5">
+                  {value > 100 && (
+                    <span className="text-[10px] font-medium tabular-nums">{value >= 1000 ? `${(value/1000).toFixed(1)}k` : value}</span>
+                  )}
+                  <div
+                    className="w-full rounded-t-sm bg-primary/80"
+                    style={{ height: `${(value / maxSignup) * 100}%`, minHeight: value > 0 ? 4 : 0 }}
+                  />
+                  <span className="text-[10px] text-muted-foreground">{month}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-4 mt-3 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary/80 inline-block" />User Accounts</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-primary/40 inline-block" />Business Accounts</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-muted-foreground/40 inline-block" />Subscriptions</span>
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      <SectionGrid title="Activation">
-        <StatCard label="Daily Signups" value="25/day" trend="up" trendLabel="+12% wk" />
-        <StatCard label="Resumes Created" value="17/day" target="100/day" progress={17} trend="down" trendLabel="-3 wk" />
-        <StatCard label="Onboarding Completion" value="42%" target="70%" progress={60} />
-        <StatCard label="Time to First Value" value="12 min" target="5 min" trend="down" trendLabel="Slow" />
-      </SectionGrid>
-
-      <SectionGrid title="Monetization">
-        <StatCard label="Paywall Conversion" value="2.0%" target="6.0%" progress={33} />
-        <StatCard label="Checkout Drop-off" value="49%" target="20%" trend="down" trendLabel="High" />
-        <StatCard label="Pay-as-you-go / mo" value="0" target="150+" progress={0} />
-        <StatCard label="Refund Rate" value="12%" target="5%" trend="down" trendLabel="High" />
-      </SectionGrid>
-
-      <SectionGrid title="Retention">
-        <StatCard label="NG Returning Users" value="14%" target="25%" progress={56} />
-        <StatCard label="Intl Renewal Rate" value="28%" target="45%" progress={62} />
-        <StatCard label="Rev. per Paying User" value="~$5" target="$20" progress={25} />
-        <StatCard label="Recurring Rev. Share" value="28%" target="40%" progress={70} />
-      </SectionGrid>
-
-      <SectionGrid title="Growth">
-        <StatCard label="CAC" value="$31" target="$18" trend="down" trendLabel="Over" />
-        <StatCard label="Campaign Conversion" value="1.8%" target="4.5%" progress={40} />
-        <StatCard label="Landing Page Conv." value="9%" target="18%" progress={50} />
-        <StatCard label="Paid Ad Conversion" value="2.1%" trend="flat" trendLabel="Flat" />
-      </SectionGrid>
-
-      <SectionGrid title="Infrastructure">
-        <StatCard label="Platform Uptime" value="99.2%" target="99.9%" progress={99} trend="up" trendLabel="Good" />
-        <StatCard label="Payment Failure Rate" value="22%" target="8%" trend="down" trendLabel="High" />
-        <StatCard label="AI Response Latency" value="4s" target="1.5s" trend="down" trendLabel="Slow" />
-        <StatCard label="Incident Resolution" value="9 hrs" target="1 hr" trend="down" trendLabel="Slow" />
-      </SectionGrid>
     </div>
   )
 }
