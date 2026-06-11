@@ -1,41 +1,26 @@
 import { useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 
-function Toggle({ enabled, onChange }: { enabled: boolean; onChange: () => void }) {
+function SettingRow({
+  label,
+  description,
+  children,
+}: {
+  label: string
+  description?: string
+  children: React.ReactNode
+}) {
   return (
-    <button
-      type="button"
-      onClick={onChange}
-      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
-        enabled ? 'bg-blue-600' : 'bg-slate-200'
-      }`}
-    >
-      <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ${
-          enabled ? 'translate-x-4' : 'translate-x-0'
-        }`}
-      />
-    </button>
-  )
-}
-
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100">
-        <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
-        {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
-      </div>
-      <div className="px-6 py-5 space-y-4">{children}</div>
-    </div>
-  )
-}
-
-function SettingRow({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <p className="text-sm font-medium text-slate-700">{label}</p>
-        {description && <p className="text-xs text-slate-400">{description}</p>}
+    <div className="flex items-center justify-between gap-6 py-3">
+      <div className="min-w-0">
+        <p className="text-sm font-medium">{label}</p>
+        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
@@ -43,119 +28,149 @@ function SettingRow({ label, description, children }: { label: string; descripti
 }
 
 const INTEGRATIONS = [
-  { name: 'Paystack', role: 'Payment gateway',  status: 'green', label: 'Connected' },
-  { name: 'Mailgun',  role: 'Email service',     status: 'green', label: 'Connected' },
-  { name: 'Claude AI', role: 'AI model (Sonnet 4.6)', status: 'green', label: 'Connected' },
-  { name: 'LinkedIn',  role: 'Job board',        status: 'amber', label: 'Rate limited' },
-  { name: 'Greenhouse', role: 'Job board',       status: 'green', label: 'Connected' },
-  { name: 'Workday',   role: 'Job board',        status: 'green', label: 'Connected' },
+  { name: 'Paystack',    role: 'Payment gateway',       status: 'connected' },
+  { name: 'Mailgun',     role: 'Email service',          status: 'connected' },
+  { name: 'Claude AI',   role: 'AI model (Sonnet 4.6)',  status: 'connected' },
+  { name: 'LinkedIn',    role: 'Job board',              status: 'limited'   },
+  { name: 'Greenhouse',  role: 'Job board',              status: 'connected' },
+  { name: 'Workday',     role: 'Job board',              status: 'connected' },
 ]
+
+const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+  connected: { label: 'Connected', variant: 'default'   },
+  limited:   { label: 'Rate limited', variant: 'outline' },
+  down:      { label: 'Down',      variant: 'secondary' },
+}
 
 export default function AdminSettings() {
   const [maintenance, setMaintenance] = useState(false)
+  const [appName, setAppName]         = useState('Lightforth')
+  const [supportEmail, setSupportEmail] = useState('support@lightforth.io')
   const [flags, setFlags] = useState({
-    autoApply: true,
+    autoApply:        true,
     interviewCopilot: true,
     careerSpecialist: true,
-    mobileApp: true,
-    resumeAI: true,
+    mobileApp:        true,
+    resumeAI:         true,
   })
-  const [appName, setAppName] = useState('Lightforth')
-  const [supportEmail, setSupportEmail] = useState('support@lightforth.io')
+
+  const FLAG_LABELS: Record<keyof typeof flags, string> = {
+    autoApply:        'Auto-Apply',
+    interviewCopilot: 'Interview Copilot',
+    careerSpecialist: 'Career Specialist',
+    mobileApp:        'Mobile App',
+    resumeAI:         'Resume AI',
+  }
 
   const toggleFlag = (key: keyof typeof flags) =>
     setFlags(f => ({ ...f, [key]: !f[key] }))
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-        <p className="mt-1 text-sm text-slate-500">Platform configuration and feature management</p>
+        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">Platform configuration and feature management</p>
       </div>
 
       {/* General */}
-      <Section title="General" description="Core application settings">
-        <SettingRow label="App Name">
-          <input
-            value={appName}
-            onChange={e => setAppName(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
-          />
-        </SettingRow>
-        <SettingRow label="Support Email">
-          <input
-            value={supportEmail}
-            onChange={e => setSupportEmail(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 w-52"
-          />
-        </SettingRow>
-        <SettingRow label="Timezone" description="Used for scheduled broadcasts and reports">
-          <select className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option>UTC+0 — London</option>
-            <option>UTC+1 — Lagos</option>
-            <option>UTC-5 — New York</option>
-          </select>
-        </SettingRow>
-        <SettingRow label="Maintenance Mode" description="Takes the app offline for all users">
-          <Toggle enabled={maintenance} onChange={() => setMaintenance(m => !m)} />
-        </SettingRow>
-      </Section>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">General</CardTitle>
+          <CardDescription>Core application settings</CardDescription>
+        </CardHeader>
+        <CardContent className="divide-y divide-border">
+          <SettingRow label="App Name">
+            <Input
+              value={appName}
+              onChange={e => setAppName(e.target.value)}
+              className="w-40 h-8 text-sm"
+            />
+          </SettingRow>
+          <SettingRow label="Support Email">
+            <Input
+              value={supportEmail}
+              onChange={e => setSupportEmail(e.target.value)}
+              className="w-56 h-8 text-sm"
+            />
+          </SettingRow>
+          <SettingRow label="Timezone" description="Used for scheduled broadcasts and reports">
+            <Select defaultValue="lag">
+              <SelectTrigger className="w-44 h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="utc">UTC+0 — London</SelectItem>
+                <SelectItem value="lag">UTC+1 — Lagos</SelectItem>
+                <SelectItem value="nyc">UTC−5 — New York</SelectItem>
+              </SelectContent>
+            </Select>
+          </SettingRow>
+          <SettingRow
+            label="Maintenance Mode"
+            description="Takes the app offline for all users"
+          >
+            <Switch
+              checked={maintenance}
+              onCheckedChange={setMaintenance}
+            />
+          </SettingRow>
+        </CardContent>
+      </Card>
 
       {/* Feature flags */}
-      <Section title="Feature Flags" description="Enable or disable features for all users">
-        {(Object.entries(flags) as [keyof typeof flags, boolean][]).map(([key, val]) => {
-          const labels: Record<keyof typeof flags, string> = {
-            autoApply: 'Auto-Apply',
-            interviewCopilot: 'Interview Copilot',
-            careerSpecialist: 'Career Specialist',
-            mobileApp: 'Mobile App',
-            resumeAI: 'Resume AI',
-          }
-          return (
-            <SettingRow key={key} label={labels[key]}>
-              <Toggle enabled={val} onChange={() => toggleFlag(key)} />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Feature Flags</CardTitle>
+          <CardDescription>Enable or disable features for all users</CardDescription>
+        </CardHeader>
+        <CardContent className="divide-y divide-border">
+          {(Object.keys(flags) as (keyof typeof flags)[]).map(key => (
+            <SettingRow key={key} label={FLAG_LABELS[key]}>
+              <Switch
+                checked={flags[key]}
+                onCheckedChange={() => toggleFlag(key)}
+              />
             </SettingRow>
-          )
-        })}
-      </Section>
+          ))}
+        </CardContent>
+      </Card>
 
       {/* Integrations */}
-      <Section title="Integrations" description="Connected services and their status">
-        <div className="space-y-3">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Integrations</CardTitle>
+          <CardDescription>Connected services and their current status</CardDescription>
+        </CardHeader>
+        <CardContent className="divide-y divide-border">
           {INTEGRATIONS.map(int => (
-            <div key={int.name} className="flex items-center justify-between">
+            <div key={int.name} className="flex items-center justify-between py-3">
               <div>
-                <p className="text-sm font-medium text-slate-700">{int.name}</p>
-                <p className="text-xs text-slate-400">{int.role}</p>
+                <p className="text-sm font-medium">{int.name}</p>
+                <p className="text-xs text-muted-foreground">{int.role}</p>
               </div>
-              <span className={`flex items-center gap-1.5 text-xs font-medium ${int.status === 'green' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${int.status === 'green' ? 'bg-emerald-500' : 'bg-amber-400'}`} />
-                {int.label}
-              </span>
+              <Badge variant={STATUS_CONFIG[int.status].variant} className="text-xs">
+                {STATUS_CONFIG[int.status].label}
+              </Badge>
             </div>
           ))}
-        </div>
-      </Section>
+        </CardContent>
+      </Card>
 
       {/* Danger zone */}
-      <div className="rounded-xl border border-red-200 bg-white overflow-hidden">
-        <div className="px-6 py-4 border-b border-red-100 bg-red-50">
-          <h2 className="text-sm font-semibold text-red-700">Danger Zone</h2>
-          <p className="mt-0.5 text-xs text-red-500">Irreversible actions — proceed with caution</p>
-        </div>
-        <div className="px-6 py-5 space-y-4">
-          <SettingRow label="Export All Data" description="Download a full CSV export of all user and application data">
-            <button className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-              Export
-            </button>
+      <Card className="border-destructive/30">
+        <CardHeader>
+          <CardTitle className="text-base text-destructive">Danger Zone</CardTitle>
+          <CardDescription>Irreversible actions — proceed with caution</CardDescription>
+        </CardHeader>
+        <CardContent className="divide-y divide-border">
+          <SettingRow label="Export All Data" description="Download a full CSV of all user and application data">
+            <Button variant="outline" size="sm">Export</Button>
           </SettingRow>
           <SettingRow label="Reset Demo Data" description="Restore all mock data to its original state">
-            <button className="rounded-lg border border-red-200 px-4 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
-              Reset
-            </button>
+            <Button variant="destructive" size="sm">Reset</Button>
           </SettingRow>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
