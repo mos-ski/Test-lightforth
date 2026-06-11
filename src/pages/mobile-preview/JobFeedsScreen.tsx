@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, ArrowUpRight, Check, ChevronDown, MapPin, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Bookmark, Check, ChevronDown, Heart, MapPin, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_JOBS, type MockJob } from './mockData'
 import type { PreferencesData } from './JobPreferencesScreen'
@@ -8,8 +8,6 @@ type View =
   | { name: 'feed' }
   | { name: 'detail'; job: MockJob }
   | { name: 'applied'; job: MockJob }
-
-const PAGE_SIZE = 20
 
 const EMPLOYMENT_TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Temporary', 'Volunteer']
 const LOCATION_TYPES = ['Onsite', 'Remote', 'Hybrid']
@@ -34,31 +32,7 @@ export function JobFeedsScreen() {
   return null
 }
 
-/* ─── Skeleton ─── */
-
-function SkeletonCard() {
-  return (
-    <div className="animate-pulse rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-      <div className="flex items-start gap-3">
-        <div className="h-10 w-10 shrink-0 rounded-xl bg-neutral-200" />
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="h-4 w-3/4 rounded bg-neutral-200" />
-          <div className="h-3.5 w-1/2 rounded bg-neutral-200" />
-          <div className="flex gap-2">
-            <div className="h-3 w-16 rounded bg-neutral-200" />
-            <div className="h-3 w-12 rounded bg-neutral-200" />
-          </div>
-        </div>
-      </div>
-      <div className="mt-3 flex gap-2">
-        <div className="h-9 flex-1 rounded-lg bg-neutral-200" />
-        <div className="h-9 flex-1 rounded-lg bg-neutral-200" />
-      </div>
-    </div>
-  )
-}
-
-/* ─── Feed ─── */
+/* ─── Feed (Tinder-style cards) ─── */
 
 function inferLocationType(loc: string): string {
   const l = loc.toLowerCase()
@@ -70,11 +44,12 @@ function inferLocationType(loc: string): string {
 function FeedScreen({ onSelect, onApply }: { onSelect: (job: MockJob) => void; onApply: (job: MockJob) => void }) {
   const [search, setSearch] = useState('')
   const [isLoading, setIsLoading] = useState(true)
-  const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
-  const [justAppliedId, setJustAppliedId] = useState<string | null>(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null)
+  const [swipedJobs, setSwipedJobs] = useState<Set<string>>(new Set())
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set())
   const [showPrefs, setShowPrefs] = useState(false)
   const [prefs, setPrefs] = useState<PreferencesData>(DEFAULT_PREFS)
-  const feedRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setIsLoading(false), 900)
@@ -88,15 +63,43 @@ function FeedScreen({ onSelect, onApply }: { onSelect: (job: MockJob) => void; o
     const matchLocSearch = !prefs.locations || j.location.toLowerCase().includes(prefs.locations.toLowerCase())
     return matchSearch && matchRole && matchLocType && matchLocSearch
   })
-  const visible = filtered.slice(0, displayCount)
-  const hasMore = filtered.length > displayCount
+
+  const remaining = filtered.filter((j) => !swipedJobs.has(j.id))
+  const currentJob = remaining[0] ?? null
+  const nextJob = remaining[1] ?? null
+  const thirdJob = remaining[2] ?? null
+  const progress = filtered.length > 0 ? ((filtered.length - remaining.length) / filtered.length) * 100 : 0
 
   const hasActivePrefs = prefs.desiredRole !== DEFAULT_PREFS.desiredRole || prefs.experienceLevel !== DEFAULT_PREFS.experienceLevel || !!prefs.salary || !!prefs.locations || prefs.employmentTypes.length > 0 || prefs.locationTypes.length > 0 || prefs.openToRelocate
 
-  const handleApply = (job: MockJob) => {
-    if (justAppliedId) return
-    setJustAppliedId(job.id)
-    setTimeout(() => onApply(job), 600)
+  const handleSwipe = (dir: 'left' | 'right') => {
+    if (!currentJob || swipeDir) return
+    setSwipeDir(dir)
+    setTimeout(() => {
+      setSwipedJobs((prev) => new Set([...prev, currentJob.id]))
+      setSwipeDir(null)
+      if (dir === 'right') onApply(currentJob)
+    }, 420)
+  }
+
+  const handleBookmark = () => {
+    if (!currentJob) return
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(currentJob.id)) next.delete(currentJob.id)
+      else next.add(currentJob.id)
+      return next
+    })
+  }
+
+  const handleUndo = () => {
+    const lastId = [...swipedJobs].pop()
+    if (!lastId) return
+    setSwipedJobs((prev) => {
+      const next = new Set(prev)
+      next.delete(lastId)
+      return next
+    })
   }
 
   return (
@@ -108,8 +111,10 @@ function FeedScreen({ onSelect, onApply }: { onSelect: (job: MockJob) => void; o
           <p className="mt-0.5 text-xs text-neutral-400">
             {isLoading ? (
               <span className="inline-block h-3 w-28 animate-pulse rounded bg-neutral-200 align-middle" />
+            ) : remaining.length > 0 ? (
+              <>{remaining.length} role{remaining.length !== 1 ? 's' : ''} to explore</>
             ) : (
-              <>{filtered.length} role{filtered.length !== 1 ? 's' : ''} match your profile</>
+              'All caught up!'
             )}
           </p>
         </div>
@@ -139,6 +144,22 @@ function FeedScreen({ onSelect, onApply }: { onSelect: (job: MockJob) => void; o
         </div>
       </div>
 
+      {/* Progress bar */}
+      {!isLoading && (
+        <div className="px-5 pb-3">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-100">
+            <div
+              className="h-full rounded-full bg-[#2563EB] transition-all duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="mt-1 flex items-center justify-between text-[10px] text-neutral-400">
+            <span>{filtered.length - remaining.length} of {filtered.length} swiped</span>
+            <span>{bookmarkedIds.size} saved</span>
+          </div>
+        </div>
+      )}
+
       {/* Preferences sheet */}
       {showPrefs && (
         <PreferencesSheet
@@ -148,98 +169,92 @@ function FeedScreen({ onSelect, onApply }: { onSelect: (job: MockJob) => void; o
         />
       )}
 
-      {/* Cards */}
-      <div ref={feedRef} className="flex-1 space-y-3 overflow-y-auto px-5 pb-4 scroll-smooth">
+      {/* Card stack area */}
+      <div className="flex flex-1 items-center justify-center px-5 pb-4">
         {isLoading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
+          <SkeletonCardStack />
+        ) : remaining.length === 0 ? (
+          <EmptyState onReset={() => setSwipedJobs(new Set())} />
         ) : (
-          <>
-            {visible.map((job, i) => {
-              const isApplying = justAppliedId === job.id
-              return (
-                <div
-                  key={job.id}
-                  className={cn(
-                    'group rounded-2xl border bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md',
-                    isApplying ? 'border-green-200' : 'border-neutral-200 hover:border-[#2563EB]/20'
-                  )}
-                  style={{ animation: `fadeInUp 0.4s ease-out ${i * 0.05}s both` }}
-                >
-                  <button onClick={() => onSelect(job)} className="block w-full text-left">
-                    <div className="flex items-start gap-3">
-                      <span
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white transition-transform group-hover:scale-105"
-                        style={{ background: job.logoColor }}
-                      >
-                        {job.company[0]}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-neutral-900">{job.title}</p>
-                        <p className="truncate text-sm text-neutral-500">{job.company}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-neutral-400">
-                          <span className="flex items-center gap-1"><MapPin size={11} />{job.location}</span>
-                          <span>·</span>
-                          <span>{job.postedAgo}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-2">
-                    <span className="rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700">{job.matchTag}</span>
-                    <span className="rounded-full border border-neutral-200 px-2 py-0.5 text-[11px] text-neutral-500">{job.salary}</span>
-                    <span className="rounded-full border border-neutral-200 px-2 py-0.5 text-[11px] text-neutral-500">{job.source}</span>
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      onClick={() => onSelect(job)}
-                      className="flex flex-1 items-center justify-center gap-1 rounded-lg border border-neutral-200 py-2 text-xs font-medium text-neutral-600 transition-all hover:bg-neutral-50 active:scale-[0.97]"
-                    >
-                      <ArrowUpRight size={14} /> View
-                    </button>
-                    <button
-                      onClick={() => handleApply(job)}
-                      disabled={justAppliedId !== null}
-                      className={cn(
-                        'flex flex-1 items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-all active:scale-[0.97]',
-                        isApplying
-                          ? 'bg-green-500 text-white'
-                          : 'bg-[#2563EB] text-white hover:bg-[#1d4ed8]'
-                      )}
-                    >
-                      {isApplying ? <Check size={14} className="animate-check-pop" /> : <Sparkles size={14} />}
-                      {isApplying ? 'Applied!' : 'Auto Apply'}
-                    </button>
-                  </div>
-                </div>
-              )
-            })}
-
-            {hasMore && (
-              <button
-                onClick={() => setDisplayCount((c) => Math.min(c + 10, MOCK_JOBS.length))}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 py-3 text-sm font-medium text-neutral-500 transition-all hover:border-[#2563EB]/40 hover:text-[#2563EB] active:scale-[0.98]"
-              >
-                <ChevronDown size={16} />
-                Load {Math.min(10, MOCK_JOBS.length - displayCount)} more jobs
-              </button>
+          <div className="relative h-full w-full max-w-[340px]">
+            {/* Third card (bottom) */}
+            {thirdJob && (
+              <SwipeCard
+                job={thirdJob}
+                isTop={false}
+                stackIndex={2}
+                swipeDir={null}
+                style="bottom"
+              />
             )}
 
-            {filtered.length === 0 && (
-              <div className="flex animate-fade-in flex-col items-center justify-center py-16 text-sm text-neutral-400">
-                <Search size={32} className="mb-3 text-neutral-300" />
-                <p>No jobs match your search</p>
-                <button onClick={() => setSearch('')} className="mt-2 text-[#2563EB] hover:underline">Clear search</button>
-              </div>
+            {/* Second card (middle) */}
+            {nextJob && (
+              <SwipeCard
+                job={nextJob}
+                isTop={false}
+                stackIndex={1}
+                swipeDir={null}
+                style="middle"
+              />
             )}
-          </>
+
+            {/* Top card */}
+            {currentJob && (
+              <SwipeCard
+                job={currentJob}
+                isTop={true}
+                stackIndex={0}
+                swipeDir={swipeDir}
+                isBookmarked={bookmarkedIds.has(currentJob.id)}
+                onSelect={() => onSelect(currentJob)}
+                style="top"
+              />
+            )}
+          </div>
         )}
       </div>
+
+      {/* Action buttons */}
+      {!isLoading && remaining.length > 0 && (
+        <div className="flex items-center justify-center gap-5 pb-5 pt-1">
+          <button
+            onClick={handleUndo}
+            disabled={swipedJobs.size === 0}
+            className={cn(
+              'flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all active:scale-90',
+              swipedJobs.size === 0
+                ? 'border-neutral-200 text-neutral-300'
+                : 'border-amber-300 bg-amber-50 text-amber-500 hover:bg-amber-100'
+            )}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 1 3.5-7.1"/><path d="M3 4v5h5"/></svg>
+          </button>
+
+          <button
+            onClick={() => handleSwipe('left')}
+            disabled={!!swipeDir}
+            className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-red-200 bg-white text-red-400 shadow-lg transition-all hover:bg-red-50 hover:text-red-500 hover:border-red-300 active:scale-90"
+          >
+            <X size={28} strokeWidth={2.5} />
+          </button>
+
+          <button
+            onClick={handleBookmark}
+            className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-blue-200 bg-white text-blue-400 shadow-lg transition-all hover:bg-blue-50 hover:text-blue-500 hover:border-blue-300 active:scale-90"
+          >
+            <Bookmark size={20} strokeWidth={2.5} fill={bookmarkedIds.has(currentJob?.id ?? '') ? 'currentColor' : 'none'} />
+          </button>
+
+          <button
+            onClick={() => handleSwipe('right')}
+            disabled={!!swipeDir}
+            className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-green-200 bg-white text-green-500 shadow-lg transition-all hover:bg-green-50 hover:text-green-600 hover:border-green-300 active:scale-90"
+          >
+            <Sparkles size={28} strokeWidth={2.5} />
+          </button>
+        </div>
+      )}
 
       <style>{`
         @keyframes fadeInUp {
@@ -259,6 +274,16 @@ function FeedScreen({ onSelect, onApply }: { onSelect: (job: MockJob) => void; o
           from { transform: translateY(100%); }
           to   { transform: translateY(0); }
         }
+        @keyframes cardSwipeLeft {
+          to { transform: translateX(-120%) rotate(-12deg); opacity: 0; }
+        }
+        @keyframes cardSwipeRight {
+          to { transform: translateX(120%) rotate(12deg); opacity: 0; }
+        }
+        @keyframes shimmer {
+          0%   { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
         .animate-fade-in {
           animation: fadeInUp 0.4s ease-out both;
         }
@@ -271,7 +296,215 @@ function FeedScreen({ onSelect, onApply }: { onSelect: (job: MockJob) => void; o
         .animate-slide-up {
           animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
+        .swipe-left {
+          animation: cardSwipeLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .swipe-right {
+          animation: cardSwipeRight 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .skeleton-shimmer {
+          background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.5s ease-in-out infinite;
+        }
       `}</style>
+    </div>
+  )
+}
+
+/* ─── Swipe Card ─── */
+
+function SwipeCard({
+  job,
+  isTop,
+  stackIndex,
+  swipeDir,
+  isBookmarked,
+  onSelect,
+  style,
+}: {
+  job: MockJob
+  isTop: boolean
+  stackIndex: number
+  swipeDir: 'left' | 'right' | null
+  isBookmarked?: boolean
+  onSelect?: () => void
+  style: 'top' | 'middle' | 'bottom'
+}) {
+  const scale = style === 'top' ? 1 : style === 'middle' ? 0.95 : 0.9
+  const yOffset = style === 'top' ? 0 : style === 'middle' ? 8 : 16
+  const zIndex = 10 - stackIndex
+  const opacity = style === 'bottom' && swipeDir ? 1 : 1
+
+  return (
+    <div
+      className={cn(
+        'absolute inset-0 overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-xl transition-all duration-200',
+        isTop ? 'cursor-grab active:cursor-grabbing' : 'pointer-events-none',
+        swipeDir === 'left' && 'swipe-left',
+        swipeDir === 'right' && 'swipe-right'
+      )}
+      style={{
+        transform: `scale(${scale}) translateY(${yOffset}px)`,
+        zIndex,
+        opacity,
+      }}
+      onClick={isTop && onSelect ? onSelect : undefined}
+    >
+      {/* Swipe overlay - left (skip) */}
+      {isTop && swipeDir === 'left' && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-3xl bg-red-500/10 backdrop-blur-[1px]">
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-red-400 bg-white/90">
+              <X size={32} className="text-red-500" strokeWidth={3} />
+            </div>
+            <span className="text-sm font-bold text-red-500">SKIP</span>
+          </div>
+        </div>
+      )}
+
+      {/* Swipe overlay - right (apply) */}
+      {isTop && swipeDir === 'right' && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-3xl bg-green-500/10 backdrop-blur-[1px]">
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-green-400 bg-white/90">
+              <Sparkles size={32} className="text-green-500" strokeWidth={3} />
+            </div>
+            <span className="text-sm font-bold text-green-600">APPLY</span>
+          </div>
+        </div>
+      )}
+
+      {/* Bookmark indicator */}
+      {isTop && isBookmarked && !swipeDir && (
+        <div className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 backdrop-blur-sm">
+          <Bookmark size={16} className="text-blue-500" fill="currentColor" />
+        </div>
+      )}
+
+      {/* Card content */}
+      <div className="flex h-full flex-col overflow-hidden p-5">
+        {/* Company logo + basic info */}
+        <div className="flex items-start gap-4">
+          <div
+            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-xl font-bold text-white shadow-md"
+            style={{ background: job.logoColor }}
+          >
+            {job.company[0]}
+          </div>
+          <div className="min-w-0 flex-1 pt-1">
+            <p className="text-lg font-bold leading-tight text-neutral-900">{job.title}</p>
+            <p className="mt-0.5 text-sm font-medium text-neutral-500">{job.company}</p>
+          </div>
+        </div>
+
+        {/* Meta tags */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            {job.matchTag}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            {job.salary}
+          </span>
+        </div>
+
+        <div className="mt-2 flex flex-wrap gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500">
+            <MapPin size={11} />
+            {job.location}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-400">
+            {job.postedAgo}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-400">
+            {job.source}
+          </span>
+        </div>
+
+        {/* Description */}
+        <div className="mt-4 flex-1 overflow-hidden">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">About the role</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-600 line-clamp-5">{job.description}</p>
+        </div>
+
+        {/* Tap hint */}
+        {isTop && (
+          <div className="mt-2 flex items-center justify-center">
+            <span className="text-[10px] text-neutral-300">Tap card to view details</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ─── Skeleton Card Stack ─── */
+
+function SkeletonCardStack() {
+  return (
+    <div className="relative h-full w-full max-w-[340px]">
+      {[2, 1, 0].map((i) => (
+        <div
+          key={i}
+          className="absolute inset-0 overflow-hidden rounded-3xl border border-neutral-200 bg-white"
+          style={{
+            transform: `scale(${1 - i * 0.05}) translateY(${i * 8}px)`,
+            zIndex: 10 - i,
+          }}
+        >
+          <div className="flex h-full flex-col p-5">
+            <div className="flex items-start gap-4">
+              <div className="h-16 w-16 shrink-0 rounded-2xl skeleton-shimmer" />
+              <div className="flex-1 space-y-3 pt-1">
+                <div className="h-5 w-3/4 rounded skeleton-shimmer" />
+                <div className="h-4 w-1/2 rounded skeleton-shimmer" />
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <div className="h-7 w-20 rounded-full skeleton-shimmer" />
+              <div className="h-7 w-16 rounded-full skeleton-shimmer" />
+              <div className="h-7 w-14 rounded-full skeleton-shimmer" />
+            </div>
+            <div className="mt-4 flex-1 space-y-2">
+              <div className="h-3 w-24 rounded skeleton-shimmer" />
+              <div className="h-3 w-full rounded skeleton-shimmer" />
+              <div className="h-3 w-full rounded skeleton-shimmer" />
+              <div className="h-3 w-3/4 rounded skeleton-shimmer" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ─── Empty State ─── */
+
+function EmptyState({ onReset }: { onReset: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center px-8 text-center animate-fade-in-scale">
+      <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-[#EEF4FF]">
+        <Sparkles size={36} className="text-[#2563EB]" />
+      </div>
+      <p className="text-xl font-bold text-neutral-900">All caught up!</p>
+      <p className="mt-2 text-sm leading-relaxed text-neutral-500">
+        You've swiped through all matching jobs. Adjust your preferences or check back later for new listings.
+      </p>
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={onReset}
+          className="rounded-xl border border-neutral-300 px-6 py-2.5 text-sm font-medium text-neutral-600 transition-all hover:bg-neutral-50 active:scale-[0.97]"
+        >
+          Start over
+        </button>
+        <button
+          className="rounded-xl bg-[#2563EB] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#1d4ed8] active:scale-[0.97]"
+        >
+          View applied
+        </button>
+      </div>
     </div>
   )
 }
@@ -403,7 +636,7 @@ function DetailScreen({ job, onBack, onApply }: { job: MockJob; onBack: () => vo
   return (
     <div className="flex h-full flex-col animate-fade-in-scale">
       <div className="flex items-center gap-3 px-5 pb-2 pt-4">
-        <button onClick={onBack} className="transition-transform active:scale-90"><ArrowLeft size={20} className="text-neutral-700" /></button>
+        <button onClick={onBack} className="transition-transform active:scale-90"><span className="text-neutral-700">←</span></button>
         <h1 className="truncate text-base font-semibold text-neutral-900">{job.company}</h1>
       </div>
       <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-4">
