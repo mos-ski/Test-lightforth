@@ -82,11 +82,9 @@ export default function App() {
             <Route
               path="/admin"
               element={
-                <ProtectedRoute>
-                  <Suspense fallback={null}>
-                    <AdminLayout />
-                  </Suspense>
-                </ProtectedRoute>
+                <Suspense fallback={null}>
+                  <AdminLayout />
+                </Suspense>
               }
             >
               <Route index element={<Suspense fallback={null}><AdminOverview /></Suspense>} />
