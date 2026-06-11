@@ -7,7 +7,6 @@ import type { PreferencesData } from './JobPreferencesScreen'
 type View =
   | { name: 'feed' }
   | { name: 'detail'; job: MockJob }
-  | { name: 'applied'; job: MockJob }
 
 const EMPLOYMENT_TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Temporary', 'Volunteer']
 const LOCATION_TYPES = ['Onsite', 'Remote', 'Hybrid']
@@ -26,9 +25,8 @@ const DEFAULT_PREFS: PreferencesData = {
 export function JobFeedsScreen() {
   const [view, setView] = useState<View>({ name: 'feed' })
 
-  if (view.name === 'feed') return <FeedScreen onSelect={(job) => setView({ name: 'detail', job })} onApply={(job) => setView({ name: 'applied', job })} />
-  if (view.name === 'detail') return <DetailScreen key={view.job.id} job={view.job} onBack={() => setView({ name: 'feed' })} onApply={() => setView({ name: 'applied', job: view.job })} />
-  if (view.name === 'applied') return <AppliedScreen key={view.job.id} job={view.job} onDone={() => setView({ name: 'feed' })} />
+  if (view.name === 'feed') return <FeedScreen onSelect={(job) => setView({ name: 'detail', job })} />
+  if (view.name === 'detail') return <DetailScreen key={view.job.id} job={view.job} onBack={() => setView({ name: 'feed' })} onApply={() => setView({ name: 'feed' })} />
   return null
 }
 
@@ -41,7 +39,7 @@ function inferLocationType(loc: string): string {
   return 'Hybrid'
 }
 
-function FeedScreen({ onSelect, onApply }: { onSelect: (job: MockJob) => void; onApply: (job: MockJob) => void }) {
+function FeedScreen({ onSelect }: { onSelect: (job: MockJob) => void }) {
   const [search, setSearch] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -78,7 +76,6 @@ function FeedScreen({ onSelect, onApply }: { onSelect: (job: MockJob) => void; o
     setTimeout(() => {
       setSwipedJobs((prev) => new Set([...prev, currentJob.id]))
       setSwipeDir(null)
-      if (dir === 'right') onApply(currentJob)
     }, 420)
   }
 
@@ -680,48 +677,3 @@ function DetailScreen({ job, onBack, onApply }: { job: MockJob; onBack: () => vo
   )
 }
 
-/* ─── Applied ─── */
-
-function AppliedScreen({ job, onDone }: { job: MockJob; onDone: () => void }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-5 px-8 text-center animate-fade-in-scale">
-      <div className="relative flex items-center justify-center">
-        <div className="absolute h-28 w-28 rounded-full bg-green-50 animate-confetti-drop" style={{ animationDelay: '0s' }} />
-        <div className="absolute h-24 w-24 rounded-full bg-green-100 animate-confetti-drop" style={{ animationDelay: '0.1s' }} />
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-200 animate-confetti-drop" style={{ animationDelay: '0.2s' }}>
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-300">
-            <Check className="text-white animate-check-pop" size={28} style={{ animationDelay: '0.35s' }} />
-          </div>
-        </div>
-      </div>
-      <div>
-        <p className="text-xl font-bold text-neutral-900">You're in!</p>
-        <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-          Your application to <span className="font-medium text-neutral-700">{job.company}</span> for{' '}
-          <span className="font-medium text-neutral-700">{job.title}</span> has been submitted.
-        </p>
-      </div>
-      <div className="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 px-5 py-3 text-center shadow-sm">
-        <p className="text-xs font-semibold text-green-800">1 credit remaining this week</p>
-        <p className="mt-0.5 text-[11px] text-green-600">Credits only deducted for successful applications</p>
-      </div>
-      <button
-        onClick={onDone}
-        className="mt-1 rounded-xl bg-[#2563EB] px-10 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#1d4ed8] hover:shadow-md active:scale-[0.97]"
-      >
-        Back to jobs
-      </button>
-
-      <style>{`
-        @keyframes confettiDrop {
-          0%   { transform: translateY(-10px) scale(0); opacity: 0; }
-          60%  { transform: translateY(2px) scale(1.1); opacity: 1; }
-          100% { transform: translateY(0) scale(1); opacity: 1; }
-        }
-        .animate-confetti-drop {
-          animation: confettiDrop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        }
-      `}</style>
-    </div>
-  )
-}
