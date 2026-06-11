@@ -25,6 +25,14 @@ const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
 const AdminRevenue = lazy(() => import('@/pages/admin/AdminRevenue'))
 const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'))
 const AdminOKR = lazy(() => import('@/pages/admin/AdminOKR'))
+const AdminAnalytics = lazy(() => import('@/pages/admin/AdminAnalytics'))
+const AdminResumeTemplates = lazy(() => import('@/pages/admin/AdminResumeTemplates'))
+const AdminActivityLogs = lazy(() => import('@/pages/admin/AdminActivityLogs'))
+const AdminPromotions = lazy(() => import('@/pages/admin/AdminPromotions'))
+const AdminBroadcast = lazy(() => import('@/pages/admin/AdminBroadcast'))
+const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings'))
+const AdminNotifications = lazy(() => import('@/pages/admin/AdminNotifications'))
+const AdminSupport = lazy(() => import('@/pages/admin/AdminSupport'))
 const CareerSpecialistPage = lazy(() => import('@/pages/career-specialist/CareerSpecialistPage'))
 const StudentProfilePage = lazy(() => import('@/pages/career-specialist/StudentProfilePage'))
 
@@ -85,6 +93,14 @@ export default function App() {
               <Route path="revenue" element={<Suspense fallback={null}><AdminRevenue /></Suspense>} />
               <Route path="users" element={<Suspense fallback={null}><AdminUsers /></Suspense>} />
               <Route path="okr" element={<Suspense fallback={null}><AdminOKR /></Suspense>} />
+              <Route path="analytics" element={<Suspense fallback={null}><AdminAnalytics /></Suspense>} />
+              <Route path="resume-templates" element={<Suspense fallback={null}><AdminResumeTemplates /></Suspense>} />
+              <Route path="activity-logs" element={<Suspense fallback={null}><AdminActivityLogs /></Suspense>} />
+              <Route path="promotions" element={<Suspense fallback={null}><AdminPromotions /></Suspense>} />
+              <Route path="broadcast" element={<Suspense fallback={null}><AdminBroadcast /></Suspense>} />
+              <Route path="settings" element={<Suspense fallback={null}><AdminSettings /></Suspense>} />
+              <Route path="notifications" element={<Suspense fallback={null}><AdminNotifications /></Suspense>} />
+              <Route path="support" element={<Suspense fallback={null}><AdminSupport /></Suspense>} />
             </Route>
           </Routes>
           <Toaster position="top-right" richColors />
