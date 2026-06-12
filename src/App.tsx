@@ -36,6 +36,7 @@ const AdminSupport = lazy(() => import('@/pages/admin/AdminSupport'))
 const AdminUserDetail = lazy(() => import('@/pages/admin/AdminUserDetail'))
 const CareerSpecialistPage = lazy(() => import('@/pages/career-specialist/CareerSpecialistPage'))
 const StudentProfilePage = lazy(() => import('@/pages/career-specialist/StudentProfilePage'))
+const JobsPage = lazy(() => import('@/pages/career-specialist/JobsPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -78,6 +79,7 @@ export default function App() {
             <Route path="/how-to-use" element={<AppRoute><Suspense fallback={null}><HowToUse /></Suspense></AppRoute>} />
             <Route path="/career-specialist" element={<Suspense fallback={null}><CareerSpecialistPage /></Suspense>} />
             <Route path="/career-specialist/students/:id" element={<Suspense fallback={null}><StudentProfilePage /></Suspense>} />
+            <Route path="/career-specialist/jobs" element={<Suspense fallback={null}><JobsPage /></Suspense>} />
             <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
             <Route
