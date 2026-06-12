@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import LightforthLogo from '@/components/shared/LightforthLogo'
 import { CAREER_JOBS, type CareerJob } from '@/data/mockCareerJobs'
-import { MOCK_STUDENTS } from '@/data/mockStudents'
+import { MOCK_STUDENTS, STUDENT_QUOTA } from '@/data/mockStudents'
 
 function matchPercent(studentId: string, jobId: string): number {
   return ((parseInt(studentId) * 7 + parseInt(jobId) * 13) % 30) + 65
@@ -344,6 +344,7 @@ function StudentPickerModal({ job, onClose, onApply }: { job: CareerJob; onClose
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">{s.name}</p>
                   <p className="truncate text-xs text-muted-foreground">{s.role} · {s.location}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground/70">{s.appliedCount}/{STUDENT_QUOTA} jobs applied</p>
                 </div>
 
                 {/* Match % */}
