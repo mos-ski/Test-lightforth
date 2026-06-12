@@ -107,8 +107,53 @@ function AttemptAccordion({ attempt }: { attempt: AttemptDetail }) {
   )
 }
 
+function RetryModal({ onClose, onRetry }: { onClose: () => void; onRetry: () => void }) {
+  const [notes, setNotes] = useState('')
+  return (
+    <>
+      <div className="fixed inset-0 z-50 bg-black/40" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+          <h2 className="text-lg font-semibold text-gray-900">Retry Application</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Add any supplemental fields that may be required to complete the application.
+          </p>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Additional Info (optional)
+            </label>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Enter any additional information..."
+              rows={4}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400 resize-none"
+            />
+          </div>
+          <div className="mt-5 flex justify-end gap-3">
+            <button
+              onClick={onClose}
+              className="rounded-lg border border-gray-200 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => { onRetry(); onClose() }}
+              className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 export default function ApplicationDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const [showRetry, setShowRetry] = useState(false)
+  const [retried,   setRetried]   = useState(false)
   const app = MOCK_APPLICATIONS.find(a => a.id === id)
 
   if (!app) return (
@@ -147,9 +192,18 @@ export default function ApplicationDetailPage() {
               <ExternalLink className="h-3.5 w-3.5" /> View Job Posting
             </a>
           </div>
-          <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            ↺ Retry Application
-          </button>
+          {retried ? (
+            <span className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-4 py-2 text-sm font-medium text-green-700">
+              ✓ Retry queued
+            </span>
+          ) : (
+            <button
+              onClick={() => setShowRetry(true)}
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              ↺ Retry Application
+            </button>
+          )}
         </div>
       </div>
 
@@ -235,6 +289,13 @@ export default function ApplicationDetailPage() {
           ))}
         </div>
       </div>
+
+      {showRetry && (
+        <RetryModal
+          onClose={() => setShowRetry(false)}
+          onRetry={() => setRetried(true)}
+        />
+      )}
     </div>
   )
 }
