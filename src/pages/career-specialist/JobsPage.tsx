@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react'
-import { NavLink } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import LightforthLogo from '@/components/shared/LightforthLogo'
 import { CAREER_JOBS, type CareerJob } from '@/data/mockCareerJobs'
 import { MOCK_STUDENTS, STUDENT_QUOTA } from '@/data/mockStudents'
 
@@ -51,34 +49,8 @@ export default function JobsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#eef4ff]">
-      {/* Header */}
-      <header className="border-b border-border bg-white px-6 py-3 flex items-center gap-3">
-        <LightforthLogo className="h-6" />
-        <span className="text-xs font-medium text-muted-foreground border-l border-border pl-3">Career Specialist</span>
-      </header>
-
-      {/* Nav tabs */}
-      <nav className="bg-white border-b border-border">
-        <div className="lf-page-shell flex gap-6">
-          <NavLink
-            to="/career-specialist"
-            end
-            className={({ isActive }) => cn('lf-tab py-3', isActive && 'lf-tab-active')}
-          >
-            Students
-          </NavLink>
-          <NavLink
-            to="/career-specialist/jobs"
-            className={({ isActive }) => cn('lf-tab py-3', isActive && 'lf-tab-active')}
-          >
-            Jobs
-          </NavLink>
-        </div>
-      </nav>
-
-      {/* Page body */}
-      <div className="lf-page-shell py-6">
+    <div className="p-8">
+      <div>
         <div className="mb-5">
           <h1 className="lf-page-title">Jobs</h1>
           <p className="lf-body mt-1">Find roles and apply them to your students.</p>

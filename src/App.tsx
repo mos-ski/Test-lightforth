@@ -34,9 +34,16 @@ const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings'))
 const AdminNotifications = lazy(() => import('@/pages/admin/AdminNotifications'))
 const AdminSupport = lazy(() => import('@/pages/admin/AdminSupport'))
 const AdminUserDetail = lazy(() => import('@/pages/admin/AdminUserDetail'))
+const CareerSpecialistLayout = lazy(() => import('@/pages/career-specialist/CareerSpecialistLayout'))
 const CareerSpecialistPage = lazy(() => import('@/pages/career-specialist/CareerSpecialistPage'))
+const AllSpecialistsPage = lazy(() => import('@/pages/career-specialist/AllSpecialistsPage'))
+const SpecialistProfilePage = lazy(() => import('@/pages/career-specialist/SpecialistProfilePage'))
+const AllStudentsPage = lazy(() => import('@/pages/career-specialist/AllStudentsPage'))
 const StudentProfilePage = lazy(() => import('@/pages/career-specialist/StudentProfilePage'))
+const AllApplicationsPage = lazy(() => import('@/pages/career-specialist/AllApplicationsPage'))
+const ApplicationDetailPage = lazy(() => import('@/pages/career-specialist/ApplicationDetailPage'))
 const JobsPage = lazy(() => import('@/pages/career-specialist/JobsPage'))
+const SettingsPage = lazy(() => import('@/pages/career-specialist/SettingsPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,9 +84,17 @@ export default function App() {
             <Route path="/explore" element={<AppRoute><Suspense fallback={null}><Explore /></Suspense></AppRoute>} />
             <Route path="/downloads" element={<AppRoute><Suspense fallback={null}><Downloads /></Suspense></AppRoute>} />
             <Route path="/how-to-use" element={<AppRoute><Suspense fallback={null}><HowToUse /></Suspense></AppRoute>} />
-            <Route path="/career-specialist" element={<Suspense fallback={null}><CareerSpecialistPage /></Suspense>} />
-            <Route path="/career-specialist/students/:id" element={<Suspense fallback={null}><StudentProfilePage /></Suspense>} />
-            <Route path="/career-specialist/jobs" element={<Suspense fallback={null}><JobsPage /></Suspense>} />
+            <Route path="/career-specialist" element={<Suspense fallback={null}><CareerSpecialistLayout /></Suspense>}>
+              <Route index element={<Suspense fallback={null}><CareerSpecialistPage /></Suspense>} />
+              <Route path="specialists" element={<Suspense fallback={null}><AllSpecialistsPage /></Suspense>} />
+              <Route path="specialists/:id" element={<Suspense fallback={null}><SpecialistProfilePage /></Suspense>} />
+              <Route path="students" element={<Suspense fallback={null}><AllStudentsPage /></Suspense>} />
+              <Route path="students/:id" element={<Suspense fallback={null}><StudentProfilePage /></Suspense>} />
+              <Route path="applications" element={<Suspense fallback={null}><AllApplicationsPage /></Suspense>} />
+              <Route path="applications/:id" element={<Suspense fallback={null}><ApplicationDetailPage /></Suspense>} />
+              <Route path="jobs" element={<Suspense fallback={null}><JobsPage /></Suspense>} />
+              <Route path="settings" element={<Suspense fallback={null}><SettingsPage /></Suspense>} />
+            </Route>
             <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
             <Route
