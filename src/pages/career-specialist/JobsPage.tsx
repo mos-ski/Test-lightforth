@@ -344,13 +344,15 @@ function StudentPickerModal({ job, onClose, onApply }: { job: CareerJob; onClose
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">{s.name}</p>
                   <p className="truncate text-xs text-muted-foreground">{s.role} · {s.location}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground/70">{s.appliedCount}/{STUDENT_QUOTA} jobs applied</p>
                 </div>
 
-                {/* Match % */}
-                <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold', matchCls)}>
-                  {matchPct}% match
-                </span>
+                {/* Match % + quota */}
+                <div className="shrink-0 flex flex-col items-end gap-1">
+                  <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold', matchCls)}>
+                    {matchPct}% match
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">{s.appliedCount}/{STUDENT_QUOTA} applied</span>
+                </div>
               </button>
             )
           })}
