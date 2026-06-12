@@ -6,7 +6,7 @@ import { MOCK_STUDENTS } from '@/data/mockStudents'
 import { MOCK_APPLICATIONS } from '@/data/mockApplications'
 import EditJobPreferencesModal from './EditJobPreferencesModal'
 import EditProfileModal from './EditProfileModal'
-import AgentTab from './AgentTab'
+import AgentsTab from '@/components/agents/AgentsTab'
 
 type Tab = 'overview' | 'applications' | 'quota' | 'agent'
 
@@ -238,12 +238,9 @@ export default function StudentProfilePage() {
 
       {/* ── Agent Tab ── */}
       {tab === 'agent' && (
-        <AgentTab
-          student={student}
-          applications={applications}
-          autoApply={autoApply}
-          onToggleAutoApply={() => setAutoApply(v => !v)}
-        />
+        <div className="pt-5">
+          <AgentsTab studentId={student.id} />
+        </div>
       )}
 
       {/* ── Modals ── */}
