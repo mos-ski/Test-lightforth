@@ -44,6 +44,7 @@ const AllApplicationsPage = lazy(() => import('@/pages/career-specialist/AllAppl
 const ApplicationDetailPage = lazy(() => import('@/pages/career-specialist/ApplicationDetailPage'))
 const JobsPage = lazy(() => import('@/pages/career-specialist/JobsPage'))
 const SettingsPage = lazy(() => import('@/pages/career-specialist/SettingsPage'))
+const CreateStudentPage = lazy(() => import('@/pages/career-specialist/CreateStudentPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,6 +90,7 @@ export default function App() {
               <Route path="specialists" element={<Suspense fallback={null}><AllSpecialistsPage /></Suspense>} />
               <Route path="specialists/:id" element={<Suspense fallback={null}><SpecialistProfilePage /></Suspense>} />
               <Route path="students" element={<Suspense fallback={null}><AllStudentsPage /></Suspense>} />
+              <Route path="students/create" element={<Suspense fallback={null}><CreateStudentPage /></Suspense>} />
               <Route path="students/:id" element={<Suspense fallback={null}><StudentProfilePage /></Suspense>} />
               <Route path="applications" element={<Suspense fallback={null}><AllApplicationsPage /></Suspense>} />
               <Route path="applications/:id" element={<Suspense fallback={null}><ApplicationDetailPage /></Suspense>} />

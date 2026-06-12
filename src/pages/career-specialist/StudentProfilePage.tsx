@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_STUDENTS } from '@/data/mockStudents'
 import { MOCK_APPLICATIONS } from '@/data/mockApplications'
+import EditJobPreferencesModal from './EditJobPreferencesModal'
+import EditProfileModal from './EditProfileModal'
 
 type Tab = 'overview' | 'applications' | 'quota'
 
@@ -21,6 +23,8 @@ export default function StudentProfilePage() {
   const [dailyQuota, setDailyQuota] = useState(10)
   const [enforceQuota, setEnforceQuota] = useState(true)
   const [jobUrl, setJobUrl] = useState('')
+  const [showPrefModal,    setShowPrefModal]    = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
 
   const student = MOCK_STUDENTS.find(s => s.id === id)
   if (!student) return (
@@ -82,10 +86,10 @@ export default function StudentProfilePage() {
             ))}
           </nav>
           <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
+            <button onClick={() => setShowPrefModal(true)} className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
               ✏ Edit Preference
             </button>
-            <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            <button onClick={() => setShowProfileModal(true)} className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
               ✏ Edit Profile
             </button>
           </div>
@@ -230,6 +234,10 @@ export default function StudentProfilePage() {
           </Section>
         </div>
       )}
+
+      {/* ── Modals ── */}
+      {showPrefModal    && <EditJobPreferencesModal student={student} onClose={() => setShowPrefModal(false)} />}
+      {showProfileModal && <EditProfileModal        student={student} onClose={() => setShowProfileModal(false)} />}
 
       {/* ── Quota Tab ── */}
       {tab === 'quota' && (
