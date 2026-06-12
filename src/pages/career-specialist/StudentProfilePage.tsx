@@ -73,7 +73,7 @@ export default function StudentProfilePage() {
 
         <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
           <nav className="flex gap-6">
-            {(['overview', 'applications', 'quota', 'agent'] as Tab[]).map(t => (
+            {(['overview', 'agent', 'applications', 'quota'] as Tab[]).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
