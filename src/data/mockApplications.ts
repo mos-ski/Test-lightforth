@@ -1,5 +1,21 @@
 export type AppStatus = 'failed' | 'needs_review' | 'completed' | 'pending'
 
+export interface TimelineEvent {
+  label: string
+  time: string
+}
+
+export interface TimelineGroup {
+  date: string
+  events: TimelineEvent[]
+}
+
+export interface ApplicationQuestion {
+  question: string
+  answer: string
+  incomplete?: boolean
+}
+
 export interface TraceEvent {
   time: string
   event: string
@@ -41,7 +57,10 @@ export interface MockApplication {
   country: string
   linkedin: string
   resumeName: string
+  coverLetterName?: string
   attempts: AttemptDetail[]
+  timeline?: TimelineGroup[]
+  applicationQuestions?: ApplicationQuestion[]
 }
 
 const TRACE_FAILED: TraceEvent[] = [
@@ -120,6 +139,16 @@ export const MOCK_APPLICATIONS: MockApplication[] = [
     country: 'United States of America',
     linkedin: 'https://linkedin.com/in/sarahmitchell',
     resumeName: 'sarah_mitchell_resume.pdf',
+    coverLetterName: 'cover_letter_raymond_james.pdf',
+    timeline: [
+      { date: 'JUN 12', events: [
+        { label: 'Job picked up by Agent', time: '03:53 AM' },
+        { label: 'Application failed', time: '04:05 AM' },
+      ]},
+    ],
+    applicationQuestions: [
+      { question: 'Describe your experience managing large-scale insurance operations across multiple business lines.', answer: '', incomplete: true },
+    ],
     attempts: [
       {
         number: 1,
@@ -164,6 +193,24 @@ export const MOCK_APPLICATIONS: MockApplication[] = [
     country: 'United States of America',
     linkedin: 'https://linkedin.com/in/sarahmitchell',
     resumeName: 'sarah_mitchell_resume.pdf',
+    coverLetterName: 'cover_letter_idexcorp.pdf',
+    timeline: [
+      { date: 'JUN 12', events: [
+        { label: 'Job picked up by Agent', time: '09:12 AM' },
+        { label: 'Application submitted', time: '09:16 AM' },
+        { label: 'Flagged for review', time: '09:16 AM' },
+      ]},
+    ],
+    applicationQuestions: [
+      {
+        question: 'Describe your experience leading cybersecurity incident response for enterprise environments.',
+        answer: 'Over 8 years at Goldman Sachs, I led the CISO\'s Incident Response function across North America and EMEA. I built and managed a 14-person SOC team, established playbooks for 40+ threat scenarios, and drove our MTTD from 72 hours down to under 6 hours. My team handled 3 critical ransomware events with zero data exfiltration.',
+      },
+      {
+        question: 'What security frameworks (NIST, ISO 27001, etc.) have you implemented or overseen?',
+        answer: 'I have hands-on implementation experience with NIST CSF, ISO 27001/27002, SOC 2 Type II, and PCI-DSS. At Goldman Sachs I drove our ISO 27001 certification across 12 data centres and led two successful SOC 2 audits. I am also familiar with MITRE ATT&CK as a threat modelling layer over NIST.',
+      },
+    ],
     attempts: [
       {
         number: 1,
@@ -200,6 +247,23 @@ export const MOCK_APPLICATIONS: MockApplication[] = [
     country: 'United States of America',
     linkedin: 'https://linkedin.com/in/sarahmitchell',
     resumeName: 'sarah_mitchell_resume.pdf',
+    coverLetterName: 'cover_letter_jabil.pdf',
+    timeline: [
+      { date: 'JUN 12', events: [
+        { label: 'Job picked up by Agent', time: '10:45 AM' },
+        { label: 'Application submitted', time: '10:52 AM' },
+      ]},
+    ],
+    applicationQuestions: [
+      {
+        question: 'Describe your experience building and managing a cybersecurity operations function from the ground up.',
+        answer: 'In my role as VP of Cybersecurity Operations at Synchrony Financial, I built the function from a 4-person team to a 22-person organisation over 3 years. I established a 24/7 SOC, implemented a SIEM platform, and created a vulnerability management programme that reduced our critical exposure window from 30 days to 5 days. I also led the selection and deployment of our EDR platform across 8,000 endpoints.',
+      },
+      {
+        question: 'How have you aligned cybersecurity strategy with business objectives in a manufacturing or industrial context?',
+        answer: 'While I have primarily worked in financial services, I have extensive experience aligning security strategy with operational constraints. At Jabil I would apply the same principle: embed security into the OT/IT convergence roadmap, conduct risk-tiered asset classification, and ensure security controls do not impede production throughput. I have spoken at ISACA on this exact topic.',
+      },
+    ],
     attempts: [
       {
         number: 1,

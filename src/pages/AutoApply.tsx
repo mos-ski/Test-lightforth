@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   Check, Search, ArrowUpRight, X, FileText,
   Bot, Zap, Briefcase, Network, Sparkles, AlertTriangle,
-  ArrowDown, ChevronDown, Link as LinkIcon, Clock3
+  ArrowDown, ChevronDown, ChevronUp, Link as LinkIcon, Clock3, Paperclip, MessageSquare
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
@@ -49,6 +49,69 @@ const MOCK_JOBS = [
   { id: '9', title: 'Software Architect', company: 'Uber', location: 'San Francisco, CA', salary: '$1k', source: 'FlexJobs', date: 'Jan 31, 2026', resumeUsed: 'Resume_Tailored_Uber.pdf' },
   { id: '10', title: 'Machine Learning Engineer', company: 'Lyft', location: 'San Francisco, CA', salary: '$1k', source: 'AngelList', date: 'Jan 30, 2026', resumeUsed: 'Resume_Tailored_Lyft.pdf' },
 ]
+
+interface AppliedDetail {
+  timeline?: { date: string; events: { label: string; time: string }[] }[]
+  personalInfo?: { label: string; value: string; incomplete?: boolean; pills?: string[]; selectedPill?: string }[]
+  attachments?: { label: string; filename: string }[]
+  applicationQuestions?: { question: string; answer: string; incomplete?: boolean }[]
+}
+
+const APPLIED_DETAILS: Record<string, AppliedDetail> = {
+  '1': {
+    timeline: [{ date: 'FEB 8', events: [{ label: 'You swiped right', time: '09:14 AM' }, { label: 'Application submitted', time: '09:18 AM' }] }],
+    personalInfo: [
+      { label: 'First Name', value: 'Darnell' },
+      { label: 'Last Name', value: 'Brooks' },
+      { label: 'Phone', value: '+12025550173' },
+      { label: 'Address', value: '204 Oak Street' },
+      { label: 'City', value: 'San Francisco' },
+      { label: 'ZIP', value: '94102' },
+      { label: 'LinkedIn URL', value: 'linkedin.com/in/darnellbrooks' },
+      { label: 'Date Available', value: '2026-03' },
+      { label: 'Desired Pay', value: '180000' },
+      { label: 'Website, Blog or Portfolio', value: '', incomplete: true },
+      { label: 'Country', value: '', pills: ['United States', 'Canada', 'United Kingdom', 'Australia'], selectedPill: 'United States' },
+      { label: 'State / Province', value: 'California' },
+    ],
+    attachments: [{ label: 'Upload your resume', filename: 'Resume_Tailored_Google.pdf' }],
+    applicationQuestions: [
+      { question: 'Please answer the screening questions. Only completed applications will be reviewed.', answer: 'Throughout my career as a Frontend Engineer, I have consistently integrated scalable UI patterns with performance-first thinking. My recent work involved rebuilding a design system used by 40+ engineers.' },
+      { question: "Tell us something about yourself that isn't on your resume.", answer: 'Outside of my work as a Frontend Engineer, I am an avid open-source contributor. I find that maintaining public libraries — where users are strangers with real expectations — forces a level of rigor that has directly improved how I approach production codebases.' },
+    ],
+  },
+  '2': {
+    timeline: [{ date: 'FEB 7', events: [{ label: 'You swiped right', time: '02:30 PM' }, { label: 'Application blocked', time: '02:34 PM' }] }],
+    personalInfo: [
+      { label: 'First Name', value: 'Darnell' },
+      { label: 'Last Name', value: 'Brooks' },
+      { label: 'Phone', value: '+12025550173' },
+      { label: 'Website, Blog or Portfolio', value: '', incomplete: true },
+      { label: 'Country', value: '', pills: ['United States', 'Canada', 'United Kingdom', 'Australia'], selectedPill: 'United States' },
+      { label: 'State / Province', value: 'California' },
+    ],
+    attachments: [{ label: 'Upload your resume', filename: 'Resume_Tailored_Apple.pdf' }],
+    applicationQuestions: [
+      { question: 'Share a link to your design portfolio.', answer: '', incomplete: true },
+    ],
+  },
+  '3': {
+    timeline: [{ date: 'FEB 6', events: [{ label: 'You swiped right', time: '11:05 AM' }, { label: 'Application submitted', time: '11:11 AM' }] }],
+    personalInfo: [
+      { label: 'First Name', value: 'Darnell' },
+      { label: 'Last Name', value: 'Brooks' },
+      { label: 'Phone', value: '+12025550173' },
+      { label: 'Date Available', value: '2026-03' },
+      { label: 'Desired Pay', value: '165000' },
+      { label: 'Country', value: '', pills: ['United States', 'Canada', 'United Kingdom', 'Australia'], selectedPill: 'United States' },
+      { label: 'State / Province', value: 'California' },
+    ],
+    attachments: [{ label: 'Upload your resume', filename: 'Resume_Tailored_Meta.pdf' }],
+    applicationQuestions: [
+      { question: 'Describe a project where you used machine learning or advanced statistics to drive a business decision.', answer: 'At my previous role I built a churn prediction model using XGBoost that identified at-risk users with 87% precision. The model fed a personalised re-engagement campaign that recovered $2.4M ARR in the first quarter. I owned the full pipeline from data extraction to deployment on AWS SageMaker.' },
+    ],
+  },
+}
 
 const FEATURES = [
   { icon: Bot, title: 'Hands-Free Applications', desc: 'AI applies to hundreds of matched jobs while you get on with your life' },
@@ -1098,6 +1161,57 @@ function ManualApplyCard({
 
 // ─── Job Detail Panel ─────────────────────────────────────────────────────────
 
+function PersonalInfoRow({ field }: { field: AppliedDetail['personalInfo'] extends (infer T)[] | undefined ? T : never }) {
+  if (!field) return null
+  if (field.pills) {
+    return (
+      <div className="rounded-lg border border-border bg-muted/30 p-2.5">
+        <p className="text-xs text-muted-foreground mb-1.5">{field.label}</p>
+        <div className="flex flex-wrap gap-1">
+          {field.pills.map((pill) => (
+            <span key={pill} className={cn('rounded-full border px-2 py-0.5 text-[11px] font-medium', field.selectedPill === pill ? 'border-green-500 bg-green-50 text-green-700' : 'border-border text-muted-foreground')}>
+              {pill}
+            </span>
+          ))}
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 p-2.5">
+      <p className="text-xs text-muted-foreground mb-0.5">{field.label}</p>
+      <p className={cn('text-xs', field.incomplete || !field.value ? 'italic text-muted-foreground' : 'text-foreground')}>
+        {field.value || 'Not answered'}
+      </p>
+    </div>
+  )
+}
+
+function QuestionRow({ q }: { q: NonNullable<AppliedDetail['applicationQuestions']>[number] }) {
+  const [expanded, setExpanded] = useState(false)
+  const TRUNCATE_AT = 120
+  const needsTruncate = q.answer.length > TRUNCATE_AT
+  return (
+    <div className={cn('rounded-lg border p-2.5', q.incomplete ? 'border-orange-200 bg-orange-50' : 'border-border bg-muted/30')}>
+      <p className="text-xs text-muted-foreground mb-1">{q.question}</p>
+      {q.incomplete || !q.answer ? (
+        <p className="text-xs text-orange-600">⚠ Not answered</p>
+      ) : (
+        <>
+          <p className="text-xs text-foreground leading-relaxed">
+            {needsTruncate && !expanded ? `${q.answer.slice(0, TRUNCATE_AT)}…` : q.answer}
+          </p>
+          {needsTruncate && (
+            <button onClick={() => setExpanded(v => !v)} className="mt-1 flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline">
+              {expanded ? <><ChevronUp className="h-3 w-3" /> Show less</> : <><ChevronDown className="h-3 w-3" /> Show more</>}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 function JobDetailPanel({
   jobId,
   tab,
@@ -1200,6 +1314,25 @@ function JobDetailPanel({
         </>
       ) : isApplied ? (
         <>
+          {/* Timeline */}
+          {APPLIED_DETAILS[jobId]?.timeline?.map((group) => (
+            <div key={group.date} className="mb-4">
+              <p className="mb-2 text-[10px] font-semibold tracking-widest text-muted-foreground">{group.date}</p>
+              {group.events.map((ev, i) => (
+                <div key={ev.label} className="flex items-start gap-2.5">
+                  <div className="flex flex-col items-center">
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-500 text-white text-[8px] font-bold">✓</span>
+                    {i < group.events.length - 1 && <span className="w-px flex-1 bg-border" style={{ minHeight: '16px' }} />}
+                  </div>
+                  <div className="flex flex-1 items-center justify-between pb-2.5">
+                    <p className="text-xs font-medium text-foreground">{ev.label}</p>
+                    <p className="text-xs text-muted-foreground">{ev.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+
           {/* Activity Log */}
           <div className="mb-4">
             <p className="text-xs font-semibold text-foreground mb-2">Activity Log</p>
@@ -1215,6 +1348,48 @@ function JobDetailPanel({
               </button>
             </div>
           </div>
+
+          {/* Application Details */}
+          {APPLIED_DETAILS[jobId] && (
+            <div className="border-t border-border pt-4 space-y-4">
+              <p className="text-xs font-bold text-foreground">Application Details</p>
+
+              {/* Personal Info */}
+              {APPLIED_DETAILS[jobId]?.personalInfo && (
+                <div>
+                  <p className="text-xs font-semibold text-foreground mb-2">Personal Info</p>
+                  <div className="space-y-1.5">
+                    {APPLIED_DETAILS[jobId]!.personalInfo!.map((field) => (
+                      <PersonalInfoRow key={field.label} field={field} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Attachments */}
+              {APPLIED_DETAILS[jobId]?.attachments?.map((att) => (
+                <div key={att.label} className="rounded-lg border border-border bg-muted/30 p-3">
+                  <p className="text-xs text-muted-foreground mb-1">{att.label}</p>
+                  <div className="flex items-center gap-1.5">
+                    <Paperclip className="h-3 w-3 text-green-500 shrink-0" />
+                    <p className="text-xs text-foreground">{att.filename}</p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Application Questions */}
+              {APPLIED_DETAILS[jobId]?.applicationQuestions && (
+                <div>
+                  <p className="text-xs font-semibold text-foreground mb-2">Application Questions</p>
+                  <div className="space-y-1.5">
+                    {APPLIED_DETAILS[jobId]!.applicationQuestions!.map((q, i) => (
+                      <QuestionRow key={i} q={q} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
         </>
       ) : (

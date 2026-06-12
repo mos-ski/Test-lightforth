@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ExternalLink, FileText, ChevronDown, ChevronUp } from 'lucide-react'
-import { MOCK_APPLICATIONS, type AttemptDetail } from '@/data/mockApplications'
+import { ArrowLeft, ExternalLink, FileText, ChevronDown, ChevronUp, MessageSquare, Paperclip } from 'lucide-react'
+import { MOCK_APPLICATIONS, type AttemptDetail, type ApplicationQuestion } from '@/data/mockApplications'
 import { cn } from '@/lib/utils'
 
 const STATUS_PILL: Record<string, string> = {
@@ -207,6 +207,31 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
+      {app.timeline && app.timeline.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <h2 className="text-sm font-semibold text-gray-900 mb-4">Timeline</h2>
+          {app.timeline.map((group) => (
+            <div key={group.date} className="mb-2">
+              <p className="mb-3 text-[10px] font-semibold tracking-widest text-gray-400">{group.date}</p>
+              <div>
+                {group.events.map((ev, i) => (
+                  <div key={ev.label} className="flex items-start gap-3">
+                    <div className="flex flex-col items-center">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500 text-white text-[9px] font-bold">✓</span>
+                      {i < group.events.length - 1 && <span className="w-px flex-1 bg-gray-200 my-0.5" style={{ minHeight: '20px' }} />}
+                    </div>
+                    <div className="flex flex-1 items-center justify-between pb-3">
+                      <p className="text-sm font-medium text-gray-800">{ev.label}</p>
+                      <p className="text-xs text-gray-400">{ev.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         <div className="flex items-center gap-2 border-b border-gray-200 px-6 py-4">
           <span className="text-sm font-medium text-gray-700">👤</span>
@@ -253,16 +278,40 @@ export default function ApplicationDetailPage() {
           <FileText className="h-4 w-4 text-gray-500" />
           <h2 className="text-sm font-semibold text-gray-900">Documents Used</h2>
         </div>
-        <div className="p-6">
+        <div className="p-6 flex flex-wrap gap-3">
           <div className="inline-flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3">
             <FileText className="h-5 w-5 text-blue-500" />
             <div>
               <p className="text-sm font-medium text-gray-700">Resume</p>
-              <a href="#" className="text-xs text-blue-600 hover:underline">↗ View Resume</a>
+              <a href="#" className="text-xs text-blue-600 hover:underline">↗ {app.resumeName}</a>
             </div>
           </div>
+          {app.coverLetterName && (
+            <div className="inline-flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3">
+              <Paperclip className="h-5 w-5 text-purple-500" />
+              <div>
+                <p className="text-sm font-medium text-gray-700">Cover Letter</p>
+                <a href="#" className="text-xs text-blue-600 hover:underline">↗ {app.coverLetterName}</a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {app.applicationQuestions && app.applicationQuestions.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <div className="flex items-center gap-2 border-b border-gray-200 px-6 py-4">
+            <MessageSquare className="h-4 w-4 text-gray-500" />
+            <h2 className="text-sm font-semibold text-gray-900">Application Questions</h2>
+            <span className="ml-auto text-xs text-gray-400">{app.applicationQuestions.length} question{app.applicationQuestions.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="p-6 space-y-3">
+            {app.applicationQuestions.map((q, i) => (
+              <QuestionItem key={i} q={q} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {latestAttempt && (
         <div className="rounded-xl border border-gray-200 bg-white p-6">
@@ -318,6 +367,37 @@ function InfoGrid({ items }: { items: { label: string; value: React.ReactNode }[
           <p className="text-sm text-gray-800">{value}</p>
         </div>
       ))}
+    </div>
+  )
+}
+
+function QuestionItem({ q }: { q: ApplicationQuestion }) {
+  const [expanded, setExpanded] = useState(false)
+  const TRUNCATE_AT = 180
+  const needsTruncate = q.answer.length > TRUNCATE_AT
+
+  return (
+    <div className={cn('rounded-lg border p-4', q.incomplete ? 'border-orange-200 bg-orange-50' : 'border-gray-200 bg-gray-50')}>
+      <p className="text-xs font-medium text-gray-500 mb-2">{q.question}</p>
+      {q.incomplete || !q.answer ? (
+        <p className="flex items-center gap-1.5 text-sm text-orange-600">
+          <span>⚠</span> Not answered
+        </p>
+      ) : (
+        <>
+          <p className="text-sm text-gray-800 leading-relaxed">
+            {needsTruncate && !expanded ? `${q.answer.slice(0, TRUNCATE_AT)}…` : q.answer}
+          </p>
+          {needsTruncate && (
+            <button
+              onClick={() => setExpanded(v => !v)}
+              className="mt-2 text-xs font-medium text-blue-600 hover:underline"
+            >
+              {expanded ? 'Show less' : 'Show more'}
+            </button>
+          )}
+        </>
+      )}
     </div>
   )
 }
