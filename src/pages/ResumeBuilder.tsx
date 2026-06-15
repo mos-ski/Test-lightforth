@@ -6,6 +6,7 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  ChevronUp,
   Download,
   Eye,
   FileText,
@@ -2251,66 +2252,221 @@ function ATSScreen({
         <section className="flex min-h-[70vh] items-center justify-center overflow-auto rounded-md border border-slate-200 bg-[#eef1f5] p-3 shadow-inner sm:p-4 lg:min-h-0 lg:overflow-hidden">
           <ResumePaper editable resume={resume} setResume={setResume} fitViewport />
         </section>
-        <ATSOverviewPanel jobDescription={jobDescription} setJobDescription={setJobDescription} />
+        <ATSOverviewPanel resume={resume} jobDescription={jobDescription} setJobDescription={setJobDescription} />
       </main>
     </div>
   )
 }
 
 function ATSOverviewPanel({
+  resume,
   jobDescription,
   setJobDescription,
 }: {
+  resume: ResumeData
   jobDescription: string
   setJobDescription: Dispatch<SetStateAction<string>>
 }) {
-  const scores = [
-    ['Headline Match Score', 80, 'bg-emerald-500'],
-    ['Skill Match Score', 90, 'bg-emerald-500'],
-    ['Style Score', 80, 'bg-emerald-500'],
-    ['Impact Score', 90, 'bg-emerald-500'],
-    ['Experience Score', 90, 'bg-emerald-500'],
-    ['Total Score', 86, 'bg-emerald-500'],
-  ] as const
+  const insights = getATSInsights(resume, jobDescription)
+  const score = insights.score
+  const grade = score >= 85 ? 'A' : score >= 70 ? 'B' : 'C'
+  const gradeLabel = score >= 85 ? 'EXCELLENT' : score >= 70 ? 'GOOD' : 'NEEDS WORK'
+  const gradeColor = score >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : score >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-red-700 bg-red-50 border-red-200'
+
+  const hasMetrics = /\d|%|\$|revenue|growth|reduced|increased|launched|saved/i.test(resume.experienceBullets)
+  const hasSummary = resume.summary.trim().split(/\s+/).length >= 18
+  const hasSkills = resume.skills.split(',').filter((s) => s.trim()).length >= 6
+
+  const urgentCount = (!hasMetrics ? 1 : 0) + insights.missingKeywords.length
+  const criticalCount = !hasSummary ? 1 : 0
+  const optionalCount = !hasSkills ? 3 : 1
+
+  const [openSection, setOpenSection] = useState<number | null>(0)
+  const [jdOpen, setJdOpen] = useState(false)
+
+  const summaryText = (() => {
+    const parts: string[] = []
+    if (score >= 85) parts.push(`Your resume scores an ${gradeLabel} (${score}%).`)
+    else if (score >= 70) parts.push(`Your resume earns a solid ${grade} grade (${score}%).`)
+    else parts.push(`Your resume needs improvement (${score}%).`)
+    if (hasMetrics) parts.push('It showcases strong, quantifiable achievements.')
+    else parts.push('Adding measurable impact (numbers, %, $) would significantly boost your score.')
+    if (hasSummary) parts.push('Your summary is well-developed.')
+    else parts.push('Your summary needs more context to stand out.')
+    return parts.join(' ')
+  })()
+
+  const sections = [
+    {
+      number: 1,
+      title: 'Relevance',
+      issues: [
+        !hasSummary
+          ? { type: 'Minor' as const, label: 'Summary Needs Improvement', count: 1, desc: 'Your summary does not effectively showcase your qualifications and alignment with the job you are targeting.' }
+          : null,
+        insights.missingKeywords.length > 0
+          ? { type: 'Minor' as const, label: 'Missing Job Keywords', count: insights.missingKeywords.length, desc: `Keywords missing from your resume: ${insights.missingKeywords.slice(0, 4).join(', ')}.` }
+          : null,
+      ].filter(Boolean) as { type: 'Urgent' | 'Critical' | 'Minor'; label: string; count: number; desc: string }[],
+      why: 'Relevance ensures your experience and trajectory are directly aligned with the type of role you\'re applying for.',
+    },
+    {
+      number: 2,
+      title: 'Impact & Achievements',
+      issues: [
+        !hasMetrics
+          ? { type: 'Urgent' as const, label: 'Methodology Explanation', count: urgentCount, desc: 'Some of your experience lacks specific approaches and measurable outcomes that showcase domain expertise.' }
+          : null,
+      ].filter(Boolean) as { type: 'Urgent' | 'Critical' | 'Minor'; label: string; count: number; desc: string }[],
+      why: 'Achievements and impact are the backbone of a compelling resume. They showcase not just what you did, but how well you did it.',
+    },
+    {
+      number: 3,
+      title: 'Brevity & Effectiveness',
+      issues: [
+        { type: 'Minor' as const, label: 'Use of Filler Words', count: 1, desc: 'Your resume contains filler phrases that do not add value and could be streamlined for greater impact.' },
+        !hasSkills
+          ? { type: 'Minor' as const, label: 'Skills Section Incomplete', count: 1, desc: 'Add at least 6 specific skills to improve ATS keyword matching.' }
+          : null,
+      ].filter(Boolean) as { type: 'Urgent' | 'Critical' | 'Minor'; label: string; count: number; desc: string }[],
+      why: 'Brevity ensures your resume is concise and communicates your most relevant experiences swiftly. Recruiters spend only seconds scanning.',
+    },
+  ]
+
+  const badgeStyle = (type: 'Urgent' | 'Critical' | 'Minor') => {
+    if (type === 'Urgent') return 'bg-red-100 text-red-700'
+    if (type === 'Critical') return 'bg-amber-100 text-amber-700'
+    return 'bg-blue-100 text-blue-700'
+  }
+
   return (
     <aside className="min-h-0 overflow-y-auto rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-      <div className="rounded-lg border border-slate-200 p-5">
-        <div className="flex items-center gap-5">
-          <div className="relative grid h-16 w-16 place-items-center rounded-full bg-[conic-gradient(#16a34a_86%,#e5e7eb_0)]">
-            <div className="grid h-11 w-11 place-items-center rounded-full bg-white text-xs font-bold text-slate-600">86%</div>
+      {/* Header */}
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-sm font-bold text-slate-800">Resume Analysis Report</h2>
+        <span className="text-xs text-slate-400">Last updated just now</span>
+      </div>
+
+      {/* Grade + counters */}
+      <div className="mb-5 flex items-center gap-4 rounded-xl border border-slate-200 p-4">
+        <div className={cn('flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border-2 text-lg font-extrabold', gradeColor)}>
+          {grade}
+        </div>
+        <div>
+          <p className={cn('text-xs font-bold', gradeColor.split(' ')[0])}>{gradeLabel}</p>
+          <p className="text-[11px] text-slate-500">Overall score: {score}%</p>
+        </div>
+        <div className="ml-auto flex gap-3 text-center">
+          <div>
+            <p className="text-base font-bold text-red-600">{urgentCount}</p>
+            <p className="text-[9px] font-semibold uppercase tracking-wide text-red-400">Urgent Fix</p>
           </div>
           <div>
-            <h2 className="text-base font-bold">ATS Optimization Overview</h2>
-            <p className="text-sm text-slate-500">Adedamola's CV</p>
+            <p className="text-base font-bold text-amber-600">{criticalCount}</p>
+            <p className="text-[9px] font-semibold uppercase tracking-wide text-amber-400">Critical Fix</p>
+          </div>
+          <div>
+            <p className="text-base font-bold text-blue-600">{optionalCount}</p>
+            <p className="text-[9px] font-semibold uppercase tracking-wide text-blue-400">Optional</p>
           </div>
         </div>
-        <h3 className="mt-6 text-sm font-bold">Job Description</h3>
+      </div>
+
+      {/* Analysis Summary */}
+      <div className="mb-5 rounded-lg bg-slate-50 p-4">
+        <p className="mb-1 text-xs font-bold text-slate-700">Analysis Summary</p>
+        <p className="text-xs leading-5 text-slate-600">{summaryText}</p>
+      </div>
+
+      {/* Job Description (collapsible) */}
+      <button
+        onClick={() => setJdOpen((o) => !o)}
+        className="mb-3 flex w-full items-center justify-between text-xs font-semibold text-slate-600 hover:text-slate-800"
+      >
+        <span>Job Description (optional)</span>
+        {jdOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+      </button>
+      {jdOpen && (
         <textarea
           value={jobDescription}
-          onChange={(event) => setJobDescription(event.target.value)}
-          className="lf-input mt-3 h-28 w-full resize-none bg-white p-3 text-sm leading-6"
+          onChange={(e) => setJobDescription(e.target.value)}
+          placeholder="Paste the job description here to get tailored keyword analysis..."
+          className="lf-input mb-4 h-24 w-full resize-none p-3 text-xs leading-5"
         />
-        <div className="my-6 border-t border-slate-200" />
-        <div className="space-y-5 text-base font-semibold text-slate-600">
-          {['Contact Information', 'Professional Summary', 'Experience and Work History', 'Education', 'Skills'].map((item, index) => (
-            <p key={item} className="flex items-center gap-5">
-              <span className={cn('grid h-6 w-6 place-items-center rounded-full text-white', index === 0 || index === 3 ? 'bg-red-500' : 'bg-emerald-500')}>
-                {index === 0 || index === 3 ? '!' : '✓'}
+      )}
+
+      {/* Keyword match chips */}
+      {insights.matchedKeywords.length > 0 && (
+        <div className="mb-5">
+          <p className="mb-2 text-xs font-semibold text-slate-600">Matched Keywords</p>
+          <div className="flex flex-wrap gap-1.5">
+            {insights.matchedKeywords.map((kw) => (
+              <span key={kw} className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                ✓ {kw}
               </span>
-              {item}
-            </p>
-          ))}
+            ))}
+          </div>
         </div>
-        <div className="my-8 border-t border-slate-200" />
-        <div className="space-y-5">
-          {scores.map(([label, value, color]) => (
-            <div key={label}>
-              <div className="mb-2 flex justify-between text-sm text-slate-500"><span>{label}</span><span>{value}%</span></div>
-              <div className="h-1 rounded-full bg-slate-200"><div className={cn('h-1 rounded-full', color)} style={{ width: `${value}%` }} /></div>
-            </div>
-          ))}
-        </div>
+      )}
+
+      <div className="mb-1 border-t border-slate-100" />
+
+      {/* Analysis Highlights */}
+      <p className="mb-3 mt-4 text-xs font-bold text-slate-700">Analysis Highlights</p>
+      <div className="space-y-2">
+        {sections.map((sec) => (
+          <div key={sec.number} className="rounded-lg border border-slate-200 overflow-hidden">
+            <button
+              onClick={() => setOpenSection(openSection === sec.number ? null : sec.number)}
+              className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-[10px] font-bold text-white">
+                  {sec.number}
+                </span>
+                <span className="text-xs font-semibold text-slate-800">{sec.title}</span>
+              </div>
+              {openSection === sec.number ? (
+                <ChevronUp className="h-3.5 w-3.5 text-slate-400" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              )}
+            </button>
+
+            {openSection === sec.number && (
+              <div className="border-t border-slate-100 px-4 pb-4 pt-3">
+                {sec.issues.length === 0 ? (
+                  <p className="text-xs text-emerald-600">✓ No issues found in this area.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {sec.issues.map((issue) => (
+                      <div key={issue.label}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', badgeStyle(issue.type))}>
+                            {issue.type}
+                          </span>
+                          <span className="text-[11px] font-semibold text-slate-700">{issue.label}</span>
+                          <span className="text-[10px] text-slate-400">· {issue.count} {issue.count === 1 ? 'issue' : 'issues'}</span>
+                        </div>
+                        <p className="text-[11px] leading-4 text-slate-600">{issue.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-3 border-t border-slate-100 pt-3">
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Why This Is Important</p>
+                  <p className="text-[11px] leading-4 text-slate-500">{sec.why}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
+
+      {/* CTA */}
+      <button className="mt-5 w-full rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
+        Begin Improvements Now
+      </button>
     </aside>
   )
 }

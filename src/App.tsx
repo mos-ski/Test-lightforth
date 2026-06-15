@@ -7,6 +7,7 @@ import { lazy, Suspense } from 'react'
 import Auth from '@/pages/Auth'
 import Dashboard from '@/pages/Dashboard'
 
+const OnboardingFlow = lazy(() => import('@/pages/OnboardingFlow'))
 const MyDocuments = lazy(() => import('@/pages/MyDocuments'))
 const ResumeBuilder = lazy(() => import('@/pages/ResumeBuilder'))
 const AutoApply = lazy(() => import('@/pages/AutoApply'))
@@ -72,6 +73,7 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/auth/*" element={<Auth />} />
+            <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
             <Route path="/" element={<AppRoute><Dashboard /></AppRoute>} />
             <Route path="/documents" element={<AppRoute><Suspense fallback={null}><MyDocuments /></Suspense></AppRoute>} />
             <Route path="/resume-builder" element={<ProtectedRoute><Suspense fallback={null}><ResumeBuilder /></Suspense></ProtectedRoute>} />
