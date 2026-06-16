@@ -1230,9 +1230,10 @@ function JobDetailPanel({
   const hasFailed = tab === 'applied' && issue && issue.status !== 'resolved'
   const isRetrying = issue?.status === 'retrying'
   const isApplied = tab === 'applied' && !hasFailed
+  const [detailsOpen, setDetailsOpen] = useState(false)
 
   return (
-    <div className="w-full flex-shrink-0 rounded-xl border border-border bg-white overflow-y-auto lg:w-80">
+    <div className="w-full flex-shrink-0 rounded-xl border border-border bg-white lg:w-80 lg:sticky lg:top-4 lg:max-h-[calc(100vh-180px)] overflow-y-auto">
       {/* Header with close */}
       <div className="flex items-start justify-between border-b border-border p-4 pb-3">
         <div>
@@ -1350,43 +1351,53 @@ function JobDetailPanel({
             </div>
           </div>
 
-          {/* Application Details */}
+          {/* Application Details — collapsible */}
           {APPLIED_DETAILS[jobId] && (
-            <div className="border-t border-border pt-4 space-y-4">
-              <p className="text-xs font-bold text-foreground">Application Details</p>
+            <div className="border-t border-border pt-3">
+              <button
+                onClick={() => setDetailsOpen((v) => !v)}
+                className="flex w-full items-center justify-between rounded-lg px-1 py-1.5 text-left transition-colors hover:bg-muted/30"
+              >
+                <span className="text-xs font-bold text-foreground">Application Details</span>
+                <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform', detailsOpen && 'rotate-180')} />
+              </button>
 
-              {/* Personal Info */}
-              {APPLIED_DETAILS[jobId]?.personalInfo && (
-                <div>
-                  <p className="text-xs font-semibold text-foreground mb-2">Personal Info</p>
-                  <div className="space-y-1.5">
-                    {APPLIED_DETAILS[jobId]!.personalInfo!.map((field) => (
-                      <PersonalInfoRow key={field.label} field={field} />
-                    ))}
-                  </div>
-                </div>
-              )}
+              {detailsOpen && (
+                <div className="mt-3 space-y-4">
+                  {/* Personal Info */}
+                  {APPLIED_DETAILS[jobId]?.personalInfo && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-2">Personal Info</p>
+                      <div className="space-y-1.5">
+                        {APPLIED_DETAILS[jobId]!.personalInfo!.map((field) => (
+                          <PersonalInfoRow key={field.label} field={field} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-              {/* Attachments */}
-              {APPLIED_DETAILS[jobId]?.attachments?.map((att) => (
-                <div key={att.label} className="rounded-lg border border-border bg-muted/30 p-3">
-                  <p className="text-xs text-muted-foreground mb-1">{att.label}</p>
-                  <div className="flex items-center gap-1.5">
-                    <Paperclip className="h-3 w-3 text-green-500 shrink-0" />
-                    <p className="text-xs text-foreground">{att.filename}</p>
-                  </div>
-                </div>
-              ))}
+                  {/* Attachments */}
+                  {APPLIED_DETAILS[jobId]?.attachments?.map((att) => (
+                    <div key={att.label} className="rounded-lg border border-border bg-muted/30 p-3">
+                      <p className="text-xs text-muted-foreground mb-1">{att.label}</p>
+                      <div className="flex items-center gap-1.5">
+                        <Paperclip className="h-3 w-3 text-green-500 shrink-0" />
+                        <p className="text-xs text-foreground">{att.filename}</p>
+                      </div>
+                    </div>
+                  ))}
 
-              {/* Application Questions */}
-              {APPLIED_DETAILS[jobId]?.applicationQuestions && (
-                <div>
-                  <p className="text-xs font-semibold text-foreground mb-2">Application Questions</p>
-                  <div className="space-y-1.5">
-                    {APPLIED_DETAILS[jobId]!.applicationQuestions!.map((q, i) => (
-                      <QuestionRow key={i} q={q} />
-                    ))}
-                  </div>
+                  {/* Application Questions */}
+                  {APPLIED_DETAILS[jobId]?.applicationQuestions && (
+                    <div>
+                      <p className="text-xs font-semibold text-foreground mb-2">Application Questions</p>
+                      <div className="space-y-1.5">
+                        {APPLIED_DETAILS[jobId]!.applicationQuestions!.map((q, i) => (
+                          <QuestionRow key={i} q={q} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
