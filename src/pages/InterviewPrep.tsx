@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import DocumentPickerModal from '@/components/shared/DocumentPickerModal'
 
 type PrepView = 'home' | 'setup' | 'voice' | 'instructions' | 'live' | 'complete' | 'report'
 type ReportTab = 'focus' | 'feedback'
@@ -237,7 +238,10 @@ function Home({ onStart, onReport }: { onStart: () => void; onReport: () => void
 }
 
 function Setup({ onBack, onClose, onNext }: { onBack: () => void; onClose: () => void; onNext: () => void }) {
-  const [modal, setModal] = useState(false)
+  const [prefModal, setPrefModal]   = useState(false)
+  const [docModal, setDocModal]     = useState(false)
+  const [company, setCompany]       = useState('')
+  const [addedDocs, setAddedDocs]   = useState<{ name: string; type: string }[]>([])
 
   return (
     <div className="fixed inset-0 z-[9999] overflow-hidden bg-background">
@@ -258,6 +262,17 @@ function Setup({ onBack, onClose, onNext }: { onBack: () => void; onClose: () =>
               <button className="text-primary hover:underline">Product Manager</button>
             </div>
           </label>
+
+          <label className="block">
+            <span className="lf-label mb-2 block">Company <span className="text-xs text-muted-foreground">(optional)</span></span>
+            <input
+              className="lf-input h-11"
+              placeholder="e.g. Microsoft, Google…"
+              value={company}
+              onChange={e => setCompany(e.target.value)}
+            />
+          </label>
+
           <div>
             <p className="lf-label mb-2">Choose resume</p>
             <div className="grid gap-3 md:grid-cols-2">
@@ -277,6 +292,43 @@ function Setup({ onBack, onClose, onNext }: { onBack: () => void; onClose: () =>
               <button aria-label="Remove resume"><X className="h-3.5 w-3.5 hover:text-destructive" /></button>
             </div>
           </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="lf-label">Documents <span className="text-xs text-muted-foreground font-normal">(optional)</span></p>
+              <button
+                onClick={() => setDocModal(true)}
+                className="flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+              >
+                <Plus className="h-3 w-3" /> Add Documents
+              </button>
+            </div>
+            {addedDocs.length === 0 ? (
+              <button
+                onClick={() => setDocModal(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 py-3 text-xs text-muted-foreground hover:border-primary/40 hover:bg-primary/5 transition"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add context, notes, or other docs
+              </button>
+            ) : (
+              <div className="space-y-1.5">
+                {addedDocs.map((doc, i) => (
+                  <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-foreground">
+                    <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="flex-1 truncate">{doc.name}</span>
+                    <span className="text-[10px] text-muted-foreground">{doc.type}</span>
+                    <button onClick={() => setAddedDocs(prev => prev.filter((_, j) => j !== i))} aria-label="Remove">
+                      <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                    </button>
+                  </div>
+                ))}
+                <button onClick={() => setDocModal(true)} className="flex items-center gap-1 text-xs text-primary hover:underline pt-1">
+                  <Plus className="h-3 w-3" /> Add more
+                </button>
+              </div>
+            )}
+          </div>
+
           <label className="block">
             <span className="lf-label mb-2 block">Job description <span className="text-xs text-muted-foreground">(optional)</span></span>
             <div className="relative">
@@ -287,11 +339,12 @@ function Setup({ onBack, onClose, onNext }: { onBack: () => void; onClose: () =>
               </button>
             </div>
           </label>
-          <Button className="h-11 w-full" onClick={() => setModal(true)}>Continue</Button>
+          <Button className="h-11 w-full" onClick={() => setPrefModal(true)}>Continue</Button>
         </div>
       </div>
       </main>
-      {modal && <PreferenceModal onClose={() => setModal(false)} onNext={onNext} />}
+      {prefModal && <PreferenceModal onClose={() => setPrefModal(false)} onNext={onNext} />}
+      {docModal && <DocumentPickerModal onClose={() => setDocModal(false)} onAdd={doc => setAddedDocs(prev => [...prev, doc])} />}
     </div>
   )
 }

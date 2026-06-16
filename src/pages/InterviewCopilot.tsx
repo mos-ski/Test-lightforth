@@ -2,9 +2,10 @@ import { useState, useEffect, useRef, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, X, Settings, Upload, FileText, Mic, Sparkles,
-  ChevronDown, Search, Play, Monitor, Video, Phone, MoreVertical, MessageSquare, Users,
+  ChevronDown, Search, Play, Monitor, Video, Phone, MoreVertical, MessageSquare, Users, Plus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import DocumentPickerModal from '@/components/shared/DocumentPickerModal'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -286,6 +287,8 @@ function LandingContent({
 function SetupContent({
   jobTitle,
   setJobTitle,
+  company,
+  setCompany,
   resumeType,
   setResumeType,
   jobDesc,
@@ -299,6 +302,8 @@ function SetupContent({
 }: {
   jobTitle: string
   setJobTitle: (v: string) => void
+  company: string
+  setCompany: (v: string) => void
   resumeType: 'upload' | 'lightforth'
   setResumeType: (v: 'upload' | 'lightforth') => void
   jobDesc: string
@@ -310,6 +315,9 @@ function SetupContent({
   onBack: () => void
   onContinue: () => void
 }) {
+  const [docModal, setDocModal]   = useState(false)
+  const [addedDocs, setAddedDocs] = useState<{ name: string; type: string }[]>([])
+
   return (
     <>
       <div className="flex min-h-[64px] items-center justify-between gap-3 border-b border-border bg-white px-4 py-3 sm:px-6 lg:h-[70px] lg:px-16">
@@ -355,6 +363,16 @@ function SetupContent({
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="lf-label mb-2 block">Company <span className="text-xs text-muted-foreground font-normal">(optional)</span></label>
+          <input
+            value={company}
+            onChange={e => setCompany(e.target.value)}
+            placeholder="e.g. Microsoft, Google…"
+            className="lf-input h-11"
+          />
         </div>
 
         <div className="mb-4">
@@ -407,6 +425,38 @@ function SetupContent({
               <Sparkles className="h-3 w-3" /> Suggest for me
             </button>
           </div>
+        </div>
+
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <label className="lf-label">Documents <span className="text-xs text-muted-foreground font-normal">(optional)</span></label>
+            <button onClick={() => setDocModal(true)} className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+              <Plus className="h-3 w-3" /> Add Documents
+            </button>
+          </div>
+          {addedDocs.length === 0 ? (
+            <button onClick={() => setDocModal(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 py-3 text-xs text-muted-foreground hover:border-primary/40 hover:bg-primary/5 transition">
+              <Plus className="h-3.5 w-3.5" /> Add context, notes, or other docs
+            </button>
+          ) : (
+            <div className="space-y-1.5">
+              {addedDocs.map((doc, i) => (
+                <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-xs text-foreground">
+                  <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <span className="flex-1 truncate">{doc.name}</span>
+                  <span className="text-[10px] text-muted-foreground">{doc.type}</span>
+                  <button onClick={() => setAddedDocs(prev => prev.filter((_, j) => j !== i))} aria-label="Remove">
+                    <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                  </button>
+                </div>
+              ))}
+              <button onClick={() => setDocModal(true)} className="flex items-center gap-1 text-xs text-primary hover:underline pt-0.5">
+                <Plus className="h-3 w-3" /> Add more
+              </button>
+            </div>
+          )}
+          {docModal && <DocumentPickerModal onClose={() => setDocModal(false)} onAdd={doc => setAddedDocs(prev => [...prev, doc])} />}
         </div>
 
         <div className="mb-6">
@@ -1097,6 +1147,7 @@ export default function InterviewCopilot() {
   const [responseType, setResponseType] = useState<ResponseType>('default')
   const [liveState, setLiveState] = useState<LiveState>('waiting')
   const [jobTitle, setJobTitle] = useState('')
+  const [company, setCompany]   = useState('')
   const [resumeType, setResumeType] = useState<'upload' | 'lightforth'>('lightforth')
   const [jobDesc, setJobDesc] = useState('')
   const [audioConnected, setAudioConnected] = useState(false)
@@ -1175,6 +1226,8 @@ export default function InterviewCopilot() {
           <SetupContent
             jobTitle={jobTitle}
             setJobTitle={setJobTitle}
+            company={company}
+            setCompany={setCompany}
             resumeType={resumeType}
             setResumeType={setResumeType}
             jobDesc={jobDesc}
