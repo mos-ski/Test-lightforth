@@ -39,16 +39,16 @@ type AutoApplyIssue = {
 // ─── Mock Data ──────────────────────────────────────────────────────────────
 
 const MOCK_JOBS = [
-  { id: '1', title: 'Senior Frontend Engineer', company: 'Google', location: 'Mountain View, CA', salary: '$180k/yr', type: 'Full-time', level: 'Senior Level', source: 'Indeed', date: 'Feb 8, 2026', applicants: 59, match: 95, matchLabel: 'EXCELLENT MATCH', matchHighlight: 'H1B Sponsor Likely', resumeUsed: 'Resume_Tailored_Google.pdf' },
-  { id: '2', title: 'Product Designer', company: 'Apple', location: 'Cupertino, CA', salary: 'Competitive', type: 'Full-time', level: 'Senior Level', source: 'LinkedIn', date: 'Feb 7, 2026', applicants: 191, match: 88, matchLabel: 'STRONG MATCH', matchHighlight: 'Growth Opportunities', resumeUsed: 'Resume_Tailored_Apple.pdf' },
-  { id: '3', title: 'Data Scientist', company: 'Meta', location: 'Menlo Park, CA', salary: '$160k–$200k/yr', type: 'Full-time', level: 'Mid, Senior Level', source: 'Workable', date: 'Feb 6, 2026', applicants: 83, match: 78, matchLabel: 'GOOD MATCH', matchHighlight: 'Remote-Friendly', resumeUsed: 'Resume_Tailored_Meta.pdf' },
-  { id: '4', title: 'UX Researcher', company: 'Amazon', location: 'Seattle, WA', salary: '$130k–$160k/yr', type: 'Full-time', level: 'Mid Level', source: 'Monster', date: 'Feb 5, 2026', applicants: 44, match: 85, matchLabel: 'STRONG MATCH', matchHighlight: 'H1B Sponsor Likely', resumeUsed: 'Resume_Tailored_Amazon.pdf' },
-  { id: '5', title: 'Backend Developer', company: 'Netflix', location: 'Los Gatos, CA', salary: '$190k/yr', type: 'Full-time', level: 'Senior Level', source: 'ZipRecruiter', date: 'Feb 4, 2026', applicants: 22, match: 91, matchLabel: 'EXCELLENT MATCH', matchHighlight: 'Top Compensation', resumeUsed: 'Resume_Tailored_Netflix.pdf' },
-  { id: '6', title: 'Mobile App Developer', company: 'Microsoft', location: 'Redmond, WA', salary: '$150k/yr', type: 'Full-time', level: 'Mid Level', source: 'CareerBuilder', date: 'Feb 3, 2026', applicants: 67, match: 72, matchLabel: 'GOOD MATCH', matchHighlight: 'Remote Option', resumeUsed: 'Resume_Tailored_Microsoft.pdf' },
-  { id: '7', title: 'DevOps Engineer', company: 'Slack', location: 'San Francisco, CA', salary: '$145k/yr', type: 'Full-time', level: 'Senior Level', source: 'Remote.co', date: 'Feb 2, 2026', applicants: 38, match: 80, matchLabel: 'STRONG MATCH', matchHighlight: 'Remote-Friendly', resumeUsed: 'Resume_Tailored_Slack.pdf' },
-  { id: '8', title: 'Data Analyst', company: 'Airbnb', location: 'San Francisco, CA', salary: '$120k/yr', type: 'Full-time', level: 'Mid Level', source: 'Glassdoor', date: 'Feb 1, 2026', applicants: 112, match: 74, matchLabel: 'GOOD MATCH', matchHighlight: 'Growth Opportunities', resumeUsed: 'Resume_Tailored_Airbnb.pdf' },
-  { id: '9', title: 'Software Architect', company: 'Uber', location: 'San Francisco, CA', salary: '$200k+/yr', type: 'Full-time', level: 'Lead Level', source: 'FlexJobs', date: 'Jan 31, 2026', applicants: 29, match: 87, matchLabel: 'STRONG MATCH', matchHighlight: 'H1B Sponsor Likely', resumeUsed: 'Resume_Tailored_Uber.pdf' },
-  { id: '10', title: 'Machine Learning Engineer', company: 'Lyft', location: 'San Francisco, CA', salary: '$170k/yr', type: 'Full-time', level: 'Senior Level', source: 'AngelList', date: 'Jan 30, 2026', applicants: 55, match: 93, matchLabel: 'EXCELLENT MATCH', matchHighlight: 'AI-Focused Team', resumeUsed: 'Resume_Tailored_Lyft.pdf' },
+  { id: '1', title: 'Senior Frontend Engineer', company: 'Google', location: 'Mountain View, CA', salary: '$180k/yr', type: 'Full-time', level: 'Senior Level', source: 'Indeed', date: 'Feb 8, 2026', applicants: 59, match: 95, matchLabel: 'EXCELLENT MATCH', matchHighlight: 'H1B Sponsor Likely', resumeUsed: 'Resume_Tailored_Google.pdf', description: 'Build and maintain high-performance web applications used by billions. You\'ll partner with product managers, designers, and backend engineers to ship polished, accessible interfaces. Strong React, TypeScript, and performance optimisation skills required.', perks: ['Competitive equity & RSUs', 'Full health, dental & vision', 'H1B sponsorship', '20 weeks parental leave', 'Free meals on campus', '$10k annual learning budget'] },
+  { id: '2', title: 'Product Designer', company: 'Apple', location: 'Cupertino, CA', salary: 'Competitive', type: 'Full-time', level: 'Senior Level', source: 'LinkedIn', date: 'Feb 7, 2026', applicants: 191, match: 88, matchLabel: 'STRONG MATCH', matchHighlight: 'Growth Opportunities', resumeUsed: 'Resume_Tailored_Apple.pdf', description: 'Join the team that defines how hundreds of millions of people interact with technology. You\'ll design end-to-end experiences across hardware and software, bringing exceptional taste and rigor to every interaction.', perks: ['Product discounts', 'RSU grants', 'On-site fitness centres', 'Sabbatical programme', 'Full medical coverage', 'Commuter benefits'] },
+  { id: '3', title: 'Data Scientist', company: 'Meta', location: 'Menlo Park, CA', salary: '$160k–$200k/yr', type: 'Full-time', level: 'Mid, Senior Level', source: 'Workable', date: 'Feb 6, 2026', applicants: 83, match: 78, matchLabel: 'GOOD MATCH', matchHighlight: 'Remote-Friendly', resumeUsed: 'Resume_Tailored_Meta.pdf', description: 'Use data at unprecedented scale to shape products for 3 billion people. You\'ll run experiments, build predictive models, and partner with product teams to drive business decisions across the family of apps.', perks: ['Generous RSU package', 'Remote-friendly policy', 'Free meals', '$4k tech stipend', 'Mental health support', 'On-site healthcare'] },
+  { id: '4', title: 'UX Researcher', company: 'Amazon', location: 'Seattle, WA', salary: '$130k–$160k/yr', type: 'Full-time', level: 'Mid Level', source: 'Monster', date: 'Feb 5, 2026', applicants: 44, match: 85, matchLabel: 'STRONG MATCH', matchHighlight: 'H1B Sponsor Likely', resumeUsed: 'Resume_Tailored_Amazon.pdf', description: 'Lead qualitative and quantitative research that shapes the shopping experiences of hundreds of millions of customers. You\'ll own studies from scoping through synthesis and present findings to senior leadership.', perks: ['Sign-on bonus', 'H1B sponsorship', 'Relocation assistance', 'Comprehensive health plans', '401k match', 'Employee discount'] },
+  { id: '5', title: 'Backend Developer', company: 'Netflix', location: 'Los Gatos, CA', salary: '$190k/yr', type: 'Full-time', level: 'Senior Level', source: 'ZipRecruiter', date: 'Feb 4, 2026', applicants: 22, match: 91, matchLabel: 'EXCELLENT MATCH', matchHighlight: 'Top Compensation', resumeUsed: 'Resume_Tailored_Netflix.pdf', description: 'Build the systems that deliver entertainment to 260M+ subscribers worldwide. You\'ll work on high-throughput APIs, streaming infrastructure, and distributed systems that must remain resilient at massive scale.', perks: ['Industry-leading salary', 'Unlimited PTO', 'No bureaucracy culture', 'Top-tier health coverage', 'Stock options', 'Annual travel allowance'] },
+  { id: '6', title: 'Mobile App Developer', company: 'Microsoft', location: 'Redmond, WA', salary: '$150k/yr', type: 'Full-time', level: 'Mid Level', source: 'CareerBuilder', date: 'Feb 3, 2026', applicants: 67, match: 72, matchLabel: 'GOOD MATCH', matchHighlight: 'Remote Option', resumeUsed: 'Resume_Tailored_Microsoft.pdf', description: 'Develop cross-platform mobile experiences for Microsoft\'s productivity suite. You\'ll write Swift and Kotlin across iOS and Android, collaborating with design and platform teams to deliver polished, accessible apps.', perks: ['Hybrid work options', 'ESPP', 'Comprehensive wellness', 'Generous 401k', 'Free Xbox & Surface', 'Tuition reimbursement'] },
+  { id: '7', title: 'DevOps Engineer', company: 'Slack', location: 'San Francisco, CA', salary: '$145k/yr', type: 'Full-time', level: 'Senior Level', source: 'Remote.co', date: 'Feb 2, 2026', applicants: 38, match: 80, matchLabel: 'STRONG MATCH', matchHighlight: 'Remote-Friendly', resumeUsed: 'Resume_Tailored_Slack.pdf', description: 'Own the infrastructure that keeps Slack running for 38M daily active users. You\'ll drive improvements to our CI/CD pipelines, Kubernetes clusters, and incident response processes while championing reliability across engineering.', perks: ['Fully remote role', 'Home office stipend', 'Salesforce parent benefits', '$2k wellness budget', 'Equity', 'Flexible PTO'] },
+  { id: '8', title: 'Data Analyst', company: 'Airbnb', location: 'San Francisco, CA', salary: '$120k/yr', type: 'Full-time', level: 'Mid Level', source: 'Glassdoor', date: 'Feb 1, 2026', applicants: 112, match: 74, matchLabel: 'GOOD MATCH', matchHighlight: 'Growth Opportunities', resumeUsed: 'Resume_Tailored_Airbnb.pdf', description: 'Turn Airbnb\'s rich data into insights that guide product strategy and business decisions. You\'ll build dashboards, run A/B analyses, and partner with cross-functional teams to improve the host and guest experience.', perks: ['Annual travel credit', 'Equity grants', 'Remote-first culture', 'Comprehensive health', 'Career growth support', 'Paid volunteer time'] },
+  { id: '9', title: 'Software Architect', company: 'Uber', location: 'San Francisco, CA', salary: '$200k+/yr', type: 'Full-time', level: 'Lead Level', source: 'FlexJobs', date: 'Jan 31, 2026', applicants: 29, match: 87, matchLabel: 'STRONG MATCH', matchHighlight: 'H1B Sponsor Likely', resumeUsed: 'Resume_Tailored_Uber.pdf', description: 'Define the technical direction for Uber\'s core platform services. You\'ll make foundational decisions that affect thousands of engineers and millions of trips per day, balancing scalability, reliability, and developer experience.', perks: ['H1B sponsorship', 'Top-band compensation', 'Uber credits', 'Stock options', 'Hybrid flexibility', 'Annual learning stipend'] },
+  { id: '10', title: 'Machine Learning Engineer', company: 'Lyft', location: 'San Francisco, CA', salary: '$170k/yr', type: 'Full-time', level: 'Senior Level', source: 'AngelList', date: 'Jan 30, 2026', applicants: 55, match: 93, matchLabel: 'EXCELLENT MATCH', matchHighlight: 'AI-Focused Team', resumeUsed: 'Resume_Tailored_Lyft.pdf', description: 'Build ML systems that power ride pricing, matching, and demand forecasting at Lyft. You\'ll train and deploy production models, design data pipelines, and collaborate with research scientists to push model quality forward.', perks: ['AI-focused team', 'Lyft credits', 'Equity upside', 'Flexible remote days', 'Mental health days', 'Competitive health plan'] },
 ]
 
 interface AppliedDetail {
@@ -60,7 +60,7 @@ interface AppliedDetail {
 
 const APPLIED_DETAILS: Record<string, AppliedDetail> = {
   '1': {
-    timeline: [{ date: 'FEB 8', events: [{ label: 'You swiped right', time: '09:14 AM' }, { label: 'Application submitted', time: '09:18 AM' }] }],
+    timeline: [{ date: 'FEB 8', events: [{ label: 'Clicked Apply', time: '09:14 AM' }, { label: 'Application submitted', time: '09:18 AM' }] }],
     personalInfo: [
       { label: 'First Name', value: 'Darnell' },
       { label: 'Last Name', value: 'Brooks' },
@@ -82,7 +82,7 @@ const APPLIED_DETAILS: Record<string, AppliedDetail> = {
     ],
   },
   '2': {
-    timeline: [{ date: 'FEB 7', events: [{ label: 'You swiped right', time: '02:30 PM' }, { label: 'Application blocked', time: '02:34 PM' }] }],
+    timeline: [{ date: 'FEB 7', events: [{ label: 'Clicked Apply', time: '02:30 PM' }, { label: 'Application blocked', time: '02:34 PM' }] }],
     personalInfo: [
       { label: 'First Name', value: 'Darnell' },
       { label: 'Last Name', value: 'Brooks' },
@@ -97,7 +97,7 @@ const APPLIED_DETAILS: Record<string, AppliedDetail> = {
     ],
   },
   '3': {
-    timeline: [{ date: 'FEB 6', events: [{ label: 'You swiped right', time: '11:05 AM' }, { label: 'Application submitted', time: '11:11 AM' }] }],
+    timeline: [{ date: 'FEB 6', events: [{ label: 'Clicked Apply', time: '11:05 AM' }, { label: 'Application submitted', time: '11:11 AM' }] }],
     personalInfo: [
       { label: 'First Name', value: 'Darnell' },
       { label: 'Last Name', value: 'Brooks' },
@@ -1406,6 +1406,46 @@ function JobDetailPanel({
         </>
       ) : (
         <>
+          {/* Match score */}
+          <div className="mb-4 rounded-lg bg-[#EEF4FF] p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-primary">{job.matchLabel}</p>
+                {job.matchHighlight && <p className="mt-0.5 text-xs text-primary/70">✓ {job.matchHighlight}</p>}
+              </div>
+              <span className="text-2xl font-bold text-primary">{job.match}%</span>
+            </div>
+          </div>
+
+          {/* Job meta */}
+          <div className="mb-4 flex flex-wrap gap-1.5">
+            <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">{job.type}</span>
+            <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">{job.level}</span>
+            <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">{job.applicants} applicants</span>
+          </div>
+
+          {/* Job description */}
+          {'description' in job && job.description && (
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-foreground mb-1.5">About the role</p>
+              <p className="text-xs leading-relaxed text-muted-foreground">{job.description}</p>
+            </div>
+          )}
+
+          {/* Perks */}
+          {'perks' in job && Array.isArray(job.perks) && job.perks.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-foreground mb-2">Perks & Benefits</p>
+              <div className="flex flex-wrap gap-1.5">
+                {(job.perks as string[]).map((perk) => (
+                  <span key={perk} className="rounded-full border border-border bg-muted/30 px-2.5 py-1 text-[11px] text-muted-foreground">
+                    {perk}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Credit info */}
           <div className="mb-4 rounded-lg border border-border p-3">
             <p className="text-xs font-semibold text-foreground mb-0.5">24/50 Credit Left</p>
@@ -1599,45 +1639,47 @@ function AppliedTab({
         </div>
 
         <div className="lf-table-wrap">
-          <table className="lf-table">
-            <thead className="lf-table-head">
-              <tr>
-                <th className="lf-table-th">Title <ArrowDown className="inline h-3 w-3" /></th>
-                <th className="lf-table-th">Source <ArrowDown className="inline h-3 w-3" /></th>
-                <th className="lf-table-th text-right">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((job) => (
-                <tr
+          <div className="divide-y divide-border/60">
+            {filtered.map((job) => {
+              const mockJob = MOCK_JOBS.find((m) => m.id === job.id)
+              const statusCls = job.status === 'pending' ? 'bg-amber-100 text-amber-700' : job.status === 'failed' ? 'bg-red-100 text-red-700' : job.status === 'retrying' ? 'bg-blue-100 text-blue-700' : 'bg-green-500 text-white'
+              const statusLabel = job.status === 'pending' ? 'Pending' : job.status === 'failed' ? 'Failed' : job.status === 'retrying' ? 'Retrying' : 'Applied'
+              return (
+                <div
                   key={job.id}
                   onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
-                  className={cn('lf-table-row cursor-pointer', selectedJob === job.id && 'bg-primary/5')}
+                  className={cn('flex cursor-pointer items-start gap-3 p-4 transition-colors hover:bg-muted/30', selectedJob === job.id && 'bg-primary/5')}
                 >
-                  <td className="lf-table-cell">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="h-4 w-4 text-primary/60 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-foreground">{job.title}</p>
-                        <p className="text-xs text-muted-foreground">{job.company} · {job.location}</p>
-                      </div>
+                  {/* Company initials */}
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                    {job.company.slice(0, 2).toUpperCase()}
+                  </div>
+
+                  {/* Job details */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-foreground">{job.title}</p>
+                      {mockJob && <MatchBadge score={mockJob.match} label={mockJob.matchLabel} />}
                     </div>
-                  </td>
-                  <td className="lf-table-cell text-muted-foreground">{job.source}</td>
-                  <td className="lf-table-cell text-right">
-                    <span className={cn(
-                      'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold',
-                      job.status === 'pending' ? 'bg-amber-100 text-amber-700' : job.status === 'failed' ? 'bg-red-100 text-red-700' : job.status === 'retrying' ? 'bg-blue-100 text-blue-700' : 'bg-green-500 text-white',
-                    )}>
-                      {job.status === 'pending' && <Clock3 className="h-3 w-3" />}
-                      {job.status === 'retrying' && <Clock3 className="h-3 w-3" />}
-                      {job.status === 'pending' ? 'Pending' : job.status === 'failed' ? 'Failed' : job.status === 'retrying' ? 'Retrying' : 'Applied'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {job.company} · {job.location} · {job.type} · {job.level}
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span>{job.salary}</span>
+                      <span>{job.source}</span>
+                      <span>{job.date}</span>
+                    </div>
+                  </div>
+
+                  {/* Status */}
+                  <span className={cn('flex-shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold', statusCls)}>
+                    {(job.status === 'pending' || job.status === 'retrying') && <Clock3 className="h-3 w-3" />}
+                    {statusLabel}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
         </div>
         <button className="mt-3 w-full text-center text-sm text-primary hover:underline">Load more</button>
       </div>

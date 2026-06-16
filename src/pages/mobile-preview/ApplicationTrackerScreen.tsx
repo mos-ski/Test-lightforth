@@ -81,7 +81,7 @@ const TRACKER_APPS: TrackerApp[] = [
       { label: 'Opened job page', done: true }, { label: 'Filled application form', done: true }, { label: 'Uploaded tailored resume', done: true }, { label: 'Submitted application', done: true },
     ],
     timeline: [
-      { date: 'FEB 8', events: [{ label: 'You swiped right', time: '09:14 AM' }, { label: 'Application submitted', time: '09:18 AM' }] },
+      { date: 'FEB 8', events: [{ label: 'Tapped Apply', time: '09:14 AM' }, { label: 'Application submitted', time: '09:18 AM' }] },
     ],
     personalInfo: [
       { label: 'First Name', value: 'Darnell' },
@@ -118,7 +118,7 @@ const TRACKER_APPS: TrackerApp[] = [
       { label: 'Opened job page', done: true }, { label: 'Filled available fields', done: true }, { label: 'Uploaded tailored resume', done: true }, { label: 'Blocked: portfolio required', done: false },
     ],
     timeline: [
-      { date: 'FEB 7', events: [{ label: 'You swiped right', time: '02:30 PM' }, { label: 'Application blocked', time: '02:34 PM' }] },
+      { date: 'FEB 7', events: [{ label: 'Tapped Apply', time: '02:30 PM' }, { label: 'Application blocked', time: '02:34 PM' }] },
     ],
     personalInfo: [
       { label: 'First Name', value: 'Darnell' },
