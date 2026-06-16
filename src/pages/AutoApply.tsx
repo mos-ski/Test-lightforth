@@ -1407,15 +1407,22 @@ function JobDetailPanel({
       ) : (
         <>
           {/* Match score */}
-          <div className="mb-4 rounded-lg bg-[#EEF4FF] p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-primary">{job.matchLabel}</p>
-                {job.matchHighlight && <p className="mt-0.5 text-xs text-primary/70">✓ {job.matchHighlight}</p>}
+          {(() => {
+            const s = job.match
+            const bg = s >= 90 ? 'bg-green-50' : s >= 80 ? 'bg-[#EEF4FF]' : s >= 70 ? 'bg-amber-50' : 'bg-muted/40'
+            const fg = s >= 90 ? 'text-green-700' : s >= 80 ? 'text-primary' : s >= 70 ? 'text-amber-700' : 'text-muted-foreground'
+            return (
+              <div className={cn('mb-4 rounded-lg p-3', bg)}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={cn('text-xs font-semibold', fg)}>{job.matchLabel}</p>
+                    {job.matchHighlight && <p className={cn('mt-0.5 text-xs opacity-75', fg)}>✓ {job.matchHighlight}</p>}
+                  </div>
+                  <span className={cn('text-2xl font-bold', fg)}>{job.match}%</span>
+                </div>
               </div>
-              <span className="text-2xl font-bold text-primary">{job.match}%</span>
-            </div>
-          </div>
+            )
+          })()}
 
           {/* Job meta */}
           <div className="mb-4 flex flex-wrap gap-1.5">
@@ -1471,13 +1478,15 @@ function JobDetailPanel({
 const FILTER_PILLS = ['Location', 'Job Function', 'Experience Level', 'Job Type', 'Date Posted']
 
 function MatchBadge({ score, label }: { score: number; label: string }) {
-  const isExcellent = score >= 90
-  const isStrong = score >= 80
+  const cls = score >= 90
+    ? 'bg-green-100 text-green-700'
+    : score >= 80
+    ? 'bg-primary/10 text-primary'
+    : score >= 70
+    ? 'bg-amber-100 text-amber-700'
+    : 'bg-muted text-muted-foreground'
   return (
-    <span className={cn(
-      'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold',
-      isExcellent ? 'bg-green-100 text-green-700' : isStrong ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-    )}>
+    <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold', cls)}>
       {score}% {label}
     </span>
   )
@@ -1566,6 +1575,11 @@ function JobsTab({
                       <span className="text-primary">✓ {job.matchHighlight}</span>
                     )}
                   </div>
+                  {job.description && (
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                      {job.description}
+                    </p>
+                  )}
                 </div>
 
                 {/* Action */}
@@ -1669,6 +1683,11 @@ function AppliedTab({
                       <span>{job.source}</span>
                       <span>{job.date}</span>
                     </div>
+                    {mockJob?.description && (
+                      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {mockJob.description}
+                      </p>
+                    )}
                   </div>
 
                   {/* Status */}
