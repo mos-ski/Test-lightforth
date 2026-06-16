@@ -1575,11 +1575,6 @@ function JobsTab({
                       <span className="text-primary">✓ {job.matchHighlight}</span>
                     )}
                   </div>
-                  {job.description && (
-                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                      {job.description}
-                    </p>
-                  )}
                 </div>
 
                 {/* Action */}
@@ -1683,11 +1678,6 @@ function AppliedTab({
                       <span>{job.source}</span>
                       <span>{job.date}</span>
                     </div>
-                    {mockJob?.description && (
-                      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                        {mockJob.description}
-                      </p>
-                    )}
                   </div>
 
                   {/* Status */}
