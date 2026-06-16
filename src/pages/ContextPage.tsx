@@ -5,8 +5,8 @@ import {
   PenLine,
   Plus,
   Search,
-  Github,
-  Linkedin,
+  GitBranch,
+  Briefcase,
   Globe,
   Trash2,
   ChevronDown,
@@ -91,8 +91,8 @@ const MOCK_SOURCES: ContextSource[] = [
 ]
 
 const LINK_SUBTYPES = [
-  { key: 'github', label: 'GitHub', icon: Github, placeholder: 'https://github.com/username' },
-  { key: 'linkedin', label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/in/username' },
+  { key: 'github', label: 'GitHub', icon: GitBranch, placeholder: 'https://github.com/username' },
+  { key: 'linkedin', label: 'LinkedIn', icon: Briefcase, placeholder: 'https://linkedin.com/in/username' },
   { key: 'portfolio', label: 'Portfolio', icon: Globe, placeholder: 'https://yourportfolio.com' },
 ]
 
@@ -115,8 +115,8 @@ function fileIconColor(ext?: string): string {
 }
 
 function linkIcon(subtype?: string): React.ElementType {
-  if (subtype === 'github') return Github
-  if (subtype === 'linkedin') return Linkedin
+  if (subtype === 'github') return GitBranch
+  if (subtype === 'linkedin') return Briefcase
   return Globe
 }
 
