@@ -6,10 +6,11 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+import AgentsTab from '@/components/agents/AgentsTab'
 
 type AutoApplyView = 'setup' | 'paywall' | 'loading' | 'dashboard'
 type SetupStep = 1 | 2 | 3 | 4
-type DashboardTab = 'setup' | 'jobs' | 'applied'
+type DashboardTab = 'setup' | 'jobs' | 'applied' | 'agent'
 type IssueStatus = 'needs_review' | 'retrying' | 'resolved'
 type ManualApplication = {
   id: string
@@ -1089,7 +1090,7 @@ function DashboardTabs({
 }) {
   return (
     <div className="lf-tabs mt-6">
-      {(['setup', 'jobs', 'applied'] as const).map((t) => (
+      {(['setup', 'jobs', 'applied', 'agent'] as const).map((t) => (
         <button
           key={t}
           onClick={() => setTab(t)}
@@ -1102,7 +1103,7 @@ function DashboardTabs({
               : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          {t === 'setup' ? 'Set Up' : t.charAt(0).toUpperCase() + t.slice(1)}
+          {t === 'setup' ? 'Set Up' : t === 'agent' ? 'Agent' : t.charAt(0).toUpperCase() + t.slice(1)}
         </button>
       ))}
     </div>
@@ -1868,6 +1869,11 @@ export default function AutoApply() {
             issues={issues}
             onRetryIssue={retryIssue}
           />
+        )}
+        {dashTab === 'agent' && (
+          <div className="mt-5">
+            <AgentsTab studentId="auto-apply" />
+          </div>
         )}
       </div>
     )

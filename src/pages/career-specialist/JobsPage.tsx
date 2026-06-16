@@ -185,7 +185,25 @@ export default function JobsPage() {
 
 /* ── Job Card ── */
 
+function jobMatchScore(jobId: string): number {
+  return ((parseInt(jobId) * 11 + 37) % 30) + 65
+}
+
+function MatchBadge({ score }: { score: number }) {
+  const cls = score >= 90
+    ? 'bg-green-100 text-green-700'
+    : score >= 80
+    ? 'bg-primary/10 text-primary'
+    : 'bg-muted text-muted-foreground'
+  return (
+    <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold', cls)}>
+      {score}%
+    </span>
+  )
+}
+
 function JobCard({ job, isSelected, onClick }: { job: CareerJob; isSelected: boolean; onClick: () => void }) {
+  const match = jobMatchScore(job.id)
   return (
     <button
       onClick={onClick}
@@ -204,7 +222,10 @@ function JobCard({ job, isSelected, onClick }: { job: CareerJob; isSelected: boo
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <p className="truncate text-xs text-muted-foreground">{job.company}</p>
-            <SeniorityPill seniority={job.seniority} small />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <MatchBadge score={match} />
+              <SeniorityPill seniority={job.seniority} small />
+            </div>
           </div>
           <p className="mt-0.5 truncate text-sm font-medium text-foreground">{job.title}</p>
           <div className="mt-1 flex items-center justify-between gap-2">

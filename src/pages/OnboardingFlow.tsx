@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, X, Upload, FileText, Search, ChevronRight } from 'lucide-react'
+import { Check, X, Upload, FileText, Search, ChevronRight, MapPin, Briefcase, Zap, Target } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import LightforthLogo from '@/components/shared/LightforthLogo'
 
@@ -50,12 +50,6 @@ const EMPLOYMENT_TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Temporary']
 const LOCATION_TYPES = ['Onsite', 'Remote', 'Hybrid']
 const EXPERIENCE_LEVELS = ['Entry Level', 'Mid Level', 'Senior', 'Lead', 'Executive']
 
-const FEATURE_HIGHLIGHTS = [
-  { title: 'Auto-Apply to Hundreds of Jobs', desc: 'AI applies while you focus on what matters most.' },
-  { title: 'Custom Resume Per Job', desc: 'Every application gets a tailored, ATS-optimised resume.' },
-  { title: 'Match Score for Every Role', desc: 'See exactly how well you fit before applying.' },
-]
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type OnboardingStep = 'roles' | 'location' | 'resume' | 'matching' | 'welcome'
@@ -71,37 +65,139 @@ interface OnboardingData {
   resumeFile: File | null
 }
 
-// ─── Step Indicator ───────────────────────────────────────────────────────────
+// ─── Step config ──────────────────────────────────────────────────────────────
 
-const STEP_LABELS = ['Target Role', 'Location', 'Resume']
 const STEP_KEYS: OnboardingStep[] = ['roles', 'location', 'resume']
+
+const STEP_META: Record<'roles' | 'location' | 'resume', {
+  number: number
+  label: string
+  heading: string
+  sub: string
+  Icon: React.FC<{ className?: string }>
+}> = {
+  roles: {
+    number: 1,
+    label: 'Target Role',
+    heading: 'What kind of work excites you?',
+    sub: 'Tell us your target role and employment preferences. We\'ll find opportunities that fit your ambitions.',
+    Icon: ({ className }) => <Target className={className} />,
+  },
+  location: {
+    number: 2,
+    label: 'Location',
+    heading: 'Where do you want to work?',
+    sub: 'We search across thousands of listings locally and globally to find your ideal location.',
+    Icon: ({ className }) => <MapPin className={className} />,
+  },
+  resume: {
+    number: 3,
+    label: 'Resume',
+    heading: 'Level up your applications.',
+    sub: 'Your resume helps Lightforth craft a tailored pitch for every single job — automatically.',
+    Icon: ({ className }) => <FileText className={className} />,
+  },
+}
+
+const PLATFORM_PERKS = [
+  { Icon: Zap, label: 'Auto-Apply', desc: 'We apply while you sleep' },
+  { Icon: Target, label: 'Match Score', desc: 'See fit before applying' },
+  { Icon: Briefcase, label: 'Custom Resume', desc: 'Tailored per role' },
+]
+
+// ─── Left Panel ───────────────────────────────────────────────────────────────
+
+function LeftPanel({ step }: { step: 'roles' | 'location' | 'resume' }) {
+  const meta = STEP_META[step]
+  const { Icon } = meta
+  const idx = STEP_KEYS.indexOf(step)
+
+  return (
+    <div className="hidden lg:flex w-[440px] shrink-0 flex-col bg-primary px-10 py-10 text-white">
+      {/* Logo */}
+      <LightforthLogo linked={false} className="mb-12 brightness-0 invert" />
+
+      {/* Step pill */}
+      <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white/80">
+        Step {meta.number} of 3
+      </div>
+
+      {/* Icon */}
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+        <Icon className="h-6 w-6 text-white" />
+      </div>
+
+      {/* Heading */}
+      <h2 className="text-3xl font-bold leading-tight text-white">
+        {meta.heading}
+      </h2>
+      <p className="mt-3 text-sm leading-relaxed text-white/70">
+        {meta.sub}
+      </p>
+
+      {/* Step dots */}
+      <div className="mt-8 flex items-center gap-2">
+        {STEP_KEYS.map((k, i) => (
+          <div
+            key={k}
+            className={cn(
+              'rounded-full transition-all duration-300',
+              i === idx ? 'h-2 w-6 bg-white' : i < idx ? 'h-2 w-2 bg-white/60' : 'h-2 w-2 bg-white/25'
+            )}
+          />
+        ))}
+      </div>
+
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Platform perks */}
+      <div className="space-y-3">
+        {PLATFORM_PERKS.map(({ Icon: PIcon, label, desc }) => (
+          <div key={label} className="flex items-center gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
+              <PIcon className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-white">{label}</p>
+              <p className="text-xs text-white/60">{desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Step Indicator (right panel top) ────────────────────────────────────────
 
 function StepIndicator({ current }: { current: OnboardingStep }) {
   const idx = STEP_KEYS.indexOf(current)
   if (idx === -1) return null
   return (
-    <div className="flex items-start overflow-x-auto pb-1">
-      {STEP_LABELS.map((label, i) => {
+    <div className="flex items-start gap-0">
+      {STEP_KEYS.map((k, i) => {
         const done = i < idx
         const active = i === idx
+        const meta = STEP_META[k as 'roles' | 'location' | 'resume']
         return (
-          <div key={label} className="flex items-center">
+          <div key={k} className="flex items-center">
             <div className="flex flex-col items-center">
               <div className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold',
-                done || active ? 'bg-primary text-white' : 'border-2 border-border text-muted-foreground'
+                'flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                done ? 'bg-primary text-white' : active ? 'bg-primary text-white' : 'border-2 border-border text-muted-foreground'
               )}>
                 {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
               </div>
               <span className={cn(
-                'mt-1 text-xs font-medium whitespace-nowrap',
+                'mt-1 text-[11px] font-medium whitespace-nowrap',
                 active ? 'text-primary' : done ? 'text-foreground' : 'text-muted-foreground'
               )}>
-                {label}
+                {meta.label}
               </span>
             </div>
-            {i < STEP_LABELS.length - 1 && (
-              <div className={cn('mx-2 mb-4 h-0.5 w-8 flex-shrink-0 sm:mx-3 sm:w-16', done ? 'bg-primary' : 'bg-border')} />
+            {i < STEP_KEYS.length - 1 && (
+              <div className={cn('mx-2 mb-4 h-0.5 w-10 shrink-0 sm:mx-3 sm:w-16', done ? 'bg-primary' : 'bg-border')} />
             )}
           </div>
         )
@@ -146,21 +242,16 @@ function StepRoles({
     onChange({ jobFunctions: updated })
   }
 
-  const toggleType = (list: 'employmentTypes', val: string) => {
-    const updated = data[list].includes(val)
-      ? data[list].filter((v) => v !== val)
-      : [...data[list], val]
-    onChange({ [list]: updated })
+  const toggleType = (val: string) => {
+    const updated = data.employmentTypes.includes(val)
+      ? data.employmentTypes.filter((v) => v !== val)
+      : [...data.employmentTypes, val]
+    onChange({ employmentTypes: updated })
   }
 
   return (
-    <div className="lf-panel p-4 sm:p-6 space-y-5">
-      <div>
-        <h2 className="text-base font-semibold text-foreground">What type of role are you targeting?</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Pick one or more roles that match your goals</p>
-      </div>
-
-      {/* Selected role tags */}
+    <div className="space-y-5">
+      {/* Selected roles */}
       {data.jobFunctions.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {data.jobFunctions.map((role) => (
@@ -189,15 +280,14 @@ function StepRoles({
       </div>
 
       {/* Category + role picker */}
-      <div className="flex rounded-lg border border-border overflow-hidden" style={{ height: '220px' }}>
-        {/* Left: categories */}
-        <div className="w-44 flex-shrink-0 overflow-y-auto border-r border-border bg-muted/20">
+      <div className="flex rounded-lg border border-border overflow-hidden" style={{ height: '200px' }}>
+        <div className="w-40 flex-shrink-0 overflow-y-auto border-r border-border bg-muted/20">
           {filteredCategories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
               className={cn(
-                'flex w-full items-center justify-between px-3 py-2.5 text-left text-xs transition-colors',
+                'flex w-full items-center justify-between px-3 py-2 text-left text-xs transition-colors',
                 activeCategory === cat
                   ? 'bg-primary/5 font-semibold text-primary'
                   : 'text-foreground hover:bg-muted'
@@ -208,8 +298,6 @@ function StepRoles({
             </button>
           ))}
         </div>
-
-        {/* Right: roles */}
         <div className="flex-1 overflow-y-auto p-3">
           {(activeCategory || query) ? (
             <>
@@ -246,7 +334,7 @@ function StepRoles({
           {EMPLOYMENT_TYPES.map((t) => (
             <button
               key={t}
-              onClick={() => toggleType('employmentTypes', t)}
+              onClick={() => toggleType(t)}
               className={cn(
                 'rounded-full border px-4 py-1.5 text-sm transition-colors',
                 data.employmentTypes.includes(t)
@@ -286,11 +374,11 @@ function StepRoles({
           onClick={onNext}
           disabled={data.jobFunctions.length === 0}
           className={cn(
-            'rounded-lg px-6 py-2.5 text-sm font-semibold text-white transition-colors',
+            'rounded-lg px-8 py-2.5 text-sm font-semibold text-white transition-colors',
             data.jobFunctions.length > 0 ? 'bg-primary hover:bg-primary/90' : 'cursor-not-allowed bg-muted text-muted-foreground'
           )}
         >
-          Continue
+          Continue →
         </button>
       </div>
     </div>
@@ -318,13 +406,7 @@ function StepLocation({
   }
 
   return (
-    <div className="lf-panel p-4 sm:p-6 space-y-5">
-      <div>
-        <h2 className="text-base font-semibold text-foreground">Where do you want to work?</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Set your location and work preferences</p>
-      </div>
-
-      {/* Preferred Location */}
+    <div className="space-y-5">
       <div>
         <label className="lf-label">Preferred Location <span className="text-red-500 ml-0.5">*</span></label>
         <input
@@ -335,7 +417,6 @@ function StepLocation({
         />
       </div>
 
-      {/* Location Type */}
       <div>
         <label className="lf-label">Job Location Type</label>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -356,28 +437,30 @@ function StepLocation({
         </div>
       </div>
 
-      {/* Open to Relocate */}
-      <label className="flex cursor-pointer items-start gap-2.5">
-        <input
-          type="checkbox"
-          checked={data.openToRelocate}
-          onChange={(e) => onChange({ openToRelocate: e.target.checked })}
-          className="mt-0.5 h-4 w-4 flex-shrink-0 accent-primary"
-        />
-        <span className="text-sm text-foreground">I am open to relocating</span>
-      </label>
-
-      {/* Sponsorship */}
-      <div>
-        <label className="lf-label">Work Authorization</label>
-        <label className="mt-2 flex cursor-pointer items-start gap-2.5">
+      <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+        <label className="flex cursor-pointer items-start gap-2.5">
+          <input
+            type="checkbox"
+            checked={data.openToRelocate}
+            onChange={(e) => onChange({ openToRelocate: e.target.checked })}
+            className="mt-0.5 h-4 w-4 flex-shrink-0 accent-primary"
+          />
+          <div>
+            <span className="text-sm font-medium text-foreground">Open to relocating</span>
+            <p className="text-xs text-muted-foreground">We'll include roles that require relocation</p>
+          </div>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2.5">
           <input
             type="checkbox"
             checked={data.needsSponsorship}
             onChange={(e) => onChange({ needsSponsorship: e.target.checked })}
             className="mt-0.5 h-4 w-4 flex-shrink-0 accent-primary"
           />
-          <span className="text-sm text-foreground">I require H1B sponsorship</span>
+          <div>
+            <span className="text-sm font-medium text-foreground">I require H1B sponsorship</span>
+            <p className="text-xs text-muted-foreground">Only show roles from H1B-friendly employers</p>
+          </div>
         </label>
       </div>
 
@@ -389,11 +472,11 @@ function StepLocation({
           onClick={onNext}
           disabled={!data.location.trim()}
           className={cn(
-            'rounded-lg px-6 py-2.5 text-sm font-semibold text-white transition-colors',
+            'rounded-lg px-8 py-2.5 text-sm font-semibold text-white transition-colors',
             data.location.trim() ? 'bg-primary hover:bg-primary/90' : 'cursor-not-allowed bg-muted text-muted-foreground'
           )}
         >
-          Continue
+          Continue →
         </button>
       </div>
     </div>
@@ -424,22 +507,15 @@ function StepResume({
   }
 
   return (
-    <div className="lf-panel p-4 sm:p-6 space-y-5">
-      <div>
-        <h2 className="text-base font-semibold text-foreground">Upload your resume</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Lightforth uses your resume to find matches and tailor every application
-        </p>
-      </div>
-
+    <div className="space-y-5">
       {file ? (
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-3">
-          <FileText className="h-8 w-8 flex-shrink-0 text-red-500" />
+        <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+          <FileText className="h-8 w-8 flex-shrink-0 text-green-600" />
           <div className="flex-1 min-w-0">
             <p className="truncate text-sm font-medium text-foreground">{file.name}</p>
-            <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)} KB — Ready</p>
+            <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)} KB — Ready to scan</p>
           </div>
-          <Check className="h-5 w-5 flex-shrink-0 rounded-full bg-primary p-0.5 text-white" />
+          <Check className="h-5 w-5 flex-shrink-0 rounded-full bg-green-500 p-0.5 text-white" />
           <button onClick={() => onFile(null)}>
             <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
           </button>
@@ -450,24 +526,22 @@ function StepResume({
           onDragLeave={() => setDragging(false)}
           onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
           className={cn(
-            'flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-10 transition-colors',
-            dragging ? 'border-primary bg-primary/5' : 'border-border bg-muted/20'
+            'flex flex-col items-center justify-center rounded-xl border-2 border-dashed py-12 transition-colors cursor-pointer',
+            dragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40 hover:bg-muted/20'
           )}
+          onClick={() => inputRef.current?.click()}
         >
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-            <Upload className="h-5 w-5 text-muted-foreground" />
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+            <Upload className="h-6 w-6 text-primary" />
           </div>
-          <p className="text-sm font-medium text-foreground">Drag & drop your resume</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">PDF or Word · Max 10MB</p>
+          <p className="text-sm font-semibold text-foreground">Drag & drop your resume here</p>
+          <p className="mt-1 text-xs text-muted-foreground">PDF or Word · Max 10MB</p>
+          <span className="mt-4 rounded-lg border border-primary px-4 py-1.5 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors">
+            Browse file
+          </span>
         </div>
       )}
 
-      <button
-        onClick={() => inputRef.current?.click()}
-        className="upload-cta-pulse w-full rounded-lg border border-primary py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
-      >
-        {file ? 'Change resume' : 'Browse file'}
-      </button>
       <input
         ref={inputRef}
         type="file"
@@ -476,7 +550,16 @@ function StepResume({
         onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
       />
 
-      <p className="text-xs text-muted-foreground text-center">
+      {file && (
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="w-full rounded-lg border border-border py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+        >
+          Change resume
+        </button>
+      )}
+
+      <p className="text-xs text-center text-muted-foreground">
         Your resume is only used for job matching and will never be shared with third parties.
       </p>
 
@@ -492,11 +575,11 @@ function StepResume({
             onClick={onNext}
             disabled={!file}
             className={cn(
-              'rounded-lg px-6 py-2.5 text-sm font-semibold text-white transition-colors',
+              'rounded-lg px-8 py-2.5 text-sm font-semibold text-white transition-colors',
               file ? 'bg-primary hover:bg-primary/90' : 'cursor-not-allowed bg-muted text-muted-foreground'
             )}
           >
-            Start Matching
+            Find My Matches →
           </button>
         </div>
       </div>
@@ -505,6 +588,12 @@ function StepResume({
 }
 
 // ─── Matching Screen ──────────────────────────────────────────────────────────
+
+const FEATURE_HIGHLIGHTS = [
+  { title: 'Auto-Apply to Hundreds of Jobs', desc: 'AI applies while you focus on what matters most.' },
+  { title: 'Custom Resume Per Job', desc: 'Every application gets a tailored, ATS-optimised resume.' },
+  { title: 'Match Score for Every Role', desc: 'See exactly how well you fit before applying.' },
+]
 
 function MatchingScreen({ onComplete }: { onComplete: () => void }) {
   const [cardIdx, setCardIdx] = useState(0)
@@ -518,48 +607,67 @@ function MatchingScreen({ onComplete }: { onComplete: () => void }) {
   }, [onComplete])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
-      <LightforthLogo linked={false} className="mb-10" />
-
-      <div className="w-full max-w-sm">
-        {/* Resume icon */}
-        <div className="mb-5 flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted">
-            <FileText className="h-7 w-7 text-muted-foreground" />
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="mb-2 h-1.5 w-full overflow-hidden rounded-full bg-border">
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-100"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <p className="mb-8 text-center text-sm text-muted-foreground">
-          Finding roles that match your profile…
-        </p>
-
-        {/* Feature card */}
-        <div className="rounded-2xl bg-[#EEF4FF] p-6">
-          <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary mb-3">
-            Feature Highlights
-          </span>
-          <h3 className="text-base font-bold text-foreground">{FEATURE_HIGHLIGHTS[cardIdx].title}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{FEATURE_HIGHLIGHTS[cardIdx].desc}</p>
-          <div className="mt-4 flex justify-center gap-1.5">
-            {FEATURE_HIGHLIGHTS.map((_, i) => (
-              <span
-                key={i}
-                className={cn(
-                  'h-1.5 rounded-full transition-all',
-                  i === cardIdx ? 'w-4 bg-primary' : 'w-1.5 bg-border'
-                )}
-              />
-            ))}
-          </div>
+    <div className="flex min-h-screen">
+      {/* Left: solid primary */}
+      <div className="hidden lg:flex w-[440px] shrink-0 flex-col items-center justify-center bg-primary px-10 py-10 text-white">
+        <LightforthLogo linked={false} className="mb-12 brightness-0 invert" />
+        <div className="w-full space-y-3">
+          {FEATURE_HIGHLIGHTS.map((f, i) => (
+            <div
+              key={f.title}
+              className={cn(
+                'rounded-xl p-4 transition-all duration-500',
+                i === cardIdx ? 'bg-white/20 scale-[1.02]' : 'bg-white/8'
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <div className={cn('mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px]', i <= cardIdx ? 'bg-white text-primary font-bold' : 'bg-white/20 text-white/50')}>
+                  {i < cardIdx ? <Check className="h-3 w-3" /> : i + 1}
+                </div>
+                <div>
+                  <p className={cn('text-sm font-semibold', i === cardIdx ? 'text-white' : 'text-white/60')}>{f.title}</p>
+                  {i === cardIdx && <p className="mt-0.5 text-xs text-white/70">{f.desc}</p>}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* Right: loading state */}
+      <div className="flex flex-1 flex-col items-center justify-center bg-background px-6 text-center">
+        <LightforthLogo linked={false} className="mb-10 lg:hidden" />
+
+        {/* Spinner ring */}
+        <div className="relative mb-8">
+          <div className="h-20 w-20 rounded-full border-4 border-border" />
+          <div
+            className="absolute inset-0 h-20 w-20 rounded-full border-4 border-primary border-t-transparent"
+            style={{ animation: 'spin 1s linear infinite' }}
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Target className="h-7 w-7 text-primary" />
+          </div>
+        </div>
+
+        <h2 className="text-xl font-bold text-foreground">Finding your matches</h2>
+        <p className="mt-2 text-sm text-muted-foreground max-w-xs">
+          Scanning thousands of roles based on your skills, location, and preferences…
+        </p>
+
+        {/* Progress */}
+        <div className="mt-8 w-full max-w-xs">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-100"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="mt-2 text-right text-xs text-muted-foreground">{Math.round(progress)}%</p>
+        </div>
+      </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }
@@ -584,14 +692,19 @@ function WelcomeModal({ jobFunctions, onConfirm }: { jobFunctions: string[]; onC
     )
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+        {/* Top accent bar */}
+        <div className="h-1 w-full bg-primary" />
         <div className="p-6 sm:p-8">
-          <h2 className="lf-overlay-title text-center">
+          <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+            <Target className="h-6 w-6 text-primary" />
+          </div>
+          <h2 className="mt-4 text-2xl font-bold text-foreground">
             We found <span className="text-primary">8,777 roles</span> that fit you best.
           </h2>
-          <p className="lf-body mt-2 text-center">
-            Take a moment to confirm your experience level — this helps us rank the best matches first.
+          <p className="mt-2 text-sm text-muted-foreground">
+            Take a moment to confirm your experience level so we can rank the best matches first.
           </p>
 
           <div className="mt-6">
@@ -608,12 +721,12 @@ function WelcomeModal({ jobFunctions, onConfirm }: { jobFunctions: string[]; onC
                       : 'border-border hover:border-primary/40'
                   )}
                 >
-                  <input
-                    type="checkbox"
-                    readOnly
-                    checked={selectedLevels.includes(label)}
-                    className="h-4 w-4 flex-shrink-0 accent-primary pointer-events-none"
-                  />
+                  <span className={cn(
+                    'flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 text-[9px] font-bold transition-colors',
+                    selectedLevels.includes(label) ? 'border-primary bg-primary text-white' : 'border-border'
+                  )}>
+                    {selectedLevels.includes(label) ? '✓' : ''}
+                  </span>
                   <span>
                     <span className="font-semibold text-foreground">{label}</span>
                     {sub && <span className="ml-1 text-muted-foreground">{sub}</span>}
@@ -625,9 +738,9 @@ function WelcomeModal({ jobFunctions, onConfirm }: { jobFunctions: string[]; onC
 
           {jobFunctions.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm font-semibold text-foreground mb-2">Additional Matching Functions</p>
+              <p className="text-sm font-semibold text-foreground mb-2">Your Target Roles</p>
               <div className="flex flex-wrap gap-1.5">
-                {jobFunctions.slice(0, 4).map((fn) => (
+                {jobFunctions.slice(0, 5).map((fn) => (
                   <span key={fn} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                     <Check className="h-3 w-3" /> {fn}
                   </span>
@@ -640,7 +753,7 @@ function WelcomeModal({ jobFunctions, onConfirm }: { jobFunctions: string[]; onC
             onClick={onConfirm}
             className="mt-6 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
           >
-            Confirm & See Jobs
+            Confirm & See My Jobs →
           </button>
         </div>
       </div>
@@ -677,42 +790,62 @@ export default function OnboardingFlow() {
     )
   }
 
+  const formStep = step as 'roles' | 'location' | 'resume'
+
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {/* Top bar */}
-      <header className="flex h-14 items-center border-b border-border bg-white px-6">
-        <LightforthLogo linked={false} />
-      </header>
+    <div className="flex min-h-screen">
+      {/* Left panel */}
+      <LeftPanel step={formStep} />
 
-      {/* Content */}
-      <main className="flex flex-1 flex-col items-center px-4 py-8 sm:px-6 sm:py-10">
-        <div className="w-full max-w-xl space-y-6">
-          {/* Step indicator */}
-          <StepIndicator current={step} />
+      {/* Right panel */}
+      <div className="flex flex-1 flex-col">
+        {/* Mobile-only header */}
+        <header className="flex h-14 items-center border-b border-border bg-white px-6 lg:hidden">
+          <LightforthLogo linked={false} />
+        </header>
 
-          {/* Step content */}
-          {step === 'roles' && (
-            <StepRoles data={data} onChange={update} onNext={() => setStep('location')} />
-          )}
-          {step === 'location' && (
-            <StepLocation
-              data={data}
-              onChange={update}
-              onNext={() => setStep('resume')}
-              onBack={() => setStep('roles')}
-            />
-          )}
-          {step === 'resume' && (
-            <StepResume
-              file={data.resumeFile}
-              onFile={(f) => update({ resumeFile: f })}
-              onNext={() => setStep('matching')}
-              onBack={() => setStep('location')}
-              onSkip={() => setStep('matching')}
-            />
-          )}
-        </div>
-      </main>
+        {/* Form area */}
+        <main className="flex flex-1 flex-col px-6 py-8 sm:px-10 sm:py-10 overflow-y-auto">
+          <div className="w-full max-w-lg">
+            {/* Step indicator */}
+            <div className="mb-6">
+              <StepIndicator current={step} />
+            </div>
+
+            {/* Step heading (visible on mobile, right panel on desktop) */}
+            <div className="mb-6 lg:hidden">
+              <h1 className="text-xl font-bold text-foreground">
+                {STEP_META[formStep].heading}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {STEP_META[formStep].sub}
+              </p>
+            </div>
+
+            {/* Form content */}
+            {step === 'roles' && (
+              <StepRoles data={data} onChange={update} onNext={() => setStep('location')} />
+            )}
+            {step === 'location' && (
+              <StepLocation
+                data={data}
+                onChange={update}
+                onNext={() => setStep('resume')}
+                onBack={() => setStep('roles')}
+              />
+            )}
+            {step === 'resume' && (
+              <StepResume
+                file={data.resumeFile}
+                onFile={(f) => update({ resumeFile: f })}
+                onNext={() => setStep('matching')}
+                onBack={() => setStep('location')}
+                onSkip={() => setStep('matching')}
+              />
+            )}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
