@@ -1090,7 +1090,7 @@ function DashboardTabs({
 }) {
   return (
     <div className="lf-tabs mt-6">
-      {(['setup', 'jobs', 'applied', 'agent'] as const).map((t) => (
+      {(['setup', 'agent', 'jobs', 'applied'] as const).map((t) => (
         <button
           key={t}
           onClick={() => setTab(t)}
