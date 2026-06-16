@@ -1,397 +1,416 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { X, Upload, ChevronRight, Check, MapPin } from 'lucide-react'
+import { Check, X, Upload, FileText, Search, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import LightforthLogo from '@/components/shared/LightforthLogo'
 
-// ─── Job Category Data ────────────────────────────────────────────────────────
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const JOB_CATEGORIES: Record<string, string[]> = {
-  'Software/Internet/AI': [
+  'Software / AI': [
     'Frontend Engineer', 'Backend Engineer', 'Full Stack Engineer',
-    'AI/ML Engineer', 'Data Scientist', 'Data Engineer',
-    'DevOps/Platform Engineer', 'Security Engineer', 'Mobile Developer',
+    'AI / ML Engineer', 'Data Scientist', 'Data Engineer',
+    'DevOps Engineer', 'Security Engineer', 'Mobile Developer',
+  ],
+  'Product': [
+    'Product Manager', 'Technical Product Manager', 'AI Product Manager',
+    'Product Analyst', 'Product Manager, B2B/SaaS',
+  ],
+  'Design': [
+    'UX Designer', 'Product Designer', 'UI Designer',
+    'Design Manager', 'Graphic Designer',
+  ],
+  'Marketing': [
+    'Marketing Manager', 'Growth Manager', 'Product Marketing Manager',
+    'Content Strategist', 'SEO Specialist',
+  ],
+  'Finance': [
+    'Financial Analyst', 'Investment Banker', 'Portfolio Manager',
+    'Risk Analyst', 'Controller',
   ],
   'Consulting': [
     'Management Consultant', 'Business Analyst', 'Strategy Consultant',
     'IT Consultant', 'Operations Consultant',
   ],
-  'Marketing': [
-    'Marketing Manager', 'Growth Manager', 'Content Strategist',
-    'Brand Manager', 'Product Marketing Manager', 'SEO Specialist',
-  ],
-  'Finance': [
-    'Financial Analyst', 'Investment Banker', 'Portfolio Manager',
-    'Risk Analyst', 'Controller', 'Accounting Manager',
-  ],
-  'Product': [
-    'Product Manager', 'Product Analyst', 'Technical Product Manager',
-    'AI Product Manager', 'Product Manager, B2B/SaaS',
-    'Product Manager, Consumer Software',
+  'Sales': [
+    'Account Executive', 'Sales Manager', 'Business Development Manager',
+    'Enterprise Sales',
   ],
   'Healthcare': [
-    'Healthcare Data Analyst', 'Healthcare Data Scientist',
-    'Healthcare IT Specialist', 'Clinical Operations Manager',
-    'Healthcare Quality Improvement Specialist',
-  ],
-  'Electrical Engineering': [
-    'Electrical Engineer', 'Hardware Engineer',
-    'Embedded Systems Engineer', 'Power Systems Engineer',
+    'Healthcare Data Analyst', 'Healthcare IT Specialist',
+    'Clinical Operations Manager',
   ],
   'Human Resource': [
     'HR Manager', 'Recruiter', 'Talent Acquisition Specialist',
-    'HR Business Partner', 'Compensation Analyst',
-  ],
-  'Sales': [
-    'Account Executive', 'Sales Manager',
-    'Business Development Manager', 'Enterprise Sales',
-  ],
-  'Design': [
-    'UX Designer', 'Product Designer', 'UI Designer',
-    'Graphic Designer', 'Design Manager',
+    'HR Business Partner',
   ],
 }
 
-const EXPERIENCE_LEVELS = [
-  { label: 'Intern/New Grad', desc: '' },
-  { label: 'Entry Level', desc: '1-3 years' },
-  { label: 'Mid Level', desc: '2-5 years' },
-  { label: 'Senior Level', desc: '5+ years, project leader' },
-  { label: 'Lead/Staff', desc: 'Cross-team leader/Domain expert' },
-  { label: 'Director/Executive', desc: 'Director/VP/CXO' },
-]
+const EMPLOYMENT_TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Temporary']
+const LOCATION_TYPES = ['Onsite', 'Remote', 'Hybrid']
+const EXPERIENCE_LEVELS = ['Entry Level', 'Mid Level', 'Senior', 'Lead', 'Executive']
 
-const FEATURE_CARDS = [
-  {
-    title: 'Auto-Apply to Hundreds of Jobs',
-    desc: 'AI applies while you focus on what matters.',
-  },
-  {
-    title: 'Generate Custom Resume For Each Job',
-    desc: 'Every application gets a tailored, ATS-optimized resume.',
-  },
-  {
-    title: 'Match Score for Every Role',
-    desc: 'Know your fit before you apply.',
-  },
+const FEATURE_HIGHLIGHTS = [
+  { title: 'Auto-Apply to Hundreds of Jobs', desc: 'AI applies while you focus on what matters most.' },
+  { title: 'Custom Resume Per Job', desc: 'Every application gets a tailored, ATS-optimised resume.' },
+  { title: 'Match Score for Every Role', desc: 'See exactly how well you fit before applying.' },
 ]
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type OnboardingStep = 'roles' | 'location' | 'resume' | 'matching' | 'welcome'
+
 interface OnboardingData {
   jobFunctions: string[]
-  jobTypes: string[]
+  employmentTypes: string[]
+  experienceLevel: string
+  locationTypes: string[]
   location: string
-  openToRemote: boolean
-  h1bSponsorship: boolean
+  openToRelocate: boolean
+  needsSponsorship: boolean
   resumeFile: File | null
-  experienceLevels: string[]
 }
 
-// ─── Shared primitives ────────────────────────────────────────────────────────
+// ─── Step Indicator ───────────────────────────────────────────────────────────
 
-function NextButton({ onClick, disabled, label = 'Next' }: { onClick: () => void; disabled?: boolean; label?: string }) {
+const STEP_LABELS = ['Target Role', 'Location', 'Resume']
+const STEP_KEYS: OnboardingStep[] = ['roles', 'location', 'resume']
+
+function StepIndicator({ current }: { current: OnboardingStep }) {
+  const idx = STEP_KEYS.indexOf(current)
+  if (idx === -1) return null
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        'rounded-xl px-8 py-3 text-sm font-semibold text-white transition-colors',
-        disabled ? 'cursor-not-allowed bg-neutral-300' : 'bg-neutral-900 hover:bg-neutral-800',
-      )}
-    >
-      {label}
-    </button>
-  )
-}
-
-// ─── Mascot Avatar ────────────────────────────────────────────────────────────
-
-function MascotAvatar() {
-  return (
-    <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-2 border-white bg-white shadow-md">
-      <svg viewBox="0 0 48 48" className="h-10 w-10" fill="none">
-        <circle cx="24" cy="24" r="24" fill="#EEF2FF" />
-        <circle cx="24" cy="20" r="10" fill="#6366F1" />
-        <circle cx="20" cy="18" r="2" fill="white" />
-        <circle cx="28" cy="18" r="2" fill="white" />
-        <path d="M19 24 Q24 28 29 24" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-        <circle cx="24" cy="36" r="9" fill="#818CF8" />
-        <rect x="17" y="34" width="14" height="4" rx="2" fill="white" />
-      </svg>
-      <span className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-400" />
-    </div>
-  )
-}
-
-// ─── Left Panel ───────────────────────────────────────────────────────────────
-
-function LeftPanel({ headline, sub }: { headline: React.ReactNode; sub?: string }) {
-  return (
-    <div className="hidden lg:flex lg:w-1/2 flex-col bg-[#f0fdf8] px-12 py-10">
-      <LightforthLogo linked={false} />
-      <div className="flex flex-1 flex-col justify-center">
-        <MascotAvatar />
-        <p className="mt-5 text-xs font-semibold uppercase tracking-widest text-emerald-600">Lightforth AI</p>
-        <h1 className="mt-3 text-3xl font-bold leading-snug text-neutral-900">{headline}</h1>
-        {sub && <p className="mt-3 text-sm text-neutral-500">{sub}</p>}
-      </div>
-      <p className="text-xs text-neutral-400">© {new Date().getFullYear()} Lightforth. All rights reserved.</p>
-    </div>
-  )
-}
-
-// ─── Step 1: Job Function ─────────────────────────────────────────────────────
-
-function StepJobFunction({
-  selected,
-  onToggle,
-  onNext,
-}: {
-  selected: string[]
-  onToggle: (role: string) => void
-  onNext: () => void
-}) {
-  const [hoveredCategory, setHoveredCategory] = useState<string | null>('Software/Internet/AI')
-  const categories = Object.keys(JOB_CATEGORIES)
-
-  return (
-    <div className="flex w-full flex-col justify-between lg:w-1/2">
-      {/* Mobile logo */}
-      <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 lg:hidden">
-        <LightforthLogo linked={false} />
-      </div>
-
-      <div className="flex flex-1 flex-col px-6 py-8 lg:px-10 lg:py-12 overflow-y-auto">
-        <div className="mb-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400">Step 1 of 3</p>
-          <h2 className="mt-1 text-xl font-bold text-neutral-900 lg:hidden">
-            To get started, <strong>what type of role</strong> are you looking for?
-          </h2>
-        </div>
-
-        {/* Job Function label */}
-        <p className="mb-1.5 text-sm font-semibold text-neutral-800">
-          <span className="mr-1 text-red-500">*</span>Job Function
-        </p>
-
-        {/* Selected tags */}
-        {selected.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1.5">
-            {selected.map((role) => (
-              <span
-                key={role}
-                className="inline-flex items-center gap-1 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-medium text-neutral-700"
-              >
-                {role}
-                <button
-                  onClick={() => onToggle(role)}
-                  className="ml-0.5 text-neutral-400 hover:text-neutral-600"
-                >
-                  <X className="h-3 w-3" />
-                </button>
+    <div className="flex items-start overflow-x-auto pb-1">
+      {STEP_LABELS.map((label, i) => {
+        const done = i < idx
+        const active = i === idx
+        return (
+          <div key={label} className="flex items-center">
+            <div className="flex flex-col items-center">
+              <div className={cn(
+                'flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold',
+                done || active ? 'bg-primary text-white' : 'border-2 border-border text-muted-foreground'
+              )}>
+                {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
+              </div>
+              <span className={cn(
+                'mt-1 text-xs font-medium whitespace-nowrap',
+                active ? 'text-primary' : done ? 'text-foreground' : 'text-muted-foreground'
+              )}>
+                {label}
               </span>
-            ))}
-          </div>
-        )}
-
-        {/* Placeholder input */}
-        <div className="mb-2 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-400">
-          Please select/enter your expected job function
-        </div>
-
-        {/* Two-column picker */}
-        <div className="flex rounded-lg border border-neutral-200 bg-white overflow-hidden shadow-sm" style={{ height: '280px' }}>
-          {/* Category list */}
-          <div className="w-48 flex-shrink-0 overflow-y-auto border-r border-neutral-100">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onMouseEnter={() => setHoveredCategory(cat)}
-                onClick={() => setHoveredCategory(cat)}
-                className={cn(
-                  'flex w-full items-center justify-between px-3 py-2.5 text-left text-xs transition-colors',
-                  hoveredCategory === cat
-                    ? 'bg-emerald-50 font-semibold text-emerald-700'
-                    : 'text-neutral-600 hover:bg-neutral-50',
-                )}
-              >
-                {cat}
-                <ChevronRight className="h-3 w-3 flex-shrink-0 opacity-50" />
-              </button>
-            ))}
-          </div>
-
-          {/* Sub-roles */}
-          <div className="flex-1 overflow-y-auto p-3">
-            {hoveredCategory && (
-              <>
-                <p className="mb-2 text-xs font-bold text-neutral-700">{hoveredCategory}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {JOB_CATEGORIES[hoveredCategory]?.map((role) => (
-                    <button
-                      key={role}
-                      onClick={() => onToggle(role)}
-                      className={cn(
-                        'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
-                        selected.includes(role)
-                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                          : 'border-neutral-200 text-neutral-600 hover:border-neutral-400',
-                      )}
-                    >
-                      {role}
-                    </button>
-                  ))}
-                </div>
-              </>
+            </div>
+            {i < STEP_LABELS.length - 1 && (
+              <div className={cn('mx-2 mb-4 h-0.5 w-8 flex-shrink-0 sm:mx-3 sm:w-16', done ? 'bg-primary' : 'bg-border')} />
             )}
           </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Step 1: Target Role ──────────────────────────────────────────────────────
+
+function StepRoles({
+  data,
+  onChange,
+  onNext,
+}: {
+  data: OnboardingData
+  onChange: (u: Partial<OnboardingData>) => void
+  onNext: () => void
+}) {
+  const [query, setQuery] = useState('')
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const categories = Object.keys(JOB_CATEGORIES)
+
+  const filteredCategories = query
+    ? categories.filter((cat) =>
+        JOB_CATEGORIES[cat].some((r) => r.toLowerCase().includes(query.toLowerCase()))
+      )
+    : categories
+
+  const visibleRoles = activeCategory
+    ? (query
+        ? JOB_CATEGORIES[activeCategory]?.filter((r) => r.toLowerCase().includes(query.toLowerCase()))
+        : JOB_CATEGORIES[activeCategory]) ?? []
+    : query
+    ? Object.values(JOB_CATEGORIES).flat().filter((r) => r.toLowerCase().includes(query.toLowerCase()))
+    : []
+
+  const toggleRole = (role: string) => {
+    const updated = data.jobFunctions.includes(role)
+      ? data.jobFunctions.filter((r) => r !== role)
+      : [...data.jobFunctions, role]
+    onChange({ jobFunctions: updated })
+  }
+
+  const toggleType = (list: 'employmentTypes', val: string) => {
+    const updated = data[list].includes(val)
+      ? data[list].filter((v) => v !== val)
+      : [...data[list], val]
+    onChange({ [list]: updated })
+  }
+
+  return (
+    <div className="lf-panel p-4 sm:p-6 space-y-5">
+      <div>
+        <h2 className="text-base font-semibold text-foreground">What type of role are you targeting?</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">Pick one or more roles that match your goals</p>
+      </div>
+
+      {/* Selected role tags */}
+      {data.jobFunctions.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {data.jobFunctions.map((role) => (
+            <span key={role} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+              {role}
+              <button onClick={() => toggleRole(role)} className="ml-0.5 hover:text-primary/70">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Search */}
+      <div>
+        <label className="lf-label">Job Function <span className="text-red-500 ml-0.5">*</span></label>
+        <div className="relative mt-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setActiveCategory(null) }}
+            placeholder="Search roles…"
+            className="lf-input pl-9"
+          />
         </div>
       </div>
 
-      <div className="flex items-center justify-end border-t border-neutral-100 px-6 py-4 lg:px-10">
-        <NextButton onClick={onNext} disabled={selected.length === 0} />
+      {/* Category + role picker */}
+      <div className="flex rounded-lg border border-border overflow-hidden" style={{ height: '220px' }}>
+        {/* Left: categories */}
+        <div className="w-44 flex-shrink-0 overflow-y-auto border-r border-border bg-muted/20">
+          {filteredCategories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+              className={cn(
+                'flex w-full items-center justify-between px-3 py-2.5 text-left text-xs transition-colors',
+                activeCategory === cat
+                  ? 'bg-primary/5 font-semibold text-primary'
+                  : 'text-foreground hover:bg-muted'
+              )}
+            >
+              <span>{cat}</span>
+              <ChevronRight className="h-3 w-3 flex-shrink-0 opacity-40" />
+            </button>
+          ))}
+        </div>
+
+        {/* Right: roles */}
+        <div className="flex-1 overflow-y-auto p-3">
+          {(activeCategory || query) ? (
+            <>
+              {activeCategory && !query && (
+                <p className="mb-2 text-xs font-semibold text-foreground">{activeCategory}</p>
+              )}
+              <div className="flex flex-wrap gap-1.5">
+                {visibleRoles.map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => toggleRole(role)}
+                    className={cn(
+                      'rounded-full border px-3 py-1 text-xs transition-colors',
+                      data.jobFunctions.includes(role)
+                        ? 'border-primary bg-primary/10 text-primary font-medium'
+                        : 'border-border text-foreground hover:border-primary/40'
+                    )}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-2">Select a category to browse roles</p>
+          )}
+        </div>
+      </div>
+
+      {/* Employment Type */}
+      <div>
+        <label className="lf-label">Employment Type</label>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {EMPLOYMENT_TYPES.map((t) => (
+            <button
+              key={t}
+              onClick={() => toggleType('employmentTypes', t)}
+              className={cn(
+                'rounded-full border px-4 py-1.5 text-sm transition-colors',
+                data.employmentTypes.includes(t)
+                  ? 'border-primary bg-primary/10 text-primary font-medium'
+                  : 'border-border text-foreground hover:border-primary/40'
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Experience Level */}
+      <div>
+        <label className="lf-label">Experience Level</label>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {EXPERIENCE_LEVELS.map((l) => (
+            <button
+              key={l}
+              onClick={() => onChange({ experienceLevel: l })}
+              className={cn(
+                'rounded-full border px-4 py-1.5 text-sm transition-colors',
+                data.experienceLevel === l
+                  ? 'border-primary bg-primary/10 text-primary font-medium'
+                  : 'border-border text-foreground hover:border-primary/40'
+              )}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-2">
+        <button
+          onClick={onNext}
+          disabled={data.jobFunctions.length === 0}
+          className={cn(
+            'rounded-lg px-6 py-2.5 text-sm font-semibold text-white transition-colors',
+            data.jobFunctions.length > 0 ? 'bg-primary hover:bg-primary/90' : 'cursor-not-allowed bg-muted text-muted-foreground'
+          )}
+        >
+          Continue
+        </button>
       </div>
     </div>
   )
 }
 
-// ─── Step 2: Job Preferences ──────────────────────────────────────────────────
+// ─── Step 2: Location ─────────────────────────────────────────────────────────
 
-const JOB_TYPES = ['Full-time', 'Contract', 'Part-time', 'Internship']
-
-function StepJobPreferences({
+function StepLocation({
   data,
   onChange,
   onNext,
   onBack,
 }: {
-  data: Pick<OnboardingData, 'jobTypes' | 'location' | 'openToRemote' | 'h1bSponsorship'>
-  onChange: (updates: Partial<OnboardingData>) => void
+  data: OnboardingData
+  onChange: (u: Partial<OnboardingData>) => void
   onNext: () => void
   onBack: () => void
 }) {
-  const toggleType = (t: string) => {
-    const updated = data.jobTypes.includes(t)
-      ? data.jobTypes.filter((x) => x !== t)
-      : [...data.jobTypes, t]
-    onChange({ jobTypes: updated })
+  const toggleLocType = (val: string) => {
+    const updated = data.locationTypes.includes(val)
+      ? data.locationTypes.filter((v) => v !== val)
+      : [...data.locationTypes, val]
+    onChange({ locationTypes: updated })
   }
 
   return (
-    <div className="flex w-full flex-col justify-between lg:w-1/2">
-      <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 lg:hidden">
-        <LightforthLogo linked={false} />
+    <div className="lf-panel p-4 sm:p-6 space-y-5">
+      <div>
+        <h2 className="text-base font-semibold text-foreground">Where do you want to work?</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">Set your location and work preferences</p>
       </div>
 
-      <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-6 py-8 lg:px-10 lg:py-12">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400">Step 2 of 3</p>
-          <h2 className="mt-1 text-xl font-bold text-neutral-900 lg:hidden">
-            What kind of <strong>opportunity</strong> are you after?
-          </h2>
-        </div>
+      {/* Preferred Location */}
+      <div>
+        <label className="lf-label">Preferred Location <span className="text-red-500 ml-0.5">*</span></label>
+        <input
+          value={data.location}
+          onChange={(e) => onChange({ location: e.target.value })}
+          placeholder="e.g. United States, New York, Remote"
+          className="lf-input mt-1"
+        />
+      </div>
 
-        {/* Job Type */}
-        <div>
-          <p className="mb-2 text-sm font-semibold text-neutral-800">
-            <span className="mr-1 text-red-500">*</span>Job Type
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {JOB_TYPES.map((t) => (
-              <button
-                key={t}
-                onClick={() => toggleType(t)}
-                className={cn(
-                  'flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition-colors',
-                  data.jobTypes.includes(t)
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                    : 'border-neutral-200 text-neutral-600 hover:border-neutral-300 bg-white',
-                )}
-              >
-                <span
-                  className={cn(
-                    'flex h-4 w-4 items-center justify-center rounded border',
-                    data.jobTypes.includes(t) ? 'border-emerald-500 bg-emerald-500' : 'border-neutral-300',
-                  )}
-                >
-                  {data.jobTypes.includes(t) && <Check className="h-3 w-3 text-white" />}
-                </span>
-                {t}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Location */}
-        <div>
-          <p className="mb-2 text-sm font-semibold text-neutral-800">
-            <span className="mr-1 text-red-500">*</span>Location
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1">
-              <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-              <input
-                value={data.location}
-                onChange={(e) => onChange({ location: e.target.value })}
-                placeholder="Anywhere in the US"
-                className="w-full rounded-lg border border-neutral-300 bg-white py-2.5 pl-9 pr-3 text-sm text-neutral-900 outline-none focus:border-emerald-500"
-              />
-            </div>
-            <label className="flex cursor-pointer items-center gap-2">
-              <span
-                onClick={() => onChange({ openToRemote: !data.openToRemote })}
-                className={cn(
-                  'flex h-5 w-5 items-center justify-center rounded border transition-colors',
-                  data.openToRemote ? 'border-emerald-500 bg-emerald-500' : 'border-neutral-300 bg-white',
-                )}
-              >
-                {data.openToRemote && <Check className="h-3.5 w-3.5 text-white" />}
-              </span>
-              <span className="text-sm text-neutral-700">Open to Remote</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Work Authorization */}
-        <div>
-          <p className="mb-2 text-sm font-semibold text-neutral-800">Work Authorization</p>
-          <label className="flex cursor-pointer items-center gap-2.5">
-            <span
-              onClick={() => onChange({ h1bSponsorship: !data.h1bSponsorship })}
+      {/* Location Type */}
+      <div>
+        <label className="lf-label">Job Location Type</label>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {LOCATION_TYPES.map((t) => (
+            <button
+              key={t}
+              onClick={() => toggleLocType(t)}
               className={cn(
-                'flex h-5 w-5 items-center justify-center rounded border transition-colors',
-                data.h1bSponsorship ? 'border-emerald-500 bg-emerald-500' : 'border-neutral-300 bg-white',
+                'rounded-full border px-4 py-1.5 text-sm transition-colors',
+                data.locationTypes.includes(t)
+                  ? 'border-primary bg-primary/10 text-primary font-medium'
+                  : 'border-border text-foreground hover:border-primary/40'
               )}
             >
-              {data.h1bSponsorship && <Check className="h-3.5 w-3.5 text-white" />}
-            </span>
-            <span className="text-sm text-neutral-700">H1B sponsorship</span>
-          </label>
+              {t}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-neutral-100 px-6 py-4 lg:px-10">
-        <button onClick={onBack} className="text-sm text-neutral-500 hover:text-neutral-700">
+      {/* Open to Relocate */}
+      <label className="flex cursor-pointer items-start gap-2.5">
+        <input
+          type="checkbox"
+          checked={data.openToRelocate}
+          onChange={(e) => onChange({ openToRelocate: e.target.checked })}
+          className="mt-0.5 h-4 w-4 flex-shrink-0 accent-primary"
+        />
+        <span className="text-sm text-foreground">I am open to relocating</span>
+      </label>
+
+      {/* Sponsorship */}
+      <div>
+        <label className="lf-label">Work Authorization</label>
+        <label className="mt-2 flex cursor-pointer items-start gap-2.5">
+          <input
+            type="checkbox"
+            checked={data.needsSponsorship}
+            onChange={(e) => onChange({ needsSponsorship: e.target.checked })}
+            className="mt-0.5 h-4 w-4 flex-shrink-0 accent-primary"
+          />
+          <span className="text-sm text-foreground">I require H1B sponsorship</span>
+        </label>
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
           ← Back
         </button>
-        <NextButton onClick={onNext} disabled={data.jobTypes.length === 0 || !data.location.trim()} />
+        <button
+          onClick={onNext}
+          disabled={!data.location.trim()}
+          className={cn(
+            'rounded-lg px-6 py-2.5 text-sm font-semibold text-white transition-colors',
+            data.location.trim() ? 'bg-primary hover:bg-primary/90' : 'cursor-not-allowed bg-muted text-muted-foreground'
+          )}
+        >
+          Continue
+        </button>
       </div>
     </div>
   )
 }
 
-// ─── Step 3: Resume Upload ─────────────────────────────────────────────────────
+// ─── Step 3: Resume Upload ────────────────────────────────────────────────────
 
-function StepResumeUpload({
+function StepResume({
   file,
-  onFileChange,
+  onFile,
   onNext,
   onBack,
   onSkip,
 }: {
   file: File | null
-  onFileChange: (f: File | null) => void
+  onFile: (f: File | null) => void
   onNext: () => void
   onBack: () => void
   onSkip: () => void
@@ -400,348 +419,300 @@ function StepResumeUpload({
   const [dragging, setDragging] = useState(false)
 
   const handleFile = (f: File) => {
-    const ok = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(f.type)
-    if (ok && f.size <= 10 * 1024 * 1024) onFileChange(f)
+    const valid = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(f.type)
+    if (valid && f.size <= 10 * 1024 * 1024) onFile(f)
   }
 
   return (
-    <div className="flex w-full flex-col justify-between lg:w-1/2">
-      <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-4 lg:hidden">
-        <LightforthLogo linked={false} />
+    <div className="lf-panel p-4 sm:p-6 space-y-5">
+      <div>
+        <h2 className="text-base font-semibold text-foreground">Upload your resume</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Lightforth uses your resume to find matches and tailor every application
+        </p>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center gap-6 px-6 py-8 lg:px-10 lg:py-12">
-        <div className="w-full text-center lg:hidden mb-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400">Step 3 of 3</p>
-          <h2 className="mt-1 text-xl font-bold text-neutral-900">
-            One last step, let's level up your search.
-          </h2>
+      {file ? (
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-3">
+          <FileText className="h-8 w-8 flex-shrink-0 text-red-500" />
+          <div className="flex-1 min-w-0">
+            <p className="truncate text-sm font-medium text-foreground">{file.name}</p>
+            <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(0)} KB — Ready</p>
+          </div>
+          <Check className="h-5 w-5 flex-shrink-0 rounded-full bg-primary p-0.5 text-white" />
+          <button onClick={() => onFile(null)}>
+            <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+          </button>
         </div>
-
-        {/* Upload area */}
+      ) : (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
           onDragLeave={() => setDragging(false)}
           onDrop={(e) => { e.preventDefault(); setDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
           className={cn(
-            'flex h-36 w-full max-w-sm flex-col items-center justify-center rounded-xl border-2 border-dashed transition-colors',
-            dragging ? 'border-emerald-400 bg-emerald-50' : 'border-neutral-200 bg-neutral-50',
+            'flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-10 transition-colors',
+            dragging ? 'border-primary bg-primary/5' : 'border-border bg-muted/20'
           )}
         >
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-100">
-            <Upload className="h-6 w-6 text-neutral-500" />
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <Upload className="h-5 w-5 text-muted-foreground" />
           </div>
-          {file ? (
-            <p className="mt-2 text-sm font-medium text-emerald-600">{file.name}</p>
-          ) : (
-            <p className="mt-2 text-sm text-neutral-400">Drag & drop your resume here</p>
-          )}
+          <p className="text-sm font-medium text-foreground">Drag & drop your resume</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">PDF or Word · Max 10MB</p>
         </div>
+      )}
 
-        <button
-          onClick={() => inputRef.current?.click()}
-          className="w-full max-w-sm rounded-xl border border-emerald-500 py-3 text-sm font-semibold text-emerald-600 transition-colors hover:bg-emerald-50"
-        >
-          Upload Your Resume
-        </button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".pdf,.docx"
-          className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
-        />
+      <button
+        onClick={() => inputRef.current?.click()}
+        className="upload-cta-pulse w-full rounded-lg border border-primary py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/5"
+      >
+        {file ? 'Change resume' : 'Browse file'}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,.docx"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+      />
 
-        <p className="text-xs text-neutral-400">
-          Files should be in <strong className="text-neutral-600">PDF</strong> or <strong className="text-neutral-600">Word</strong> format and must not exceed 10MB.
-        </p>
+      <p className="text-xs text-muted-foreground text-center">
+        Your resume is only used for job matching and will never be shared with third parties.
+      </p>
 
-        <div className="w-full max-w-sm rounded-xl bg-neutral-50 p-4 text-center text-xs text-neutral-500">
-          Data privacy is the top priority at Lightforth. Your resume will only be used for job matching and will never be shared with third parties.
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-neutral-100 px-6 py-4 lg:px-10">
-        <button onClick={onBack} className="text-sm text-neutral-500 hover:text-neutral-700">
+      <div className="flex items-center justify-between pt-1">
+        <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
           ← Back
         </button>
         <div className="flex items-center gap-3">
-          <button onClick={onSkip} className="text-sm text-neutral-400 hover:text-neutral-600">
-            Skip
+          <button onClick={onSkip} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Skip for now
           </button>
-          <NextButton onClick={onNext} label="Start Matching" disabled={!file} />
+          <button
+            onClick={onNext}
+            disabled={!file}
+            className={cn(
+              'rounded-lg px-6 py-2.5 text-sm font-semibold text-white transition-colors',
+              file ? 'bg-primary hover:bg-primary/90' : 'cursor-not-allowed bg-muted text-muted-foreground'
+            )}
+          >
+            Start Matching
+          </button>
         </div>
       </div>
     </div>
   )
 }
 
-// ─── Step 4: Matching Screen ──────────────────────────────────────────────────
+// ─── Matching Screen ──────────────────────────────────────────────────────────
 
-function StepMatching({ onComplete }: { onComplete: () => void }) {
-  const [cardIndex, setCardIndex] = useState(0)
+function MatchingScreen({ onComplete }: { onComplete: () => void }) {
+  const [cardIdx, setCardIdx] = useState(0)
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    const progressTimer = setInterval(() => {
-      setProgress((p) => Math.min(100, p + 2))
-    }, 60)
-    const cardTimer = setInterval(() => {
-      setCardIndex((i) => (i + 1) % FEATURE_CARDS.length)
-    }, 1800)
-    const doneTimer = setTimeout(onComplete, 3500)
-
-    return () => {
-      clearInterval(progressTimer)
-      clearInterval(cardTimer)
-      clearTimeout(doneTimer)
-    }
+    const prog = setInterval(() => setProgress((p) => Math.min(100, p + 2)), 60)
+    const card = setInterval(() => setCardIdx((i) => (i + 1) % FEATURE_HIGHLIGHTS.length), 1800)
+    const done = setTimeout(onComplete, 3500)
+    return () => { clearInterval(prog); clearInterval(card); clearTimeout(done) }
   }, [onComplete])
 
-  const messages = [
-    'Identifying your job preferences — industry, role, and location.',
-    'Scanning thousands of matching opportunities...',
-    'Calculating your match scores...',
-  ]
-  const [msgIndex, setMsgIndex] = useState(0)
-  useEffect(() => {
-    const t = setInterval(() => setMsgIndex((i) => (i + 1) % messages.length), 1200)
-    return () => clearInterval(t)
-  }, [])
-
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-white px-6">
-      <LightforthLogo linked={false} className="mb-12" />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+      <LightforthLogo linked={false} className="mb-10" />
 
-      {/* Resume icon */}
-      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-neutral-100">
-        <svg viewBox="0 0 40 40" className="h-9 w-9" fill="none">
-          <rect x="6" y="4" width="28" height="32" rx="3" fill="#e5e7eb" />
-          <rect x="10" y="9" width="20" height="2" rx="1" fill="#9ca3af" />
-          <rect x="10" y="14" width="16" height="2" rx="1" fill="#9ca3af" />
-          <rect x="10" y="19" width="18" height="2" rx="1" fill="#9ca3af" />
-          <rect x="10" y="24" width="12" height="2" rx="1" fill="#9ca3af" />
-          <circle cx="30" cy="30" r="8" fill="#10b981" />
-          <path d="M26 30l2.5 2.5L34 27" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-
-      {/* Progress bar */}
-      <div className="mb-3 h-1 w-64 overflow-hidden rounded-full bg-neutral-100">
-        <div
-          className="h-full rounded-full bg-emerald-500 transition-all duration-100"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
-      <p className="mb-12 text-sm text-neutral-500 transition-all">{messages[msgIndex]}</p>
-
-      {/* Feature card carousel */}
-      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50 p-6 shadow-sm">
-        <div className="mb-4 inline-block rounded-full bg-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-600">
-          Feature Highlights
-        </div>
-        <h3 className="text-lg font-bold text-neutral-900">{FEATURE_CARDS[cardIndex].title}</h3>
-        <p className="mt-1 text-sm text-neutral-500">{FEATURE_CARDS[cardIndex].desc}</p>
-        <div className="mt-4 flex justify-center gap-1.5">
-          {FEATURE_CARDS.map((_, i) => (
-            <span
-              key={i}
-              className={cn('h-1.5 rounded-full transition-all', i === cardIndex ? 'w-4 bg-emerald-500' : 'w-1.5 bg-neutral-300')}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Step 5: Welcome Modal ─────────────────────────────────────────────────────
-
-function WelcomeModal({
-  jobFunctions,
-  onConfirm,
-}: {
-  jobFunctions: string[]
-  onConfirm: (levels: string[]) => void
-}) {
-  const [selected, setSelected] = useState<string[]>(['Senior Level', 'Lead/Staff'])
-
-  const toggle = (label: string) => {
-    setSelected((prev) =>
-      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label],
-    )
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-2xl">
-        {/* Mascot */}
-        <div className="mb-4 flex justify-center">
-          <MascotAvatar />
+      <div className="w-full max-w-sm">
+        {/* Resume icon */}
+        <div className="mb-5 flex justify-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted">
+            <FileText className="h-7 w-7 text-muted-foreground" />
+          </div>
         </div>
 
-        <h2 className="text-center text-xl font-bold text-neutral-900">
-          👋 Welcome! We found{' '}
-          <span className="text-emerald-600">8,777 roles</span> that fit you best.
-        </h2>
-        <p className="mt-2 text-center text-sm text-neutral-500">
-          Take a moment to review — just making sure everything looks right for you.
+        {/* Progress bar */}
+        <div className="mb-2 h-1.5 w-full overflow-hidden rounded-full bg-border">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-100"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <p className="mb-8 text-center text-sm text-muted-foreground">
+          Finding roles that match your profile…
         </p>
 
-        <div className="mt-6">
-          <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-neutral-700">
-            🎯 Recommended Experience Levels
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {EXPERIENCE_LEVELS.map(({ label, desc }) => (
-              <button
-                key={label}
-                onClick={() => toggle(label)}
+        {/* Feature card */}
+        <div className="rounded-2xl bg-[#EEF4FF] p-6">
+          <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary mb-3">
+            Feature Highlights
+          </span>
+          <h3 className="text-base font-bold text-foreground">{FEATURE_HIGHLIGHTS[cardIdx].title}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{FEATURE_HIGHLIGHTS[cardIdx].desc}</p>
+          <div className="mt-4 flex justify-center gap-1.5">
+            {FEATURE_HIGHLIGHTS.map((_, i) => (
+              <span
+                key={i}
                 className={cn(
-                  'flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-xs transition-colors',
-                  selected.includes(label)
-                    ? 'border-emerald-500 bg-emerald-50'
-                    : 'border-neutral-200 bg-white hover:border-neutral-300',
+                  'h-1.5 rounded-full transition-all',
+                  i === cardIdx ? 'w-4 bg-primary' : 'w-1.5 bg-border'
                 )}
-              >
-                <span
-                  className={cn(
-                    'flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border',
-                    selected.includes(label) ? 'border-emerald-500 bg-emerald-500' : 'border-neutral-300',
-                  )}
-                >
-                  {selected.includes(label) && <Check className="h-3 w-3 text-white" />}
-                </span>
-                <span>
-                  <span className="font-semibold text-neutral-800">{label}</span>
-                  {desc && <span className="ml-1 text-neutral-400">{desc}</span>}
-                </span>
-              </button>
+              />
             ))}
           </div>
         </div>
-
-        {jobFunctions.length > 0 && (
-          <div className="mt-4">
-            <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-700">
-              🎯 Additional Job Functions Matching Your Background
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {jobFunctions.slice(0, 3).map((fn) => (
-                <span
-                  key={fn}
-                  className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"
-                >
-                  <Check className="h-3 w-3" /> {fn}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <button
-          onClick={() => onConfirm(selected)}
-          className="mt-6 w-full rounded-xl bg-neutral-900 py-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
-        >
-          Confirm & See Jobs
-        </button>
       </div>
     </div>
   )
 }
 
-// ─── Main OnboardingFlow ──────────────────────────────────────────────────────
+// ─── Welcome Modal ────────────────────────────────────────────────────────────
 
-type Step = 'jobFunction' | 'preferences' | 'resume' | 'matching' | 'welcome'
+const EXP_LEVELS = [
+  { label: 'Intern / New Grad', sub: '' },
+  { label: 'Entry Level', sub: '1–3 years' },
+  { label: 'Mid Level', sub: '2–5 years' },
+  { label: 'Senior Level', sub: '5+ years' },
+  { label: 'Lead / Staff', sub: 'Cross-team leader' },
+  { label: 'Director / Executive', sub: 'Director / VP / CXO' },
+]
 
-const LEFT_CONTENT: Record<string, { headline: React.ReactNode; sub: string }> = {
-  jobFunction: {
-    headline: <>To get started, <span className="text-emerald-600">what type of role</span> are you looking for?</>,
-    sub: 'Pick one or more job functions that match your target.',
-  },
-  preferences: {
-    headline: <>What kind of <span className="text-emerald-600">opportunity</span> are you after?</>,
-    sub: 'Tell us your preferred work type, location, and visa needs.',
-  },
-  resume: {
-    headline: <>One last step, let's <span className="text-emerald-600">level up</span> your search by uploading your resume.</>,
-    sub: 'Your resume helps us find roles that truly match your background.',
-  },
+function WelcomeModal({ jobFunctions, onConfirm }: { jobFunctions: string[]; onConfirm: () => void }) {
+  const [selectedLevels, setSelectedLevels] = useState<string[]>(['Senior Level', 'Lead / Staff'])
+
+  const toggle = (label: string) =>
+    setSelectedLevels((prev) =>
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+    )
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+        <div className="p-6 sm:p-8">
+          <h2 className="lf-overlay-title text-center">
+            We found <span className="text-primary">8,777 roles</span> that fit you best.
+          </h2>
+          <p className="lf-body mt-2 text-center">
+            Take a moment to confirm your experience level — this helps us rank the best matches first.
+          </p>
+
+          <div className="mt-6">
+            <p className="text-sm font-semibold text-foreground mb-3">Recommended Experience Levels</p>
+            <div className="grid grid-cols-2 gap-2">
+              {EXP_LEVELS.map(({ label, sub }) => (
+                <button
+                  key={label}
+                  onClick={() => toggle(label)}
+                  className={cn(
+                    'flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-xs transition-colors',
+                    selectedLevels.includes(label)
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/40'
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    readOnly
+                    checked={selectedLevels.includes(label)}
+                    className="h-4 w-4 flex-shrink-0 accent-primary pointer-events-none"
+                  />
+                  <span>
+                    <span className="font-semibold text-foreground">{label}</span>
+                    {sub && <span className="ml-1 text-muted-foreground">{sub}</span>}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {jobFunctions.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm font-semibold text-foreground mb-2">Additional Matching Functions</p>
+              <div className="flex flex-wrap gap-1.5">
+                {jobFunctions.slice(0, 4).map((fn) => (
+                  <span key={fn} className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                    <Check className="h-3 w-3" /> {fn}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={onConfirm}
+            className="mt-6 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+          >
+            Confirm & See Jobs
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function OnboardingFlow() {
   const navigate = useNavigate()
-  const [step, setStep] = useState<Step>('jobFunction')
+  const [step, setStep] = useState<OnboardingStep>('roles')
   const [data, setData] = useState<OnboardingData>({
     jobFunctions: [],
-    jobTypes: ['Full-time'],
-    location: 'Anywhere in the US',
-    openToRemote: true,
-    h1bSponsorship: false,
+    employmentTypes: ['Full-Time'],
+    experienceLevel: 'Senior',
+    locationTypes: ['Remote'],
+    location: '',
+    openToRelocate: false,
+    needsSponsorship: false,
     resumeFile: null,
-    experienceLevels: [],
   })
 
-  const update = (updates: Partial<OnboardingData>) => setData((d) => ({ ...d, ...updates }))
+  const update = (u: Partial<OnboardingData>) => setData((d) => ({ ...d, ...u }))
 
-  const toggleJobFunction = (role: string) => {
-    update({
-      jobFunctions: data.jobFunctions.includes(role)
-        ? data.jobFunctions.filter((r) => r !== role)
-        : [...data.jobFunctions, role],
-    })
-  }
-
-  const handleConfirm = (levels: string[]) => {
-    update({ experienceLevels: levels })
-    navigate('/')
-  }
-
-  if (step === 'matching') {
-    return <StepMatching onComplete={() => setStep('welcome')} />
-  }
+  if (step === 'matching') return <MatchingScreen onComplete={() => setStep('welcome')} />
 
   if (step === 'welcome') {
     return (
-      <div className="min-h-screen bg-neutral-50">
-        <WelcomeModal jobFunctions={data.jobFunctions} onConfirm={handleConfirm} />
-      </div>
+      <WelcomeModal
+        jobFunctions={data.jobFunctions}
+        onConfirm={() => navigate('/')}
+      />
     )
   }
 
-  const leftContent = LEFT_CONTENT[step]
-
   return (
-    <div className="flex min-h-screen">
-      <LeftPanel headline={leftContent.headline} sub={leftContent.sub} />
+    <div className="flex min-h-screen flex-col bg-background">
+      {/* Top bar */}
+      <header className="flex h-14 items-center border-b border-border bg-white px-6">
+        <LightforthLogo linked={false} />
+      </header>
 
-      {step === 'jobFunction' && (
-        <StepJobFunction
-          selected={data.jobFunctions}
-          onToggle={toggleJobFunction}
-          onNext={() => setStep('preferences')}
-        />
-      )}
+      {/* Content */}
+      <main className="flex flex-1 flex-col items-center px-4 py-8 sm:px-6 sm:py-10">
+        <div className="w-full max-w-xl space-y-6">
+          {/* Step indicator */}
+          <StepIndicator current={step} />
 
-      {step === 'preferences' && (
-        <StepJobPreferences
-          data={data}
-          onChange={update}
-          onNext={() => setStep('resume')}
-          onBack={() => setStep('jobFunction')}
-        />
-      )}
-
-      {step === 'resume' && (
-        <StepResumeUpload
-          file={data.resumeFile}
-          onFileChange={(f) => update({ resumeFile: f })}
-          onNext={() => setStep('matching')}
-          onBack={() => setStep('preferences')}
-          onSkip={() => setStep('matching')}
-        />
-      )}
+          {/* Step content */}
+          {step === 'roles' && (
+            <StepRoles data={data} onChange={update} onNext={() => setStep('location')} />
+          )}
+          {step === 'location' && (
+            <StepLocation
+              data={data}
+              onChange={update}
+              onNext={() => setStep('resume')}
+              onBack={() => setStep('roles')}
+            />
+          )}
+          {step === 'resume' && (
+            <StepResume
+              file={data.resumeFile}
+              onFile={(f) => update({ resumeFile: f })}
+              onNext={() => setStep('matching')}
+              onBack={() => setStep('location')}
+              onSkip={() => setStep('matching')}
+            />
+          )}
+        </div>
+      </main>
     </div>
   )
 }

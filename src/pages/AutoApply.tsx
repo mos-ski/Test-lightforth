@@ -3,7 +3,6 @@ import {
   Check, Search, ArrowUpRight, X, FileText,
   Bot, Zap, Briefcase, Network, Sparkles, AlertTriangle,
   ArrowDown, ChevronDown, ChevronUp, Link as LinkIcon, Clock3, Paperclip, MessageSquare,
-  Bookmark, Heart, MessageCircle, SlidersHorizontal, MapPin, Building2,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
@@ -1419,111 +1418,16 @@ function JobDetailPanel({
 
 const FILTER_PILLS = ['Location', 'Job Function', 'Experience Level', 'Job Type', 'Date Posted']
 
-function MatchScoreBadge({ job }: { job: typeof MOCK_JOBS[0] }) {
-  const score = job.match
+function MatchBadge({ score, label }: { score: number; label: string }) {
   const isExcellent = score >= 90
-  const isStrong = score >= 80 && score < 90
-  const color = isExcellent ? '#10b981' : isStrong ? '#3b82f6' : '#f59e0b'
-  const bg = isExcellent ? 'bg-emerald-50 border-emerald-200' : isStrong ? 'bg-blue-50 border-blue-200' : 'bg-amber-50 border-amber-200'
-  const textColor = isExcellent ? 'text-emerald-700' : isStrong ? 'text-blue-700' : 'text-amber-700'
-  const circumference = 2 * Math.PI * 22
-  const dash = (score / 100) * circumference
-
+  const isStrong = score >= 80
   return (
-    <div className={cn('flex w-28 flex-shrink-0 flex-col items-center rounded-xl border p-3', bg)}>
-      <div className="relative h-16 w-16">
-        <svg viewBox="0 0 48 48" className="h-full w-full -rotate-90">
-          <circle cx="24" cy="24" r="22" fill="none" stroke="#e5e7eb" strokeWidth="3" />
-          <circle
-            cx="24" cy="24" r="22" fill="none"
-            stroke={color} strokeWidth="3"
-            strokeDasharray={`${dash} ${circumference}`}
-            strokeLinecap="round"
-          />
-        </svg>
-        <span className={cn('absolute inset-0 flex flex-col items-center justify-center', textColor)}>
-          <span className="text-sm font-bold leading-none">{score}%</span>
-        </span>
-      </div>
-      <p className={cn('mt-1.5 text-[10px] font-bold tracking-wide', textColor)}>{job.matchLabel}</p>
-      <p className={cn('mt-1 text-center text-[9px] leading-tight', textColor)}>✓ {job.matchHighlight}</p>
-    </div>
-  )
-}
-
-function JobCard({
-  job,
-  selected,
-  onSelect,
-}: {
-  job: typeof MOCK_JOBS[0]
-  selected: boolean
-  onSelect: () => void
-}) {
-  const initials = job.company.slice(0, 2).toUpperCase()
-  const colors = ['bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-emerald-100 text-emerald-700', 'bg-amber-100 text-amber-700', 'bg-rose-100 text-rose-700']
-  const colorIdx = job.id.charCodeAt(0) % colors.length
-
-  return (
-    <div
-      className={cn(
-        'flex gap-3 rounded-xl border bg-white p-4 transition-all cursor-pointer hover:border-primary/40 hover:shadow-sm',
-        selected ? 'border-primary/60 shadow-sm' : 'border-border',
-      )}
-      onClick={onSelect}
-    >
-      {/* Company logo placeholder */}
-      <div className={cn('flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold', colors[colorIdx])}>
-        {initials}
-      </div>
-
-      {/* Job info */}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="text-sm font-semibold text-foreground leading-tight">{job.title}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{job.company}</p>
-          </div>
-          <span className="flex-shrink-0 text-xs text-muted-foreground whitespace-nowrap">{job.date}</span>
-        </div>
-
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" /> {job.location}
-          </span>
-          <span className="flex items-center gap-1">
-            <Briefcase className="h-3 w-3" /> {job.type}
-          </span>
-          <span className="flex items-center gap-1">
-            <Building2 className="h-3 w-3" /> {job.level}
-          </span>
-          {job.salary && (
-            <span className="font-medium text-foreground">{job.salary}</span>
-          )}
-        </div>
-
-        <p className="mt-1.5 text-[10px] text-muted-foreground">{job.applicants} applicants</p>
-
-        {/* Actions */}
-        <div className="mt-3 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-          <button className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-            <Bookmark className="h-3.5 w-3.5" />
-          </button>
-          <button className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-            <Heart className="h-3.5 w-3.5" />
-          </button>
-          <button className="ml-auto flex items-center gap-1.5 rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors">
-            <MessageCircle className="h-3 w-3" /> Ask AI
-          </button>
-          <button className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors">
-            Apply <ArrowUpRight className="h-3 w-3" />
-          </button>
-        </div>
-      </div>
-
-      {/* Match badge */}
-      <MatchScoreBadge job={job} />
-    </div>
+    <span className={cn(
+      'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold',
+      isExcellent ? 'bg-green-100 text-green-700' : isStrong ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+    )}>
+      {score}% {label}
+    </span>
   )
 }
 
@@ -1566,32 +1470,65 @@ function JobsTab({
               className={cn(
                 'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
                 activeFilter === pill
-                  ? 'border-primary bg-primary/5 text-primary'
-                  : 'border-border bg-white text-muted-foreground hover:border-primary/40',
+                  ? 'border-primary bg-primary/10 text-primary'
+                  : 'border-border text-foreground hover:border-primary/40'
               )}
             >
               {pill}
-              <ChevronDown className="h-3 w-3" />
+              <ChevronDown className="h-3 w-3 opacity-60" />
             </button>
           ))}
-          <button className="flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 transition-colors">
-            <SlidersHorizontal className="h-3 w-3" /> All Filters
-          </button>
         </div>
 
-        {/* Job cards */}
-        <div className="space-y-3">
-          {filtered.map((job) => (
-            <JobCard
-              key={job.id}
-              job={job}
-              selected={selectedJob === job.id}
-              onSelect={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
-            />
-          ))}
+        {/* Job list */}
+        <div className="lf-table-wrap">
+          <div className="divide-y divide-border/60">
+            {filtered.map((job) => (
+              <div
+                key={job.id}
+                onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
+                className={cn(
+                  'flex cursor-pointer items-start gap-3 p-4 transition-colors hover:bg-muted/30',
+                  selectedJob === job.id && 'bg-primary/5'
+                )}
+              >
+                {/* Company initials */}
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                  {job.company.slice(0, 2).toUpperCase()}
+                </div>
+
+                {/* Job details */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-foreground">{job.title}</p>
+                    <MatchBadge score={job.match} label={job.matchLabel} />
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {job.company} · {job.location} · {job.type} · {job.level}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span>{job.salary}</span>
+                    <span>{job.applicants} applicants</span>
+                    <span>{job.date}</span>
+                    {job.matchHighlight && (
+                      <span className="text-primary">✓ {job.matchHighlight}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action */}
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex-shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors"
+                >
+                  Apply
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <button className="mt-4 w-full text-center text-sm text-primary hover:underline">Load more</button>
+        <button className="mt-3 w-full text-center text-sm text-primary hover:underline">Load more</button>
       </div>
 
       {selectedJob && (
