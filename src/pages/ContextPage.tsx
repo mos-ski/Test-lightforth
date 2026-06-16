@@ -54,16 +54,8 @@ function typeIcon(src: ContextSource): React.ElementType {
   return FileText
 }
 
-function typeIconCls(src: ContextSource): string {
-  if (src.type === 'note') return 'text-amber-500 bg-amber-50'
-  if (src.type === 'link') {
-    if (src.subtype === 'github') return 'text-gray-600 bg-gray-100'
-    if (src.subtype === 'linkedin') return 'text-blue-600 bg-blue-50'
-    return 'text-violet-600 bg-violet-50'
-  }
-  if (src.ext === 'pdf') return 'text-red-500 bg-red-50'
-  if (src.ext === 'docx' || src.ext === 'doc') return 'text-blue-500 bg-blue-50'
-  return 'text-gray-500 bg-gray-100'
+function typeIconCls(_src: ContextSource): string {
+  return 'text-muted-foreground bg-muted'
 }
 
 function typeLabel(src: ContextSource): string {
@@ -148,7 +140,7 @@ export default function ContextPage() {
                       </div>
                     </td>
                     <td className="lf-table-cell">
-                      <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-medium', iconCls)}>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                         {typeLabel(src)}
                       </span>
                     </td>
@@ -230,33 +222,26 @@ function AddModal({ mode, onClose, onSelectMode, onAdd }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
+      <div className="lf-panel w-full max-w-[480px] p-0 shadow-2xl">
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              {mode === 'upload' ? 'Add Document' : mode === 'link' ? 'Add a Link' : 'Write a Note'}
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {mode === 'upload'
-                ? 'The contents will be used to give AI context about you.'
-                : mode === 'link'
-                ? 'AI will read and summarize the linked page.'
-                : 'Write anything — talking points, interview prep, background info.'}
-            </p>
-          </div>
-          <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition">
-            <X className="h-4 w-4" />
+          <h2 className="text-lg font-bold text-foreground">
+            {mode === 'upload' ? 'Add Document' : mode === 'link' ? 'Add a Link' : 'Write a Note'}
+          </h2>
+          <button onClick={onClose} className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors">
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="p-5 space-y-3">
-          {/* Entry point: show 3 options */}
+        <div className="space-y-3 p-6">
+          {/* Entry point: 3 options */}
           {mode === 'upload' && (
             <>
-              <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-3 text-sm font-semibold text-white transition hover:bg-foreground/90">
+              <p className="lf-label mb-3">Choose a method</p>
+
+              <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary/90">
                 <Upload className="h-4 w-4" /> Upload Documents
                 <input type="file" accept=".pdf,.docx,.doc,.md" className="sr-only" onChange={e => {
                   const file = e.target.files?.[0]
@@ -268,30 +253,33 @@ function AddModal({ mode, onClose, onSelectMode, onAdd }: {
 
               <button
                 onClick={() => onSelectMode('link')}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-white px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-white px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
               >
                 <Globe className="h-4 w-4 text-muted-foreground" /> Scrape from URL
               </button>
 
               <button
                 onClick={() => onSelectMode('note')}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-white px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-white px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
               >
                 <PenLine className="h-4 w-4 text-muted-foreground" /> Input Manually
               </button>
+
+              <p className="text-xs text-muted-foreground text-center pt-1">PDF, DOCX, DOC, MD · Max 10MB</p>
             </>
           )}
 
           {/* Link flow */}
           {mode === 'link' && (
             <>
+              <p className="lf-label mb-3">Link type</p>
               <div className="grid grid-cols-3 gap-2">
                 {LINK_SUBTYPES.map(lt => {
                   const LIcon = lt.icon
                   return (
                     <button key={lt.key} onClick={() => setLinkSubtype(lt.key as typeof linkSubtype)}
-                      className={cn('flex flex-col items-center gap-1.5 rounded-xl border py-3.5 text-xs font-medium transition',
-                        linkSubtype === lt.key ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-primary/30')}>
+                      className={cn('flex flex-col items-center gap-1.5 rounded-lg border py-3 text-xs font-medium transition',
+                        linkSubtype === lt.key ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-primary/30 hover:bg-muted/30')}>
                       <LIcon className="h-4 w-4" /> {lt.label}
                     </button>
                   )
@@ -302,7 +290,7 @@ function AddModal({ mode, onClose, onSelectMode, onAdd }: {
                 value={linkUrl}
                 onChange={e => setLinkUrl(e.target.value)}
                 placeholder={LINK_SUBTYPES.find(l => l.key === linkSubtype)?.placeholder}
-                className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                className="lf-input"
               />
 
               {done ? (
@@ -310,43 +298,47 @@ function AddModal({ mode, onClose, onSelectMode, onAdd }: {
                   <CheckCircle2 className="h-4 w-4 shrink-0" /> Link added — AI summary incoming.
                 </div>
               ) : (
-                <button onClick={handleAddLink} disabled={!linkUrl.trim() || loading}
-                  className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:opacity-40">
-                  {loading ? 'Analyzing…' : 'Add Link'}
-                </button>
+                <div className="flex gap-3 border-t border-border pt-4">
+                  <button onClick={() => onSelectMode('upload')}
+                    className="flex-1 rounded-lg border border-border py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    Cancel
+                  </button>
+                  <button onClick={handleAddLink} disabled={!linkUrl.trim() || loading}
+                    className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:opacity-40">
+                    {loading ? 'Analyzing…' : 'Add Link →'}
+                  </button>
+                </div>
               )}
-
-              <button onClick={() => onSelectMode('upload')}
-                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition">
-                ← Back
-              </button>
             </>
           )}
 
           {/* Note flow */}
           {mode === 'note' && (
             <>
+              <p className="lf-label mb-3">Note details</p>
               <input
                 value={noteName}
                 onChange={e => setNoteName(e.target.value)}
                 placeholder="Title (e.g. Interview Prep Notes)"
-                className="w-full rounded-lg border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                className="lf-input"
               />
               <textarea
                 value={noteBody}
                 onChange={e => setNoteBody(e.target.value)}
                 placeholder="Write your notes here…"
-                rows={6}
-                className="w-full rounded-lg border border-border px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none resize-none"
+                rows={5}
+                className="lf-input resize-none"
               />
-              <button onClick={handleAddNote} disabled={!noteName.trim()}
-                className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:opacity-40">
-                Save Note
-              </button>
-              <button onClick={() => onSelectMode('upload')}
-                className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition">
-                ← Back
-              </button>
+              <div className="flex gap-3 border-t border-border pt-4">
+                <button onClick={() => onSelectMode('upload')}
+                  className="flex-1 rounded-lg border border-border py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                  Cancel
+                </button>
+                <button onClick={handleAddNote} disabled={!noteName.trim()}
+                  className="flex-1 rounded-lg bg-primary py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:opacity-40">
+                  Save Note →
+                </button>
+              </div>
             </>
           )}
         </div>
