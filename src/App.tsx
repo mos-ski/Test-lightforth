@@ -9,6 +9,7 @@ import Dashboard from '@/pages/Dashboard'
 
 const OnboardingFlow = lazy(() => import('@/pages/OnboardingFlow'))
 const MyDocuments = lazy(() => import('@/pages/MyDocuments'))
+const ContextPage = lazy(() => import('@/pages/ContextPage'))
 const ResumeBuilder = lazy(() => import('@/pages/ResumeBuilder'))
 const AutoApply = lazy(() => import('@/pages/AutoApply'))
 const InterviewCopilot = lazy(() => import('@/pages/InterviewCopilot'))
@@ -76,6 +77,7 @@ export default function App() {
             <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
             <Route path="/" element={<AppRoute><Dashboard /></AppRoute>} />
             <Route path="/documents" element={<AppRoute><Suspense fallback={null}><MyDocuments /></Suspense></AppRoute>} />
+            <Route path="/documents/context" element={<AppRoute><Suspense fallback={null}><ContextPage /></Suspense></AppRoute>} />
             <Route path="/resume-builder" element={<ProtectedRoute><Suspense fallback={null}><ResumeBuilder /></Suspense></ProtectedRoute>} />
             <Route path="/auto-apply" element={<AppRoute><Suspense fallback={null}><AutoApply /></Suspense></AppRoute>} />
             <Route path="/interview-prep" element={<AppRoute><Suspense fallback={null}><InterviewPrep /></Suspense></AppRoute>} />

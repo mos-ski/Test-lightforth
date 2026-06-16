@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   FileText,
@@ -11,18 +11,23 @@ import {
   CreditCard,
   Settings,
   ChevronDown,
+  ChevronRight,
   X,
-  Menu,
-  Users,
   ShieldCheck,
+  BookOpen,
+  Layers,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import UpgradeCard from '@/components/shared/UpgradeCard'
 import LightforthLogo from '@/components/shared/LightforthLogo'
 
+const DOCS_SUB_NAV = [
+  { to: '/documents', icon: BookOpen, label: 'Resumes', end: true },
+  { to: '/documents/context', icon: Layers, label: 'Context' },
+]
+
 const PRIMARY_NAV = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/documents', icon: FileText, label: 'My Documents', chevron: true },
   { to: '/auto-apply', icon: Briefcase, label: 'Auto-Apply' },
   { to: '/interview-prep', icon: Target, label: 'Interview Prep' },
   { to: '/interview-copilot', icon: Headphones, label: 'Interview Co-Pilot' },
@@ -44,13 +49,11 @@ function NavItem({
   icon: Icon,
   label,
   end,
-  chevron,
 }: {
   to: string
   icon: React.ElementType
   label: string
   end?: boolean
-  chevron?: boolean
 }) {
   return (
     <NavLink
@@ -74,12 +77,59 @@ function NavItem({
             )}
           />
           <span className="flex-1 truncate">{label}</span>
-          {chevron && (
-            <ChevronDown className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
-          )}
         </>
       )}
     </NavLink>
+  )
+}
+
+function DocsNavGroup() {
+  const location = useLocation()
+  const isDocsActive = location.pathname.startsWith('/documents')
+  const [open, setOpen] = useState(isDocsActive)
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className={cn(
+          'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+          isDocsActive ? 'bg-primary/5 text-primary' : 'text-foreground hover:bg-muted',
+        )}
+      >
+        <FileText className={cn('h-4 w-4 flex-shrink-0', isDocsActive ? 'text-primary' : 'text-muted-foreground')} />
+        <span className="flex-1 truncate text-left">My Documents</span>
+        {open
+          ? <ChevronDown className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+          : <ChevronRight className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+        }
+      </button>
+
+      {open && (
+        <div className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-3">
+          {DOCS_SUB_NAV.map(item => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                cn(
+                  'flex items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
+                  isActive ? 'bg-primary/5 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <item.icon className={cn('h-3.5 w-3.5 flex-shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')} />
+                  {item.label}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -108,7 +158,9 @@ function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }
         </div>
 
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-2">
-          {PRIMARY_NAV.map((item) => (
+          <NavItem {...PRIMARY_NAV[0]} />
+          <DocsNavGroup />
+          {PRIMARY_NAV.slice(1).map((item) => (
             <NavItem key={item.to} {...item} />
           ))}
 
@@ -160,7 +212,9 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-2">
-        {PRIMARY_NAV.map((item) => (
+        <NavItem {...PRIMARY_NAV[0]} />
+        <DocsNavGroup />
+        {PRIMARY_NAV.slice(1).map((item) => (
           <NavItem key={item.to} {...item} />
         ))}
 
