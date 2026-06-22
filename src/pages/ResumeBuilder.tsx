@@ -3220,7 +3220,7 @@ export default function ResumeBuilder() {
   // resume: upload → template → canvas
   // tailor: template → canvas (dashboard already has an uploaded resume)
   // scratch: template → jobTitle → summary → … → canvas
-  const [screen, setScreen] = useState<BuilderScreen>(mode === 'resume' ? 'upload' : 'template')
+  const [screen, setScreen] = useState<BuilderScreen>(mode === 'resume' ? 'upload' : mode === 'tailor' ? 'canvas' : 'template')
   const [resume, setResume] = useState<ResumeData>(initialResumeData)
   const [templateId, setTemplateId] = useState<string>('t01')
   const [jobDescription, setJobDescription] = useState(initialJobDescription)
@@ -3230,7 +3230,7 @@ export default function ResumeBuilder() {
   if (screen === 'upload') return <UploadResumeScreen setScreen={setScreen} skipTemplate={mode === 'resume'} />
   if (screen === 'template') return <TemplateSelectScreen setScreen={setScreen} templateId={templateId} setTemplateId={setTemplateId} nextScreen={nextScreenAfterTemplate} />
   if (screen === 'jobTitle') return <JobTitleScreen setScreen={setScreen} resume={resume} setResume={setResume} />
-  if (screen === 'canvas') return <CanvasScreen setScreen={setScreen} resume={resume} setResume={setResume} templateId={templateId} setTemplateId={setTemplateId} jobDescription={jobDescription} setJobDescription={setJobDescription} showJdHint={mode === 'resume'} />
+  if (screen === 'canvas') return <CanvasScreen setScreen={setScreen} resume={resume} setResume={setResume} templateId={templateId} setTemplateId={setTemplateId} jobDescription={jobDescription} setJobDescription={setJobDescription} showJdHint={mode === 'resume' || mode === 'tailor'} />
   if (screen === 'ats') return <ATSScreen setScreen={setScreen} resume={resume} setResume={setResume} jobDescription={jobDescription} setJobDescription={setJobDescription} />
   if (screen === 'preview') return <PreviewScreen setScreen={setScreen} resume={resume} />
   if (screen === 'experienceList') return <ExperienceList setScreen={setScreen} />
