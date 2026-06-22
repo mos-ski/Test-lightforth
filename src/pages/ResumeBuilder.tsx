@@ -918,6 +918,7 @@ function CanvasScreen({
   setTemplateId,
   jobDescription,
   setJobDescription,
+  showJdHint,
 }: {
   setScreen: (screen: BuilderScreen) => void
   resume: ResumeData
@@ -926,7 +927,9 @@ function CanvasScreen({
   setTemplateId: (id: string) => void
   jobDescription: string
   setJobDescription: Dispatch<SetStateAction<string>>
+  showJdHint?: boolean
 }) {
+  const [jdHintDismissed, setJdHintDismissed] = useState(false)
   const [improveMode, setImproveMode] = useState<ImproveMode>('closed')
   const [expanded, setExpanded] = useState('Experience')
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat')
@@ -1069,6 +1072,18 @@ function CanvasScreen({
                 )}
               </div>
               <div className="sticky bottom-0 space-y-3 border-t border-slate-200 bg-white pt-3">
+                {showJdHint && !jdHintDismissed && chatMessages.length === 0 && (
+                  <div className="flex items-start gap-2.5 rounded-xl border border-primary/30 bg-[#EEF4FF] px-3 py-2.5">
+                    <span className="mt-0.5 text-base">👋</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-primary">Start here</p>
+                      <p className="text-xs leading-5 text-slate-600">Paste your job description to tailor your resume in seconds.</p>
+                    </div>
+                    <button onClick={() => setJdHintDismissed(true)} className="shrink-0 text-slate-400 transition-colors hover:text-slate-600">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
                 <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
                   {quickPrompts.map((prompt) => (
                     <button key={prompt} onClick={() => sendChat(prompt)} className="shrink-0 rounded-full border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600">
@@ -1080,6 +1095,7 @@ function CanvasScreen({
                   <textarea
                     value={chatDraft}
                     onChange={(event) => setChatDraft(event.target.value)}
+                    onFocus={() => setJdHintDismissed(true)}
                     rows={2}
                     className="min-w-0 flex-1 resize-none text-base leading-6 text-slate-700 outline-none placeholder:text-slate-400"
                     placeholder="Message Lightforth AI..."
@@ -1257,6 +1273,18 @@ function CanvasScreen({
                 )}
               </div>
               <div className="mt-3 shrink-0 space-y-2.5 border-t border-slate-200 pt-3">
+                {showJdHint && !jdHintDismissed && chatMessages.length === 0 && (
+                  <div className="flex items-start gap-2 rounded-lg border border-primary/30 bg-[#EEF4FF] px-2.5 py-2">
+                    <span className="text-sm">👋</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-bold text-primary">Start here</p>
+                      <p className="text-[11px] leading-4 text-slate-600">Paste your job description to tailor your resume.</p>
+                    </div>
+                    <button onClick={() => setJdHintDismissed(true)} className="shrink-0 text-slate-400 transition-colors hover:text-slate-600">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
                 {chatMessages.length > 0 && (
                   <button onClick={() => setMobileAtsOpen(true)} className="flex items-center gap-2 text-sm font-bold text-[#149cf2]">
                     <ChevronDown className="h-4 w-4 rotate-180" /> ATS Tips
@@ -1273,6 +1301,7 @@ function CanvasScreen({
                   <textarea
                     value={chatDraft}
                     onChange={(event) => setChatDraft(event.target.value)}
+                    onFocus={() => setJdHintDismissed(true)}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' && !event.shiftKey) {
                         event.preventDefault()
@@ -2258,6 +2287,98 @@ function ATSScreen({
   )
 }
 
+function ATSSectionFixPanel({
+  section,
+  issue,
+  onClose,
+}: {
+  section: { title: string; why: string }
+  issue: { type: 'Urgent' | 'Critical' | 'Minor'; label: string; desc: string; howToImprove: string; original: string; aiVersion: string }
+  onClose: () => void
+}) {
+  const [ownVersion, setOwnVersion] = useState('')
+  const [feedback, setFeedback] = useState<null | 'great' | 'unexpected'>(null)
+  const badgeCls = (type: 'Urgent' | 'Critical' | 'Minor') =>
+    type === 'Urgent' ? 'bg-red-100 text-red-700' : type === 'Critical' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+  return (
+    <div className="fixed inset-y-0 right-0 z-50 flex w-full flex-col overflow-y-auto border-l border-slate-200 bg-white shadow-2xl lg:w-[460px]">
+      <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Fix Issue</p>
+          <h3 className="text-sm font-bold text-slate-900">{section.title}</h3>
+        </div>
+        <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="space-y-5 p-5">
+        <div className="flex items-center gap-2">
+          <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold', badgeCls(issue.type))}>{issue.type}</span>
+          <span className="text-sm font-semibold text-slate-700">{issue.label}</span>
+        </div>
+        <div>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Original</p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs italic leading-5 text-slate-600">
+            {issue.original.length > 160 ? `${issue.original.slice(0, 160)}…` : issue.original}
+          </div>
+        </div>
+        <div>
+          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Issue Detected</p>
+          <p className="text-xs leading-5 text-slate-700">{issue.desc}</p>
+        </div>
+        <div>
+          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Why This Is Important</p>
+          <p className="text-xs leading-5 text-slate-600">{section.why}</p>
+        </div>
+        <div>
+          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">How to Improve</p>
+          <p className="text-xs leading-5 text-slate-600">{issue.howToImprove}</p>
+        </div>
+        <div className="rounded-xl border border-primary/20 bg-[#EEF4FF] p-4">
+          <p className="mb-3 text-[10px] font-bold uppercase tracking-wide text-primary">AI-Generated Version</p>
+          <div className="mb-2 rounded-md bg-red-50 px-3 py-2 text-xs leading-5 text-slate-500 line-through">
+            {issue.original.length > 100 ? `${issue.original.slice(0, 100)}…` : issue.original}
+          </div>
+          <div className="rounded-md bg-emerald-50 px-3 py-2 text-xs leading-5 text-emerald-800">{issue.aiVersion}</div>
+        </div>
+        <div>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Write Your New Version</p>
+          <textarea
+            value={ownVersion}
+            onChange={(e) => setOwnVersion(e.target.value)}
+            rows={3}
+            placeholder="Write your improved version here…"
+            className="lf-input w-full resize-none text-xs leading-5"
+          />
+          <button
+            disabled={!ownVersion.trim()}
+            className="mt-2 w-full rounded-lg bg-primary py-2.5 text-xs font-bold text-white transition hover:bg-primary/90 disabled:opacity-40"
+          >
+            Submit New Version
+          </button>
+        </div>
+        <div className="rounded-lg border border-slate-200 p-4 text-center">
+          <p className="mb-3 text-xs font-semibold text-slate-600">Was This Suggestion Helpful?</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFeedback('great')}
+              className={cn('flex-1 rounded-lg border py-2 text-xs font-semibold transition-colors', feedback === 'great' ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700')}
+            >
+              Looks Great!
+            </button>
+            <button
+              onClick={() => setFeedback('unexpected')}
+              className={cn('flex-1 rounded-lg border py-2 text-xs font-semibold transition-colors', feedback === 'unexpected' ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-slate-200 text-slate-600 hover:bg-slate-100')}
+            >
+              Not What I Expected
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ATSOverviewPanel({
   resume,
   jobDescription,
@@ -2283,6 +2404,7 @@ function ATSOverviewPanel({
 
   const [openSection, setOpenSection] = useState<number | null>(0)
   const [jdOpen, setJdOpen] = useState(false)
+  const [fixSection, setFixSection] = useState<{ secIdx: number; issueIdx: number } | null>(null)
 
   const summaryText = (() => {
     const parts: string[] = []
@@ -2296,18 +2418,36 @@ function ATSOverviewPanel({
     return parts.join(' ')
   })()
 
-  const sections = [
+  type ATSIssue = { type: 'Urgent' | 'Critical' | 'Minor'; label: string; count: number; desc: string; howToImprove: string; original: string; aiVersion: string }
+
+  const sections: Array<{ number: number; title: string; issues: ATSIssue[]; why: string }> = [
     {
       number: 1,
       title: 'Relevance',
       issues: [
         !hasSummary
-          ? { type: 'Minor' as const, label: 'Summary Needs Improvement', count: 1, desc: 'Your summary does not effectively showcase your qualifications and alignment with the job you are targeting.' }
+          ? {
+              type: 'Minor' as const,
+              label: 'Summary Needs Improvement',
+              count: 1,
+              desc: 'Your summary does not effectively showcase your qualifications and alignment with the job you are targeting.',
+              howToImprove: 'Rewrite your summary to lead with your title, years of experience, and a clear value proposition. Aim for 3–4 focused sentences that highlight measurable impact.',
+              original: resume.summary || 'No professional summary provided.',
+              aiVersion: 'Accomplished Product Manager with 5+ years driving SaaS growth and cross-functional team alignment. Proven record of delivering 20%+ revenue improvements through data-informed product roadmaps. Recognized for translating complex user needs into scalable, market-ready features.',
+            }
           : null,
         insights.missingKeywords.length > 0
-          ? { type: 'Minor' as const, label: 'Missing Job Keywords', count: insights.missingKeywords.length, desc: `Keywords missing from your resume: ${insights.missingKeywords.slice(0, 4).join(', ')}.` }
+          ? {
+              type: 'Minor' as const,
+              label: 'Missing Job Keywords',
+              count: insights.missingKeywords.length,
+              desc: `Keywords missing from your resume: ${insights.missingKeywords.slice(0, 4).join(', ')}.`,
+              howToImprove: `Weave these keywords naturally into your experience bullets and skills section: ${insights.missingKeywords.slice(0, 4).join(', ')}. Don't keyword-stuff — add context around each one.`,
+              original: resume.skills || 'No skills listed.',
+              aiVersion: [resume.skills, ...insights.missingKeywords.slice(0, 3)].filter(Boolean).join(', '),
+            }
           : null,
-      ].filter(Boolean) as { type: 'Urgent' | 'Critical' | 'Minor'; label: string; count: number; desc: string }[],
+      ].filter(Boolean) as ATSIssue[],
       why: 'Relevance ensures your experience and trajectory are directly aligned with the type of role you\'re applying for.',
     },
     {
@@ -2315,20 +2455,44 @@ function ATSOverviewPanel({
       title: 'Impact & Achievements',
       issues: [
         !hasMetrics
-          ? { type: 'Urgent' as const, label: 'Methodology Explanation', count: urgentCount, desc: 'Some of your experience lacks specific approaches and measurable outcomes that showcase domain expertise.' }
+          ? {
+              type: 'Urgent' as const,
+              label: 'Methodology Explanation',
+              count: urgentCount,
+              desc: 'Some of your experience lacks specific approaches and measurable outcomes that showcase domain expertise.',
+              howToImprove: 'Replace vague verbs ("managed", "helped", "worked on") with strong action verbs followed by a quantified result. Format: [Action verb] + [what you did] + [measurable outcome, e.g. 30% faster, $2M ARR].',
+              original: resume.experienceBullets.split('\n').find(Boolean) ?? 'Led product development initiatives.',
+              aiVersion: 'Spearheaded product roadmap for 3 enterprise verticals, accelerating feature delivery by 40% and generating $2.1M in incremental ARR over 18 months.',
+            }
           : null,
-      ].filter(Boolean) as { type: 'Urgent' | 'Critical' | 'Minor'; label: string; count: number; desc: string }[],
+      ].filter(Boolean) as ATSIssue[],
       why: 'Achievements and impact are the backbone of a compelling resume. They showcase not just what you did, but how well you did it.',
     },
     {
       number: 3,
       title: 'Brevity & Effectiveness',
       issues: [
-        { type: 'Minor' as const, label: 'Use of Filler Words', count: 1, desc: 'Your resume contains filler phrases that do not add value and could be streamlined for greater impact.' },
+        {
+          type: 'Minor' as const,
+          label: 'Use of Filler Words',
+          count: 1,
+          desc: 'Your resume contains filler phrases that do not add value and could be streamlined for greater impact.',
+          howToImprove: 'Remove phrases like "responsible for", "assisted with", "worked with". Start every bullet with an active, past-tense verb that states exactly what you accomplished.',
+          original: 'Responsible for managing the product roadmap and working with engineering teams to deliver features on time.',
+          aiVersion: 'Directed product roadmap execution, partnering with 8 engineers to ship 14 features on schedule with 0 critical post-launch issues.',
+        },
         !hasSkills
-          ? { type: 'Minor' as const, label: 'Skills Section Incomplete', count: 1, desc: 'Add at least 6 specific skills to improve ATS keyword matching.' }
+          ? {
+              type: 'Minor' as const,
+              label: 'Skills Section Incomplete',
+              count: 1,
+              desc: 'Add at least 6 specific skills to improve ATS keyword matching.',
+              howToImprove: 'Add at least 6 specific, relevant skills. Mix hard skills (tools/frameworks) with soft skills that appear in job descriptions for your target role.',
+              original: resume.skills || '(empty)',
+              aiVersion: [resume.skills, 'Agile', 'Scrum', 'SQL', 'Figma', 'Stakeholder Management', 'Data Analysis'].filter(Boolean).join(', '),
+            }
           : null,
-      ].filter(Boolean) as { type: 'Urgent' | 'Critical' | 'Minor'; label: string; count: number; desc: string }[],
+      ].filter(Boolean) as ATSIssue[],
       why: 'Brevity ensures your resume is concise and communicates your most relevant experiences swiftly. Recruiters spend only seconds scanning.',
     },
   ]
@@ -2339,8 +2503,12 @@ function ATSOverviewPanel({
     return 'bg-blue-100 text-blue-700'
   }
 
+  const fixedSec = fixSection !== null ? sections[fixSection.secIdx] : null
+  const fixedIssue = fixSection !== null ? fixedSec?.issues[fixSection.issueIdx] : null
+
   return (
-    <aside className="min-h-0 overflow-y-auto rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <>
+      <aside className="min-h-0 overflow-y-auto rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-bold text-slate-800">Resume Analysis Report</h2>
@@ -2439,7 +2607,7 @@ function ATSOverviewPanel({
                   <p className="text-xs text-emerald-600">✓ No issues found in this area.</p>
                 ) : (
                   <div className="space-y-3">
-                    {sec.issues.map((issue) => (
+                    {sec.issues.map((issue, issueIdx) => (
                       <div key={issue.label}>
                         <div className="flex items-center gap-2 mb-1">
                           <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', badgeStyle(issue.type))}>
@@ -2447,6 +2615,12 @@ function ATSOverviewPanel({
                           </span>
                           <span className="text-[11px] font-semibold text-slate-700">{issue.label}</span>
                           <span className="text-[10px] text-slate-400">· {issue.count} {issue.count === 1 ? 'issue' : 'issues'}</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setFixSection({ secIdx: sec.number - 1, issueIdx }) }}
+                            className="ml-auto rounded border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] font-bold text-primary transition-colors hover:bg-primary/10"
+                          >
+                            FIX
+                          </button>
                         </div>
                         <p className="text-[11px] leading-4 text-slate-600">{issue.desc}</p>
                       </div>
@@ -2467,7 +2641,15 @@ function ATSOverviewPanel({
       <button className="mt-5 w-full rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
         Begin Improvements Now
       </button>
-    </aside>
+      </aside>
+      {fixSection !== null && fixedSec && fixedIssue && (
+        <ATSSectionFixPanel
+          section={{ title: fixedSec.title, why: fixedSec.why }}
+          issue={fixedIssue}
+          onClose={() => setFixSection(null)}
+        />
+      )}
+    </>
   )
 }
 
@@ -2805,7 +2987,7 @@ function PreviewScreen({
 
 // ─── Upload resume screen ─────────────────────────────────────────────────────
 
-function UploadResumeScreen({ setScreen }: { setScreen: (screen: BuilderScreen) => void }) {
+function UploadResumeScreen({ setScreen, skipTemplate }: { setScreen: (screen: BuilderScreen) => void; skipTemplate?: boolean }) {
   const navigate = useNavigate()
   const [file, setFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -2829,7 +3011,9 @@ function UploadResumeScreen({ setScreen }: { setScreen: (screen: BuilderScreen) 
         <div className="w-full max-w-lg">
           <h1 className="lf-page-title text-center">Upload your resume</h1>
           <p className="lf-body mt-2 text-center">
-            Upload your existing resume and we'll parse it for you, then let you pick a new template.
+            {skipTemplate
+              ? "Upload your existing resume and we'll parse it, then take you straight to the editor."
+              : "Upload your existing resume and we'll parse it for you, then let you pick a new template."}
           </p>
 
           <label
@@ -2877,10 +3061,10 @@ function UploadResumeScreen({ setScreen }: { setScreen: (screen: BuilderScreen) 
           </label>
 
           <PrimaryButton
-            onClick={() => file && setScreen('template')}
+            onClick={() => file && setScreen(skipTemplate ? 'canvas' : 'template')}
             className={cn('mt-8 w-full', !file && 'cursor-not-allowed bg-primary/35 hover:bg-primary/35')}
           >
-            Continue — Choose Template
+            {skipTemplate ? 'Open Editor' : 'Continue — Choose Template'}
           </PrimaryButton>
 
           <p className="mt-4 text-center text-xs text-muted-foreground">
@@ -3043,10 +3227,10 @@ export default function ResumeBuilder() {
 
   const nextScreenAfterTemplate: BuilderScreen = mode === 'resume' || mode === 'tailor' ? 'canvas' : 'jobTitle'
 
-  if (screen === 'upload') return <UploadResumeScreen setScreen={setScreen} />
+  if (screen === 'upload') return <UploadResumeScreen setScreen={setScreen} skipTemplate={mode === 'resume'} />
   if (screen === 'template') return <TemplateSelectScreen setScreen={setScreen} templateId={templateId} setTemplateId={setTemplateId} nextScreen={nextScreenAfterTemplate} />
   if (screen === 'jobTitle') return <JobTitleScreen setScreen={setScreen} resume={resume} setResume={setResume} />
-  if (screen === 'canvas') return <CanvasScreen setScreen={setScreen} resume={resume} setResume={setResume} templateId={templateId} setTemplateId={setTemplateId} jobDescription={jobDescription} setJobDescription={setJobDescription} />
+  if (screen === 'canvas') return <CanvasScreen setScreen={setScreen} resume={resume} setResume={setResume} templateId={templateId} setTemplateId={setTemplateId} jobDescription={jobDescription} setJobDescription={setJobDescription} showJdHint={mode === 'resume'} />
   if (screen === 'ats') return <ATSScreen setScreen={setScreen} resume={resume} setResume={setResume} jobDescription={jobDescription} setJobDescription={setJobDescription} />
   if (screen === 'preview') return <PreviewScreen setScreen={setScreen} resume={resume} />
   if (screen === 'experienceList') return <ExperienceList setScreen={setScreen} />
