@@ -27,13 +27,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY)
-    const request = token
-      ? api.get<User>('/me').then((res) => setUser(res.data))
-      : Promise.resolve()
-    request
-      .catch(() => localStorage.removeItem(TOKEN_KEY))
-      .finally(() => setIsLoading(false))
+    // DEV bypass — skip login gate during testing
+    setUser({
+      id: 'demo',
+      name: 'Darnell Smith',
+      email: 'demo@lightforth.ai',
+      plan: 'pro',
+      credits: 0,
+      creditsUsed: 30,
+    })
+    setIsLoading(false)
   }, [])
 
   const login = async (token: string) => {
