@@ -18,6 +18,7 @@ const JobProfile = lazy(() => import('@/pages/JobProfile'))
 const Explore = lazy(() => import('@/pages/Explore'))
 const Downloads = lazy(() => import('@/pages/Downloads'))
 const Billing = lazy(() => import('@/pages/Billing'))
+const UsageDetails = lazy(() => import('@/pages/UsageDetails'))
 const Settings = lazy(() => import('@/pages/Settings'))
 const HowToUse = lazy(() => import('@/pages/HowToUse'))
 const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview'))
@@ -84,6 +85,7 @@ export default function App() {
             <Route path="/interview-copilot" element={<AppRoute><Suspense fallback={null}><InterviewCopilot /></Suspense></AppRoute>} />
             <Route path="/billing" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
             <Route path="/billings-and-subscription" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
+            <Route path="/billing/usage" element={<AppRoute><Suspense fallback={null}><UsageDetails /></Suspense></AppRoute>} />
             <Route path="/settings" element={<AppRoute><Suspense fallback={null}><Settings /></Suspense></AppRoute>} />
             <Route path="/job-profile" element={<AppRoute><Suspense fallback={null}><JobProfile /></Suspense></AppRoute>} />
             <Route path="/explore" element={<AppRoute><Suspense fallback={null}><Explore /></Suspense></AppRoute>} />

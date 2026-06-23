@@ -1,4 +1,5 @@
 import { Check, Gift } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -31,16 +32,16 @@ const plans = [
 ]
 
 const creditRows = [
-  ['Resume Builder', 'Click "Generate Resume"', '1 Credit'],
-  ['AI Cover Letter Generator', 'Click "Generate Cover Letter"', '1 Credit'],
-  ['Auto Apply', 'Job applied successfully', '1 Credit'],
-  ['Interview Prep', 'Start new session', '1 Credit'],
-  ['Interview Copilot', 'Session start (web, mobile, desktop)', '1 Credit'],
+  ['Resume Builder', 'One prompt (or group of prompts) sent to AI', '1 Credit'],
+  ['Auto Apply', 'One successful job application', '1 Credit'],
+  ['Interview Prep', 'One practice session started', '1 Credit'],
+  ['Interview Copilot', 'One live session started', '1 Credit'],
   ['ATS Scoring', 'Click "Score Resume"', 'Free'],
   ['AI Suggester', 'Writes a phrase/statement better', 'Free'],
 ]
 
 export default function Billing() {
+  const navigate = useNavigate()
   return (
     <div className="lf-page-stack">
       <div className="lf-page-header">
@@ -73,7 +74,12 @@ export default function Billing() {
         </section>
 
         <section className="lf-panel p-6">
-          <h2 className="font-bold text-foreground">Credits</h2>
+          <div className="flex items-start justify-between">
+            <h2 className="font-bold text-foreground">Credits</h2>
+            <button onClick={() => navigate('/billing/usage')} className="text-xs font-semibold text-primary hover:underline">
+              View usage details
+            </button>
+          </div>
           <p className="text-sm text-muted-foreground">Resets on May 31, 2026</p>
           <p className="mt-5 text-3xl font-black text-foreground">
             31 <span className="text-base font-medium text-muted-foreground">of 34 Left</span>
