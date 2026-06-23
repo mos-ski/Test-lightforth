@@ -753,11 +753,11 @@ function ResumePaper({
   return (
     <article
       className={cn(
-        'mx-auto rounded-lg border border-slate-200 bg-white shadow-sm',
+        'mx-auto bg-white transition-all duration-300',
         serif && 'font-serif',
         fitViewport
-          ? 'h-full max-h-[calc(100vh-9.5rem)] aspect-[8.5/11] min-h-0 w-auto overflow-hidden px-10 py-8 text-[13px] leading-5 ring-1 ring-slate-100'
-          : 'min-h-[1056px] w-[816px] px-16 py-12',
+          ? 'h-full max-h-[calc(100vh-9.5rem)] aspect-[8.5/11] min-h-0 w-auto overflow-hidden px-10 py-8 text-[13px] leading-5 ring-1 ring-slate-100/50 rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)]'
+          : 'min-h-[1056px] w-[816px] px-16 py-12 rounded-xl shadow-[0_20px_50px_rgba(15,23,42,0.08)] border border-slate-100/60',
       )}
     >
       <header className={cn('flex justify-between gap-6', centered && 'flex-col items-center text-center', fitViewport ? 'mb-6' : 'mb-8')}>
@@ -792,30 +792,30 @@ function ResumePaper({
           </h2>
           {walkthroughStep === 2 ? (
             <div className="mt-3">
-              <p className={cn('italic', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
-                <span className="bg-red-100 text-red-700 line-through decoration-red-700">
+              <div className="space-y-3 font-sans">
+                <span className="block p-3 rounded-lg bg-red-50/70 text-slate-700/80 border-l-4 border-red-300 line-through decoration-red-400/40 text-xs leading-5">
                   8 years building and shipping fintech, AI, and crypto products across Africa. Portfolio of 12 live apps spanning payment infrastructure, wealth management, and AI tools. Uniquely positioned as a Product manager and Design engineer who also designs and builds, reducing time-to-market for lean teams and owning the full product lifecycle from strategy to
-                </span>{' '}
-                <span className="bg-emerald-100 text-emerald-800">
+                </span>
+                <span className="block p-3 rounded-lg bg-emerald-50 text-emerald-950 border-l-4 border-emerald-400 text-xs leading-5 font-medium shadow-[0_2px_8px_rgba(16,185,129,0.04)]">
                   Dynamic Product Manager with expertise in managing product lifecycles from concept to launch. Proven track record in leading cross-functional teams, ensuring quality standards, and driving market strategy. Adept at refining processes for efficiency gains and cost reduction. Passionate about integrating AI in product development to meet modern technological demands.
                 </span>
-              </p>
+              </div>
               
-              {/* Accept/Decline floating bar */}
+              {/* Accept/Decline floating action bar */}
               <div
                 id="walkthrough-diff-actions"
-                className="absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 flex items-center gap-1.5 bg-white p-1 rounded-md border border-slate-200 shadow-lg z-20"
+                className="absolute left-[calc(100%+16px)] top-1/2 -translate-y-1/2 flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 rounded-full border border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.12)] z-30 transition-all hover:scale-102"
               >
                 <button
                   onClick={onWalkthroughNext}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all duration-200 border border-slate-100"
                   aria-label="Decline changes"
                 >
                   <X className="h-4 w-4" />
                 </button>
                 <button
                   onClick={onWalkthroughNext}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[#149cf2] text-white transition hover:bg-[#0f8add]"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[#149cf2] hover:bg-[#1289d6] text-white hover:scale-105 transition-all duration-200 shadow-[0_4px_12px_rgba(20,156,242,0.3)]"
                   aria-label="Accept changes"
                 >
                   <Check className="h-4 w-4" />
@@ -835,10 +835,10 @@ function ResumePaper({
                 }
               }}
               className={cn(
-                'mt-3 italic outline-none transition',
+                'mt-3 italic outline-none transition-all duration-300',
                 fitViewport ? 'text-xs leading-5' : 'text-sm leading-6',
                 editable && 'hover:bg-sky-50/40 focus:bg-sky-50/50 rounded p-1',
-                walkthroughStep === 3 && 'ring-2 ring-[#149cf2] cursor-pointer'
+                walkthroughStep === 3 && 'ring-2 ring-[#149cf2] ring-offset-4 cursor-pointer bg-sky-50/20 hover:bg-sky-50/40 p-2 rounded-md shadow-[0_0_15px_rgba(20,156,242,0.2)] animate-pulse'
               )}
             >
               {resume.summary}
@@ -980,7 +980,6 @@ function WalkthroughTooltip({
   targetId,
   title,
   description,
-  onNext,
   onSkip,
   stepNumber,
   totalSteps,
@@ -988,7 +987,6 @@ function WalkthroughTooltip({
   targetId: string
   title: string
   description: string
-  onNext: () => void
   onSkip: () => void
   stepNumber: number
   totalSteps: number
@@ -1060,10 +1058,10 @@ function WalkthroughTooltip({
         left: coords.left,
         zIndex: 9999,
       }}
-      className="w-72 bg-[#0B2545] text-white p-4 rounded-lg shadow-2xl animate-fade-in pointer-events-auto border border-[#143763]"
+      className="w-72 bg-[#0B2545]/95 backdrop-blur-md text-white p-4 rounded-lg shadow-2xl animate-fade-in pointer-events-auto border border-[#143763]"
     >
       {/* Left-pointing arrow */}
-      <div className="absolute left-[-6px] top-[45px] w-3 h-3 bg-[#0B2545] rotate-45 border-l border-b border-[#143763]" />
+      <div className="absolute left-[-6px] top-[45px] w-3 h-3 bg-[#0B2545]/95 rotate-45 border-l border-b border-[#143763]" />
       
       <div className="relative">
         <h4 className="font-bold text-sm tracking-wide text-white">{title}</h4>
@@ -1071,20 +1069,12 @@ function WalkthroughTooltip({
         
         <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-2.5 text-[10px]">
           <span className="text-blue-200/70 font-semibold uppercase tracking-wider">Step {stepNumber} of {totalSteps}</span>
-          <div className="flex gap-2.5">
-            <button
-              onClick={onSkip}
-              className="text-blue-200/70 hover:text-white transition-colors font-bold uppercase tracking-wider"
-            >
-              Skip
-            </button>
-            <button
-              onClick={onNext}
-              className="bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded text-white font-bold transition-colors uppercase tracking-wider"
-            >
-              {stepNumber === totalSteps ? 'Finish' : 'Next'}
-            </button>
-          </div>
+          <button
+            onClick={onSkip}
+            className="text-blue-200/70 hover:text-white transition-colors font-bold uppercase tracking-wider"
+          >
+            Skip
+          </button>
         </div>
       </div>
     </div>
@@ -1816,7 +1806,6 @@ function CanvasScreen({
           targetId="walkthrough-chat-input"
           title="Paste a Job Description"
           description="Tooltips are used to describe or identify an element. In most scenarios, tooltips help the user understand meaning, function or alt-text."
-          onNext={handleWalkthroughNext}
           onSkip={handleWalkthroughSkip}
           stepNumber={1}
           totalSteps={3}
@@ -1827,7 +1816,6 @@ function CanvasScreen({
           targetId="walkthrough-diff-actions"
           title="Accept or Decline Changes"
           description="Tooltips are used to describe or identify an element."
-          onNext={handleWalkthroughNext}
           onSkip={handleWalkthroughSkip}
           stepNumber={2}
           totalSteps={3}
@@ -1838,7 +1826,6 @@ function CanvasScreen({
           targetId="walkthrough-summary-section"
           title="Click to Edit"
           description="Tooltips are used to describe or identify an element."
-          onNext={handleWalkthroughNext}
           onSkip={handleWalkthroughSkip}
           stepNumber={3}
           totalSteps={3}
