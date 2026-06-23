@@ -76,7 +76,7 @@ export default function Billing() {
         <section className="lf-panel p-6">
           <div className="flex items-start justify-between">
             <h2 className="font-bold text-foreground">Credits</h2>
-            <button onClick={() => navigate('/billing/usage')} className="text-xs font-semibold text-primary hover:underline">
+            <button onClick={() => navigate('/billing/usage')} className="text-sm font-semibold text-primary hover:underline">
               View usage details
             </button>
           </div>

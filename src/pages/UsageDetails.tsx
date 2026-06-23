@@ -94,7 +94,7 @@ export default function UsageDetails() {
           <select
             value={feature}
             onChange={(e) => setFeature(e.target.value as CreditFeature | 'all')}
-            className="lf-input h-9 w-auto py-0 text-sm"
+            className="lf-select w-auto min-w-[160px]"
           >
             {FEATURE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -103,7 +103,7 @@ export default function UsageDetails() {
           <select
             value={range}
             onChange={(e) => setRange(Number(e.target.value) as typeof RANGE_OPTIONS[number])}
-            className="lf-input ml-auto h-9 w-auto py-0 text-sm"
+            className="lf-select ml-auto w-auto min-w-[140px]"
           >
             {RANGE_OPTIONS.map((r) => (
               <option key={r} value={r}>Last {r} days</option>
