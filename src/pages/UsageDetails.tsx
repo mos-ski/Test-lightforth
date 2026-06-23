@@ -176,15 +176,15 @@ export default function UsageDetails() {
 function TransactionRow({ tx }: { tx: CreditTransaction }) {
   const positive = tx.amount > 0
   return (
-    <div className="flex items-center justify-between px-5 py-3.5">
-      <div className="flex items-center gap-3">
-        {tx.feature && <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: featureColor(tx.feature) }} />}
-        <div>
-          <p className="text-sm font-semibold text-foreground">{tx.kind === 'used' ? 'Used' : tx.label}</p>
-          <p className="text-xs text-muted-foreground">{tx.kind === 'used' ? tx.label : tx.sublabel}</p>
+    <div className="flex items-start justify-between gap-4 px-5 py-3.5">
+      <div className="flex min-w-0 items-start gap-3">
+        {tx.feature && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: featureColor(tx.feature) }} />}
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">{tx.label}</p>
+          <p className="text-xs leading-5 text-muted-foreground">{tx.kind === 'used' ? (tx.detail ?? tx.sublabel) : tx.sublabel}</p>
         </div>
       </div>
-      <div className="text-right">
+      <div className="shrink-0 text-right">
         <span
           className={cn(
             'inline-flex h-6 min-w-[2.25rem] items-center justify-center rounded-full border px-2 text-xs font-bold',
