@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   AlignLeft,
   ArrowLeft,
+  ArrowUp,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -792,30 +793,30 @@ function ResumePaper({
           </h2>
           {walkthroughStep === 2 ? (
             <div className="mt-3">
-              <div className="space-y-3 font-sans">
-                <span className="block p-3 rounded-lg bg-red-50/70 text-slate-700/80 border-l-4 border-red-300 line-through decoration-red-400/40 text-xs leading-5">
+              <div className="font-sans text-xs leading-5">
+                <p className="bg-red-100 text-red-800 line-through">
                   8 years building and shipping fintech, AI, and crypto products across Africa. Portfolio of 12 live apps spanning payment infrastructure, wealth management, and AI tools. Uniquely positioned as a Product manager and Design engineer who also designs and builds, reducing time-to-market for lean teams and owning the full product lifecycle from strategy to
-                </span>
-                <span className="block p-3 rounded-lg bg-emerald-50 text-emerald-950 border-l-4 border-emerald-400 text-xs leading-5 font-medium shadow-[0_2px_8px_rgba(16,185,129,0.04)]">
+                </p>
+                <p className="bg-green-100 font-medium text-green-800">
                   Dynamic Product Manager with expertise in managing product lifecycles from concept to launch. Proven track record in leading cross-functional teams, ensuring quality standards, and driving market strategy. Adept at refining processes for efficiency gains and cost reduction. Passionate about integrating AI in product development to meet modern technological demands.
-                </span>
+                </p>
               </div>
-              
-              {/* Accept/Decline floating action bar */}
+
+              {/* Accept/Decline floating action buttons */}
               <div
                 id="walkthrough-diff-actions"
-                className="absolute left-[calc(100%+16px)] top-1/2 -translate-y-1/2 flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 rounded-full border border-slate-200/80 shadow-[0_12px_30px_rgba(15,23,42,0.12)] z-30 transition-all hover:scale-102"
+                className="absolute left-[calc(100%+16px)] top-1/2 -translate-y-1/2 z-30 flex items-center gap-3"
               >
                 <button
                   onClick={onWalkthroughNext}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all duration-200 border border-slate-100"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
                   aria-label="Decline changes"
                 >
                   <X className="h-4 w-4" />
                 </button>
                 <button
                   onClick={onWalkthroughNext}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[#149cf2] hover:bg-[#1289d6] text-white hover:scale-105 transition-all duration-200 shadow-[0_4px_12px_rgba(20,156,242,0.3)]"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0494fc] text-white transition hover:bg-[#0c87dd]"
                   aria-label="Accept changes"
                 >
                   <Check className="h-4 w-4" />
@@ -838,7 +839,7 @@ function ResumePaper({
                 'mt-3 italic outline-none transition-all duration-300',
                 fitViewport ? 'text-xs leading-5' : 'text-sm leading-6',
                 editable && 'hover:bg-sky-50/40 focus:bg-sky-50/50 rounded p-1',
-                walkthroughStep === 3 && 'ring-2 ring-[#149cf2] ring-offset-4 cursor-pointer bg-sky-50/20 hover:bg-sky-50/40 p-2 rounded-md shadow-[0_0_15px_rgba(20,156,242,0.2)] animate-pulse'
+                walkthroughStep === 3 && 'cursor-pointer rounded-md border border-[#0494fc] bg-blue-50 p-1.5'
               )}
             >
               {resume.summary}
@@ -981,15 +982,11 @@ function WalkthroughTooltip({
   title,
   description,
   onSkip,
-  stepNumber,
-  totalSteps,
 }: {
   targetId: string
   title: string
   description: string
   onSkip: () => void
-  stepNumber: number
-  totalSteps: number
 }) {
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
@@ -1058,25 +1055,85 @@ function WalkthroughTooltip({
         left: coords.left,
         zIndex: 9999,
       }}
-      className="w-72 bg-[#0B2545]/95 backdrop-blur-md text-white p-4 rounded-lg shadow-2xl animate-fade-in pointer-events-auto border border-[#143763]"
+      className="w-72 rounded-xl bg-[#0B2545] p-4 pr-8 text-white shadow-2xl pointer-events-auto"
     >
       {/* Left-pointing arrow */}
-      <div className="absolute left-[-6px] top-[45px] w-3 h-3 bg-[#0B2545]/95 rotate-45 border-l border-b border-[#143763]" />
-      
-      <div className="relative">
-        <h4 className="font-bold text-sm tracking-wide text-white">{title}</h4>
-        <p className="mt-1.5 text-xs text-blue-100/90 leading-relaxed">{description}</p>
-        
-        <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-2.5 text-[10px]">
-          <span className="text-blue-200/70 font-semibold uppercase tracking-wider">Step {stepNumber} of {totalSteps}</span>
-          <button
-            onClick={onSkip}
-            className="text-blue-200/70 hover:text-white transition-colors font-bold uppercase tracking-wider"
-          >
-            Skip
-          </button>
-        </div>
+      <div className="absolute left-[-6px] top-[22px] h-3 w-3 rotate-45 bg-[#0B2545]" />
+
+      <button
+        onClick={onSkip}
+        aria-label="Dismiss tip"
+        className="absolute right-2 top-2 rounded p-1 text-blue-200/60 transition hover:text-white"
+      >
+        <X className="h-3 w-3" />
+      </button>
+
+      <h4 className="text-sm font-bold text-white">{title}</h4>
+      <p className="mt-1 text-xs leading-relaxed text-blue-100/80">{description}</p>
+    </div>
+  )
+}
+
+// ─── Chat bubble (resume canvas chat thread) ─────────────────────────────────
+
+const CHAT_BUBBLE_CLAMP_CHARS = 150
+
+function ChatBubble({
+  message,
+  expanded,
+  onToggleExpanded,
+}: {
+  message: ChatMessage
+  expanded: boolean
+  onToggleExpanded: () => void
+}) {
+  const isUser = message.role === 'user'
+  const isLong = message.text.length > CHAT_BUBBLE_CLAMP_CHARS
+  return (
+    <div className={cn('flex', isUser && 'justify-end')}>
+      <div
+        className={cn(
+          'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-[1.625]',
+          isUser ? 'rounded-br-sm bg-[#0494fc] text-white shadow-sm' : 'rounded-bl-sm bg-[#f3f4f6] text-[#1f2937]',
+        )}
+      >
+        <p className={cn(!expanded && isLong && 'line-clamp-4 overflow-hidden')}>{message.text}</p>
+        {isLong && (
+          <>
+            <div className={cn('my-1.5 border-t', isUser ? 'border-white/20' : 'border-slate-300/60')} />
+            <button
+              onClick={onToggleExpanded}
+              className={cn(
+                'flex w-full items-center justify-center gap-1 text-xs font-semibold',
+                isUser ? 'text-white/70 hover:text-white' : 'text-slate-500 hover:text-slate-700',
+              )}
+            >
+              <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', expanded && 'rotate-180')} />
+              {expanded ? 'Show less' : 'Show more'}
+            </button>
+          </>
+        )}
       </div>
+    </div>
+  )
+}
+
+function ChatQuickPrompts({ prompts, onSelect }: { prompts: string[]; onSelect: (prompt: string) => void }) {
+  return (
+    <div className="relative">
+      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {prompts.map((prompt) => (
+          <button
+            key={prompt}
+            onClick={() => onSelect(prompt)}
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-[#e5e7eb] bg-white px-3 py-1.5 text-xs font-medium text-[#4b5563] transition hover:border-[#0494fc]/40 hover:text-[#0494fc]"
+          >
+            <Sparkles className="h-2.5 w-2.5 text-[#0494fc]" />
+            {prompt}
+          </button>
+        ))}
+      </div>
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-7 bg-gradient-to-l from-white to-transparent" />
     </div>
   )
 }
@@ -1141,13 +1198,15 @@ function CanvasScreen({
   const [zoom, setZoom] = useState(0.82)
   const [downloadOpen, setDownloadOpen] = useState(false)
   const [mobileAtsOpen, setMobileAtsOpen] = useState(false)
+  const [atsPanelOpen, setAtsPanelOpen] = useState(false)
+  const [expandedMessageIds, setExpandedMessageIds] = useState<number[]>([])
   const [selectionToolMode, setSelectionToolMode] = useState<'closed' | 'button' | 'panel'>('closed')
   const [selectedCanvasText, setSelectedCanvasText] = useState('')
   const [selectedCanvasRange, setSelectedCanvasRange] = useState<Range | null>(null)
   const navigate = useNavigate()
   const selectedTemplate = TEMPLATES.find((template) => template.id === templateId) ?? TEMPLATES[0]
   const zoomPercent = Math.round(zoom * 100)
-  const quickPrompts = ['Make summary more formal', 'Shorten experience bullets', 'Add stronger metrics']
+  const quickPrompts = ['Add metrics to work highlights', 'Expand skills with technical proficiencies', 'Include notable projects or case studies']
   const availableSections = ['Projects', 'Awards', 'Volunteer Work', 'Publications'].filter((item) => !visibleSections.includes(item))
 
   function handleTailor() {
@@ -1197,6 +1256,10 @@ function CanvasScreen({
     setVisibleSections((current) => [...current, section])
     setExpanded(section)
     setAddSectionOpen(false)
+  }
+
+  function toggleMessageExpanded(id: number) {
+    setExpandedMessageIds((current) => (current.includes(id) ? current.filter((value) => value !== id) : [...current, id]))
   }
 
   function handleCanvasSelection() {
@@ -1418,6 +1481,7 @@ function CanvasScreen({
               <CheckCircle2 className="h-3.5 w-3.5" />
               Saved
             </span>
+            <OutlineButton onClick={() => setAtsPanelOpen(true)} className="h-8 px-3 text-xs">ATS Score <Info className="h-3.5 w-3.5" /></OutlineButton>
             <OutlineButton onClick={() => setScreen('preview')} className="h-8 px-3 text-xs">Preview <Eye className="h-3.5 w-3.5" /></OutlineButton>
             <ActionMenu
               open={downloadOpen}
@@ -1429,7 +1493,7 @@ function CanvasScreen({
           </>
         )}
         />
-        <main className="grid min-h-0 flex-1 grid-cols-[224px_minmax(640px,1fr)_232px] gap-3 overflow-hidden px-3 py-2">
+        <main className="grid min-h-0 flex-1 grid-cols-[340px_minmax(640px,1fr)] gap-3 overflow-hidden px-3 py-2">
         <aside className="flex max-h-[48vh] min-h-[320px] flex-col overflow-hidden rounded-md bg-white p-3 lg:max-h-none lg:min-h-0">
           <div className="mb-6 flex shrink-0 items-center gap-3 text-sm font-bold">
             <Menu className="h-4 w-4 text-[#123667]" />
@@ -1453,38 +1517,26 @@ function CanvasScreen({
           </div>
           {sidebarTab === 'chat' ? (
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
                 {chatMessages.length === 0 ? (
                   <div className="flex h-full items-center justify-center text-center">
                     <div className="max-w-[13rem]">
                       <p className="text-base font-black text-slate-900">Paste your job description</p>
                       <p className="mt-2 text-sm leading-6 text-slate-500">I can rewrite your resume for the role, then we can refine it together.</p>
+                      <button onClick={() => setAtsPanelOpen(true)} className="mt-4 text-xs font-bold text-[#0494fc] hover:underline">
+                        View ATS tips
+                      </button>
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <div className="ml-auto max-w-[78%] rounded-lg bg-sky-50 px-5 py-4 text-sm leading-6 text-slate-700">
-                      <ul className="list-disc pl-5">
-                        {resume.experienceBullets.split('\n').filter(Boolean).slice(0, 4).map((item, index) => (
-                          <li key={`${item}-${index}`}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <p className="text-base leading-6 text-slate-700">
-                      {chatMessages.filter((message) => message.role === 'ai').at(-1)?.text ?? 'Your edits are ready to review.'}
-                    </p>
-                    <MobileResumeFileCard onOpen={() => setScreen('preview')} />
-                    {chatMessages.slice(-2).map((message) => (
-                      <div key={message.id} className={cn('flex items-start gap-2', message.role === 'user' && 'justify-end')}>
-                        <div className={cn(
-                          'max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6',
-                          message.role === 'user' ? 'rounded-tr-sm bg-sky-50 text-slate-700' : 'rounded-tl-sm bg-slate-100 text-slate-700',
-                        )}>
-                          {message.text}
-                        </div>
-                      </div>
-                    ))}
-                  </>
+                  chatMessages.map((message) => (
+                    <ChatBubble
+                      key={message.id}
+                      message={message}
+                      expanded={expandedMessageIds.includes(message.id)}
+                      onToggleExpanded={() => toggleMessageExpanded(message.id)}
+                    />
+                  ))
                 )}
               </div>
               <div className="mt-3 shrink-0 space-y-2.5 border-t border-slate-200 pt-3">
@@ -1501,22 +1553,13 @@ function CanvasScreen({
                   </div>
                 )}
                 {chatMessages.length > 0 && (
-                  <button onClick={() => setMobileAtsOpen(true)} className="flex items-center gap-2 text-sm font-bold text-[#149cf2]">
+                  <button onClick={() => setAtsPanelOpen(true)} className="flex items-center gap-2 text-sm font-bold text-[#0494fc]">
                     <ChevronDown className="h-4 w-4 rotate-180" /> ATS Tips
                   </button>
                 )}
-                <div className="flex flex-wrap gap-2">
-                  {quickPrompts.map((prompt) => (
-                    <button key={prompt} onClick={() => sendChat(prompt)} className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 transition hover:border-[#149cf2] hover:text-[#149cf2]">
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
+                <ChatQuickPrompts prompts={quickPrompts} onSelect={(prompt) => sendChat(prompt)} />
                 <div>
-                  <div id="walkthrough-chat-input" className={cn(
-                    "flex items-end gap-2 rounded-lg border bg-white p-1.5 transition-all",
-                    walkthroughStep === 1 ? "border-[#149cf2] ring-2 ring-[#149cf2]/20" : "border-slate-200"
-                  )}>
+                  <div id="walkthrough-chat-input" className="rounded-2xl border border-[#0494fc] bg-white p-1 shadow-[0px_4px_6px_-4px_rgba(4,148,252,0.6),0px_2px_4px_-2px_#0494fc]">
                     <textarea
                       value={chatDraft}
                       onChange={(event) => setChatDraft(event.target.value)}
@@ -1527,19 +1570,26 @@ function CanvasScreen({
                           sendChat()
                         }
                       }}
-                      rows={2}
-                      className="min-w-0 flex-1 resize-none text-xs leading-5 outline-none"
-                      placeholder={walkthroughStep === 1 ? "Paste a job description here to get started..." : "Message Lightforth AI..."}
+                      rows={3}
+                      className="min-w-0 w-full resize-none px-3 pt-2.5 text-sm leading-5 text-slate-700 outline-none placeholder:text-[#9ca3af]"
+                      placeholder={chatMessages.length === 0 ? "Paste a job description here to get started…" : "Message Lightforth AI..."}
                     />
-                    <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#149cf2] text-white">
-                      <Send className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex justify-end px-2 pb-2">
+                      <button
+                        onClick={() => sendChat()}
+                        aria-label="Send chat message"
+                        className={cn(
+                          'grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-colors',
+                          chatDraft.trim() ? 'bg-[#0494fc] text-white' : 'bg-[#f3f4f6] text-slate-400',
+                        )}
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  {walkthroughStep === 1 && (
-                    <p className="mt-1 text-[10px] text-slate-400 text-center font-medium">
-                      Enter to send · Shift+Enter for newline
-                    </p>
-                  )}
+                  <p className="mt-1.5 text-center text-[11px] font-medium text-slate-400">
+                    Enter to send · Shift+Enter for newline
+                  </p>
                 </div>
               </div>
             </div>
@@ -1796,10 +1846,12 @@ function CanvasScreen({
             )}
           </div>
         </section>
-
-        <CanvasRightPanel resume={resume} jobDescription={jobDescription} />
         </main>
       </div>
+
+      {atsPanelOpen && (
+        <CanvasRightPanel resume={resume} jobDescription={jobDescription} onClose={() => setAtsPanelOpen(false)} />
+      )}
 
       {walkthroughStep === 1 && (
         <WalkthroughTooltip
@@ -1807,8 +1859,6 @@ function CanvasScreen({
           title="Paste a Job Description"
           description="Tooltips are used to describe or identify an element. In most scenarios, tooltips help the user understand meaning, function or alt-text."
           onSkip={handleWalkthroughSkip}
-          stepNumber={1}
-          totalSteps={3}
         />
       )}
       {walkthroughStep === 2 && (
@@ -1817,8 +1867,6 @@ function CanvasScreen({
           title="Accept or Decline Changes"
           description="Tooltips are used to describe or identify an element."
           onSkip={handleWalkthroughSkip}
-          stepNumber={2}
-          totalSteps={3}
         />
       )}
       {walkthroughStep === 3 && (
@@ -1827,8 +1875,6 @@ function CanvasScreen({
           title="Click to Edit"
           description="Tooltips are used to describe or identify an element."
           onSkip={handleWalkthroughSkip}
-          stepNumber={3}
-          totalSteps={3}
         />
       )}
     </>
@@ -2440,13 +2486,23 @@ function ImprovePopover({ mode, setMode }: { mode: ImproveMode; setMode: (mode: 
 function CanvasRightPanel({
   resume,
   jobDescription,
+  onClose,
 }: {
   resume: ResumeData
   jobDescription: string
+  onClose: () => void
 }) {
   const insights = getATSInsights(resume, jobDescription)
   return (
-    <aside className="hidden min-h-0 space-y-3 overflow-y-auto rounded-md border border-slate-200 bg-white p-2.5 lg:block">
+    <>
+      <div className="fixed inset-0 z-40 bg-slate-950/20" onClick={onClose} />
+      <aside className="fixed inset-y-0 right-0 z-50 w-[320px] space-y-3 overflow-y-auto bg-white p-3 shadow-2xl">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-black text-slate-900">ATS Score</h2>
+        <button onClick={onClose} aria-label="Close ATS panel" className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
       <section className="rounded-md border border-slate-200 p-3">
         <div className="flex items-center gap-2.5">
           <div className="relative grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#149cf2 ${insights.score}%, #f1f2f4 0)` }}>
@@ -2491,7 +2547,8 @@ function CanvasRightPanel({
           </div>
         )}
       </section>
-    </aside>
+      </aside>
+    </>
   )
 }
 
