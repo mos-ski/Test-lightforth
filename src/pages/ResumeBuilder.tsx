@@ -717,12 +717,16 @@ function ResumePaper({
   setResume,
   fitViewport = false,
   templateId = 't01',
+  walkthroughStep,
+  onWalkthroughNext,
 }: {
   editable?: boolean
   resume: ResumeData
   setResume?: Dispatch<SetStateAction<ResumeData>>
   fitViewport?: boolean
   templateId?: string
+  walkthroughStep?: number | null
+  onWalkthroughNext?: () => void
 }) {
   const fullName = `${resume.firstName} ${resume.lastName}`.trim() || 'John Doe'
   const bulletItems = resume.experienceBullets
@@ -780,6 +784,68 @@ function ResumePaper({
           <p>Linkedin: <span {...editableText('linkedin', 'text-[#149cf2] underline', 'John Doe')}>{resume.linkedin}</span></p>
         </div>
       </header>
+
+      {resume.summary && (
+        <section id="walkthrough-summary-section" className={cn(fitViewport ? 'mt-5' : 'mt-8', 'relative')}>
+          <h2 className={cn('border-b-2 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')} style={{ borderColor: accent }}>
+            Professional Summary
+          </h2>
+          {walkthroughStep === 2 ? (
+            <div className="mt-3">
+              <p className={cn('italic', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
+                <span className="bg-red-100 text-red-700 line-through decoration-red-700">
+                  8 years building and shipping fintech, AI, and crypto products across Africa. Portfolio of 12 live apps spanning payment infrastructure, wealth management, and AI tools. Uniquely positioned as a Product manager and Design engineer who also designs and builds, reducing time-to-market for lean teams and owning the full product lifecycle from strategy to
+                </span>{' '}
+                <span className="bg-emerald-100 text-emerald-800">
+                  Dynamic Product Manager with expertise in managing product lifecycles from concept to launch. Proven track record in leading cross-functional teams, ensuring quality standards, and driving market strategy. Adept at refining processes for efficiency gains and cost reduction. Passionate about integrating AI in product development to meet modern technological demands.
+                </span>
+              </p>
+              
+              {/* Accept/Decline floating bar */}
+              <div
+                id="walkthrough-diff-actions"
+                className="absolute left-[calc(100%+12px)] top-1/2 -translate-y-1/2 flex items-center gap-1.5 bg-white p-1 rounded-md border border-slate-200 shadow-lg z-20"
+              >
+                <button
+                  onClick={onWalkthroughNext}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-100"
+                  aria-label="Decline changes"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={onWalkthroughNext}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[#149cf2] text-white transition hover:bg-[#0f8add]"
+                  aria-label="Accept changes"
+                >
+                  <Check className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p
+              contentEditable={editable}
+              suppressContentEditableWarning
+              onBlur={(event) => {
+                if (setResume) updateResumeField(setResume, 'summary', event.currentTarget.textContent?.trim() || '')
+              }}
+              onClick={() => {
+                if (walkthroughStep === 3 && onWalkthroughNext) {
+                  onWalkthroughNext()
+                }
+              }}
+              className={cn(
+                'mt-3 italic outline-none transition',
+                fitViewport ? 'text-xs leading-5' : 'text-sm leading-6',
+                editable && 'hover:bg-sky-50/40 focus:bg-sky-50/50 rounded p-1',
+                walkthroughStep === 3 && 'ring-2 ring-[#149cf2] cursor-pointer'
+              )}
+            >
+              {resume.summary}
+            </p>
+          )}
+        </section>
+      )}
       <ResumeSection title="Experience" editable={editable} active resume={resume} setResume={setResume} bulletItems={bulletItems} fitViewport={fitViewport} accent={accent} />
       <ResumeSection title="Education" editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} accent={accent} />
       <ResumeSection title="Certificates" editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} accent={accent} />
@@ -908,6 +974,123 @@ function ResumeSection({
   )
 }
 
+import { useEffect, useRef } from 'react'
+
+function WalkthroughTooltip({
+  targetId,
+  title,
+  description,
+  onNext,
+  onSkip,
+  stepNumber,
+  totalSteps,
+}: {
+  targetId: string
+  title: string
+  description: string
+  onNext: () => void
+  onSkip: () => void
+  stepNumber: number
+  totalSteps: number
+}) {
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function updatePosition() {
+      let target = document.getElementById(targetId)
+      if (!target && targetId === 'walkthrough-chat-input') {
+        target = document.getElementById('walkthrough-chat-input-mobile')
+      }
+      if (!target) {
+        setCoords(null)
+        return
+      }
+
+      const targetRect = target.getBoundingClientRect()
+      const offset = 16 // spacing between target and tooltip
+      const left = targetRect.right + window.scrollX + offset
+      
+      // Calculate top so that tooltip is vertically aligned next to the target
+      let top = targetRect.top + window.scrollY
+      if (targetRect.height > 60) {
+        top = targetRect.top + window.scrollY + (targetRect.height / 2) - 45
+      } else {
+        top = targetRect.top + window.scrollY + (targetRect.height / 2) - 45
+      }
+
+      // Avoid placing off-screen if layout is still settling
+      if (left > 0 && top > 0) {
+        setCoords({ top, left })
+      }
+    }
+
+    updatePosition()
+    
+    // Set up MutationObserver to re-align if target moves or settles
+    const observer = new MutationObserver(updatePosition)
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true })
+
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+
+    // Run multiple times as layout settles
+    const timer1 = setTimeout(updatePosition, 100)
+    const timer2 = setTimeout(updatePosition, 400)
+    const timer3 = setTimeout(updatePosition, 1000)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+      clearTimeout(timer3)
+    }
+  }, [targetId])
+
+  if (!coords) return null
+
+  return (
+    <div
+      ref={tooltipRef}
+      style={{
+        position: 'absolute',
+        top: coords.top,
+        left: coords.left,
+        zIndex: 9999,
+      }}
+      className="w-72 bg-[#0B2545] text-white p-4 rounded-lg shadow-2xl animate-fade-in pointer-events-auto border border-[#143763]"
+    >
+      {/* Left-pointing arrow */}
+      <div className="absolute left-[-6px] top-[45px] w-3 h-3 bg-[#0B2545] rotate-45 border-l border-b border-[#143763]" />
+      
+      <div className="relative">
+        <h4 className="font-bold text-sm tracking-wide text-white">{title}</h4>
+        <p className="mt-1.5 text-xs text-blue-100/90 leading-relaxed">{description}</p>
+        
+        <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-2.5 text-[10px]">
+          <span className="text-blue-200/70 font-semibold uppercase tracking-wider">Step {stepNumber} of {totalSteps}</span>
+          <div className="flex gap-2.5">
+            <button
+              onClick={onSkip}
+              className="text-blue-200/70 hover:text-white transition-colors font-bold uppercase tracking-wider"
+            >
+              Skip
+            </button>
+            <button
+              onClick={onNext}
+              className="bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded text-white font-bold transition-colors uppercase tracking-wider"
+            >
+              {stepNumber === totalSteps ? 'Finish' : 'Next'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Canvas screen (full editor) ─────────────────────────────────────────────
 
 function CanvasScreen({
@@ -930,6 +1113,32 @@ function CanvasScreen({
   showJdHint?: boolean
 }) {
   const [jdHintDismissed, setJdHintDismissed] = useState(false)
+  const [walkthroughStep, setWalkthroughStep] = useState<number | null>(() => {
+    return localStorage.getItem('lf_walkthrough_completed') === 'true' ? null : 1
+  })
+
+  function handleWalkthroughNext() {
+    if (walkthroughStep === 1) {
+      setWalkthroughStep(2)
+    } else if (walkthroughStep === 2) {
+      setWalkthroughStep(3)
+    } else if (walkthroughStep === 3) {
+      localStorage.setItem('lf_walkthrough_completed', 'true')
+      setWalkthroughStep(null)
+    }
+  }
+
+  function handleWalkthroughSkip() {
+    localStorage.setItem('lf_walkthrough_completed', 'true')
+    setWalkthroughStep(null)
+  }
+
+  function handleWalkthroughReset() {
+    localStorage.removeItem('lf_walkthrough_completed')
+    setWalkthroughStep(1)
+    setSidebarTab('chat')
+  }
+
   const [improveMode, setImproveMode] = useState<ImproveMode>('closed')
   const [expanded, setExpanded] = useState('Experience')
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat')
@@ -965,6 +1174,9 @@ function CanvasScreen({
     const trimmed = message.trim()
     const normalized = trimmed.toLowerCase()
     if (!normalized) return
+    if (walkthroughStep === 1) {
+      setWalkthroughStep(2)
+    }
     let aiText = 'I updated the resume canvas with that direction. Review the changes when you are ready, then download the final version.'
     if (normalized.includes('short')) {
       updateResumeField(setResume, 'summary', resume.summary.split('.').slice(0, 2).join('.').trim())
@@ -1091,18 +1303,28 @@ function CanvasScreen({
                     </button>
                   ))}
                 </div>
-                <div className="flex items-end gap-2 rounded-xl border border-slate-200 p-2">
-                  <textarea
-                    value={chatDraft}
-                    onChange={(event) => setChatDraft(event.target.value)}
-                    onFocus={() => setJdHintDismissed(true)}
-                    rows={2}
-                    className="min-w-0 flex-1 resize-none text-base leading-6 text-slate-700 outline-none placeholder:text-slate-400"
-                    placeholder="Message Lightforth AI..."
-                  />
-                  <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#149cf2] text-white">
-                    <Send className="h-5 w-5" />
-                  </button>
+                <div>
+                  <div id="walkthrough-chat-input-mobile" className={cn(
+                    "flex items-end gap-2 rounded-xl border p-2 transition-all",
+                    walkthroughStep === 1 ? "border-[#149cf2] ring-2 ring-[#149cf2]/20" : "border-slate-200"
+                  )}>
+                    <textarea
+                      value={chatDraft}
+                      onChange={(event) => setChatDraft(event.target.value)}
+                      onFocus={() => setJdHintDismissed(true)}
+                      rows={2}
+                      className="min-w-0 flex-1 resize-none text-base leading-6 text-slate-700 outline-none"
+                      placeholder={walkthroughStep === 1 ? "Paste a job description here to get started..." : "Message Lightforth AI..."}
+                    />
+                    <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#149cf2] text-white">
+                      <Send className="h-5 w-5" />
+                    </button>
+                  </div>
+                  {walkthroughStep === 1 && (
+                    <p className="mt-1 text-xs text-slate-400 text-center font-medium">
+                      Enter to send · Shift+Enter for newline
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -1199,6 +1421,9 @@ function CanvasScreen({
         )}
         right={(
           <>
+            <OutlineButton onClick={handleWalkthroughReset} className="h-8 px-3 text-xs border-dashed text-slate-500 hover:text-slate-900 mr-1.5">
+              Reset Tour
+            </OutlineButton>
             <span className="mr-2 hidden items-center gap-1.5 text-xs font-semibold text-green-600 lg:inline-flex">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Saved
@@ -1297,24 +1522,34 @@ function CanvasScreen({
                     </button>
                   ))}
                 </div>
-                <div className="flex items-end gap-2 rounded-lg border border-slate-200 bg-white p-1.5">
-                  <textarea
-                    value={chatDraft}
-                    onChange={(event) => setChatDraft(event.target.value)}
-                    onFocus={() => setJdHintDismissed(true)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' && !event.shiftKey) {
-                        event.preventDefault()
-                        sendChat()
-                      }
-                    }}
-                    rows={2}
-                    className="min-w-0 flex-1 resize-none text-xs leading-5 outline-none"
-                    placeholder="Message Lightforth AI..."
-                  />
-                  <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#149cf2] text-white">
-                    <Send className="h-3.5 w-3.5" />
-                  </button>
+                <div>
+                  <div id="walkthrough-chat-input" className={cn(
+                    "flex items-end gap-2 rounded-lg border bg-white p-1.5 transition-all",
+                    walkthroughStep === 1 ? "border-[#149cf2] ring-2 ring-[#149cf2]/20" : "border-slate-200"
+                  )}>
+                    <textarea
+                      value={chatDraft}
+                      onChange={(event) => setChatDraft(event.target.value)}
+                      onFocus={() => setJdHintDismissed(true)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' && !event.shiftKey) {
+                          event.preventDefault()
+                          sendChat()
+                        }
+                      }}
+                      rows={2}
+                      className="min-w-0 flex-1 resize-none text-xs leading-5 outline-none"
+                      placeholder={walkthroughStep === 1 ? "Paste a job description here to get started..." : "Message Lightforth AI..."}
+                    />
+                    <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[#149cf2] text-white">
+                      <Send className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  {walkthroughStep === 1 && (
+                    <p className="mt-1 text-[10px] text-slate-400 text-center font-medium">
+                      Enter to send · Shift+Enter for newline
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1546,7 +1781,14 @@ function CanvasScreen({
           >
             <div className="mx-auto" style={{ width: 816 * zoom, height: 1056 * zoom }}>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
-                <ResumePaper editable resume={resume} setResume={setResume} templateId={templateId} />
+                <ResumePaper
+                  editable
+                  resume={resume}
+                  setResume={setResume}
+                  templateId={templateId}
+                  walkthroughStep={walkthroughStep}
+                  onWalkthroughNext={handleWalkthroughNext}
+                />
               </div>
             </div>
             {selectionToolMode !== 'closed' && (
@@ -1568,6 +1810,40 @@ function CanvasScreen({
         <CanvasRightPanel resume={resume} jobDescription={jobDescription} />
         </main>
       </div>
+
+      {walkthroughStep === 1 && (
+        <WalkthroughTooltip
+          targetId="walkthrough-chat-input"
+          title="Paste a Job Description"
+          description="Tooltips are used to describe or identify an element. In most scenarios, tooltips help the user understand meaning, function or alt-text."
+          onNext={handleWalkthroughNext}
+          onSkip={handleWalkthroughSkip}
+          stepNumber={1}
+          totalSteps={3}
+        />
+      )}
+      {walkthroughStep === 2 && (
+        <WalkthroughTooltip
+          targetId="walkthrough-diff-actions"
+          title="Accept or Decline Changes"
+          description="Tooltips are used to describe or identify an element."
+          onNext={handleWalkthroughNext}
+          onSkip={handleWalkthroughSkip}
+          stepNumber={2}
+          totalSteps={3}
+        />
+      )}
+      {walkthroughStep === 3 && (
+        <WalkthroughTooltip
+          targetId="walkthrough-summary-section"
+          title="Click to Edit"
+          description="Tooltips are used to describe or identify an element."
+          onNext={handleWalkthroughNext}
+          onSkip={handleWalkthroughSkip}
+          stepNumber={3}
+          totalSteps={3}
+        />
+      )}
     </>
   )
 }
