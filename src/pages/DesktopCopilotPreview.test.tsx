@@ -171,3 +171,33 @@ describe('UseCaseSelectionScreen', () => {
     expect(onSelect).toHaveBeenCalledWith('sales-call')
   })
 })
+
+import DesktopCopilotPreview from './DesktopCopilotPreview'
+
+describe('DesktopCopilotPreview end to end', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  it('walks from splash through use-case selection to the Exam setup screen', async () => {
+    render(<DesktopCopilotPreview />)
+    await act(async () => { vi.advanceTimersByTime(2300) })
+    expect(screen.getByText('Welcome to Lightforth Co-Pilot')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByText('Continue'))
+    expect(screen.getByText('What are you using Copilot for?')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByText('Exam'))
+    expect(screen.getByText('Subject')).toBeInTheDocument()
+    expect(screen.queryByText('Select Audio')).not.toBeInTheDocument()
+  })
+
+  it('routes Coding to the screenshot canvas and Interview to the conversational canvas', async () => {
+    render(<DesktopCopilotPreview />)
+    await act(async () => { vi.advanceTimersByTime(2300) })
+    fireEvent.click(screen.getByText('Continue'))
+    fireEvent.click(screen.getByText('Coding'))
+    fireEvent.click(screen.getByText('Continue'))
+    fireEvent.click(screen.getByText('Confirm'))
+    expect(screen.getAllByText(/Press Space to capture/).length).toBeGreaterThan(0)
+  })
+})

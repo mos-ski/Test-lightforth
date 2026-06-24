@@ -35,7 +35,7 @@ const MOCK_RESUMES = [
   { name: 'Darnell Smith', role: 'Software Engineer', date: '3rd Jan, 2026' },
 ]
 
-type DesktopView = 'splash' | 'onboarding' | 'setup' | 'live' | 'complete'
+type DesktopView = 'splash' | 'onboarding' | 'select-use-case' | 'setup' | 'live' | 'complete'
 type CopilotStatus = 'listening' | 'processing' | 'answering'
 
 function formatTime(s: number) {
@@ -1070,16 +1070,37 @@ export function CompleteScreen({ useCaseId, onGoHome }: { useCaseId: UseCaseId; 
 // ---------------------------------------------------------------------------
 export default function DesktopCopilotPreview() {
   const [view, setView] = useState<DesktopView>('splash')
-  const [jobTitle, setJobTitle] = useState('Software Engineer')
+  const [useCase, setUseCase] = useState<UseCaseId>('interview')
+  const [primaryLabel, setPrimaryLabel] = useState('')
   const [transparency, setTransparency] = useState(0)
 
+  const config = getUseCase(useCase)
+
   return (
-    <MacWindow blendBar={view === 'splash' || view === 'onboarding' || view === 'complete'} transparency={view === 'live' ? transparency : 0}>
-      {view === 'splash'     && <SplashScreen    onDone={() => setView('onboarding')} />}
-      {view === 'onboarding' && <OnboardingScreen onContinue={() => setView('setup')} />}
-      {view === 'setup'      && <SetupScreen      onContinue={t => { setJobTitle(t); setView('live') }} />}
-      {view === 'live'       && <LiveCanvas       jobTitle={jobTitle} onEnd={() => setView('complete')} transparency={transparency} onTransparencyChange={setTransparency} />}
-      {view === 'complete'   && <CompleteScreen   onGoHome={() => setView('splash')} />}
+    <MacWindow blendBar={view === 'splash' || view === 'onboarding' || view === 'select-use-case' || view === 'complete'} transparency={view === 'live' ? transparency : 0}>
+      {view === 'splash'          && <SplashScreen          onDone={() => setView('onboarding')} />}
+      {view === 'onboarding'      && <OnboardingScreen      onContinue={() => setView('select-use-case')} />}
+      {view === 'select-use-case' && <UseCaseSelectionScreen onSelect={id => { setUseCase(id); setView('setup') }} />}
+      {view === 'setup'           && <SetupScreen useCaseId={useCase} onContinue={label => { setPrimaryLabel(label); setView('live') }} />}
+      {view === 'live' && config.canvasPattern === 'conversational' && (
+        <LiveCanvas
+          useCaseId={useCase as 'interview' | 'sales-call' | 'meeting'}
+          primaryLabel={primaryLabel}
+          onEnd={() => setView('complete')}
+          transparency={transparency}
+          onTransparencyChange={setTransparency}
+        />
+      )}
+      {view === 'live' && config.canvasPattern === 'screenshot-qa' && (
+        <ScreenshotCanvas
+          useCaseId={useCase as 'exam' | 'coding'}
+          primaryLabel={primaryLabel}
+          onEnd={() => setView('complete')}
+          transparency={transparency}
+          onTransparencyChange={setTransparency}
+        />
+      )}
+      {view === 'complete' && <CompleteScreen useCaseId={useCase} onGoHome={() => setView('splash')} />}
     </MacWindow>
   )
 }
