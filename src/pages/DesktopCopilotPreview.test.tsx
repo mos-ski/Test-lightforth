@@ -1,3 +1,4 @@
+// src/pages/DesktopCopilotPreview.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { SetupScreen, PreferenceModal } from './DesktopCopilotPreview'
 
