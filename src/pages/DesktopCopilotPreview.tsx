@@ -294,122 +294,6 @@ export function PreferenceModal({ hasAnswerLength, onClose, onNext }: { hasAnswe
 }
 
 // ---------------------------------------------------------------------------
-// Pricing Modal
-// ---------------------------------------------------------------------------
-function PricingModal({ onClose }: { onClose: () => void }) {
-  const tiers = [
-    {
-      name: 'STARTER',
-      price: '₦5,000',
-      period: '/mo',
-      credits: '15 credits/mo',
-      color: 'rgba(255,255,255,0.07)',
-      useCases: [
-        { id: 'interview', label: 'Interview', included: false },
-        { id: 'sales-call', label: 'Sales Call', included: false },
-        { id: 'meeting', label: 'Meeting', included: false },
-        { id: 'exam', label: 'Exam', included: true },
-        { id: 'coding', label: 'Coding', included: true },
-      ],
-    },
-    {
-      name: 'PRO',
-      price: '₦20,000',
-      period: '/mo',
-      credits: '50 credits/mo',
-      color: BLUE,
-      popular: true,
-      useCases: [
-        { id: 'interview', label: 'Interview', included: true },
-        { id: 'sales-call', label: 'Sales Call', included: true },
-        { id: 'meeting', label: 'Meeting', included: true },
-        { id: 'exam', label: 'Exam', included: true },
-        { id: 'coding', label: 'Coding', included: true },
-      ],
-    },
-    {
-      name: 'PREMIUM',
-      price: '₦50,000',
-      period: '/mo',
-      credits: '100 credits/mo',
-      color: 'rgba(168,85,247,0.4)',
-      useCases: [
-        { id: 'interview', label: 'Interview', included: true },
-        { id: 'sales-call', label: 'Sales Call', included: true },
-        { id: 'meeting', label: 'Meeting', included: true },
-        { id: 'exam', label: 'Exam', included: true },
-        { id: 'coding', label: 'Coding', included: true },
-      ],
-    },
-  ]
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-3xl overflow-hidden rounded-2xl shadow-2xl" style={{ background: '#0e2155', border: `1px solid ${BORDER}` }} onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: BORDER }}>
-          <div>
-            <h2 className="text-lg font-bold text-white">Upgrade your plan</h2>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Choose the plan that fits how you use Copilot</p>
-          </div>
-          <button onClick={onClose}><X className="h-5 w-5 text-white/50 hover:text-white" /></button>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4 p-6">
-          {tiers.map(tier => (
-            <div
-              key={tier.name}
-              className="relative flex flex-col rounded-xl p-5"
-              style={{
-                background: tier.popular ? 'rgba(26,122,255,0.1)' : CARD,
-                border: `1px solid ${tier.popular ? BLUE : BORDER}`,
-              }}
-            >
-              {tier.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white" style={{ background: BLUE }}>
-                  Most Popular
-                </div>
-              )}
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: tier.popular ? BLUE : 'rgba(255,255,255,0.5)' }}>{tier.name}</p>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-2xl font-bold text-white">{tier.price}</span>
-                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{tier.period}</span>
-              </div>
-              <p className="mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{tier.credits}</p>
-
-              <div className="mt-4 flex-1 space-y-2">
-                {tier.useCases.map(uc => (
-                  <div key={uc.id} className="flex items-center gap-2 text-sm">
-                    <div className={`flex h-4 w-4 items-center justify-center rounded-full ${uc.included ? 'bg-green-500/20' : 'bg-white/5'}`}>
-                      {uc.included
-                        ? <Check className="h-2.5 w-2.5 text-green-400" />
-                        : <X className="h-2.5 w-2.5 text-white/20" />}
-                    </div>
-                    <span className={uc.included ? 'text-white' : 'text-white/30'}>{uc.label}</span>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                className="mt-4 w-full rounded-lg py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style={{ background: tier.popular ? BLUE : tier.popular === undefined && tier.name === 'PREMIUM' ? 'rgba(168,85,247,0.6)' : 'rgba(255,255,255,0.1)' }}
-              >
-                {tier.popular ? 'Upgrade Now' : 'Get Started'}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className="border-t px-6 py-4" style={{ borderColor: BORDER }}>
-          <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            All plans include ATS scoring and AI suggester for free. Credits are used per Copilot session.
-          </p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Screen 2: Setup
 // ---------------------------------------------------------------------------
 type DealStage = 'Discovery' | 'Demo' | 'Negotiation' | 'Closing'
@@ -433,7 +317,6 @@ export function SetupScreen({ useCaseId, onBack, onContinue }: { useCaseId: UseC
   const [dontAskAgain, setDontAskAgain] = useState(true)
   const [showResumeModal, setShowResumeModal] = useState(false)
   const [showPreference, setShowPreference] = useState(false)
-  const [showPricing, setShowPricing] = useState(false)
 
   const inputStyle = { background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none' } as const
 
@@ -458,7 +341,7 @@ export function SetupScreen({ useCaseId, onBack, onContinue }: { useCaseId: UseC
           <span className="text-base font-bold text-white">Lightforth</span>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setShowPricing(true)} className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10" style={{ borderColor: BORDER }}>
+          <button className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10" style={{ borderColor: BORDER }}>
             <LightningLogo size={12} /> Upgrade
           </button>
           <button className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/10">
@@ -690,7 +573,6 @@ export function SetupScreen({ useCaseId, onBack, onContinue }: { useCaseId: UseC
           onNext={() => onContinue(primaryLabel || config.label)}
         />
       )}
-      {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
     </div>
   )
 }
@@ -1174,7 +1056,6 @@ export default function DesktopCopilotPreview() {
           onPaid={() => {
             const plan = getPlan(selectedPlan)
             if (plan.unlockedUseCases.length > 1) {
-              setReturnView('pricing')
               setView('select-use-case')
             } else {
               setUseCase(plan.unlockedUseCases[0])
