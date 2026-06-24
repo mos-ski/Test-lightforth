@@ -155,8 +155,17 @@ describe('CompleteScreen', () => {
 })
 
 describe('UseCaseSelectionScreen', () => {
-  it('renders all 5 use case cards', () => {
-    render(<UseCaseSelectionScreen onSelect={() => {}} />)
+  it('renders only the cards for the given useCaseIds', () => {
+    render(<UseCaseSelectionScreen useCaseIds={['interview', 'coding', 'meeting']} onSelect={() => {}} />)
+    expect(screen.getByText('Interview')).toBeInTheDocument()
+    expect(screen.getByText('Coding')).toBeInTheDocument()
+    expect(screen.getByText('Meeting')).toBeInTheDocument()
+    expect(screen.queryByText('Sales Call')).not.toBeInTheDocument()
+    expect(screen.queryByText('Exam')).not.toBeInTheDocument()
+  })
+
+  it('renders all 5 cards when all 5 ids are passed', () => {
+    render(<UseCaseSelectionScreen useCaseIds={['interview', 'sales-call', 'meeting', 'exam', 'coding']} onSelect={() => {}} />)
     expect(screen.getByText('Interview')).toBeInTheDocument()
     expect(screen.getByText('Sales Call')).toBeInTheDocument()
     expect(screen.getByText('Meeting')).toBeInTheDocument()
@@ -166,7 +175,7 @@ describe('UseCaseSelectionScreen', () => {
 
   it('calls onSelect with the chosen use case id', () => {
     const onSelect = vi.fn()
-    render(<UseCaseSelectionScreen onSelect={onSelect} />)
+    render(<UseCaseSelectionScreen useCaseIds={['interview', 'sales-call']} onSelect={onSelect} />)
     fireEvent.click(screen.getByText('Sales Call'))
     expect(onSelect).toHaveBeenCalledWith('sales-call')
   })

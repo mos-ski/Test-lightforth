@@ -115,7 +115,8 @@ function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
 // ---------------------------------------------------------------------------
 // Screen 1b: Use-Case Selection
 // ---------------------------------------------------------------------------
-export function UseCaseSelectionScreen({ onSelect }: { onSelect: (id: UseCaseId) => void }) {
+export function UseCaseSelectionScreen({ useCaseIds, onSelect }: { useCaseIds: UseCaseId[]; onSelect: (id: UseCaseId) => void }) {
+  const useCases = USE_CASES.filter(uc => useCaseIds.includes(uc.id))
   return (
     <div className="flex min-h-[580px] flex-col items-center px-12 py-10" style={{ background: BG }}>
       <h1 className="mb-3 text-center text-3xl font-bold text-white">What are you using Copilot for?</h1>
@@ -123,7 +124,7 @@ export function UseCaseSelectionScreen({ onSelect }: { onSelect: (id: UseCaseId)
         Choose a use case to tailor how Copilot listens and responds.
       </p>
       <div className="grid w-full max-w-[700px] grid-cols-2 gap-3">
-        {USE_CASES.map(uc => {
+        {useCases.map(uc => {
           const Icon = uc.icon
           return (
             <button
