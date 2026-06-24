@@ -119,10 +119,15 @@ function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
 // ---------------------------------------------------------------------------
 // Screen 1b: Use-Case Selection
 // ---------------------------------------------------------------------------
-export function UseCaseSelectionScreen({ useCaseIds, onSelect }: { useCaseIds: UseCaseId[]; onSelect: (id: UseCaseId) => void }) {
+export function UseCaseSelectionScreen({ useCaseIds, onBack, onSelect }: { useCaseIds: UseCaseId[]; onBack: () => void; onSelect: (id: UseCaseId) => void }) {
   const useCases = USE_CASES.filter(uc => useCaseIds.includes(uc.id))
   return (
     <div className="flex min-h-[580px] flex-col items-center px-12 py-10" style={{ background: BG }}>
+      <div className="mb-6 flex w-full max-w-[700px] items-center">
+        <button onClick={onBack} className="rounded-lg p-1.5 text-white/50 hover:text-white hover:bg-white/10 transition-colors" title="Back">
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+      </div>
       <h1 className="mb-3 text-center text-3xl font-bold text-white">What are you using Copilot for?</h1>
       <p className="mb-10 max-w-lg text-center text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
         Choose a use case to tailor how Copilot listens and responds.
@@ -988,11 +993,14 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
 // ---------------------------------------------------------------------------
 // Screen 4: Complete
 // ---------------------------------------------------------------------------
-export function CompleteScreen({ useCaseId, onGoHome }: { useCaseId: UseCaseId; onGoHome: () => void }) {
+export function CompleteScreen({ useCaseId, onBack, onGoHome }: { useCaseId: UseCaseId; onBack: () => void; onGoHome: () => void }) {
   const config = getUseCase(useCaseId)
   return (
     <div className="flex flex-1 flex-col justify-center px-12 py-16" style={{ background: 'linear-gradient(145deg, #0c1d48 0%, #0d3285 55%, #1a5aff 100%)' }}>
       <div className="max-w-[520px]">
+        <button onClick={onBack} className="mb-6 rounded-lg p-1.5 text-white/50 hover:text-white hover:bg-white/10 transition-colors" title="Back">
+          <ArrowLeft className="h-4 w-4" />
+        </button>
         <h1 className="mb-5 text-4xl font-bold leading-tight text-white">{config.completeHeading}</h1>
         <p className="mb-10 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.75)' }}>
           {config.completeBody}
@@ -1035,6 +1043,7 @@ export default function DesktopCopilotPreview() {
       {view === 'onboarding' && <OnboardingScreen onContinue={() => setView('sign-in')} />}
       {view === 'sign-in' && (
         <SignInScreen
+          onBack={() => setView('onboarding')}
           onContinue={({ hasInviteCode }) => {
             if (hasInviteCode) {
               setUseCase('sales-call')
@@ -1047,27 +1056,19 @@ export default function DesktopCopilotPreview() {
         />
       )}
       {view === 'pricing' && (
-        <PricingScreen onSelect={id => { setSelectedPlan(id); setView('payment') }} />
+        <PricingScreen onBack={() => setView('sign-in')} onSelect={id => { setSelectedPlan(id); setView('payment') }} />
       )}
       {view === 'payment' && (
         <PaymentScreen
           planId={selectedPlan}
           onBack={() => setView('pricing')}
-          onPaid={() => {
-            const plan = getPlan(selectedPlan)
-            if (plan.unlockedUseCases.length > 1) {
-              setView('select-use-case')
-            } else {
-              setUseCase(plan.unlockedUseCases[0])
-              setReturnView('pricing')
-              setView('setup')
-            }
-          }}
+          onPaid={() => setView('select-use-case')}
         />
       )}
       {view === 'select-use-case' && (
         <UseCaseSelectionScreen
           useCaseIds={getPlan(selectedPlan).unlockedUseCases}
+          onBack={() => setView('pricing')}
           onSelect={id => { setUseCase(id); setReturnView('select-use-case'); setView('setup') }}
         />
       )}
@@ -1098,7 +1099,7 @@ export default function DesktopCopilotPreview() {
           onTransparencyChange={setTransparency}
         />
       )}
-      {view === 'complete' && <CompleteScreen useCaseId={useCase} onGoHome={() => setView('splash')} />}
+      {view === 'complete' && <CompleteScreen useCaseId={useCase} onBack={() => setView('select-use-case')} onGoHome={() => setView('splash')} />}
     </MacWindow>
   )
 }

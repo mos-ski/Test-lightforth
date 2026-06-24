@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { BG, INPUT_BG, INPUT_BD, BLUE } from './shared'
 
 type SignInMode = 'signup' | 'signin' | 'enterprise'
@@ -7,7 +8,7 @@ export interface SignInResult {
   hasInviteCode: boolean
 }
 
-export function SignInScreen({ onContinue }: { onContinue: (result: SignInResult) => void }) {
+export function SignInScreen({ onBack, onContinue }: { onBack: () => void; onContinue: (result: SignInResult) => void }) {
   const [mode, setMode] = useState<SignInMode>('signup')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -28,6 +29,11 @@ export function SignInScreen({ onContinue }: { onContinue: (result: SignInResult
 
   return (
     <div className="flex min-h-[580px] flex-col items-center px-12 py-10" style={{ background: BG }}>
+      <div className="mb-6 flex w-full max-w-sm items-center">
+        <button onClick={onBack} className="rounded-lg p-1.5 text-white/50 hover:text-white hover:bg-white/10 transition-colors" title="Back">
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+      </div>
       <h1 className="mb-3 text-center text-3xl font-bold text-white">{heading}</h1>
       <p className="mb-8 max-w-lg text-center text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
         {mode === 'enterprise'

@@ -19,7 +19,7 @@ export function PaymentScreen({ planId, onPaid, onBack }: { planId: PlanId; onPa
         </button>
         <h1 className="mb-2 text-2xl font-bold text-white">Confirm payment</h1>
         <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-          {plan.priceLabel} — {plan.label} Plan
+          ${plan.monthlyPrice}/mo — {plan.label} Plan
         </p>
 
         <div className="space-y-4 rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
@@ -62,7 +62,7 @@ export function PaymentScreen({ planId, onPaid, onBack }: { planId: PlanId; onPa
           className="mt-5 h-11 w-full rounded-xl text-sm font-bold text-white transition-opacity"
           style={{ background: BLUE, opacity: canPay ? 1 : 0.45 }}
         >
-          Pay {plan.priceLabel}
+          Pay ${plan.monthlyPrice}/mo
         </button>
       </div>
     </div>

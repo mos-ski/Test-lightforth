@@ -6,13 +6,13 @@ import { PaymentScreen } from './PaymentScreen'
 describe('PaymentScreen', () => {
   it('shows the correct purchase summary for the given plan', () => {
     render(<PaymentScreen planId="pro" onPaid={() => {}} onBack={() => {}} />)
-    expect(screen.getByText('$49/mo — PRO Plan')).toBeInTheDocument()
+    expect(screen.getByText('$49/mo — Pro Plan')).toBeInTheDocument()
   })
 
   it('disables Pay until all card fields are filled, then calls onPaid', () => {
     const onPaid = vi.fn()
-    render(<PaymentScreen planId="exam" onPaid={onPaid} onBack={() => {}} />)
-    const payButton = screen.getByText('Pay $500 one-time')
+    render(<PaymentScreen planId="premium" onPaid={onPaid} onBack={() => {}} />)
+    const payButton = screen.getByText('Pay $79/mo')
     fireEvent.click(payButton)
     expect(onPaid).not.toHaveBeenCalled()
 

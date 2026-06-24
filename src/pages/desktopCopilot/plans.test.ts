@@ -1,23 +1,31 @@
 // src/pages/desktopCopilot/plans.test.ts
 import { describe, it, expect } from 'vitest'
-import { PLANS, getPlan } from './plans'
+import { PLANS, getPlan, annualMonthlyEquivalent } from './plans'
 
 describe('plans config', () => {
-  it('has PRO, Premium, and Exam in order', () => {
-    expect(PLANS.map(p => p.id)).toEqual(['pro', 'premium', 'exam'])
+  it('has Pro and Premium in order', () => {
+    expect(PLANS.map(p => p.id)).toEqual(['pro', 'premium'])
   })
 
-  it('PRO and Premium both unlock interview, coding, and meeting', () => {
+  it('Pro and Premium both unlock interview, coding, meeting, and exam', () => {
     for (const id of ['pro', 'premium'] as const) {
-      expect(getPlan(id).unlockedUseCases).toEqual(['interview', 'coding', 'meeting'])
+      expect(getPlan(id).unlockedUseCases).toEqual(['interview', 'coding', 'meeting', 'exam'])
     }
   })
 
-  it('Exam unlocks only exam', () => {
-    expect(getPlan('exam').unlockedUseCases).toEqual(['exam'])
+  it('only Premium is marked popular', () => {
+    expect(getPlan('pro').popular).toBe(false)
+    expect(getPlan('premium').popular).toBe(true)
   })
 
   it('throws for an unknown plan id', () => {
     expect(() => getPlan('unknown' as never)).toThrow('Unknown plan: unknown')
+  })
+})
+
+describe('annualMonthlyEquivalent', () => {
+  it('discounts the monthly price by 20%, rounded', () => {
+    expect(annualMonthlyEquivalent(49)).toBe(39)
+    expect(annualMonthlyEquivalent(79)).toBe(63)
   })
 })

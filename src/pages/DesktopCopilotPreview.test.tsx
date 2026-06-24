@@ -187,7 +187,7 @@ describe('DesktopCopilotPreview end to end', () => {
   beforeEach(() => vi.useFakeTimers())
   afterEach(() => vi.useRealTimers())
 
-  it('walks from splash through sign-up, pricing, and payment to the Exam setup screen', async () => {
+  it('walks from splash through sign-up and a Premium purchase to the scoped picker, then Exam setup', async () => {
     render(<DesktopCopilotPreview />)
     await act(async () => { vi.advanceTimersByTime(2300) })
     expect(screen.getByText('Welcome to Lightforth Co-Pilot')).toBeInTheDocument()
@@ -197,19 +197,22 @@ describe('DesktopCopilotPreview end to end', () => {
     fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
     fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
     fireEvent.click(screen.getByText('Continue'))
-    expect(screen.getByText('Choose your plan')).toBeInTheDocument()
+    expect(screen.getByText('Level Up')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByText('Choose Exam'))
+    fireEvent.click(screen.getByText('Upgrade to Premium'))
     fireEvent.change(screen.getByPlaceholderText('1234 1234 1234 1234'), { target: { value: '4242424242424242' } })
     fireEvent.change(screen.getByPlaceholderText('MM/YY'), { target: { value: '12/30' } })
     fireEvent.change(screen.getByPlaceholderText('123'), { target: { value: '123' } })
-    fireEvent.click(screen.getByText('Pay $500 one-time'))
+    fireEvent.click(screen.getByText('Pay $79/mo'))
+
+    expect(screen.getByText('What are you using Copilot for?')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Exam'))
 
     expect(screen.getByText('Subject')).toBeInTheDocument()
     expect(screen.queryByText('Select Audio')).not.toBeInTheDocument()
   })
 
-  it('a PRO purchase shows the scoped picker (no Exam) and routes Coding to the screenshot canvas', async () => {
+  it('a Pro purchase shows the scoped picker (including Exam) and routes Coding to the screenshot canvas', async () => {
     render(<DesktopCopilotPreview />)
     await act(async () => { vi.advanceTimersByTime(2300) })
     fireEvent.click(screen.getByText('Continue'))
@@ -218,14 +221,14 @@ describe('DesktopCopilotPreview end to end', () => {
     fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
     fireEvent.click(screen.getByText('Continue'))
 
-    fireEvent.click(screen.getByText('Choose PRO'))
+    fireEvent.click(screen.getByText('Pro'))
     fireEvent.change(screen.getByPlaceholderText('1234 1234 1234 1234'), { target: { value: '4242424242424242' } })
     fireEvent.change(screen.getByPlaceholderText('MM/YY'), { target: { value: '12/30' } })
     fireEvent.change(screen.getByPlaceholderText('123'), { target: { value: '123' } })
     fireEvent.click(screen.getByText('Pay $49/mo'))
 
     expect(screen.getByText('What are you using Copilot for?')).toBeInTheDocument()
-    expect(screen.queryByText('Exam')).not.toBeInTheDocument()
+    expect(screen.getByText('Exam')).toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Coding'))
     fireEvent.click(screen.getByText('Continue'))
