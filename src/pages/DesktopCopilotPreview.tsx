@@ -742,7 +742,7 @@ function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { j
         <div className="flex flex-1 flex-col overflow-hidden rounded-xl transition-all duration-500" style={{ background: '#0D1929', border: copilotStatus === 'listening' ? '1px solid #22c55e' : '1px solid #1E2D45', ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
           <div className="flex flex-shrink-0 items-center justify-between border-b px-4 py-3" style={{ borderColor: '#1E2D45' }}>
             <div className="flex items-center gap-2 text-sm font-medium text-white">Live Interview Response<div className="h-2 w-2 rounded-full bg-red-500" /></div>
-            <button onClick={() => setShowSettings(true)}><Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" /></button>
+            <button data-testid="open-settings" onClick={() => setShowSettings(true)}><Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" /></button>
           </div>
           <div ref={panelRef} className="flex-1 space-y-6 overflow-y-auto p-5">
             {history.map((item, i) => (
@@ -759,6 +759,203 @@ function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { j
               {copilotStatus === 'answering' && aDisplayed && <p className="leading-relaxed text-slate-200" style={{ fontSize }}>{aDisplayed}{aDisplayed.length < MOCK_QA[questionIndex].a.length && <span className="ml-px inline-block w-[2px] bg-primary align-middle" style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }} />}</p>}
               {!qDisplayed && history.length === 0 && <p className="text-xs italic text-slate-600">Press Space to start the simulation...</p>}
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Screen 3b: Screenshot Q&A Canvas (Exam / Coding)
+// ---------------------------------------------------------------------------
+type ScreenshotStatus = 'idle' | 'capturing' | 'analyzing' | 'answered'
+
+const MOCK_EXAM_QA = [
+  { q: "A particle moves along a line with velocity v(t) = 3t^2 - 12t + 9. Find all times t ≥ 0 when the particle is at rest.", a: "The particle is at rest when v(t) = 0.\n3t^2 - 12t + 9 = 0\nDivide by 3: t^2 - 4t + 3 = 0\nFactor: (t - 1)(t - 3) = 0\nSo t = 1 and t = 3. The particle is at rest at t = 1 second and t = 3 seconds." },
+  { q: "Find the derivative of f(x) = ln(x^2 + 1).", a: "Using the chain rule: f'(x) = (2x) / (x^2 + 1)." },
+  { q: "Evaluate the integral ∫(2x + 3) dx.", a: "∫(2x + 3) dx = x^2 + 3x + C, where C is the constant of integration." },
+]
+
+const MOCK_CODING_QA = [
+  { q: "Write a function that returns the nth Fibonacci number using memoization.", a: "function fib(n, memo = {}) {\n  if (n in memo) return memo[n]\n  if (n <= 1) return n\n  memo[n] = fib(n - 1, memo) + fib(n - 2, memo)\n  return memo[n]\n}" },
+  { q: "Reverse a singly linked list in place.", a: "function reverseList(head) {\n  let prev = null\n  let curr = head\n  while (curr) {\n    const next = curr.next\n    curr.next = prev\n    prev = curr\n    curr = next\n  }\n  return prev\n}" },
+]
+
+export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, transparency, onTransparencyChange }: { useCaseId: 'exam' | 'coding'; primaryLabel: string; onEnd: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
+  const config = getUseCase(useCaseId)
+  const bank = useCaseId === 'coding' ? MOCK_CODING_QA : MOCK_EXAM_QA
+
+  const [status, setStatus] = useState<ScreenshotStatus>('idle')
+  const [index, setIndex] = useState(0)
+  const [history, setHistory] = useState<{ q: string; a: string }[]>([])
+  const [elapsed, setElapsed] = useState(0)
+  const [copied, setCopied] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [stealthMode, setStealthMode] = useState(true)
+  const [alwaysOnTop, setAlwaysOnTop] = useState(false)
+  const [fontSize, setFontSize] = useState(14)
+  const [autoRespond, setAutoRespond] = useState(false)
+
+  const statusRef = useRef(status)
+  const indexRef = useRef(index)
+  useEffect(() => { statusRef.current = status }, [status])
+  useEffect(() => { indexRef.current = index }, [index])
+  useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
+
+  const capture = () => {
+    if (statusRef.current === 'idle') setStatus('capturing')
+    else if (statusRef.current === 'answered') {
+      setHistory(h => [...h, bank[indexRef.current]])
+      setIndex(i => (i + 1) % bank.length)
+      setStatus('idle')
+    }
+  }
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || autoRespond) return
+      e.preventDefault()
+      capture()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [autoRespond, bank])
+
+  useEffect(() => {
+    if (status !== 'capturing') return
+    const id = setTimeout(() => setStatus('analyzing'), 600)
+    return () => clearTimeout(id)
+  }, [status])
+
+  useEffect(() => {
+    if (status !== 'analyzing') return
+    const id = setTimeout(() => setStatus('answered'), 900)
+    return () => clearTimeout(id)
+  }, [status])
+
+  useEffect(() => {
+    if (!autoRespond) return
+    const delay = status === 'capturing' ? 600 : status === 'analyzing' ? 900 : 2000
+    const id = setTimeout(capture, delay)
+    return () => clearTimeout(id)
+  }, [autoRespond, status, index])
+
+  const statusText: Record<ScreenshotStatus, string> = {
+    idle: autoRespond ? 'Watching your screen...' : 'Press Space to capture your screen',
+    capturing: 'Capturing screen...',
+    analyzing: 'Analyzing...',
+    answered: autoRespond ? 'Answer ready' : 'Answer ready — press Space for the next question',
+  }
+
+  const current = bank[index]
+
+  return (
+    <div className="flex flex-1 flex-col" style={{ background: '#0A1628' }}>
+      <style>{`
+        @keyframes processingDot { 0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-5px);opacity:1} }
+      `}</style>
+
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+            <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: '#1E2D45' }}>
+              <p className="text-sm font-semibold text-white">Settings</p>
+              <button onClick={() => setShowSettings(false)}><X className="h-4 w-4 text-slate-400 hover:text-white" /></button>
+            </div>
+            <div className="space-y-6 p-5">
+              <div>
+                <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Window Settings</p>
+                <div className="space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div><p className="text-sm font-medium text-slate-200">Auto Respond</p><p className="mt-0.5 text-xs text-slate-500">AI answers automatically — turn off to capture with Space yourself</p></div>
+                    <Toggle on={autoRespond} onToggle={() => setAutoRespond(a => !a)} />
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div><p className="text-sm font-medium text-slate-200">Stealth Mode</p><p className="mt-0.5 text-xs text-slate-500">Hides Copilot from screen share</p></div>
+                    <Toggle on={stealthMode} onToggle={() => setStealthMode(s => !s)} />
+                  </div>
+                  <div>
+                    <div className="mb-2 flex justify-between"><p className="text-sm font-medium text-slate-200">Transparent Background</p><span className="text-xs text-slate-400">{transparency}%</span></div>
+                    <input type="range" min={0} max={100} value={transparency} onChange={e => onTransparencyChange(Number(e.target.value))} className="w-full accent-primary" />
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div><p className="text-sm font-medium text-slate-200">Always on Top</p><p className="mt-0.5 text-xs text-slate-500">Keeps Copilot above all other windows</p></div>
+                    <Toggle on={alwaysOnTop} onToggle={() => setAlwaysOnTop(s => !s)} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: '#0A1628' }}>
+        <div className="flex items-center gap-2 text-sm text-slate-300">
+          <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+          {config.label}{primaryLabel ? ` — ${primaryLabel}` : ''}
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-sm text-slate-300">{formatTime(elapsed)}</span>
+          <button onClick={onEnd} className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600">End Session</button>
+        </div>
+      </div>
+
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-2" style={{ background: '#0F2340' }}>
+        <span className="text-xs italic text-slate-400">{statusText[status]}</span>
+        <div className="flex items-center gap-4 text-xs text-slate-300">
+          <label className="flex items-center gap-2">
+            Font size
+            <input type="range" min={12} max={20} value={fontSize} onChange={e => setFontSize(Number(e.target.value))} className="w-20 accent-primary" />
+            <span className="w-5 text-slate-500">{fontSize}</span>
+          </label>
+          <button data-testid="open-settings" onClick={() => setShowSettings(true)}><Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" /></button>
+        </div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden p-2">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+          <div className="flex-1 space-y-6 overflow-y-auto p-5">
+            {history.map((item, i) => (
+              <div key={i} className="space-y-2 border-b border-white/5 pb-4">
+                <p className="text-sm text-white">{item.q}</p>
+                {useCaseId === 'coding' ? (
+                  <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: '#0A1628' }}><code>{item.a}</code></pre>
+                ) : (
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-slate-200" style={{ fontSize }}>{item.a}</p>
+                )}
+              </div>
+            ))}
+
+            {status === 'analyzing' && (
+              <div className="flex items-center gap-1.5 py-1">
+                {[0, 1, 2].map(i => <div key={i} className="h-2 w-2 rounded-full bg-slate-500" style={{ animation: 'processingDot 0.9s ease-in-out infinite', animationDelay: `${i * 0.18}s` }} />)}
+              </div>
+            )}
+
+            {status === 'answered' && (
+              <div className="space-y-2">
+                <p className="text-sm text-white">{current.q}</p>
+                {useCaseId === 'coding' ? (
+                  <div className="relative">
+                    <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: '#0A1628' }}><code>{current.a}</code></pre>
+                    <button
+                      onClick={() => { navigator.clipboard?.writeText(current.a); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
+                      className="absolute right-2 top-2 rounded-md px-2 py-1 text-[10px] font-semibold text-white/70 hover:text-white"
+                      style={{ background: 'rgba(255,255,255,0.08)' }}
+                    >
+                      {copied ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-slate-200" style={{ fontSize }}>{current.a}</p>
+                )}
+              </div>
+            )}
+
+            {status === 'idle' && history.length === 0 && (
+              <p className="text-xs italic text-slate-600">{autoRespond ? 'Auto Respond is on — Copilot will capture automatically.' : 'Press Space to capture your first question...'}</p>
+            )}
           </div>
         </div>
       </div>
