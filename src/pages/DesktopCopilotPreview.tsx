@@ -183,6 +183,41 @@ function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
 }
 
 // ---------------------------------------------------------------------------
+// Screen 1b: Use-Case Selection
+// ---------------------------------------------------------------------------
+export function UseCaseSelectionScreen({ onSelect }: { onSelect: (id: UseCaseId) => void }) {
+  return (
+    <div className="flex min-h-[580px] flex-col items-center px-12 py-10" style={{ background: BG }}>
+      <h1 className="mb-3 text-center text-3xl font-bold text-white">What are you using Copilot for?</h1>
+      <p className="mb-10 max-w-lg text-center text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
+        Choose a use case to tailor how Copilot listens and responds.
+      </p>
+      <div className="grid w-full max-w-[700px] grid-cols-2 gap-3">
+        {USE_CASES.map(uc => {
+          const Icon = uc.icon
+          return (
+            <button
+              key={uc.id}
+              onClick={() => onSelect(uc.id)}
+              className="flex items-start gap-3 rounded-xl p-4 text-left transition-colors hover:bg-white/10"
+              style={{ background: CARD, border: `1px solid ${BORDER}` }}
+            >
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: 'rgba(26,122,255,0.2)' }}>
+                <Icon className="h-5 w-5 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{uc.label}</p>
+                <p className="mt-0.5 text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>{uc.description}</p>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Resume Import Modal
 // ---------------------------------------------------------------------------
 function ResumeModal({ onClose, onSelect }: { onClose: () => void; onSelect: (name: string) => void }) {

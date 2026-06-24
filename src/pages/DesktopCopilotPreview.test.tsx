@@ -2,7 +2,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { act } from 'react'
 import { vi } from 'vitest'
-import { SetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas, CompleteScreen } from './DesktopCopilotPreview'
+import { SetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas, CompleteScreen, UseCaseSelectionScreen } from './DesktopCopilotPreview'
 
 describe('SetupScreen', () => {
   it('renders Position, Resume, and Job description fields for interview', () => {
@@ -151,5 +151,23 @@ describe('CompleteScreen', () => {
   it('shows the Sales Call-specific heading', () => {
     render(<CompleteScreen useCaseId="sales-call" onGoHome={() => {}} />)
     expect(screen.getByText('🤝 Your Sales Call is complete!')).toBeInTheDocument()
+  })
+})
+
+describe('UseCaseSelectionScreen', () => {
+  it('renders all 5 use case cards', () => {
+    render(<UseCaseSelectionScreen onSelect={() => {}} />)
+    expect(screen.getByText('Interview')).toBeInTheDocument()
+    expect(screen.getByText('Sales Call')).toBeInTheDocument()
+    expect(screen.getByText('Meeting')).toBeInTheDocument()
+    expect(screen.getByText('Exam')).toBeInTheDocument()
+    expect(screen.getByText('Coding')).toBeInTheDocument()
+  })
+
+  it('calls onSelect with the chosen use case id', () => {
+    const onSelect = vi.fn()
+    render(<UseCaseSelectionScreen onSelect={onSelect} />)
+    fireEvent.click(screen.getByText('Sales Call'))
+    expect(onSelect).toHaveBeenCalledWith('sales-call')
   })
 })
