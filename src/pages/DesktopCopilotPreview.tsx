@@ -1,17 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { Bell, Check, ChevronDown, ExternalLink, FileText, HelpCircle, Mic, Play, Settings, Sparkles, Upload, X } from 'lucide-react'
+import { ArrowLeft, Bell, Check, ChevronDown, ExternalLink, FileText, HelpCircle, Mic, Play, Settings, Sparkles, Upload, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getUseCase, USE_CASES, type UseCaseId } from './desktopCopilot/useCases'
-
-// ---------------------------------------------------------------------------
-// Design tokens
-// ---------------------------------------------------------------------------
-const BG        = '#0c1d48'
-const CARD      = 'rgba(255,255,255,0.07)'
-const BORDER    = 'rgba(255,255,255,0.12)'
-const INPUT_BG  = 'rgba(255,255,255,0.08)'
-const INPUT_BD  = 'rgba(255,255,255,0.15)'
-const BLUE      = '#1a7aff'
+import { BG, CARD, BORDER, INPUT_BG, INPUT_BD, BLUE, formatTime, LightningLogo, MacWindow, Toggle } from './desktopCopilot/shared'
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -37,67 +28,6 @@ const MOCK_RESUMES = [
 
 type DesktopView = 'splash' | 'onboarding' | 'select-use-case' | 'setup' | 'live' | 'complete'
 type CopilotStatus = 'listening' | 'processing' | 'answering'
-
-function formatTime(s: number) {
-  return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
-}
-
-// ---------------------------------------------------------------------------
-// Lightforth lightning logo
-// ---------------------------------------------------------------------------
-function LightningLogo({ size = 28 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
-      <path d="M19 3L7 18H16L13 29L25 14H16L19 3Z" fill="#60a5fa" />
-      <path d="M19 3L16 14H25L19 3Z" fill="#1a7aff" />
-    </svg>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Mac Window Frame (2 traffic lights only, as in Figma)
-// ---------------------------------------------------------------------------
-function MacWindow({ children, blendBar, transparency = 0 }: { children: React.ReactNode; blendBar?: boolean; transparency?: number }) {
-  const bgAlpha = (100 - transparency) / 100
-  const windowBg = `rgba(12, 29, 72, ${bgAlpha})`
-
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center p-6"
-      style={{ background: 'linear-gradient(145deg, #060e22 0%, #0a1628 50%, #050c1e 100%)' }}
-    >
-      <div
-        className="flex w-full max-w-[960px] flex-col overflow-hidden rounded-2xl shadow-2xl transition-all duration-150"
-        style={{ background: windowBg, height: 700, backdropFilter: `blur(${Math.round(transparency / 10)}px)` }}
-      >
-        {/* Title bar */}
-        <div
-          className="flex h-10 flex-shrink-0 items-center px-4"
-          style={{ background: blendBar ? windowBg : `rgba(0,0,0,${0.15 * bgAlpha + 0.05})` }}
-        >
-          <div className="flex gap-2">
-            <div className="h-3 w-3 rounded-full" style={{ background: '#ff5f57' }} />
-            <div className="h-3 w-3 rounded-full" style={{ background: '#ffbd2e' }} />
-          </div>
-        </div>
-        <div className="flex flex-1 flex-col overflow-hidden">
-          {children}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Toggle
-// ---------------------------------------------------------------------------
-function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
-  return (
-    <button onClick={onToggle} className={cn('relative flex h-6 w-10 flex-shrink-0 items-center rounded-full px-0.5 transition-colors duration-200', on ? 'bg-green-500' : 'bg-white/20')}>
-      <div className={cn('h-5 w-5 rounded-full bg-white shadow transition-transform duration-200', on ? 'translate-x-4' : 'translate-x-0')} />
-    </button>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Screen 0: Splash
@@ -359,12 +289,128 @@ export function PreferenceModal({ hasAnswerLength, onClose, onNext }: { hasAnswe
 }
 
 // ---------------------------------------------------------------------------
+// Pricing Modal
+// ---------------------------------------------------------------------------
+function PricingModal({ onClose }: { onClose: () => void }) {
+  const tiers = [
+    {
+      name: 'STARTER',
+      price: '₦5,000',
+      period: '/mo',
+      credits: '15 credits/mo',
+      color: 'rgba(255,255,255,0.07)',
+      useCases: [
+        { id: 'interview', label: 'Interview', included: false },
+        { id: 'sales-call', label: 'Sales Call', included: false },
+        { id: 'meeting', label: 'Meeting', included: false },
+        { id: 'exam', label: 'Exam', included: true },
+        { id: 'coding', label: 'Coding', included: true },
+      ],
+    },
+    {
+      name: 'PRO',
+      price: '₦20,000',
+      period: '/mo',
+      credits: '50 credits/mo',
+      color: BLUE,
+      popular: true,
+      useCases: [
+        { id: 'interview', label: 'Interview', included: true },
+        { id: 'sales-call', label: 'Sales Call', included: true },
+        { id: 'meeting', label: 'Meeting', included: true },
+        { id: 'exam', label: 'Exam', included: true },
+        { id: 'coding', label: 'Coding', included: true },
+      ],
+    },
+    {
+      name: 'PREMIUM',
+      price: '₦50,000',
+      period: '/mo',
+      credits: '100 credits/mo',
+      color: 'rgba(168,85,247,0.4)',
+      useCases: [
+        { id: 'interview', label: 'Interview', included: true },
+        { id: 'sales-call', label: 'Sales Call', included: true },
+        { id: 'meeting', label: 'Meeting', included: true },
+        { id: 'exam', label: 'Exam', included: true },
+        { id: 'coding', label: 'Coding', included: true },
+      ],
+    },
+  ]
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl shadow-2xl" style={{ background: '#0e2155', border: `1px solid ${BORDER}` }} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: BORDER }}>
+          <div>
+            <h2 className="text-lg font-bold text-white">Upgrade your plan</h2>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>Choose the plan that fits how you use Copilot</p>
+          </div>
+          <button onClick={onClose}><X className="h-5 w-5 text-white/50 hover:text-white" /></button>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4 p-6">
+          {tiers.map(tier => (
+            <div
+              key={tier.name}
+              className="relative flex flex-col rounded-xl p-5"
+              style={{
+                background: tier.popular ? 'rgba(26,122,255,0.1)' : CARD,
+                border: `1px solid ${tier.popular ? BLUE : BORDER}`,
+              }}
+            >
+              {tier.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white" style={{ background: BLUE }}>
+                  Most Popular
+                </div>
+              )}
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: tier.popular ? BLUE : 'rgba(255,255,255,0.5)' }}>{tier.name}</p>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="text-2xl font-bold text-white">{tier.price}</span>
+                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{tier.period}</span>
+              </div>
+              <p className="mt-1 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{tier.credits}</p>
+
+              <div className="mt-4 flex-1 space-y-2">
+                {tier.useCases.map(uc => (
+                  <div key={uc.id} className="flex items-center gap-2 text-sm">
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full ${uc.included ? 'bg-green-500/20' : 'bg-white/5'}`}>
+                      {uc.included
+                        ? <Check className="h-2.5 w-2.5 text-green-400" />
+                        : <X className="h-2.5 w-2.5 text-white/20" />}
+                    </div>
+                    <span className={uc.included ? 'text-white' : 'text-white/30'}>{uc.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                className="mt-4 w-full rounded-lg py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                style={{ background: tier.popular ? BLUE : tier.popular === undefined && tier.name === 'PREMIUM' ? 'rgba(168,85,247,0.6)' : 'rgba(255,255,255,0.1)' }}
+              >
+                {tier.popular ? 'Upgrade Now' : 'Get Started'}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t px-6 py-4" style={{ borderColor: BORDER }}>
+          <p className="text-center text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            All plans include ATS scoring and AI suggester for free. Credits are used per Copilot session.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Screen 2: Setup
 // ---------------------------------------------------------------------------
 type DealStage = 'Discovery' | 'Demo' | 'Negotiation' | 'Closing'
 const DEAL_STAGES: DealStage[] = ['Discovery', 'Demo', 'Negotiation', 'Closing']
 
-export function SetupScreen({ useCaseId, onContinue }: { useCaseId: UseCaseId; onContinue: (primaryLabel: string) => void }) {
+export function SetupScreen({ useCaseId, onBack, onContinue }: { useCaseId: UseCaseId; onBack: () => void; onContinue: (primaryLabel: string) => void }) {
   const config = getUseCase(useCaseId)
   const fields = new Set(config.setupFields)
 
@@ -382,6 +428,7 @@ export function SetupScreen({ useCaseId, onContinue }: { useCaseId: UseCaseId; o
   const [dontAskAgain, setDontAskAgain] = useState(true)
   const [showResumeModal, setShowResumeModal] = useState(false)
   const [showPreference, setShowPreference] = useState(false)
+  const [showPricing, setShowPricing] = useState(false)
 
   const inputStyle = { background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none' } as const
 
@@ -399,11 +446,14 @@ export function SetupScreen({ useCaseId, onContinue }: { useCaseId: UseCaseId; o
     <div className="flex flex-1 flex-col min-h-0" style={{ background: BG }}>
       <div className="flex h-14 items-center justify-between border-b px-6" style={{ borderColor: BORDER }}>
         <div className="flex items-center gap-2">
+          <button onClick={onBack} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Back to use case selection">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <LightningLogo size={24} />
           <span className="text-base font-bold text-white">Lightforth</span>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10" style={{ borderColor: BORDER }}>
+          <button onClick={() => setShowPricing(true)} className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10" style={{ borderColor: BORDER }}>
             <LightningLogo size={12} /> Upgrade
           </button>
           <button className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/10">
@@ -635,6 +685,7 @@ export function SetupScreen({ useCaseId, onContinue }: { useCaseId: UseCaseId; o
           onNext={() => onContinue(primaryLabel || config.label)}
         />
       )}
+      {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
     </div>
   )
 }
@@ -668,7 +719,7 @@ const TITLE_TEXT: Record<ConversationalUseCase, (label: string) => string> = {
   meeting: label => `Meeting: ${label}`,
 }
 
-export function LiveCanvas({ useCaseId, primaryLabel, onEnd, transparency, onTransparencyChange }: { useCaseId: ConversationalUseCase; primaryLabel: string; onEnd: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
+export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparency, onTransparencyChange }: { useCaseId: ConversationalUseCase; primaryLabel: string; onEnd: () => void; onBack: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
   const bank = CONVERSATIONAL_BANKS[useCaseId]
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -789,7 +840,11 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, transparency, onTra
       )}
 
       <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: '#0A1628' }}>
-        <div className="flex items-center gap-2 text-sm text-slate-300"><div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />{TITLE_TEXT[useCaseId](primaryLabel)}</div>
+        <div className="flex items-center gap-2 text-sm text-slate-300">
+          <button onClick={onBack} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Back to use case selection">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />{TITLE_TEXT[useCaseId](primaryLabel)}</div>
         <div className="flex items-center gap-3"><span className="font-mono text-sm text-slate-300">{formatTime(elapsed)}</span><button onClick={onEnd} className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600">End Session</button></div>
       </div>
 
@@ -859,7 +914,7 @@ const MOCK_CODING_QA = [
   { q: "Reverse a singly linked list in place.", a: "function reverseList(head) {\n  let prev = null\n  let curr = head\n  while (curr) {\n    const next = curr.next\n    curr.next = prev\n    prev = curr\n    curr = next\n  }\n  return prev\n}" },
 ]
 
-export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, transparency, onTransparencyChange }: { useCaseId: 'exam' | 'coding'; primaryLabel: string; onEnd: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
+export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparency, onTransparencyChange }: { useCaseId: 'exam' | 'coding'; primaryLabel: string; onEnd: () => void; onBack: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
   const config = getUseCase(useCaseId)
   const bank = useCaseId === 'coding' ? MOCK_CODING_QA : MOCK_EXAM_QA
 
@@ -969,6 +1024,9 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, transparency,
 
       <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: '#0A1628' }}>
         <div className="flex items-center gap-2 text-sm text-slate-300">
+          <button onClick={onBack} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Back to use case selection">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
           {config.label}{primaryLabel ? ` — ${primaryLabel}` : ''}
         </div>
@@ -1081,12 +1139,13 @@ export default function DesktopCopilotPreview() {
       {view === 'splash'          && <SplashScreen          onDone={() => setView('onboarding')} />}
       {view === 'onboarding'      && <OnboardingScreen      onContinue={() => setView('select-use-case')} />}
       {view === 'select-use-case' && <UseCaseSelectionScreen onSelect={id => { setUseCase(id); setView('setup') }} />}
-      {view === 'setup'           && <SetupScreen useCaseId={useCase} onContinue={label => { setPrimaryLabel(label); setView('live') }} />}
+      {view === 'setup'           && <SetupScreen useCaseId={useCase} onBack={() => setView('select-use-case')} onContinue={label => { setPrimaryLabel(label); setView('live') }} />}
       {view === 'live' && config.canvasPattern === 'conversational' && (
         <LiveCanvas
           useCaseId={useCase as 'interview' | 'sales-call' | 'meeting'}
           primaryLabel={primaryLabel}
           onEnd={() => setView('complete')}
+          onBack={() => setView('select-use-case')}
           transparency={transparency}
           onTransparencyChange={setTransparency}
         />
@@ -1096,6 +1155,7 @@ export default function DesktopCopilotPreview() {
           useCaseId={useCase as 'exam' | 'coding'}
           primaryLabel={primaryLabel}
           onEnd={() => setView('complete')}
+          onBack={() => setView('select-use-case')}
           transparency={transparency}
           onTransparencyChange={setTransparency}
         />
