@@ -28,41 +28,44 @@ One addition: a secondary link, **"I have an invite code"**, next to the normal 
 
 ## Pricing Tracks
 
-Because Sales Call is now reached only via an enterprise invite code at sign-in, it's removed from the Pricing screen. Pricing shows **three** cards:
+**Revised per Figma** ([node 15860-61921](https://www.figma.com/design/YQFMH7Tll54QoLNqRhvPx0/Lightforth-v.3.0?node-id=15860-61921)): Exam is no longer a separate one-time plan — it's bundled into Pro/Premium alongside Interview, Coding, and Meeting. Because Sales Call is reached only via an enterprise invite code at sign-in, and Exam is now part of the credit bundle, the Pricing screen has exactly **two** cards, matching the Figma "Level Up" design:
 
-| Plan | Price | Unlocks | Access path |
+| Plan | Price | Credits | Unlocks |
 |---|---|---|---|
-| **PRO** | $49/mo, 50 credits | Interview, Coding, Meeting (pick freely each session, 1 credit/session) | Mock card-form payment |
-| **Premium** | $79/mo, 100 credits | Interview, Coding, Meeting (same bundle as PRO, just more credits) | Mock card-form payment |
-| **Exam** | $500 one-time | Exam only | Mock card-form payment |
+| **Pro** | $49/mo (or $39/mo billed annually) | 100 | Interview, Coding, Meeting, Exam |
+| **Premium** ("Most Popular") | $79/mo (or $63/mo billed annually) | 250 | Interview, Coding, Meeting, Exam |
+
+A functional Annual/Monthly billing toggle on the screen's hero panel recomputes both cards' displayed price at a 20% discount when Annual is selected; it does not affect `PaymentScreen`, which always shows the monthly rate.
 
 ```ts
-type PlanId = 'pro' | 'premium' | 'exam'
+type PlanId = 'pro' | 'premium'
+type BillingCycle = 'monthly' | 'annual'
 
 interface PlanConfig {
   id: PlanId
   label: string
-  priceLabel: string          // "$49/mo", "$79/mo", "$500 one-time"
-  description: string
+  monthlyPrice: number
+  credits: number
+  popular: boolean
+  bullets: string[]
+  bestForNote: string
   unlockedUseCases: UseCaseId[]
 }
 ```
 
-`PRO`/`Premium` both set `unlockedUseCases: ['interview', 'coding', 'meeting']` — they differ only in `priceLabel`/credits, not in which use cases they unlock. `exam` sets `unlockedUseCases: ['exam']`. Every plan on this screen uses the same access path (payment) now that Sales Call has its own separate gate, so `PlanConfig` no longer needs an `accessKind` field.
+Both plans set `unlockedUseCases: ['interview', 'coding', 'meeting', 'exam']` — they differ only in price/credits/copy, not in which use cases they unlock. Since every remaining plan now unlocks more than one use case, `PaymentScreen` always routes to the scoped `UseCaseSelectionScreen` next — there's no longer a single-use-case "skip the picker" branch.
 
 ## New Screens
 
 **`SignInScreen`** — mirrors `Auth.tsx`'s mode flow (choice / email / password / login), restyled dark. Adds the "I have an invite code" link described above, which reveals an invite-code field and switches to enterprise sign-in mode.
 
-**`PricingScreen`** — renders 3 cards from a `PLANS: PlanConfig[]` array (parallel structure to `USE_CASES`). Each card's CTA leads to `PaymentScreen`.
+**`PricingScreen`** — two-column layout per the Figma design: a hero panel (headline, copy, billing toggle) beside the two plan cards, stacked vertically, rendered from `PLANS: PlanConfig[]`. Each card is itself the click target (matching the design, where Pro has no separate CTA button and Premium's "Upgrade to Premium" bar is a visual label inside the same clickable card, not a nested button).
 
-**`PaymentScreen`** — one generic component reused for PRO, Premium, and Exam. Mock card form (card number, expiry, CVC — no real validation beyond non-empty). Shows a one-line purchase summary derived from the selected `PlanConfig` (e.g. "$49/mo — PRO Plan"). On submit, proceeds to the next step.
+**`PaymentScreen`** — one generic component reused for Pro and Premium. Mock card form (card number, expiry, CVC — no real validation beyond non-empty). Shows a one-line purchase summary derived from the selected `PlanConfig` at its monthly rate (e.g. "$49/mo — Pro Plan"). On submit, proceeds to the next step.
 
 ## Post-Access Routing
 
-After `PaymentScreen` completes:
-- If `unlockedUseCases.length > 1` (PRO/Premium): route to `UseCaseSelectionScreen` with `useCaseIds={config.unlockedUseCases}`, which renders only the Interview/Coding/Meeting cards.
-- If `unlockedUseCases.length === 1` (Exam): skip the picker entirely and route straight to Exam's `SetupScreen`.
+After `PaymentScreen` completes: route to `UseCaseSelectionScreen` with `useCaseIds={config.unlockedUseCases}`, which renders Interview/Coding/Meeting/Exam cards (never Sales Call, since that's invite-only).
 
 After enterprise sign-in (invite code): route straight to Sales Call's `SetupScreen`, bypassing Pricing and the picker entirely.
 
@@ -78,7 +81,5 @@ From there, the flow is unchanged from the first spec: `Setup → Preference →
 ## Verification
 
 Run the prototype locally (`npm run dev`, navigate to `/desktop-copilot-preview`) and walk both paths end to end:
-- Regular sign-up → PRO → mock payment → scoped picker shows only Interview/Coding/Meeting → pick each in turn → correct Setup fields → correct canvas pattern
-- Regular sign-up → Premium → same as PRO, different price/credit copy on the payment summary
-- Regular sign-up → Exam → mock payment → straight to Exam Setup (no picker shown)
+- Regular sign-up → Pro or Premium → toggle Annual/Monthly and confirm prices update → mock payment → scoped picker shows Interview/Coding/Meeting/Exam (never Sales Call) → pick each in turn → correct Setup fields → correct canvas pattern
 - Sign-in with "I have an invite code" → enterprise sign-in fields appear, no sign-up option → straight to Sales Call Setup (no Pricing screen shown at all)
