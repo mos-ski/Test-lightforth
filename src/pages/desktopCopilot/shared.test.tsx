@@ -1,3 +1,4 @@
+// src/pages/desktopCopilot/shared.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { vi } from 'vitest'
 import { formatTime, MacWindow, Toggle } from './shared'
