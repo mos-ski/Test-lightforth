@@ -17,16 +17,16 @@ const BLUE      = '#1a7aff'
 // Mock data
 // ---------------------------------------------------------------------------
 const MOCK_QA = [
-  { q: "Can you tell me a little bit about yourself and your background?", a: "I'm a product designer and manager with over 6 years of experience building digital products across fintech, crypto, and AI spaces. I've shipped 12 live applications and led cross-functional teams from ideation all the way to launch. What drives me is the intersection of user empathy and business impact — I love creating products that are not just beautiful but genuinely solve real problems for real people." },
-  { q: "What would you say is your greatest professional strength?", a: "My greatest strength is owning the full product lifecycle. I can sit in a strategy meeting in the morning, run a user research session in the afternoon, and review a design prototype by evening. That end-to-end ownership reduces handoff friction and speeds up delivery. I've used this to cut time-to-market by over 40% on my last two major products." },
-  { q: "What are some areas where you feel you could still improve?", a: "Earlier in my career I focused heavily on execution without always ensuring long-term strategy and scalability were equally prioritized. I've since adopted frameworks like RICE and MoSCoW to balance short-term wins with long-term vision. I've also been intentional about improving how I communicate across larger cross-functional teams as they scale." },
-  { q: "Why are you interested in this role and our company specifically?", a: "I've been following your company's trajectory closely. The focus on emerging markets and user-centric innovation aligns deeply with the work I've been doing in Africa's fintech ecosystem. What drew me most is the mission — building products that matter in markets often underserved by traditional tech. I believe my background positions me to contribute meaningfully from day one." },
-  { q: "Can you walk me through how you approach a brand new product or feature?", a: "I start with the problem, not the solution. I run discovery sessions — user interviews, competitive analysis, data review — to understand the pain point deeply. From there I map out user journeys, define success metrics, and ideate collaboratively with engineering and design. I prototype early, test with real users, and iterate before any major development investment. The key is keeping the user at the centre at every stage." },
-  { q: "Tell me about a time you had a conflict with a stakeholder. How did you handle it?", a: "On one project a senior stakeholder wanted to ship a feature I believed would hurt retention based on our research. Instead of pushing back directly, I prepared a data brief showing the risk alongside two alternative approaches that met their business goal differently. We aligned on a smaller version of the feature with a 30-day review gate. It shipped, performed well, and actually strengthened the relationship." },
-  { q: "How do you prioritize features when you have limited time and resources?", a: "I use a combination of RICE scoring and stakeholder alignment sessions. RICE helps me quantify reach, impact, confidence, and effort objectively. But I pair that with qualitative input from customer success and sales — they often catch signals the data misses. The output is a ranked backlog everyone can see and challenge transparently. It removes a lot of the politics from prioritization." },
-  { q: "How do you measure the success of a product or feature after it launches?", a: "Success starts with defining the right metrics before launch — not after. I work with the team to agree on a north star metric and two to three supporting KPIs tied directly to the problem we set out to solve. Post-launch I review these weekly for the first month, then monthly. I also run qualitative follow-ups with users to catch anything the numbers don't show." },
-  { q: "Where do you see yourself professionally in the next three to five years?", a: "I see myself leading product strategy at a company building something with genuine societal impact — either as a VP of Product or a founder. I'm deeply interested in how AI can be layered into product experiences to make them smarter and more personalised. I'm also passionate about building and mentoring strong product teams, not just shipping great products myself." },
-  { q: "Do you have any questions for us about the role or the team?", a: "Yes, a few. First — what does success look like for this role in the first 90 days? Second — how does the product team collaborate with engineering and design today, and where do you see room to improve that? And third — what's the biggest unsolved problem the product team is wrestling with right now? That last one tells me a lot about where I'd be spending my energy." },
+  { speaker: 'Interviewer', q: "Can you tell me a little bit about yourself and your background?", a: "I'm a product designer and manager with over 6 years of experience building digital products across fintech, crypto, and AI spaces. I've shipped 12 live applications and led cross-functional teams from ideation all the way to launch. What drives me is the intersection of user empathy and business impact — I love creating products that are not just beautiful but genuinely solve real problems for real people." },
+  { speaker: 'Interviewer', q: "What would you say is your greatest professional strength?", a: "My greatest strength is owning the full product lifecycle. I can sit in a strategy meeting in the morning, run a user research session in the afternoon, and review a design prototype by evening. That end-to-end ownership reduces handoff friction and speeds up delivery. I've used this to cut time-to-market by over 40% on my last two major products." },
+  { speaker: 'Interviewer', q: "What are some areas where you feel you could still improve?", a: "Earlier in my career I focused heavily on execution without always ensuring long-term strategy and scalability were equally prioritized. I've since adopted frameworks like RICE and MoSCoW to balance short-term wins with long-term vision. I've also been intentional about improving how I communicate across larger cross-functional teams as they scale." },
+  { speaker: 'Interviewer', q: "Why are you interested in this role and our company specifically?", a: "I've been following your company's trajectory closely. The focus on emerging markets and user-centric innovation aligns deeply with the work I've been doing in Africa's fintech ecosystem. What drew me most is the mission — building products that matter in markets often underserved by traditional tech. I believe my background positions me to contribute meaningfully from day one." },
+  { speaker: 'Interviewer', q: "Can you walk me through how you approach a brand new product or feature?", a: "I start with the problem, not the solution. I run discovery sessions — user interviews, competitive analysis, data review — to understand the pain point deeply. From there I map out user journeys, define success metrics, and ideate collaboratively with engineering and design. I prototype early, test with real users, and iterate before any major development investment. The key is keeping the user at the centre at every stage." },
+  { speaker: 'Interviewer', q: "Tell me about a time you had a conflict with a stakeholder. How did you handle it?", a: "On one project a senior stakeholder wanted to ship a feature I believed would hurt retention based on our research. Instead of pushing back directly, I prepared a data brief showing the risk alongside two alternative approaches that met their business goal differently. We aligned on a smaller version of the feature with a 30-day review gate. It shipped, performed well, and actually strengthened the relationship." },
+  { speaker: 'Interviewer', q: "How do you prioritize features when you have limited time and resources?", a: "I use a combination of RICE scoring and stakeholder alignment sessions. RICE helps me quantify reach, impact, confidence, and effort objectively. But I pair that with qualitative input from customer success and sales — they often catch signals the data misses. The output is a ranked backlog everyone can see and challenge transparently. It removes a lot of the politics from prioritization." },
+  { speaker: 'Interviewer', q: "How do you measure the success of a product or feature after it launches?", a: "Success starts with defining the right metrics before launch — not after. I work with the team to agree on a north star metric and two to three supporting KPIs tied directly to the problem we set out to solve. Post-launch I review these weekly for the first month, then monthly. I also run qualitative follow-ups with users to catch anything the numbers don't show." },
+  { speaker: 'Interviewer', q: "Where do you see yourself professionally in the next three to five years?", a: "I see myself leading product strategy at a company building something with genuine societal impact — either as a VP of Product or a founder. I'm deeply interested in how AI can be layered into product experiences to make them smarter and more personalised. I'm also passionate about building and mentoring strong product teams, not just shipping great products myself." },
+  { speaker: 'Interviewer', q: "Do you have any questions for us about the role or the team?", a: "Yes, a few. First — what does success look like for this role in the first 90 days? Second — how does the product team collaborate with engineering and design today, and where do you see room to improve that? And third — what's the biggest unsolved problem the product team is wrestling with right now? That last one tells me a lot about where I'd be spending my energy." },
 ]
 
 const MOCK_RESUMES = [
@@ -605,20 +605,48 @@ export function SetupScreen({ useCaseId, onContinue }: { useCaseId: UseCaseId; o
 }
 
 // ---------------------------------------------------------------------------
-// Screen 3: Live Canvas
+// Screen 3a: Conversational Canvas (Interview / Sales Call / Meeting)
 // ---------------------------------------------------------------------------
-function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { jobTitle: string; onEnd: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
+type ConversationalUseCase = 'interview' | 'sales-call' | 'meeting'
+
+const MOCK_SALES_QA = [
+  { speaker: 'Customer', q: "Look, I like the product, but the price point is a stretch for us this quarter.", a: "Acknowledge the budget concern, then re-anchor on value: \"I hear you on budget — a lot of our customers felt the same before they saw the time saved. What if we started with the core tier and revisited expansion next quarter?\"" },
+  { speaker: 'Customer', q: "What makes you different from your competitors?", a: "Lead with your strongest differentiator backed by proof: \"We integrate natively with your existing stack — no migration needed. A similar customer cut onboarding time by 60% switching to us.\"" },
+  { speaker: 'Customer', q: "Can you send over a proposal by end of week?", a: "Confirm and create urgency: \"Absolutely, I'll have it in your inbox by Thursday. Should we put 30 minutes on the calendar Friday to walk through it together?\"" },
+]
+
+const MOCK_MEETING_TRANSCRIPT = [
+  { speaker: 'Speaker 1', q: "I think we should push the launch date by two weeks to finish QA.", a: "Support the rationale, propose a checkpoint: \"That tracks with the bug count we're seeing. Can we set a go/no-go review next Wednesday so we don't lose more time than necessary?\"" },
+  { speaker: 'Speaker 2', q: "Marketing already has assets scheduled for the original date.", a: "Bridge the conflict: \"Let's loop in marketing today so they can adjust the campaign calendar in parallel rather than finding out next week.\"" },
+  { speaker: 'Speaker 3', q: "What's the actual blocker on QA — is it resourcing or scope?", a: "Push for clarity: \"Worth asking the QA lead directly whether it's headcount or test coverage, since the fix is different either way.\"" },
+]
+
+const CONVERSATIONAL_BANKS: Record<ConversationalUseCase, { speaker: string; q: string; a: string }[]> = {
+  interview: MOCK_QA,
+  'sales-call': MOCK_SALES_QA,
+  meeting: MOCK_MEETING_TRANSCRIPT,
+}
+
+const TITLE_TEXT: Record<ConversationalUseCase, (label: string) => string> = {
+  interview: label => `Interview for ${label}`,
+  'sales-call': label => `Sales Call with ${label}`,
+  meeting: label => `Meeting: ${label}`,
+}
+
+export function LiveCanvas({ useCaseId, primaryLabel, onEnd, transparency, onTransparencyChange }: { useCaseId: ConversationalUseCase; primaryLabel: string; onEnd: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
+  const bank = CONVERSATIONAL_BANKS[useCaseId]
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
   const [questionIndex, setQuestionIndex] = useState(0)
   const [qDisplayed, setQDisplayed] = useState('')
   const [aDisplayed, setADisplayed] = useState('')
-  const [history, setHistory] = useState<{ q: string; a: string }[]>([])
+  const [history, setHistory] = useState<{ speaker: string; q: string; a: string }[]>([])
   const [elapsed, setElapsed] = useState(0)
   const [showSettings, setShowSettings] = useState(false)
   const [stealthMode, setStealthMode] = useState(true)
   const [alwaysOnTop, setAlwaysOnTop] = useState(false)
   const [fontSize, setFontSize] = useState(14)
   const [scrollSpeed, setScrollSpeed] = useState(3)
+  const [autoRespond, setAutoRespond] = useState(false)
 
   const statusRef = useRef(copilotStatus)
   const qIndexRef = useRef(questionIndex)
@@ -627,39 +655,51 @@ function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { j
   useEffect(() => { qIndexRef.current = questionIndex }, [questionIndex])
 
   useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
-  useEffect(() => { panelRef.current?.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' }) }, [qDisplayed, aDisplayed, copilotStatus])
+  useEffect(() => { if (panelRef.current && 'scrollTo' in panelRef.current) panelRef.current.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' }) }, [qDisplayed, aDisplayed, copilotStatus])
+
+  const advance = () => {
+    const cur = statusRef.current
+    const qi = qIndexRef.current
+    if (cur === 'listening') { setQDisplayed(bank[qi].q); setCopilotStatus('processing') }
+    else if (cur === 'processing') { setCopilotStatus('answering') }
+    else { setHistory(h => [...h, bank[qi]]); setQuestionIndex(i => (i + 1) % bank.length); setCopilotStatus('listening') }
+  }
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.code !== 'Space') return
+      if (e.code !== 'Space' || autoRespond) return
       e.preventDefault()
-      const cur = statusRef.current
-      const qi = qIndexRef.current
-      if (cur === 'listening') { setQDisplayed(MOCK_QA[qi].q); setCopilotStatus('processing') }
-      else if (cur === 'processing') { setCopilotStatus('answering') }
-      else { setHistory(h => [...h, { q: MOCK_QA[qi].q, a: MOCK_QA[qi].a }]); setQuestionIndex(i => (i + 1) % MOCK_QA.length); setCopilotStatus('listening') }
+      advance()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [])
+  }, [autoRespond, bank])
+
+  useEffect(() => {
+    if (!autoRespond) return
+    const delay = copilotStatus === 'listening' ? 1800 : copilotStatus === 'processing' ? 1200 : 1800
+    const id = setTimeout(advance, delay)
+    return () => clearTimeout(id)
+  }, [autoRespond, copilotStatus, questionIndex])
 
   useEffect(() => {
     if (copilotStatus !== 'listening') return
     setQDisplayed(''); setADisplayed('')
-    const text = MOCK_QA[questionIndex].q; let i = 0
+    const text = bank[questionIndex].q; let i = 0
     const id = setInterval(() => { i++; setQDisplayed(text.slice(0, i)); if (i >= text.length) clearInterval(id) }, 22)
     return () => clearInterval(id)
-  }, [copilotStatus, questionIndex])
+  }, [copilotStatus, questionIndex, bank])
 
   useEffect(() => {
     if (copilotStatus !== 'answering') return
     setADisplayed('')
-    const text = MOCK_QA[questionIndex].a; let i = 0
+    const text = bank[questionIndex].a; let i = 0
     const id = setInterval(() => { i += 6; setADisplayed(text.slice(0, i)); if (i >= text.length) clearInterval(id) }, 10)
     return () => clearInterval(id)
-  }, [copilotStatus, questionIndex])
+  }, [copilotStatus, questionIndex, bank])
 
   const statusText: Record<CopilotStatus, string> = { listening: 'Listening...', processing: 'Processing...', answering: 'Answering...' }
+  const speakerLabel = bank[questionIndex].speaker
 
   return (
     <div className="flex flex-1 flex-col" style={{ background: '#0A1628' }}>
@@ -669,7 +709,6 @@ function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { j
         @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
       `}</style>
 
-      {/* Settings modal */}
       {showSettings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
@@ -681,8 +720,7 @@ function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { j
               <div>
                 <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Session Preferences</p>
                 <div className="space-y-2 rounded-lg p-3 text-xs" style={{ background: '#0A1628' }}>
-                  <div className="flex justify-between"><span className="text-slate-500">Role</span><span className="font-medium text-slate-200 truncate max-w-[140px]">{jobTitle}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Resume</span><span className="font-medium text-slate-200">Lightforth Resume</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Role</span><span className="font-medium text-slate-200 truncate max-w-[140px]">{primaryLabel}</span></div>
                   <div className="flex justify-between"><span className="text-slate-500">Skip setup</span><span className="font-medium text-green-400">On</span></div>
                 </div>
                 <button onClick={() => setShowSettings(false)} className="mt-3 w-full rounded-lg py-2 text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>Reset — show setup next time</button>
@@ -691,6 +729,10 @@ function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { j
               <div>
                 <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Window Settings</p>
                 <div className="space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div><p className="text-sm font-medium text-slate-200">Auto Respond</p><p className="mt-0.5 text-xs text-slate-500">AI answers automatically — turn off to press Space yourself</p></div>
+                    <Toggle on={autoRespond} onToggle={() => setAutoRespond(a => !a)} />
+                  </div>
                   <div className="flex items-start justify-between gap-4">
                     <div><p className="text-sm font-medium text-slate-200">Stealth Mode</p><p className="mt-0.5 text-xs text-slate-500">Hides Copilot from screen share</p></div>
                     <Toggle on={stealthMode} onToggle={() => setStealthMode(s => !s)} />
@@ -712,8 +754,8 @@ function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { j
       )}
 
       <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: '#0A1628' }}>
-        <div className="flex items-center gap-2 text-sm text-slate-300"><div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />Interview for {jobTitle}</div>
-        <div className="flex items-center gap-3"><span className="font-mono text-sm text-slate-300">{formatTime(elapsed)}</span><button onClick={onEnd} className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600">End Interview</button></div>
+        <div className="flex items-center gap-2 text-sm text-slate-300"><div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />{TITLE_TEXT[useCaseId](primaryLabel)}</div>
+        <div className="flex items-center gap-3"><span className="font-mono text-sm text-slate-300">{formatTime(elapsed)}</span><button onClick={onEnd} className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600">End Session</button></div>
       </div>
 
       <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-2" style={{ background: '#0F2340' }}>
@@ -741,23 +783,23 @@ function LiveCanvas({ jobTitle, onEnd, transparency, onTransparencyChange }: { j
       <div className="flex flex-1 overflow-hidden p-2">
         <div className="flex flex-1 flex-col overflow-hidden rounded-xl transition-all duration-500" style={{ background: '#0D1929', border: copilotStatus === 'listening' ? '1px solid #22c55e' : '1px solid #1E2D45', ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
           <div className="flex flex-shrink-0 items-center justify-between border-b px-4 py-3" style={{ borderColor: '#1E2D45' }}>
-            <div className="flex items-center gap-2 text-sm font-medium text-white">Live Interview Response<div className="h-2 w-2 rounded-full bg-red-500" /></div>
+            <div className="flex items-center gap-2 text-sm font-medium text-white">Live Response<div className="h-2 w-2 rounded-full bg-red-500" /></div>
             <button data-testid="open-settings" onClick={() => setShowSettings(true)}><Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" /></button>
           </div>
           <div ref={panelRef} className="flex-1 space-y-6 overflow-y-auto p-5">
             {history.map((item, i) => (
               <div key={i} className="space-y-3">
-                <div><p className="mb-1 text-xs text-slate-500">Interviewer</p><div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}><p className="text-sm text-white">{item.q}</p></div></div>
+                <div><p className="mb-1 text-xs text-slate-500">{item.speaker}</p><div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}><p className="text-sm text-white">{item.q}</p></div></div>
                 <p className="text-sm leading-relaxed text-slate-200">{item.a}</p>
               </div>
             ))}
             <div className="space-y-3">
               {qDisplayed && (
-                <div><p className="mb-1 text-xs text-slate-500">Interviewer</p><div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}><p className="text-sm text-white">{qDisplayed}{copilotStatus === 'listening' && qDisplayed.length < MOCK_QA[questionIndex].q.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}</p></div></div>
+                <div><p className="mb-1 text-xs text-slate-500">{speakerLabel}</p><div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}><p className="text-sm text-white">{qDisplayed}{copilotStatus === 'listening' && qDisplayed.length < bank[questionIndex].q.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}</p></div></div>
               )}
               {copilotStatus === 'processing' && <div className="flex items-center gap-1.5 py-1">{[0,1,2].map(i => <div key={i} className="h-2 w-2 rounded-full bg-slate-500" style={{ animation: 'processingDot 0.9s ease-in-out infinite', animationDelay: `${i * 0.18}s` }} />)}</div>}
-              {copilotStatus === 'answering' && aDisplayed && <p className="leading-relaxed text-slate-200" style={{ fontSize }}>{aDisplayed}{aDisplayed.length < MOCK_QA[questionIndex].a.length && <span className="ml-px inline-block w-[2px] bg-primary align-middle" style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }} />}</p>}
-              {!qDisplayed && history.length === 0 && <p className="text-xs italic text-slate-600">Press Space to start the simulation...</p>}
+              {copilotStatus === 'answering' && aDisplayed && <p className="leading-relaxed text-slate-200" style={{ fontSize }}>{aDisplayed}{aDisplayed.length < bank[questionIndex].a.length && <span className="ml-px inline-block w-[2px] bg-primary align-middle" style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }} />}</p>}
+              {!qDisplayed && history.length === 0 && <p className="text-xs italic text-slate-600">{autoRespond ? 'Auto Respond is on — listening automatically...' : 'Press Space to start the simulation...'}</p>}
             </div>
           </div>
         </div>

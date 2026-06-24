@@ -2,7 +2,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { act } from 'react'
 import { vi } from 'vitest'
-import { SetupScreen, PreferenceModal, ScreenshotCanvas } from './DesktopCopilotPreview'
+import { SetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas } from './DesktopCopilotPreview'
 
 describe('SetupScreen', () => {
   it('renders Position, Resume, and Job description fields for interview', () => {
@@ -103,5 +103,41 @@ describe('ScreenshotCanvas', () => {
     expect(screen.getByText('Capturing screen...')).toBeInTheDocument()
     act(() => { vi.advanceTimersByTime(600) })
     expect(screen.getByText('Analyzing...')).toBeInTheDocument()
+  })
+})
+
+describe('LiveCanvas', () => {
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => vi.useRealTimers())
+
+  it('labels the speaker "Interviewer" and titles the bar "Interview for {label}"', () => {
+    render(<LiveCanvas useCaseId="interview" primaryLabel="Product Manager" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    expect(screen.getByText('Interview for Product Manager')).toBeInTheDocument()
+    fireEvent.keyDown(window, { code: 'Space' })
+    expect(screen.getAllByText('Interviewer').length).toBeGreaterThan(0)
+  })
+
+  it('labels the speaker "Customer" and titles the bar "Sales Call with {label}"', () => {
+    render(<LiveCanvas useCaseId="sales-call" primaryLabel="Acme Corp" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    expect(screen.getByText('Sales Call with Acme Corp')).toBeInTheDocument()
+    fireEvent.keyDown(window, { code: 'Space' })
+    expect(screen.getAllByText('Customer').length).toBeGreaterThan(0)
+  })
+
+  it('labels speakers "Speaker 1" etc. and titles the bar "Meeting: {label}"', () => {
+    render(<LiveCanvas useCaseId="meeting" primaryLabel="Q3 Roadmap Review" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    expect(screen.getByText('Meeting: Q3 Roadmap Review')).toBeInTheDocument()
+    fireEvent.keyDown(window, { code: 'Space' })
+    expect(screen.getAllByText('Speaker 1').length).toBeGreaterThan(0)
+  })
+
+  it('auto-advances through listening/processing/answering when Auto Respond is on', () => {
+    render(<LiveCanvas useCaseId="interview" primaryLabel="Product Manager" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    fireEvent.click(screen.getByTestId('open-settings'))
+    fireEvent.click(screen.getByText('Auto Respond').closest('div')!.parentElement!.querySelector('button')!)
+    act(() => { vi.advanceTimersByTime(1800) })
+    expect(screen.getByText('Processing...')).toBeInTheDocument()
+    act(() => { vi.advanceTimersByTime(1200) })
+    expect(screen.getByText('Answering...')).toBeInTheDocument()
   })
 })
