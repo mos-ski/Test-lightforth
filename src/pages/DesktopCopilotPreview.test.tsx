@@ -2,7 +2,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { act } from 'react'
 import { vi } from 'vitest'
-import { SetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas } from './DesktopCopilotPreview'
+import { SetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas, CompleteScreen } from './DesktopCopilotPreview'
 
 describe('SetupScreen', () => {
   it('renders Position, Resume, and Job description fields for interview', () => {
@@ -139,5 +139,17 @@ describe('LiveCanvas', () => {
     expect(screen.getByText('Processing...')).toBeInTheDocument()
     act(() => { vi.advanceTimersByTime(1200) })
     expect(screen.getByText('Answering...')).toBeInTheDocument()
+  })
+})
+
+describe('CompleteScreen', () => {
+  it('shows the Interview-specific heading', () => {
+    render(<CompleteScreen useCaseId="interview" onGoHome={() => {}} />)
+    expect(screen.getByText('👏 Your Interview is complete!')).toBeInTheDocument()
+  })
+
+  it('shows the Sales Call-specific heading', () => {
+    render(<CompleteScreen useCaseId="sales-call" onGoHome={() => {}} />)
+    expect(screen.getByText('🤝 Your Sales Call is complete!')).toBeInTheDocument()
   })
 })
