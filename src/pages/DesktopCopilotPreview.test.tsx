@@ -187,26 +187,63 @@ describe('DesktopCopilotPreview end to end', () => {
   beforeEach(() => vi.useFakeTimers())
   afterEach(() => vi.useRealTimers())
 
-  it('walks from splash through use-case selection to the Exam setup screen', async () => {
+  it('walks from splash through sign-up, pricing, and payment to the Exam setup screen', async () => {
     render(<DesktopCopilotPreview />)
     await act(async () => { vi.advanceTimersByTime(2300) })
     expect(screen.getByText('Welcome to Lightforth Co-Pilot')).toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Continue'))
-    expect(screen.getByText('What are you using Copilot for?')).toBeInTheDocument()
+    fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'me@example.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
+    fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
+    fireEvent.click(screen.getByText('Continue'))
+    expect(screen.getByText('Choose your plan')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByText('Exam'))
+    fireEvent.click(screen.getByText('Choose Exam'))
+    fireEvent.change(screen.getByPlaceholderText('1234 1234 1234 1234'), { target: { value: '4242424242424242' } })
+    fireEvent.change(screen.getByPlaceholderText('MM/YY'), { target: { value: '12/30' } })
+    fireEvent.change(screen.getByPlaceholderText('123'), { target: { value: '123' } })
+    fireEvent.click(screen.getByText('Pay $500 one-time'))
+
     expect(screen.getByText('Subject')).toBeInTheDocument()
     expect(screen.queryByText('Select Audio')).not.toBeInTheDocument()
   })
 
-  it('routes Coding to the screenshot canvas and Interview to the conversational canvas', async () => {
+  it('a PRO purchase shows the scoped picker (no Exam) and routes Coding to the screenshot canvas', async () => {
     render(<DesktopCopilotPreview />)
     await act(async () => { vi.advanceTimersByTime(2300) })
     fireEvent.click(screen.getByText('Continue'))
+    fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'me@example.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
+    fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
+    fireEvent.click(screen.getByText('Continue'))
+
+    fireEvent.click(screen.getByText('Choose PRO'))
+    fireEvent.change(screen.getByPlaceholderText('1234 1234 1234 1234'), { target: { value: '4242424242424242' } })
+    fireEvent.change(screen.getByPlaceholderText('MM/YY'), { target: { value: '12/30' } })
+    fireEvent.change(screen.getByPlaceholderText('123'), { target: { value: '123' } })
+    fireEvent.click(screen.getByText('Pay $49/mo'))
+
+    expect(screen.getByText('What are you using Copilot for?')).toBeInTheDocument()
+    expect(screen.queryByText('Exam')).not.toBeInTheDocument()
+
     fireEvent.click(screen.getByText('Coding'))
     fireEvent.click(screen.getByText('Continue'))
     fireEvent.click(screen.getByText('Confirm'))
     expect(screen.getAllByText(/Press Space to capture/).length).toBeGreaterThan(0)
+  })
+
+  it('an invite code at sign-in skips Pricing and goes straight to Sales Call setup', async () => {
+    render(<DesktopCopilotPreview />)
+    await act(async () => { vi.advanceTimersByTime(2300) })
+    fireEvent.click(screen.getByText('Continue'))
+    fireEvent.click(screen.getByText('I have an invite code'))
+    fireEvent.change(screen.getByPlaceholderText('Enter your invite code'), { target: { value: 'ENT123' } })
+    fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'rep@acme.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
+    fireEvent.click(screen.getByText('Continue'))
+
+    expect(screen.queryByText('Choose your plan')).not.toBeInTheDocument()
+    expect(screen.getByText('Customer / Company name')).toBeInTheDocument()
   })
 })

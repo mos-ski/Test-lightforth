@@ -3,6 +3,10 @@ import { ArrowLeft, Bell, Check, ChevronDown, ExternalLink, FileText, HelpCircle
 import { cn } from '@/lib/utils'
 import { getUseCase, USE_CASES, type UseCaseId } from './desktopCopilot/useCases'
 import { BG, CARD, BORDER, INPUT_BG, INPUT_BD, BLUE, formatTime, LightningLogo, MacWindow, Toggle } from './desktopCopilot/shared'
+import { getPlan, type PlanId } from './desktopCopilot/plans'
+import { SignInScreen } from './desktopCopilot/SignInScreen'
+import { PricingScreen } from './desktopCopilot/PricingScreen'
+import { PaymentScreen } from './desktopCopilot/PaymentScreen'
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -26,7 +30,7 @@ const MOCK_RESUMES = [
   { name: 'Darnell Smith', role: 'Software Engineer', date: '3rd Jan, 2026' },
 ]
 
-type DesktopView = 'splash' | 'onboarding' | 'select-use-case' | 'setup' | 'live' | 'complete'
+type DesktopView = 'splash' | 'onboarding' | 'sign-in' | 'pricing' | 'payment' | 'select-use-case' | 'setup' | 'live' | 'complete'
 type CopilotStatus = 'listening' | 'processing' | 'answering'
 
 // ---------------------------------------------------------------------------
@@ -1130,23 +1134,75 @@ export function CompleteScreen({ useCaseId, onGoHome }: { useCaseId: UseCaseId; 
 export default function DesktopCopilotPreview() {
   const [view, setView] = useState<DesktopView>('splash')
   const [useCase, setUseCase] = useState<UseCaseId>('interview')
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>('pro')
   const [primaryLabel, setPrimaryLabel] = useState('')
   const [transparency, setTransparency] = useState(0)
+  const [returnView, setReturnView] = useState<DesktopView>('select-use-case')
 
   const config = getUseCase(useCase)
 
   return (
-    <MacWindow blendBar={view === 'splash' || view === 'onboarding' || view === 'select-use-case' || view === 'complete'} transparency={view === 'live' ? transparency : 0}>
-      {view === 'splash'          && <SplashScreen          onDone={() => setView('onboarding')} />}
-      {view === 'onboarding'      && <OnboardingScreen      onContinue={() => setView('select-use-case')} />}
-      {view === 'select-use-case' && <UseCaseSelectionScreen onSelect={id => { setUseCase(id); setView('setup') }} />}
-      {view === 'setup'           && <SetupScreen useCaseId={useCase} onBack={() => setView('select-use-case')} onContinue={label => { setPrimaryLabel(label); setView('live') }} />}
+    <MacWindow
+      blendBar={
+        view === 'splash' || view === 'onboarding' || view === 'sign-in' ||
+        view === 'pricing' || view === 'payment' || view === 'select-use-case' || view === 'complete'
+      }
+      transparency={view === 'live' ? transparency : 0}
+    >
+      {view === 'splash'     && <SplashScreen     onDone={() => setView('onboarding')} />}
+      {view === 'onboarding' && <OnboardingScreen onContinue={() => setView('sign-in')} />}
+      {view === 'sign-in' && (
+        <SignInScreen
+          onContinue={({ hasInviteCode }) => {
+            if (hasInviteCode) {
+              setUseCase('sales-call')
+              setReturnView('sign-in')
+              setView('setup')
+            } else {
+              setView('pricing')
+            }
+          }}
+        />
+      )}
+      {view === 'pricing' && (
+        <PricingScreen onSelect={id => { setSelectedPlan(id); setView('payment') }} />
+      )}
+      {view === 'payment' && (
+        <PaymentScreen
+          planId={selectedPlan}
+          onBack={() => setView('pricing')}
+          onPaid={() => {
+            const plan = getPlan(selectedPlan)
+            if (plan.unlockedUseCases.length > 1) {
+              setReturnView('pricing')
+              setView('select-use-case')
+            } else {
+              setUseCase(plan.unlockedUseCases[0])
+              setReturnView('pricing')
+              setView('setup')
+            }
+          }}
+        />
+      )}
+      {view === 'select-use-case' && (
+        <UseCaseSelectionScreen
+          useCaseIds={getPlan(selectedPlan).unlockedUseCases}
+          onSelect={id => { setUseCase(id); setReturnView('select-use-case'); setView('setup') }}
+        />
+      )}
+      {view === 'setup' && (
+        <SetupScreen
+          useCaseId={useCase}
+          onBack={() => setView(returnView)}
+          onContinue={label => { setPrimaryLabel(label); setView('live') }}
+        />
+      )}
       {view === 'live' && config.canvasPattern === 'conversational' && (
         <LiveCanvas
           useCaseId={useCase as 'interview' | 'sales-call' | 'meeting'}
           primaryLabel={primaryLabel}
           onEnd={() => setView('complete')}
-          onBack={() => setView('select-use-case')}
+          onBack={() => setView(returnView)}
           transparency={transparency}
           onTransparencyChange={setTransparency}
         />
@@ -1156,7 +1212,7 @@ export default function DesktopCopilotPreview() {
           useCaseId={useCase as 'exam' | 'coding'}
           primaryLabel={primaryLabel}
           onEnd={() => setView('complete')}
-          onBack={() => setView('select-use-case')}
+          onBack={() => setView(returnView)}
           transparency={transparency}
           onTransparencyChange={setTransparency}
         />
