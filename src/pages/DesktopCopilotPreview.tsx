@@ -1,27 +1,31 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Bell, Check, ChevronDown, ExternalLink, FileText, HelpCircle, Mic, Play, Settings, Sparkles, Upload, X } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Bell, Check, ChevronDown, CornerDownRight, ExternalLink, FileText, HelpCircle, Mic, Play, Settings, Sparkles, Upload, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getUseCase, USE_CASES, type UseCaseId } from './desktopCopilot/useCases'
+import { getUseCase, type UseCaseId } from './desktopCopilot/useCases'
 import { BG, CARD, BORDER, INPUT_BG, INPUT_BD, BLUE, formatTime, LightningLogo, MacWindow, Toggle } from './desktopCopilot/shared'
-import { getPlan, type PlanId } from './desktopCopilot/plans'
+import type { PlanId } from './desktopCopilot/plans'
 import { SignInScreen } from './desktopCopilot/SignInScreen'
 import { PricingScreen } from './desktopCopilot/PricingScreen'
 import { PaymentScreen } from './desktopCopilot/PaymentScreen'
+import { ExamCheckoutScreen, ExamCheckoutSuccessScreen } from './desktopCopilot/ExamCheckoutScreen'
+import { setAccount } from './desktopCopilot/mockAccounts'
+import { findMemberByEmail, recordCall } from '@/pages/sales/mockOrg'
 
 // ---------------------------------------------------------------------------
 // Mock data
 // ---------------------------------------------------------------------------
 const MOCK_QA = [
-  { speaker: 'Interviewer', q: "Can you tell me a little bit about yourself and your background?", a: "I'm a product designer and manager with over 6 years of experience building digital products across fintech, crypto, and AI spaces. I've shipped 12 live applications and led cross-functional teams from ideation all the way to launch. What drives me is the intersection of user empathy and business impact — I love creating products that are not just beautiful but genuinely solve real problems for real people." },
-  { speaker: 'Interviewer', q: "What would you say is your greatest professional strength?", a: "My greatest strength is owning the full product lifecycle. I can sit in a strategy meeting in the morning, run a user research session in the afternoon, and review a design prototype by evening. That end-to-end ownership reduces handoff friction and speeds up delivery. I've used this to cut time-to-market by over 40% on my last two major products." },
-  { speaker: 'Interviewer', q: "What are some areas where you feel you could still improve?", a: "Earlier in my career I focused heavily on execution without always ensuring long-term strategy and scalability were equally prioritized. I've since adopted frameworks like RICE and MoSCoW to balance short-term wins with long-term vision. I've also been intentional about improving how I communicate across larger cross-functional teams as they scale." },
-  { speaker: 'Interviewer', q: "Why are you interested in this role and our company specifically?", a: "I've been following your company's trajectory closely. The focus on emerging markets and user-centric innovation aligns deeply with the work I've been doing in Africa's fintech ecosystem. What drew me most is the mission — building products that matter in markets often underserved by traditional tech. I believe my background positions me to contribute meaningfully from day one." },
-  { speaker: 'Interviewer', q: "Can you walk me through how you approach a brand new product or feature?", a: "I start with the problem, not the solution. I run discovery sessions — user interviews, competitive analysis, data review — to understand the pain point deeply. From there I map out user journeys, define success metrics, and ideate collaboratively with engineering and design. I prototype early, test with real users, and iterate before any major development investment. The key is keeping the user at the centre at every stage." },
-  { speaker: 'Interviewer', q: "Tell me about a time you had a conflict with a stakeholder. How did you handle it?", a: "On one project a senior stakeholder wanted to ship a feature I believed would hurt retention based on our research. Instead of pushing back directly, I prepared a data brief showing the risk alongside two alternative approaches that met their business goal differently. We aligned on a smaller version of the feature with a 30-day review gate. It shipped, performed well, and actually strengthened the relationship." },
-  { speaker: 'Interviewer', q: "How do you prioritize features when you have limited time and resources?", a: "I use a combination of RICE scoring and stakeholder alignment sessions. RICE helps me quantify reach, impact, confidence, and effort objectively. But I pair that with qualitative input from customer success and sales — they often catch signals the data misses. The output is a ranked backlog everyone can see and challenge transparently. It removes a lot of the politics from prioritization." },
-  { speaker: 'Interviewer', q: "How do you measure the success of a product or feature after it launches?", a: "Success starts with defining the right metrics before launch — not after. I work with the team to agree on a north star metric and two to three supporting KPIs tied directly to the problem we set out to solve. Post-launch I review these weekly for the first month, then monthly. I also run qualitative follow-ups with users to catch anything the numbers don't show." },
-  { speaker: 'Interviewer', q: "Where do you see yourself professionally in the next three to five years?", a: "I see myself leading product strategy at a company building something with genuine societal impact — either as a VP of Product or a founder. I'm deeply interested in how AI can be layered into product experiences to make them smarter and more personalised. I'm also passionate about building and mentoring strong product teams, not just shipping great products myself." },
-  { speaker: 'Interviewer', q: "Do you have any questions for us about the role or the team?", a: "Yes, a few. First — what does success look like for this role in the first 90 days? Second — how does the product team collaborate with engineering and design today, and where do you see room to improve that? And third — what's the biggest unsolved problem the product team is wrestling with right now? That last one tells me a lot about where I'd be spending my energy." },
+  { speaker: 'Interviewer 1', q: "Can you tell me a little bit about yourself and your background?", a: "I'm a product designer and manager with over 6 years of experience building digital products across fintech, crypto, and AI spaces. I've shipped 12 live applications and led cross-functional teams from ideation all the way to launch. What drives me is the intersection of user empathy and business impact — I love creating products that are not just beautiful but genuinely solve real problems for real people." },
+  { speaker: 'Interviewer 2', q: "What would you say is your greatest professional strength?", a: "My greatest strength is owning the full product lifecycle. I can sit in a strategy meeting in the morning, run a user research session in the afternoon, and review a design prototype by evening. That end-to-end ownership reduces handoff friction and speeds up delivery. I've used this to cut time-to-market by over 40% on my last two major products." },
+  { speaker: 'Interviewer 1', q: "What are some areas where you feel you could still improve, especially earlier in your career when you were finding your footing?", a: "Earlier in my career I focused heavily on execution without always ensuring long-term strategy and scalability were equally prioritized — for example, I once shipped a feature fast but had to rebuild its data model six months later. I've since adopted frameworks like RICE and MoSCoW to balance short-term wins with long-term vision. I've also been intentional about improving how I communicate across larger cross-functional teams as they scale.", interjection: { speaker: 'Interviewer 3', text: "Sorry to jump in — can you give one specific example of that?" } },
+  { speaker: 'Interviewer 2', q: "Why are you interested in this role and our company specifically?", a: "I've been following your company's trajectory closely. The focus on emerging markets and user-centric innovation aligns deeply with the work I've been doing in Africa's fintech ecosystem. What drew me most is the mission — building products that matter in markets often underserved by traditional tech. I believe my background positions me to contribute meaningfully from day one." },
+  { speaker: 'Interviewer 3', q: "Can you walk me through how you approach a brand new product or feature?", a: "I start with the problem, not the solution. I run discovery sessions — user interviews, competitive analysis, data review — to understand the pain point deeply. From there I map out user journeys, define success metrics, and ideate collaboratively with engineering and design. I prototype early, test with real users, and iterate before any major development investment. The key is keeping the user at the centre at every stage." },
+  { speaker: 'Interviewer 1', q: "Tell me about a time you had a conflict with a stakeholder and walk us through exactly how that played out.", a: "On one project a senior stakeholder wanted to ship a feature I believed would hurt retention based on our research. Instead of pushing back directly, I prepared a data brief showing the risk alongside two alternative approaches that met their business goal differently. We aligned on a smaller version of the feature with a 30-day review gate. It shipped, performed well, and actually strengthened the relationship.", interjection: { speaker: 'Interviewer 2', text: "And how did the stakeholder react once they saw the data?" } },
+  { speaker: 'Interviewer 3', q: "How do you prioritize features when you have limited time and resources?", a: "I use a combination of RICE scoring and stakeholder alignment sessions. RICE helps me quantify reach, impact, confidence, and effort objectively. But I pair that with qualitative input from customer success and sales — they often catch signals the data misses. The output is a ranked backlog everyone can see and challenge transparently. It removes a lot of the politics from prioritization." },
+  { speaker: 'Interviewer 2', q: "How do you measure the success of a product or feature after it launches?", a: "Success starts with defining the right metrics before launch — not after. I work with the team to agree on a north star metric and two to three supporting KPIs tied directly to the problem we set out to solve. Post-launch I review these weekly for the first month, then monthly. I also run qualitative follow-ups with users to catch anything the numbers don't show." },
+  { speaker: 'Interviewer 1', q: "Where do you see yourself professionally in the next three to five years?", a: "I see myself leading product strategy at a company building something with genuine societal impact — either as a VP of Product or a founder. I'm deeply interested in how AI can be layered into product experiences to make them smarter and more personalised. I'm also passionate about building and mentoring strong product teams, not just shipping great products myself." },
+  { speaker: 'Interviewer 3', q: "Do you have any questions for us about the role or the team?", a: "Yes, a few. First — what does success look like for this role in the first 90 days? Second — how does the product team collaborate with engineering and design today, and where do you see room to improve that? And third — what's the biggest unsolved problem the product team is wrestling with right now? That last one tells me a lot about where I'd be spending my energy." },
 ]
 
 const MOCK_RESUMES = [
@@ -30,7 +34,7 @@ const MOCK_RESUMES = [
   { name: 'Darnell Smith', role: 'Software Engineer', date: '3rd Jan, 2026' },
 ]
 
-type DesktopView = 'splash' | 'onboarding' | 'sign-in' | 'pricing' | 'payment' | 'select-use-case' | 'setup' | 'live' | 'complete'
+type DesktopView = 'splash' | 'onboarding' | 'sign-in' | 'pricing' | 'payment' | 'exam-checkout' | 'exam-checkout-success' | 'regular-setup' | 'setup' | 'live' | 'complete'
 type CopilotStatus = 'listening' | 'processing' | 'answering'
 
 // ---------------------------------------------------------------------------
@@ -111,47 +115,6 @@ function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
             Continue
           </button>
         </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Screen 1b: Use-Case Selection
-// ---------------------------------------------------------------------------
-export function UseCaseSelectionScreen({ useCaseIds, onBack, onSelect }: { useCaseIds: UseCaseId[]; onBack: () => void; onSelect: (id: UseCaseId) => void }) {
-  const useCases = USE_CASES.filter(uc => useCaseIds.includes(uc.id))
-  return (
-    <div className="flex min-h-[580px] flex-col items-center px-12 py-10" style={{ background: BG }}>
-      <div className="mb-6 flex w-full max-w-[700px] items-center">
-        <button onClick={onBack} className="rounded-lg p-1.5 text-white/50 hover:text-white hover:bg-white/10 transition-colors" title="Back">
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-      </div>
-      <h1 className="mb-3 text-center text-3xl font-bold text-white">What are you using Copilot for?</h1>
-      <p className="mb-10 max-w-lg text-center text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
-        Choose a use case to tailor how Copilot listens and responds.
-      </p>
-      <div className="grid w-full max-w-[700px] grid-cols-2 gap-3">
-        {useCases.map(uc => {
-          const Icon = uc.icon
-          return (
-            <button
-              key={uc.id}
-              onClick={() => onSelect(uc.id)}
-              className="flex items-start gap-3 rounded-xl p-4 text-left transition-colors hover:bg-white/10"
-              style={{ background: CARD, border: `1px solid ${BORDER}` }}
-            >
-              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: 'rgba(26,122,255,0.2)' }}>
-                <Icon className="h-5 w-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white">{uc.label}</p>
-                <p className="mt-0.5 text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>{uc.description}</p>
-              </div>
-            </button>
-          )
-        })}
       </div>
     </div>
   )
@@ -583,23 +546,295 @@ export function SetupScreen({ useCaseId, onBack, onContinue }: { useCaseId: UseC
 }
 
 // ---------------------------------------------------------------------------
+// Screen 2b: Regular Setup — Interview / Coding / Meeting as tabs on one page
+// ---------------------------------------------------------------------------
+type RegularUseCase = 'interview' | 'coding' | 'meeting'
+const REGULAR_TABS: { id: RegularUseCase; label: string }[] = [
+  { id: 'interview', label: 'Interview' },
+  { id: 'coding', label: 'Coding' },
+  { id: 'meeting', label: 'Meeting' },
+]
+
+const POSITION_SUGGESTIONS = [
+  'Product Manager', 'Product Designer', 'Software Engineer', 'Data Analyst',
+  'UX Researcher', 'Engineering Manager', 'Marketing Manager', 'Sales Representative',
+]
+
+const JD_SUGGESTION = "We're looking for a talented individual to join our growing team. You'll collaborate cross-functionally to deliver innovative solutions."
+
+/** Plain text input with a click-to-pick dropdown of suggestions underneath. */
+function SuggestInput({ value, onChange, placeholder, suggestions }: { value: string; onChange: (v: string) => void; placeholder: string; suggestions: string[] }) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const filtered = value.trim() ? suggestions.filter(s => s.toLowerCase().includes(value.toLowerCase())) : suggestions
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        value={value}
+        onChange={e => { onChange(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        placeholder={placeholder}
+        className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
+        style={{ background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none' }}
+      />
+      {open && filtered.length > 0 && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1.5 max-h-52 overflow-y-auto rounded-xl py-1.5 shadow-2xl" style={{ background: '#111827', border: `1px solid ${BORDER}` }}>
+          {filtered.map(s => (
+            <button
+              key={s}
+              onClick={() => { onChange(s); setOpen(false) }}
+              className="block w-full px-4 py-2 text-left text-sm text-white/80 hover:bg-white/10 hover:text-white"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function RegularSetupScreen({ onBack, onContinue }: { onBack: () => void; onContinue: (useCaseId: RegularUseCase, primaryLabel: string) => void }) {
+  const [activeTab, setActiveTab] = useState<RegularUseCase>('interview')
+  const [jobTitle, setJobTitle] = useState('')
+  const [jobDesc, setJobDesc] = useState('')
+  const [language, setLanguage] = useState('')
+  const [meetingTitle, setMeetingTitle] = useState('')
+  const [agenda, setAgenda] = useState('')
+  const [audioConnected, setAudioConnected] = useState(true)
+  const [dontAskAgain, setDontAskAgain] = useState(true)
+  const [showPreference, setShowPreference] = useState(false)
+
+  const config = getUseCase(activeTab)
+  const inputStyle = { background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none' } as const
+
+  const primaryLabel = activeTab === 'interview' ? jobTitle : activeTab === 'meeting' ? meetingTitle : language
+  const canContinue = activeTab === 'coding' ? true : primaryLabel.trim().length > 0
+
+  return (
+    <div className="flex flex-1 flex-col min-h-0" style={{ background: BG }}>
+      <div className="flex h-14 flex-shrink-0 items-center justify-between border-b px-6" style={{ borderColor: BORDER }}>
+        <div className="flex items-center gap-2">
+          <button onClick={onBack} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Back">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <LightningLogo size={24} />
+          <span className="text-base font-bold text-white">Lightforth</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10" style={{ borderColor: BORDER }}>
+            <LightningLogo size={12} /> Upgrade
+          </button>
+          <button className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/10">
+            <Bell className="h-4 w-4 text-white/60" />
+          </button>
+          <button className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/10">
+            <HelpCircle className="h-4 w-4 text-white/60" />
+          </button>
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500" />
+        </div>
+      </div>
+
+      <div className="flex flex-shrink-0 justify-center border-b py-4" style={{ borderColor: BORDER }}>
+        <div className="inline-flex items-center gap-1 rounded-full p-1" style={{ background: INPUT_BG }}>
+          {REGULAR_TABS.map(tab => {
+            const Icon = getUseCase(tab.id).icon
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors',
+                  activeTab === tab.id ? 'bg-white text-slate-900 shadow' : 'text-slate-400 hover:text-white',
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-10 py-8">
+        <div className="mx-auto max-w-lg">
+          <div className="rounded-2xl p-6" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
+            <h1 className="mb-1 text-center text-xl font-bold text-white">👋 Hola, Welcome to {config.label} Co-Pilot</h1>
+            <p className="mb-6 text-center text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Fill in a few details so Copilot knows what to expect.</p>
+
+            {activeTab === 'interview' && (
+              <>
+                <div className="mb-5">
+                  <label className="mb-2 block text-sm font-semibold text-white">Position</label>
+                  <SuggestInput value={jobTitle} onChange={setJobTitle} placeholder="e.g. Product Manager" suggestions={POSITION_SUGGESTIONS} />
+                </div>
+                <div className="mb-5">
+                  <label className="mb-2 block text-sm font-semibold text-white">Job description <span className="font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>(optional)</span></label>
+                  <div className="relative">
+                    <textarea
+                      value={jobDesc}
+                      onChange={e => setJobDesc(e.target.value)}
+                      placeholder="Write or paste here..."
+                      className="h-24 w-full resize-none rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
+                      style={inputStyle}
+                    />
+                    <button
+                      onClick={() => setJobDesc(JD_SUGGESTION)}
+                      className="absolute bottom-2.5 right-3 flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-white/70 hover:text-white"
+                      style={{ background: 'rgba(255,255,255,0.08)' }}
+                    >
+                      <Sparkles className="h-3 w-3" /> Suggest for me
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'coding' && (
+              <div className="mb-5">
+                <label className="mb-2 block text-sm font-semibold text-white">Language <span className="font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>(optional)</span></label>
+                <input
+                  value={language}
+                  onChange={e => setLanguage(e.target.value)}
+                  placeholder="Leave blank to auto-detect"
+                  className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
+                  style={inputStyle}
+                />
+              </div>
+            )}
+
+            {activeTab === 'meeting' && (
+              <>
+                <div className="mb-5">
+                  <label className="mb-2 block text-sm font-semibold text-white">Meeting title</label>
+                  <input
+                    value={meetingTitle}
+                    onChange={e => setMeetingTitle(e.target.value)}
+                    placeholder="e.g. Q3 Roadmap Review"
+                    className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
+                    style={inputStyle}
+                  />
+                </div>
+                <div className="mb-5">
+                  <label className="mb-2 block text-sm font-semibold text-white">Agenda <span className="font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>(optional)</span></label>
+                  <textarea
+                    value={agenda}
+                    onChange={e => setAgenda(e.target.value)}
+                    placeholder="What's on the agenda..."
+                    className="h-24 w-full resize-none rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
+                    style={inputStyle}
+                  />
+                  <p className="mt-2 text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    Meetings work best when you share your screen — Copilot uses it to tell speakers apart.
+                  </p>
+                </div>
+              </>
+            )}
+
+            <div className="mb-6">
+              <div className="mb-2 flex items-center justify-between">
+                <label className="text-sm font-semibold text-white">Select Audio</label>
+                {audioConnected && <span className="text-xs font-semibold text-green-400">Connected</span>}
+              </div>
+              <button onClick={() => setAudioConnected(true)} className="flex h-10 w-full items-center justify-between rounded-xl px-4 text-sm text-white/80 hover:bg-white/10 transition-colors" style={{ border: `1px solid ${INPUT_BD}`, background: INPUT_BG }}>
+                <span className="flex items-center gap-2"><Mic className="h-4 w-4 text-white/50" />{audioConnected ? "Default - Adewale' Airpod Pro" : 'No audio device selected'}</span>
+                <ChevronDown className="h-4 w-4 text-white/50" />
+              </button>
+            </div>
+
+            <label className="mb-5 flex cursor-pointer select-none items-center gap-3">
+              <div className={cn('h-5 w-5 flex-shrink-0 rounded flex items-center justify-center', dontAskAgain ? 'bg-blue-500' : 'border border-white/30')} onClick={() => setDontAskAgain(a => !a)}>
+                {dontAskAgain && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+              </div>
+              <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Don't ask again</span>
+            </label>
+
+            <button
+              onClick={() => { if (canContinue) setShowPreference(true) }}
+              className="h-11 w-full rounded-xl text-sm font-bold text-white transition-opacity"
+              style={{ background: BLUE, opacity: canContinue ? 1 : 0.45 }}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {showPreference && (
+        <PreferenceModal
+          hasAnswerLength={config.hasAnswerLength}
+          onClose={() => setShowPreference(false)}
+          onNext={() => { setShowPreference(false); onContinue(activeTab, primaryLabel || config.label) }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Screen 3a: Conversational Canvas (Interview / Sales Call / Meeting)
 // ---------------------------------------------------------------------------
 type ConversationalUseCase = 'interview' | 'sales-call' | 'meeting'
 
 const MOCK_SALES_QA = [
   { speaker: 'Customer', q: "Look, I like the product, but the price point is a stretch for us this quarter.", a: "Acknowledge the budget concern, then re-anchor on value: \"I hear you on budget — a lot of our customers felt the same before they saw the time saved. What if we started with the core tier and revisited expansion next quarter?\"" },
-  { speaker: 'Customer', q: "What makes you different from your competitors?", a: "Lead with your strongest differentiator backed by proof: \"We integrate natively with your existing stack — no migration needed. A similar customer cut onboarding time by 60% switching to us.\"" },
+  { speaker: 'Customer', q: "What makes you different from your competitors, and how does that hold up once we factor in our procurement process?", a: "Lead with your strongest differentiator backed by proof: \"We integrate natively with your existing stack — no migration needed. A similar customer cut onboarding time by 60% switching to us.\"", interjection: { speaker: 'Procurement Lead', text: "Quick add — we'll also need SOC 2 docs before this goes further." } },
   { speaker: 'Customer', q: "Can you send over a proposal by end of week?", a: "Confirm and create urgency: \"Absolutely, I'll have it in your inbox by Thursday. Should we put 30 minutes on the calendar Friday to walk through it together?\"" },
 ]
 
 const MOCK_MEETING_TRANSCRIPT = [
   { speaker: 'Speaker 1', q: "I think we should push the launch date by two weeks to finish QA.", a: "Support the rationale, propose a checkpoint: \"That tracks with the bug count we're seeing. Can we set a go/no-go review next Wednesday so we don't lose more time than necessary?\"" },
-  { speaker: 'Speaker 2', q: "Marketing already has assets scheduled for the original date.", a: "Bridge the conflict: \"Let's loop in marketing today so they can adjust the campaign calendar in parallel rather than finding out next week.\"" },
+  { speaker: 'Speaker 2', q: "Marketing already has assets scheduled for the original date, so any slip needs to be decided today, not next week.", a: "Bridge the conflict: \"Let's loop in marketing today so they can adjust the campaign calendar in parallel rather than finding out next week.\"", interjection: { speaker: 'Speaker 3', text: "Sorry — does marketing actually need the final date today, or just a heads-up that it might move?" } },
   { speaker: 'Speaker 3', q: "What's the actual blocker on QA — is it resourcing or scope?", a: "Push for clarity: \"Worth asking the QA lead directly whether it's headcount or test coverage, since the fix is different either way.\"" },
 ]
 
-const CONVERSATIONAL_BANKS: Record<ConversationalUseCase, { speaker: string; q: string; a: string }[]> = {
+interface ConversationalTurn {
+  speaker: string
+  q: string
+  a: string
+  /** A second voice jumping in before the main speaker finishes their question. */
+  interjection?: { speaker: string; text: string }
+}
+
+const SPEAKER_COLORS = ['#60a5fa', '#c084fc', '#34d399', '#f472b6', '#fbbf24']
+function speakerColor(name: string): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0
+  return SPEAKER_COLORS[hash % SPEAKER_COLORS.length]
+}
+
+/** Cuts text at the nearest word boundary around `ratio` through the string — used to show a question trailing off when another speaker interrupts it. */
+function truncateAtWord(text: string, ratio: number): string {
+  const target = Math.round(text.length * ratio)
+  const idx = text.lastIndexOf(' ', target)
+  return text.slice(0, idx > 0 ? idx : target)
+}
+
+function questionTextFor(turn: ConversationalTurn): string {
+  return turn.interjection ? truncateAtWord(turn.q, 0.55) : turn.q
+}
+
+/** Flattens a completed sales-call session's Q&A history into a flat transcript for Call History. */
+function flattenTranscript(history: ConversationalTurn[], repName: string): { speaker: string; text: string }[] {
+  const lines: { speaker: string; text: string }[] = []
+  for (const turn of history) {
+    lines.push({ speaker: turn.speaker, text: turn.q })
+    if (turn.interjection) lines.push({ speaker: turn.interjection.speaker, text: turn.interjection.text })
+    lines.push({ speaker: repName, text: turn.a })
+  }
+  return lines
+}
+
+const CONVERSATIONAL_BANKS: Record<ConversationalUseCase, ConversationalTurn[]> = {
   interview: MOCK_QA,
   'sales-call': MOCK_SALES_QA,
   meeting: MOCK_MEETING_TRANSCRIPT,
@@ -611,13 +846,14 @@ const TITLE_TEXT: Record<ConversationalUseCase, (label: string) => string> = {
   meeting: label => `Meeting: ${label}`,
 }
 
-export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparency, onTransparencyChange }: { useCaseId: ConversationalUseCase; primaryLabel: string; onEnd: () => void; onBack: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
+export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparency, onTransparencyChange }: { useCaseId: ConversationalUseCase; primaryLabel: string; onEnd: (elapsed: number, history: ConversationalTurn[]) => void; onBack: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
   const bank = CONVERSATIONAL_BANKS[useCaseId]
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
   const [questionIndex, setQuestionIndex] = useState(0)
   const [qDisplayed, setQDisplayed] = useState('')
+  const [interjectionDisplayed, setInterjectionDisplayed] = useState('')
   const [aDisplayed, setADisplayed] = useState('')
-  const [history, setHistory] = useState<{ speaker: string; q: string; a: string }[]>([])
+  const [history, setHistory] = useState<ConversationalTurn[]>([])
   const [elapsed, setElapsed] = useState(0)
   const [showSettings, setShowSettings] = useState(false)
   const [stealthMode, setStealthMode] = useState(true)
@@ -629,18 +865,40 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
   const statusRef = useRef(copilotStatus)
   const qIndexRef = useRef(questionIndex)
   const panelRef = useRef<HTMLDivElement>(null)
+  const stickToBottomRef = useRef(true)
   useEffect(() => { statusRef.current = copilotStatus }, [copilotStatus])
   useEffect(() => { qIndexRef.current = questionIndex }, [questionIndex])
 
   useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
-  useEffect(() => { if (panelRef.current && 'scrollTo' in panelRef.current) panelRef.current.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' }) }, [qDisplayed, aDisplayed, copilotStatus])
+
+  // Only auto-scroll to the newest line if the user hasn't scrolled up to read
+  // earlier transcript — otherwise this would fight every manual scroll attempt.
+  useEffect(() => {
+    const el = panelRef.current
+    if (!el) return
+    const handleScroll = () => {
+      stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+    }
+    el.addEventListener('scroll', handleScroll)
+    return () => el.removeEventListener('scroll', handleScroll)
+  }, [])
+  useEffect(() => {
+    if (panelRef.current && stickToBottomRef.current && 'scrollTo' in panelRef.current) {
+      panelRef.current.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' })
+    }
+  }, [qDisplayed, aDisplayed, copilotStatus])
 
   const advance = () => {
     const cur = statusRef.current
     const qi = qIndexRef.current
-    if (cur === 'listening') { setQDisplayed(bank[qi].q); setCopilotStatus('processing') }
+    const turn = bank[qi]
+    if (cur === 'listening') {
+      setQDisplayed(questionTextFor(turn))
+      if (turn.interjection) setInterjectionDisplayed(turn.interjection.text)
+      setCopilotStatus('processing')
+    }
     else if (cur === 'processing') { setCopilotStatus('answering') }
-    else { setHistory(h => [...h, bank[qi]]); setQuestionIndex(i => (i + 1) % bank.length); setCopilotStatus('listening') }
+    else { setHistory(h => [...h, turn]); setQuestionIndex(i => (i + 1) % bank.length); setCopilotStatus('listening') }
   }
 
   useEffect(() => {
@@ -662,10 +920,35 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
 
   useEffect(() => {
     if (copilotStatus !== 'listening') return
-    setQDisplayed(''); setADisplayed('')
-    const text = bank[questionIndex].q; let i = 0
-    const id = setInterval(() => { i++; setQDisplayed(text.slice(0, i)); if (i >= text.length) clearInterval(id) }, 22)
-    return () => clearInterval(id)
+    setQDisplayed(''); setADisplayed(''); setInterjectionDisplayed('')
+    const turn = bank[questionIndex]
+    const qText = questionTextFor(turn)
+    let i = 0
+    let interjectionTimeout: ReturnType<typeof setTimeout> | undefined
+    let interjectionInterval: ReturnType<typeof setInterval> | undefined
+    const qInterval = setInterval(() => {
+      i++
+      setQDisplayed(qText.slice(0, i))
+      if (i >= qText.length) {
+        clearInterval(qInterval)
+        if (turn.interjection) {
+          interjectionTimeout = setTimeout(() => {
+            let j = 0
+            const interjectionText = turn.interjection!.text
+            interjectionInterval = setInterval(() => {
+              j++
+              setInterjectionDisplayed(interjectionText.slice(0, j))
+              if (j >= interjectionText.length) clearInterval(interjectionInterval)
+            }, 22)
+          }, 350)
+        }
+      }
+    }, 22)
+    return () => {
+      clearInterval(qInterval)
+      if (interjectionTimeout) clearTimeout(interjectionTimeout)
+      if (interjectionInterval) clearInterval(interjectionInterval)
+    }
   }, [copilotStatus, questionIndex, bank])
 
   useEffect(() => {
@@ -680,7 +963,7 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
   const speakerLabel = bank[questionIndex].speaker
 
   return (
-    <div className="flex flex-1 flex-col" style={{ background: '#0A1628' }}>
+    <div className="flex flex-1 min-h-0 flex-col" style={{ background: '#0A1628' }}>
       <style>{`
         @keyframes glowPulse { 0%,100%{box-shadow:0 0 6px rgba(34,197,94,0.3),0 0 14px rgba(34,197,94,0.1)}50%{box-shadow:0 0 12px rgba(34,197,94,0.45),0 0 24px rgba(34,197,94,0.15)} }
         @keyframes processingDot { 0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-5px);opacity:1} }
@@ -737,7 +1020,7 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />{TITLE_TEXT[useCaseId](primaryLabel)}</div>
-        <div className="flex items-center gap-3"><span className="font-mono text-sm text-slate-300">{formatTime(elapsed)}</span><button onClick={onEnd} className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600">End Session</button></div>
+        <div className="flex items-center gap-3"><span className="font-mono text-sm text-slate-300">{formatTime(elapsed)}</span><button onClick={() => onEnd(elapsed, history)} className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600">End Session</button></div>
       </div>
 
       <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-2" style={{ background: '#0F2340' }}>
@@ -762,22 +1045,55 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden p-2">
-        <div className="flex flex-1 flex-col overflow-hidden rounded-xl transition-all duration-500" style={{ background: '#0D1929', border: copilotStatus === 'listening' ? '1px solid #22c55e' : '1px solid #1E2D45', ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
+      <div className="flex flex-1 min-h-0 overflow-hidden p-2">
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl transition-all duration-500" style={{ background: '#0D1929', border: copilotStatus === 'listening' ? '1px solid #22c55e' : '1px solid #1E2D45', ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
           <div className="flex flex-shrink-0 items-center justify-between border-b px-4 py-3" style={{ borderColor: '#1E2D45' }}>
             <div className="flex items-center gap-2 text-sm font-medium text-white">Live Response<div className="h-2 w-2 rounded-full bg-red-500" /></div>
             <button data-testid="open-settings" onClick={() => setShowSettings(true)}><Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" /></button>
           </div>
-          <div ref={panelRef} className="flex-1 space-y-6 overflow-y-auto p-5">
+          <div ref={panelRef} className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
             {history.map((item, i) => (
               <div key={i} className="space-y-3">
-                <div><p className="mb-1 text-xs text-slate-500">{item.speaker}</p><div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}><p className="text-sm text-white">{item.q}</p></div></div>
+                <div>
+                  <p className="mb-1 text-xs font-semibold" style={{ color: speakerColor(item.speaker) }}>{item.speaker}</p>
+                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
+                    <p className="text-sm text-white">{questionTextFor(item)}{item.interjection && '…'}</p>
+                  </div>
+                </div>
+                {item.interjection && (
+                  <div className="ml-4 flex items-start gap-1.5 border-l-2 pl-3" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
+                    <CornerDownRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-slate-500" />
+                    <p className="text-xs leading-relaxed text-slate-300">
+                      <span className="font-semibold" style={{ color: speakerColor(item.interjection.speaker) }}>{item.interjection.speaker}</span>
+                      {' '}{item.interjection.text}
+                    </p>
+                  </div>
+                )}
                 <p className="text-sm leading-relaxed text-slate-200">{item.a}</p>
               </div>
             ))}
             <div className="space-y-3">
               {qDisplayed && (
-                <div><p className="mb-1 text-xs text-slate-500">{speakerLabel}</p><div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}><p className="text-sm text-white">{qDisplayed}{copilotStatus === 'listening' && qDisplayed.length < bank[questionIndex].q.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}</p></div></div>
+                <div>
+                  <p className="mb-1 text-xs font-semibold" style={{ color: speakerColor(speakerLabel) }}>{speakerLabel}</p>
+                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
+                    <p className="text-sm text-white">
+                      {qDisplayed}
+                      {bank[questionIndex].interjection && qDisplayed.length >= questionTextFor(bank[questionIndex]).length && '…'}
+                      {!bank[questionIndex].interjection && copilotStatus === 'listening' && qDisplayed.length < bank[questionIndex].q.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {interjectionDisplayed && bank[questionIndex].interjection && (
+                <div className="ml-4 flex items-start gap-1.5 border-l-2 pl-3" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
+                  <CornerDownRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-slate-500" />
+                  <p className="text-xs leading-relaxed text-slate-300">
+                    <span className="font-semibold" style={{ color: speakerColor(bank[questionIndex].interjection!.speaker) }}>{bank[questionIndex].interjection!.speaker}</span>
+                    {' '}{interjectionDisplayed}
+                    {copilotStatus === 'listening' && interjectionDisplayed.length < bank[questionIndex].interjection!.text.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}
+                  </p>
+                </div>
               )}
               {copilotStatus === 'processing' && <div className="flex items-center gap-1.5 py-1">{[0,1,2].map(i => <div key={i} className="h-2 w-2 rounded-full bg-slate-500" style={{ animation: 'processingDot 0.9s ease-in-out infinite', animationDelay: `${i * 0.18}s` }} />)}</div>}
               {copilotStatus === 'answering' && aDisplayed && <p className="leading-relaxed text-slate-200" style={{ fontSize }}>{aDisplayed}{aDisplayed.length < bank[questionIndex].a.length && <span className="ml-px inline-block w-[2px] bg-primary align-middle" style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }} />}</p>}
@@ -819,7 +1135,7 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
   const [stealthMode, setStealthMode] = useState(true)
   const [alwaysOnTop, setAlwaysOnTop] = useState(false)
   const [fontSize, setFontSize] = useState(14)
-  const [autoRespond, setAutoRespond] = useState(false)
+  const [autoRespond, setAutoRespond] = useState(true)
 
   const statusRef = useRef(status)
   const indexRef = useRef(index)
@@ -836,15 +1152,19 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
     }
   }
 
+  // Screen capture happens automatically by default (Auto Respond), but Space
+  // or Ctrl/Cmd+Enter always force an immediate capture too, even while auto mode is running.
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' || autoRespond) return
+      const isSpace = e.code === 'Space'
+      const isCtrlEnter = e.code === 'Enter' && (e.ctrlKey || e.metaKey)
+      if (!isSpace && !isCtrlEnter) return
       e.preventDefault()
       capture()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [autoRespond, bank])
+  }, [bank])
 
   useEffect(() => {
     if (status !== 'capturing') return
@@ -866,16 +1186,16 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
   }, [autoRespond, status, index])
 
   const statusText: Record<ScreenshotStatus, string> = {
-    idle: autoRespond ? 'Watching your screen...' : 'Press Space to capture your screen',
+    idle: autoRespond ? 'Watching your screen... (Space or Ctrl+Enter to capture now)' : 'Press Space or Ctrl+Enter to capture your screen',
     capturing: 'Capturing screen...',
     analyzing: 'Analyzing...',
-    answered: autoRespond ? 'Answer ready' : 'Answer ready — press Space for the next question',
+    answered: autoRespond ? 'Answer ready' : 'Answer ready — press Space or Ctrl+Enter for the next question',
   }
 
   const current = bank[index]
 
   return (
-    <div className="flex flex-1 flex-col" style={{ background: '#0A1628' }}>
+    <div className="flex flex-1 min-h-0 flex-col" style={{ background: '#0A1628' }}>
       <style>{`
         @keyframes processingDot { 0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-5px);opacity:1} }
       `}</style>
@@ -892,7 +1212,7 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
                 <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Window Settings</p>
                 <div className="space-y-5">
                   <div className="flex items-start justify-between gap-4">
-                    <div><p className="text-sm font-medium text-slate-200">Auto Respond</p><p className="mt-0.5 text-xs text-slate-500">AI answers automatically — turn off to capture with Space yourself</p></div>
+                    <div><p className="text-sm font-medium text-slate-200">Auto Respond</p><p className="mt-0.5 text-xs text-slate-500">Captures and answers automatically — Space or Ctrl+Enter still capture instantly whether this is on or off</p></div>
                     <Toggle on={autoRespond} onToggle={() => setAutoRespond(a => !a)} />
                   </div>
                   <div className="flex items-start justify-between gap-4">
@@ -940,9 +1260,9 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden p-2">
-        <div className="flex flex-1 flex-col overflow-hidden rounded-xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
-          <div className="flex-1 space-y-6 overflow-y-auto p-5">
+      <div className="flex flex-1 min-h-0 overflow-hidden p-2">
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
             {history.map((item, i) => (
               <div key={i} className="space-y-2 border-b border-white/5 pb-4">
                 <p className="text-sm text-white">{item.q}</p>
@@ -981,7 +1301,7 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
             )}
 
             {status === 'idle' && history.length === 0 && (
-              <p className="text-xs italic text-slate-600">{autoRespond ? 'Auto Respond is on — Copilot will capture automatically.' : 'Press Space to capture your first question...'}</p>
+              <p className="text-xs italic text-slate-600">{autoRespond ? 'Auto Respond is on — Copilot will capture automatically. Press Space or Ctrl+Enter to capture sooner.' : 'Press Space or Ctrl+Enter to capture your first question...'}</p>
             )}
           </div>
         </div>
@@ -1022,12 +1342,16 @@ export function CompleteScreen({ useCaseId, onBack, onGoHome }: { useCaseId: Use
 // Main
 // ---------------------------------------------------------------------------
 export default function DesktopCopilotPreview() {
+  const [searchParams] = useSearchParams()
+  const recognizedEmail = searchParams.get('email')
+
   const [view, setView] = useState<DesktopView>('splash')
   const [useCase, setUseCase] = useState<UseCaseId>('interview')
   const [selectedPlan, setSelectedPlan] = useState<PlanId>('pro')
   const [primaryLabel, setPrimaryLabel] = useState('')
   const [transparency, setTransparency] = useState(0)
-  const [returnView, setReturnView] = useState<DesktopView>('select-use-case')
+  const [returnView, setReturnView] = useState<DesktopView>('regular-setup')
+  const [pendingEmail, setPendingEmail] = useState('')
 
   const config = getUseCase(useCase)
 
@@ -1035,7 +1359,8 @@ export default function DesktopCopilotPreview() {
     <MacWindow
       blendBar={
         view === 'splash' || view === 'onboarding' || view === 'sign-in' ||
-        view === 'pricing' || view === 'payment' || view === 'select-use-case' || view === 'complete'
+        view === 'pricing' || view === 'payment' || view === 'exam-checkout' ||
+        view === 'exam-checkout-success' || view === 'regular-setup' || view === 'complete'
       }
       transparency={view === 'live' ? transparency : 0}
     >
@@ -1043,12 +1368,29 @@ export default function DesktopCopilotPreview() {
       {view === 'onboarding' && <OnboardingScreen onContinue={() => setView('sign-in')} />}
       {view === 'sign-in' && (
         <SignInScreen
+          prefillEmail={recognizedEmail ?? undefined}
           onBack={() => setView('onboarding')}
-          onContinue={({ hasInviteCode }) => {
-            if (hasInviteCode) {
+          onContinue={({ email, track, existingAccount }) => {
+            setPendingEmail(email)
+            if (track === 'enterprise-invite') {
               setUseCase('sales-call')
               setReturnView('sign-in')
               setView('setup')
+            } else if (track === 'exam-signup') {
+              setView('exam-checkout')
+            } else if (track === 'regular-signin' && existingAccount) {
+              if (existingAccount.accountType === 'exam') {
+                setUseCase('exam')
+                setReturnView('sign-in')
+                setView('setup')
+              } else if (existingAccount.accountType === 'enterprise-admin' || existingAccount.accountType === 'enterprise-member') {
+                setUseCase('sales-call')
+                setReturnView('sign-in')
+                setView('setup')
+              } else {
+                if (existingAccount.planId) setSelectedPlan(existingAccount.planId)
+                setView('regular-setup')
+              }
             } else {
               setView('pricing')
             }
@@ -1062,14 +1404,34 @@ export default function DesktopCopilotPreview() {
         <PaymentScreen
           planId={selectedPlan}
           onBack={() => setView('pricing')}
-          onPaid={() => setView('select-use-case')}
+          onPaid={() => {
+            if (pendingEmail) setAccount(pendingEmail, { accountType: 'regular', planId: selectedPlan })
+            setView('regular-setup')
+          }}
         />
       )}
-      {view === 'select-use-case' && (
-        <UseCaseSelectionScreen
-          useCaseIds={getPlan(selectedPlan).unlockedUseCases}
-          onBack={() => setView('pricing')}
-          onSelect={id => { setUseCase(id); setReturnView('select-use-case'); setView('setup') }}
+      {view === 'exam-checkout' && (
+        <ExamCheckoutScreen
+          onBack={() => setView('sign-in')}
+          onPaid={() => {
+            if (pendingEmail) setAccount(pendingEmail, { accountType: 'exam' })
+            setView('exam-checkout-success')
+          }}
+        />
+      )}
+      {view === 'exam-checkout-success' && (
+        <ExamCheckoutSuccessScreen
+          onContinue={() => {
+            setUseCase('exam')
+            setReturnView('sign-in')
+            setView('setup')
+          }}
+        />
+      )}
+      {view === 'regular-setup' && (
+        <RegularSetupScreen
+          onBack={() => setView('sign-in')}
+          onContinue={(id, label) => { setUseCase(id); setPrimaryLabel(label); setReturnView('regular-setup'); setView('live') }}
         />
       )}
       {view === 'setup' && (
@@ -1083,7 +1445,21 @@ export default function DesktopCopilotPreview() {
         <LiveCanvas
           useCaseId={useCase as 'interview' | 'sales-call' | 'meeting'}
           primaryLabel={primaryLabel}
-          onEnd={() => setView('complete')}
+          onEnd={(elapsed, history) => {
+            if (useCase === 'sales-call' && pendingEmail) {
+              const found = findMemberByEmail(pendingEmail)
+              if (found) {
+                recordCall(found.adminEmail, {
+                  repEmail: pendingEmail,
+                  repName: found.member.name,
+                  date: new Date().toISOString(),
+                  durationSeconds: elapsed,
+                  transcript: flattenTranscript(history, found.member.name),
+                })
+              }
+            }
+            setView('complete')
+          }}
           onBack={() => setView(returnView)}
           transparency={transparency}
           onTransparencyChange={setTransparency}
@@ -1099,7 +1475,7 @@ export default function DesktopCopilotPreview() {
           onTransparencyChange={setTransparency}
         />
       )}
-      {view === 'complete' && <CompleteScreen useCaseId={useCase} onBack={() => setView('select-use-case')} onGoHome={() => setView('splash')} />}
+      {view === 'complete' && <CompleteScreen useCaseId={useCase} onBack={() => setView('regular-setup')} onGoHome={() => setView('splash')} />}
     </MacWindow>
   )
 }

@@ -24,7 +24,7 @@ export const PLANS: PlanConfig[] = [
     popular: false,
     bullets: ['All features from Starter', 'Perfect for active job seekers applying weekly'],
     bestForNote: 'Best for users who want AI + autopilot help consistently',
-    unlockedUseCases: ['interview', 'coding', 'meeting', 'exam'],
+    unlockedUseCases: ['interview', 'coding', 'meeting'],
   },
   {
     id: 'premium',
@@ -34,7 +34,7 @@ export const PLANS: PlanConfig[] = [
     popular: true,
     bullets: ['All features included', 'Ideal for high-volume applications, daily resume updates, or intensive interview prep'],
     bestForNote: 'Best value for serious job hunters',
-    unlockedUseCases: ['interview', 'coding', 'meeting', 'exam'],
+    unlockedUseCases: ['interview', 'coding', 'meeting'],
   },
 ]
 

@@ -42,7 +42,7 @@ export function MacWindow({ children, blendBar, transparency = 0 }: { children: 
             <div className="h-3 w-3 rounded-full" style={{ background: '#ffbd2e' }} />
           </div>
         </div>
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
           {children}
         </div>
       </div>

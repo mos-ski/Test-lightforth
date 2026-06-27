@@ -7,9 +7,9 @@ describe('plans config', () => {
     expect(PLANS.map(p => p.id)).toEqual(['pro', 'premium'])
   })
 
-  it('Pro and Premium both unlock interview, coding, meeting, and exam', () => {
+  it('Pro and Premium both unlock interview, coding, and meeting (exam is its own standalone product)', () => {
     for (const id of ['pro', 'premium'] as const) {
-      expect(getPlan(id).unlockedUseCases).toEqual(['interview', 'coding', 'meeting', 'exam'])
+      expect(getPlan(id).unlockedUseCases).toEqual(['interview', 'coding', 'meeting'])
     }
   })
 

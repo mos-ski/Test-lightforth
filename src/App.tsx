@@ -22,6 +22,22 @@ const UsageDetails = lazy(() => import('@/pages/UsageDetails'))
 const Settings = lazy(() => import('@/pages/Settings'))
 const HowToUse = lazy(() => import('@/pages/HowToUse'))
 const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview'))
+const CopilotLanding = lazy(() => import('@/pages/marketing/CopilotLanding'))
+const ExamCopilotLanding = lazy(() => import('@/pages/marketing/ExamCopilotLanding'))
+const EnterpriseCopilotLanding = lazy(() => import('@/pages/marketing/EnterpriseCopilotLanding'))
+const RegularCheckoutPage = lazy(() => import('@/pages/marketing/checkout/RegularCheckoutPage'))
+const ExamCheckoutPage = lazy(() => import('@/pages/marketing/checkout/ExamCheckoutPage'))
+const EnterpriseCheckoutPage = lazy(() => import('@/pages/marketing/checkout/EnterpriseCheckoutPage'))
+const DownloadCopilotPage = lazy(() => import('@/pages/marketing/checkout/DownloadCopilotPage'))
+const SalesAdminLayout = lazy(() => import('@/pages/sales/SalesAdminLayout'))
+const SalesSignIn = lazy(() => import('@/pages/sales/SalesSignIn'))
+const SalesOverview = lazy(() => import('@/pages/sales/Overview'))
+const SalesKnowledgeBase = lazy(() => import('@/pages/sales/KnowledgeBase'))
+const SalesTeam = lazy(() => import('@/pages/sales/Team'))
+const SalesCallHistory = lazy(() => import('@/pages/sales/CallHistory'))
+const SalesBilling = lazy(() => import('@/pages/sales/Billing'))
+const SalesIntegrations = lazy(() => import('@/pages/sales/Integrations'))
+const SalesSettings = lazy(() => import('@/pages/sales/Settings'))
 const MobileAppPreview = lazy(() => import('@/pages/MobileAppPreview'))
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
 const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
@@ -104,6 +120,23 @@ export default function App() {
               <Route path="settings" element={<Suspense fallback={null}><SettingsPage /></Suspense>} />
             </Route>
             <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
+            <Route path="/copilot" element={<Suspense fallback={null}><CopilotLanding /></Suspense>} />
+            <Route path="/copilot/exam" element={<Suspense fallback={null}><ExamCopilotLanding /></Suspense>} />
+            <Route path="/copilot/enterprise" element={<Suspense fallback={null}><EnterpriseCopilotLanding /></Suspense>} />
+            <Route path="/copilot/checkout/:planId" element={<Suspense fallback={null}><RegularCheckoutPage /></Suspense>} />
+            <Route path="/copilot/exam/checkout" element={<Suspense fallback={null}><ExamCheckoutPage /></Suspense>} />
+            <Route path="/copilot/enterprise/checkout" element={<Suspense fallback={null}><EnterpriseCheckoutPage /></Suspense>} />
+            <Route path="/copilot/download" element={<Suspense fallback={null}><DownloadCopilotPage /></Suspense>} />
+            <Route path="/sales/sign-in" element={<Suspense fallback={null}><SalesSignIn /></Suspense>} />
+            <Route path="/sales/dashboard" element={<Suspense fallback={null}><SalesAdminLayout /></Suspense>}>
+              <Route index element={<Suspense fallback={null}><SalesOverview /></Suspense>} />
+              <Route path="knowledge-base" element={<Suspense fallback={null}><SalesKnowledgeBase /></Suspense>} />
+              <Route path="team" element={<Suspense fallback={null}><SalesTeam /></Suspense>} />
+              <Route path="calls" element={<Suspense fallback={null}><SalesCallHistory /></Suspense>} />
+              <Route path="billing" element={<Suspense fallback={null}><SalesBilling /></Suspense>} />
+              <Route path="integrations" element={<Suspense fallback={null}><SalesIntegrations /></Suspense>} />
+              <Route path="settings" element={<Suspense fallback={null}><SalesSettings /></Suspense>} />
+            </Route>
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
             <Route
               path="/admin"

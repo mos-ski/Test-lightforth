@@ -9,6 +9,7 @@ This is the second of three planned specs for the desktop Copilot expansion (the
 Old: `Splash → Onboarding → UseCaseSelectionScreen (free pick of all 5) → Setup → Preference → Canvas → Complete`
 
 New:
+
 ```
 Splash → Onboarding → Sign Up/Sign In
   → (no invite code) → Pricing → Payment → UseCaseSelectionScreen (scoped) or straight to Setup → Preference → Canvas → Complete
@@ -30,10 +31,12 @@ One addition: a secondary link, **"I have an invite code"**, next to the normal 
 
 **Revised per Figma** ([node 15860-61921](https://www.figma.com/design/YQFMH7Tll54QoLNqRhvPx0/Lightforth-v.3.0?node-id=15860-61921)): Exam is no longer a separate one-time plan — it's bundled into Pro/Premium alongside Interview, Coding, and Meeting. Because Sales Call is reached only via an enterprise invite code at sign-in, and Exam is now part of the credit bundle, the Pricing screen has exactly **two** cards, matching the Figma "Level Up" design:
 
-| Plan | Price | Credits | Unlocks |
-|---|---|---|---|
-| **Pro** | $49/mo (or $39/mo billed annually) | 100 | Interview, Coding, Meeting, Exam |
-| **Premium** ("Most Popular") | $79/mo (or $63/mo billed annually) | 250 | Interview, Coding, Meeting, Exam |
+
+| Plan                         | Price                              | Credits | Unlocks                          |
+| ---------------------------- | ---------------------------------- | ------- | -------------------------------- |
+| **Pro**                      | $49/mo (or $39/mo billed annually) | 100     | Interview, Coding, Meeting, Exam |
+| **Premium** ("Most Popular") | $79/mo (or $63/mo billed annually) | 250     | Interview, Coding, Meeting, Exam |
+
 
 A functional Annual/Monthly billing toggle on the screen's hero panel recomputes both cards' displayed price at a 20% discount when Annual is selected; it does not affect `PaymentScreen`, which always shows the monthly rate.
 
@@ -57,11 +60,11 @@ Both plans set `unlockedUseCases: ['interview', 'coding', 'meeting', 'exam']` �
 
 ## New Screens
 
-**`SignInScreen`** — mirrors `Auth.tsx`'s mode flow (choice / email / password / login), restyled dark. Adds the "I have an invite code" link described above, which reveals an invite-code field and switches to enterprise sign-in mode.
+`**SignInScreen**` — mirrors `Auth.tsx`'s mode flow (choice / email / password / login), restyled dark. Adds the "I have an invite code" link described above, which reveals an invite-code field and switches to enterprise sign-in mode.
 
-**`PricingScreen`** — two-column layout per the Figma design: a hero panel (headline, copy, billing toggle) beside the two plan cards, stacked vertically, rendered from `PLANS: PlanConfig[]`. Each card is itself the click target (matching the design, where Pro has no separate CTA button and Premium's "Upgrade to Premium" bar is a visual label inside the same clickable card, not a nested button).
+`**PricingScreen**` — two-column layout per the Figma design: a hero panel (headline, copy, billing toggle) beside the two plan cards, stacked vertically, rendered from `PLANS: PlanConfig[]`. Each card is itself the click target (matching the design, where Pro has no separate CTA button and Premium's "Upgrade to Premium" bar is a visual label inside the same clickable card, not a nested button).
 
-**`PaymentScreen`** — one generic component reused for Pro and Premium. Mock card form (card number, expiry, CVC — no real validation beyond non-empty). Shows a one-line purchase summary derived from the selected `PlanConfig` at its monthly rate (e.g. "$49/mo — Pro Plan"). On submit, proceeds to the next step.
+`**PaymentScreen**` — one generic component reused for Pro and Premium. Mock card form (card number, expiry, CVC — no real validation beyond non-empty). Shows a one-line purchase summary derived from the selected `PlanConfig` at its monthly rate (e.g. "$49/mo — Pro Plan"). On submit, proceeds to the next step.
 
 ## Post-Access Routing
 
@@ -81,5 +84,7 @@ From there, the flow is unchanged from the first spec: `Setup → Preference →
 ## Verification
 
 Run the prototype locally (`npm run dev`, navigate to `/desktop-copilot-preview`) and walk both paths end to end:
+
 - Regular sign-up → Pro or Premium → toggle Annual/Monthly and confirm prices update → mock payment → scoped picker shows Interview/Coding/Meeting/Exam (never Sales Call) → pick each in turn → correct Setup fields → correct canvas pattern
 - Sign-in with "I have an invite code" → enterprise sign-in fields appear, no sign-up option → straight to Sales Call Setup (no Pricing screen shown at all)
+
