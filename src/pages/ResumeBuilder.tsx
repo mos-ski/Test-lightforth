@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type FocusEvent, type ReactNode, type SetStateAction } from 'react'
+import { useEffect, useState, type Dispatch, type FocusEvent, type ReactNode, type SetStateAction } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   AlignLeft,
@@ -7,10 +7,12 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
-  ChevronUp,
+  ChevronLeft,
+  CornerDownLeft,
   Download,
   Eye,
   FileText,
+  HelpCircle,
   Info,
   MapPin,
   Menu,
@@ -30,6 +32,7 @@ import {
   ZoomOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip'
 import LightforthLogo from '@/components/shared/LightforthLogo'
 
 type BuilderScreen =
@@ -101,15 +104,15 @@ type ResumeData = {
 const initialResumeData: ResumeData = {
   firstName: 'Adedamola',
   lastName: 'Adewale',
-  title: 'Product Manager',
+  title: 'Director of Product',
   email: 'adedamolamoses@gmail.com',
   phone: '123-456-7890',
-  city: 'Lagos',
+  city: 'Lagos, Nigeria',
   portfolio: 'mo-ski.com',
-  linkedin: 'linkedin.com/in/adedamola',
-  summary: 'Dynamic Product Designer and Strategist with a robust background in product management and design engineering. Adept in aligning user needs with business goals through innovative design solutions and strategic product development.',
+  linkedin: 'linkedin.com/in/mos-ki',
+  summary: 'Senior Product Manager with 8 years of experience in scaling fintech and AI platforms, specializing in product strategy, cross-functional leadership, and market expansion. Proficient in defining and executing product vision from inception to market, leveraging skills in agile methodologies, user research, and A/B testing. Adept at mentoring product managers, managing multiple squads, and implementing data-driven strategies to enhance user retention, activation, and revenue growth. Passionate about building efficient teams and driving innovation through user-centric design and AI-assisted prototyping.',
   experienceBullets:
-    'Led end-to-end development of AI resume, cover letter, interview prep, and copilot products from concept to launch.\nBuilt an ATS-compliant resume builder that rewrites resumes from pasted job descriptions using AI.\nShipped a real-time interview assistant that surfaces suggested answers during live interview calls.\nGrew platform usage by improving onboarding, retention, and product activation across core workflows.',
+    'Led end-to-end development of 5 core products AI Resume Builder, AI Cover Letter Builder, Interview Prep Simulator, Copilot (live interview AI assistant), and Partnership Dashboard, launching MVP in 5 months with 95 feature completion rate.\nBuilt an ATS-compliant resume builder that rewrites an entire resume from a pasted job description using AI, significantly improving application match rates for users.\nShipped Copilot, a real-time AI assistant that surfaces suggested answers during live interview calls, a first-of-its-kind feature on the platform.\nDesigned and launched a partnership dashboard enabling athletes and enterprise partners to earn commission on every subscription paid by referred users.\nCo-designed pricing strategy that delivered 2,000 in revenue within the first 3 months of monetisation.\nGrew platform to 12,000 users, improving retention 35 and reducing churn 10 through KPI-driven iteration with the analytics team.',
   education: 'B.Sc. Agriculture',
   school: 'University of Ilorin',
   certificate: 'Product Management Certificate',
@@ -120,6 +123,44 @@ const initialResumeData: ResumeData = {
 
 const initialJobDescription =
   'Coordinate internal resources and third parties/vendors for the flawless execution of projects.\nEnsure that all projects are delivered on-time, within scope and within budget.\nDevelop project scopes, objectives, and measurable success criteria.'
+
+const initialCanvasChatMessages: ChatMessage[] = [
+  {
+    id: 1,
+    role: 'user',
+    text: 'Can you improve the job summary section, I want to emphasize that I can also design, I can do market and i have experience in Product',
+  },
+  {
+    id: 2,
+    role: 'ai',
+    text: "I've updated your resume summary to emphasize your design, marketing, and product management expertise as requested.",
+  },
+  {
+    id: 3,
+    role: 'user',
+    text: 'My education section, can you make it more robust, add what you think is missing',
+  },
+  {
+    id: 4,
+    role: 'ai',
+    text: 'I expanded your education section by adding relevant coursework, achievements, and extracurricular activities to make it more robust.',
+  },
+  {
+    id: 5,
+    role: 'user',
+    text: 'Add certifications to boost credibility',
+  },
+  {
+    id: 6,
+    role: 'user',
+    text: 'Add certifications to boost credibility',
+  },
+  {
+    id: 7,
+    role: 'ai',
+    text: 'I added certifications to boost your credibility, focusing on relevant areas like product management, agile methodologies, and design.',
+  },
+]
 
 function updateResumeField(
   setResume: Dispatch<SetStateAction<ResumeData>>,
@@ -720,6 +761,7 @@ function ResumePaper({
   templateId = 't01',
   walkthroughStep,
   onWalkthroughNext,
+  onSwitchToCreate,
 }: {
   editable?: boolean
   resume: ResumeData
@@ -728,6 +770,7 @@ function ResumePaper({
   templateId?: string
   walkthroughStep?: number | null
   onWalkthroughNext?: () => void
+  onSwitchToCreate?: () => void
 }) {
   const fullName = `${resume.firstName} ${resume.lastName}`.trim() || 'John Doe'
   const bulletItems = resume.experienceBullets
@@ -738,7 +781,7 @@ function ResumePaper({
   const languages = resume.languages.split(',').map((item) => item.trim()).filter(Boolean)
   const accent = templateId === 't07' || templateId === 't14' ? '#0f766e' : templateId === 't09' ? '#9f1239' : templateId === 't12' ? '#334155' : '#143763'
   const centered = templateId === 't02' || templateId === 't13'
-  const serif = templateId === 't05' || templateId === 't15'
+  const serif = true
 
   function editableText(field: keyof ResumeData, className: string, fallback?: string) {
     return {
@@ -754,20 +797,19 @@ function ResumePaper({
   return (
     <article
       className={cn(
-        'mx-auto bg-white transition-all duration-300',
+        'mx-auto bg-white text-[#141414] transition-all duration-300',
         serif && 'font-serif',
         fitViewport
-          ? 'h-full max-h-[calc(100vh-9.5rem)] aspect-[8.5/11] min-h-0 w-auto overflow-hidden px-10 py-8 text-[13px] leading-5 ring-1 ring-slate-100/50 rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.04)]'
-          : 'min-h-[1056px] w-[816px] px-16 py-12 rounded-xl shadow-[0_20px_50px_rgba(15,23,42,0.08)] border border-slate-100/60',
+          ? 'h-full max-h-[calc(100vh-9.5rem)] aspect-[8.5/11] min-h-0 w-auto overflow-hidden px-10 py-8 text-[13px] leading-5 ring-1 ring-slate-100/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]'
+          : 'min-h-[3364px] w-[816px] px-10 py-10 text-[16px] leading-[1.45] shadow-[0_2px_12px_rgba(15,23,42,0.16)] ring-1 ring-slate-200/70',
       )}
     >
-      <header className={cn('flex justify-between gap-6', centered && 'flex-col items-center text-center', fitViewport ? 'mb-6' : 'mb-8')}>
-        <div>
+      <header className={cn('text-center', fitViewport ? 'mb-5' : 'mb-7')}>
+        <div className="mx-auto">
           <h1
             contentEditable={editable}
             suppressContentEditableWarning
-            className={cn('font-bold uppercase tracking-normal', fitViewport ? 'text-xl' : 'text-2xl')}
-            style={{ color: accent }}
+            className={cn('font-bold uppercase tracking-normal text-black outline-none', fitViewport ? 'text-xl' : 'text-[32px] leading-none')}
             onBlur={(event) => {
               if (!setResume) return
               const [firstName, ...rest] = (event.currentTarget.textContent?.trim() || fullName).split(/\s+/)
@@ -776,19 +818,21 @@ function ResumePaper({
           >
             {fullName}
           </h1>
-          <p {...editableText('title', cn('mt-1', fitViewport ? 'text-sm' : 'text-base'), 'Position')}>{resume.title}</p>
         </div>
-        <div className={cn('text-right', centered && 'text-center', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
-          <p {...editableText('phone', '', '123-456-7890')}>{resume.phone}</p>
-          <p {...editableText('email', 'text-[#149cf2]', 'myemail@gmail.com')}>{resume.email}</p>
-          <p {...editableText('portfolio', '', 'www.myportfolio.com')}>{resume.portfolio}</p>
-          <p>Linkedin: <span {...editableText('linkedin', 'text-[#149cf2] underline', 'John Doe')}>{resume.linkedin}</span></p>
+        <div className={cn('mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center', fitViewport ? 'text-[11px] leading-4' : 'text-[13px] leading-5')}>
+          <span {...editableText('email', 'text-[#006eb6] underline', 'myemail@gmail.com')}>{resume.email}</span>
+          <span>|</span>
+          <span {...editableText('city', '', 'Lagos, Nigeria')}>{resume.city}</span>
+          <span>|</span>
+          <span {...editableText('linkedin', 'text-[#006eb6] underline', 'John Doe')}>{resume.linkedin}</span>
+          <span>|</span>
+          <span {...editableText('portfolio', 'text-[#006eb6] underline', 'www.myportfolio.com')}>{resume.portfolio}</span>
         </div>
       </header>
 
       {resume.summary && (
         <section id="walkthrough-summary-section" className={cn(fitViewport ? 'mt-5' : 'mt-8', 'relative')}>
-          <h2 className={cn('border-b-2 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')} style={{ borderColor: accent }}>
+          <h2 className={cn('border-y border-black py-1 font-bold uppercase tracking-normal text-black', fitViewport ? 'text-sm' : 'text-base')}>
             Professional Summary
           </h2>
           {walkthroughStep === 2 ? (
@@ -834,10 +878,11 @@ function ResumePaper({
                 if (walkthroughStep === 3 && onWalkthroughNext) {
                   onWalkthroughNext()
                 }
+                if (onSwitchToCreate) onSwitchToCreate()
               }}
               className={cn(
                 'mt-3 italic outline-none transition-all duration-300',
-                fitViewport ? 'text-xs leading-5' : 'text-sm leading-6',
+                fitViewport ? 'text-xs leading-5' : 'text-[14px] leading-[1.38]',
                 editable && 'hover:bg-sky-50/40 focus:bg-sky-50/50 rounded p-1',
                 walkthroughStep === 3 && 'cursor-pointer rounded-md border border-[#0494fc] bg-blue-50 p-1.5'
               )}
@@ -847,12 +892,12 @@ function ResumePaper({
           )}
         </section>
       )}
-      <ResumeSection title="Experience" editable={editable} active resume={resume} setResume={setResume} bulletItems={bulletItems} fitViewport={fitViewport} accent={accent} />
-      <ResumeSection title="Education" editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} accent={accent} />
-      <ResumeSection title="Certificates" editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} accent={accent} />
+      <ResumeExperienceSection editable={editable} resume={resume} setResume={setResume} bulletItems={bulletItems} fitViewport={fitViewport} />
+      <ResumeEducationSection editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} />
+      <ResumeCertificateSection editable={editable} resume={resume} setResume={setResume} fitViewport={fitViewport} />
       <section className={cn(fitViewport ? 'mt-5' : 'mt-8')}>
-        <h2 className={cn('border-b-2 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')} style={{ borderColor: accent }}>Skills</h2>
-        <div className={cn('mt-3 grid gap-2 sm:grid-cols-2', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
+        <h2 className={cn('border-y border-black py-1 font-bold uppercase tracking-normal text-black', fitViewport ? 'text-sm' : 'text-base')}>Skills</h2>
+        <div className={cn('mt-3 grid gap-1 sm:grid-cols-2', fitViewport ? 'text-xs leading-5' : 'text-[14px] leading-6')}>
           {skills.map((skill, index) => (
             <p
               key={`${skill}-${index}`}
@@ -871,8 +916,8 @@ function ResumePaper({
         </div>
       </section>
       <section className={cn(fitViewport ? 'mt-5' : 'mt-8')}>
-        <h2 className={cn('border-b-2 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')} style={{ borderColor: accent }}>Languages</h2>
-        <div className={cn('mt-3', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6')}>
+        <h2 className={cn('border-y border-black py-1 font-bold uppercase tracking-normal text-black', fitViewport ? 'text-sm' : 'text-base')}>Languages</h2>
+        <div className={cn('mt-3', fitViewport ? 'text-xs leading-5' : 'text-[14px] leading-6')}>
           {languages.map((item, index) => (
             <p
               key={`${item}-${index}`}
@@ -894,88 +939,205 @@ function ResumePaper({
   )
 }
 
-function ResumeSection({
-  title,
+function ResumeExperienceSection({
   editable,
-  active,
   resume,
   setResume,
-  bulletItems = [],
+  bulletItems,
   fitViewport = false,
-  accent = '#143763',
 }: {
-  title: string
   editable?: boolean
-  active?: boolean
   resume: ResumeData
   setResume?: Dispatch<SetStateAction<ResumeData>>
-  bulletItems?: string[]
+  bulletItems: string[]
   fitViewport?: boolean
-  accent?: string
 }) {
+  const earlierRoles = [
+    {
+      company: 'DeeXoptions',
+      location: 'Lagos',
+      role: 'Head of Product',
+      period: 'December 2022 - January 2026',
+      bullets: [
+        'Scaled monthly transaction volume to a 150k-200k run rate by optimizing core product features and merchant acquisition channels.',
+        'Launched merchant payment links and APIs, reducing integration friction and driving transaction volume growth within 90 days.',
+        'Optimized merchant onboarding workflow, reducing setup time from 30 minutes to under 10 minutes and achieving a 50 increase in activation rates.',
+        'Developed real-time merchant analytics dashboards, enhancing data visibility which drove a 40 increase in weekly active usage and significantly improved platform stickiness.',
+        'Directed the implementation of wallet-to-wallet transfers and enhanced 2FA security protocols, improving platform trust and reducing support tickets by 20.',
+      ],
+    },
+    {
+      company: 'Nazza',
+      location: 'Lagos',
+      role: 'Product Manager',
+      period: 'January 2023 - April 2026',
+      bullets: [
+        'Owned roadmap planning, product discovery, and delivery rituals for growth-focused product improvements.',
+        'Partnered with design, engineering, and operations teams to turn customer feedback into shipped product enhancements.',
+      ],
+    },
+  ]
+
   return (
-    <section className={cn(fitViewport ? 'mt-5' : 'mt-8')}>
-      <h2 className={cn('border-b-2 pb-1 uppercase', fitViewport ? 'text-sm' : 'text-base')} style={{ borderColor: accent }}>{title}</h2>
+    <section className={cn(fitViewport ? 'mt-5' : 'mt-7')}>
+      <h2 className={cn('border-y border-black py-1 font-bold uppercase tracking-normal text-black', fitViewport ? 'text-sm' : 'text-base')}>Experience</h2>
       <div className="mt-3">
-        <div className="mb-2 flex justify-between">
+        <div className="mb-2 flex justify-between gap-6">
           <div>
+            <p className={cn('font-bold text-black', fitViewport && 'text-xs')}>Lightforth</p>
+            <p className={cn('text-[#424242]', fitViewport ? 'text-xs' : 'text-[14px]')}>Dallas</p>
             <p
               contentEditable={editable}
               suppressContentEditableWarning
-              onBlur={(event) => {
-                if (!setResume) return
-                updateResumeField(setResume, title === 'Education' ? 'education' : title === 'Certificates' ? 'certificate' : 'title', event.currentTarget.textContent?.replace(/\s+$/, '') || '')
-              }}
-              className={cn('font-bold', fitViewport && 'text-xs')}
+              onBlur={(event) => setResume && updateResumeField(setResume, 'title', event.currentTarget.textContent?.trim() || 'Director of Product')}
+              className={cn('italic text-[#282828] outline-none', fitViewport ? 'text-xs' : 'text-[14px]')}
             >
-              {title === 'Education' ? resume.education : title === 'Certificates' ? resume.certificate : 'Position'} {editable && <Pencil className="ml-1 inline h-3 w-3" />}
-            </p>
-            <p
-              contentEditable={editable}
-              suppressContentEditableWarning
-              onBlur={(event) => {
-                if (setResume && title === 'Education') updateResumeField(setResume, 'school', event.currentTarget.textContent?.trim() || '')
-              }}
-              className={cn('text-slate-500', fitViewport && 'text-xs')}
-            >
-              {title === 'Education' ? resume.school : title === 'Certificates' ? '' : resume.city}
+              {resume.title || 'Director of Product'}
             </p>
           </div>
-          <p
-            contentEditable={editable && title === 'Certificates'}
-            suppressContentEditableWarning
-            onBlur={(event) => {
-              if (setResume && title === 'Certificates') updateResumeField(setResume, 'certificateDate', event.currentTarget.textContent?.trim() || '')
-            }}
-            className={cn('text-slate-500', fitViewport && 'text-xs')}
-          >
-            {title === 'Education' ? 'End Date' : title === 'Certificates' ? resume.certificateDate : 'Start Date - End Date'}
-          </p>
+          <p className={cn('shrink-0 text-right text-[#424242]', fitViewport ? 'text-xs' : 'text-[14px]')}>August 2024 - Present</p>
         </div>
-        {title === 'Experience' && (
-          <div
-            contentEditable={editable}
-            suppressContentEditableWarning
-            onBlur={(event) => {
-              if (!setResume) return
-              const lines = Array.from(event.currentTarget.querySelectorAll('li'))
-                .map((li) => li.textContent?.trim() || '')
-                .filter(Boolean)
-              updateResumeField(setResume, 'experienceBullets', lines.join('\n'))
-            }}
-            className={cn('rounded-md p-3 outline-none transition', fitViewport ? 'text-xs leading-5' : 'text-sm leading-6', editable && 'hover:bg-sky-50/40 focus:bg-sky-50/50')}
-          >
-            <ul className="list-disc pl-5">
-              {bulletItems.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}
+        <EditableBulletList editable={editable} setResume={setResume} bulletItems={bulletItems} fitViewport={fitViewport} />
+        {earlierRoles.map((role) => (
+          <div key={role.company} className={cn(fitViewport ? 'mt-5' : 'mt-6')}>
+            <div className="mb-2 flex justify-between gap-6">
+              <div>
+                <p className={cn('font-bold text-black', fitViewport && 'text-xs')}>{role.company}</p>
+                <p className={cn('text-[#424242]', fitViewport ? 'text-xs' : 'text-[14px]')}>{role.location}</p>
+                <p className={cn('italic text-[#282828]', fitViewport ? 'text-xs' : 'text-[14px]')}>{role.role}</p>
+              </div>
+              <p className={cn('shrink-0 text-right text-[#424242]', fitViewport ? 'text-xs' : 'text-[14px]')}>{role.period}</p>
+            </div>
+            <ul className={cn('list-disc space-y-1 pl-5', fitViewport ? 'text-xs leading-5' : 'text-[14px] leading-[1.35]')}>
+              {role.bullets.map((item) => <li key={item}>{item}</li>)}
             </ul>
           </div>
-        )}
+        ))}
       </div>
     </section>
   )
 }
 
-import { useEffect, useRef } from 'react'
+function EditableBulletList({
+  editable,
+  setResume,
+  bulletItems,
+  fitViewport,
+}: {
+  editable?: boolean
+  setResume?: Dispatch<SetStateAction<ResumeData>>
+  bulletItems: string[]
+  fitViewport?: boolean
+}) {
+  return (
+    <div
+      contentEditable={editable}
+      suppressContentEditableWarning
+      onBlur={(event) => {
+        if (!setResume) return
+        const lines = Array.from(event.currentTarget.querySelectorAll('li'))
+          .map((li) => li.textContent?.trim() || '')
+          .filter(Boolean)
+        updateResumeField(setResume, 'experienceBullets', lines.join('\n'))
+      }}
+      className={cn('rounded-sm outline-none transition', fitViewport ? 'text-xs leading-5' : 'text-[14px] leading-[1.35]', editable && 'hover:bg-sky-50/40 focus:bg-sky-50/50')}
+    >
+      <ul className="list-disc space-y-1 pl-5">
+        {bulletItems.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}
+      </ul>
+    </div>
+  )
+}
+
+function ResumeEducationSection({
+  editable,
+  resume,
+  setResume,
+  fitViewport = false,
+}: {
+  editable?: boolean
+  resume: ResumeData
+  setResume?: Dispatch<SetStateAction<ResumeData>>
+  fitViewport?: boolean
+}) {
+  return (
+    <section className={cn(fitViewport ? 'mt-5' : 'mt-7')}>
+      <h2 className={cn('border-y border-black py-1 font-bold uppercase tracking-normal text-black', fitViewport ? 'text-sm' : 'text-base')}>Education</h2>
+      <div className={cn('mt-3 flex justify-between gap-6', fitViewport ? 'text-xs leading-5' : 'text-[14px] leading-6')}>
+        <div>
+          <p
+            contentEditable={editable}
+            suppressContentEditableWarning
+            onBlur={(event) => setResume && updateResumeField(setResume, 'education', event.currentTarget.textContent?.trim() || '')}
+            className="font-bold text-black outline-none"
+          >
+            {resume.education}
+          </p>
+          <p
+            contentEditable={editable}
+            suppressContentEditableWarning
+            onBlur={(event) => setResume && updateResumeField(setResume, 'school', event.currentTarget.textContent?.trim() || '')}
+            className="text-[#424242] outline-none"
+          >
+            {resume.school}
+          </p>
+        </div>
+        <p className="shrink-0 text-right text-[#424242]">2016 - 2020</p>
+      </div>
+    </section>
+  )
+}
+
+function ResumeCertificateSection({
+  editable,
+  resume,
+  setResume,
+  fitViewport = false,
+}: {
+  editable?: boolean
+  resume: ResumeData
+  setResume?: Dispatch<SetStateAction<ResumeData>>
+  fitViewport?: boolean
+}) {
+  const certificates = [
+    { name: resume.certificate, issuer: 'General Assembly', year: resume.certificateDate },
+    { name: 'Certified Scrum Product Owner (CSPO)', issuer: 'Scrum Alliance', year: '2023' },
+    { name: 'Google UX Design Professional Certificate', issuer: 'Google', year: '2022' },
+  ]
+
+  return (
+    <section className={cn(fitViewport ? 'mt-5' : 'mt-7')}>
+      <h2 className={cn('border-y border-black py-1 font-bold uppercase tracking-normal text-black', fitViewport ? 'text-sm' : 'text-base')}>Certifications</h2>
+      <div className="mt-3 space-y-4">
+        {certificates.map((item, index) => (
+          <div key={`${item.name}-${item.year}`} className={cn('flex justify-between gap-6', fitViewport ? 'text-xs leading-5' : 'text-[14px] leading-6')}>
+            <div>
+              <p
+                contentEditable={editable && index === 0}
+                suppressContentEditableWarning
+                onBlur={(event) => setResume && updateResumeField(setResume, 'certificate', event.currentTarget.textContent?.trim() || '')}
+                className="font-bold text-black outline-none"
+              >
+                {item.name}
+              </p>
+              <p className="text-[#424242]">{item.issuer}</p>
+            </div>
+            <p
+              contentEditable={editable && index === 0}
+              suppressContentEditableWarning
+              onBlur={(event) => setResume && updateResumeField(setResume, 'certificateDate', event.currentTarget.textContent?.trim() || '')}
+              className="shrink-0 text-right text-[#424242] outline-none"
+            >
+              {item.year}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+import { useRef } from 'react'
 
 function WalkthroughTooltip({
   targetId,
@@ -1082,37 +1244,81 @@ function ChatBubble({
   message,
   expanded,
   onToggleExpanded,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
+  isLast,
 }: {
   message: ChatMessage
   expanded: boolean
   onToggleExpanded: () => void
+  onUndo?: () => void
+  onRedo?: () => void
+  canUndo?: boolean
+  canRedo?: boolean
+  isLast?: boolean
 }) {
   const isUser = message.role === 'user'
   const isLong = message.text.length > CHAT_BUBBLE_CLAMP_CHARS
   return (
     <div className={cn('flex', isUser && 'justify-end')}>
-      <div
-        className={cn(
-          'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-[1.625]',
-          isUser ? 'rounded-br-sm bg-[#0494fc] text-white shadow-sm' : 'rounded-bl-sm bg-[#f3f4f6] text-[#1f2937]',
-        )}
-      >
-        <p className={cn(!expanded && isLong && 'line-clamp-4 overflow-hidden')}>{message.text}</p>
-        {isLong && (
-          <>
-            <div className={cn('my-1.5 border-t', isUser ? 'border-white/20' : 'border-slate-300/60')} />
-            <button
-              onClick={onToggleExpanded}
-              className={cn(
-                'flex w-full items-center justify-center gap-1 text-xs font-semibold',
-                isUser ? 'text-white/70 hover:text-white' : 'text-slate-500 hover:text-slate-700',
-              )}
-            >
-              <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', expanded && 'rotate-180')} />
-              {expanded ? 'Show less' : 'Show more'}
-            </button>
-          </>
-        )}
+      <div className="max-w-[85%]">
+        <div
+          className={cn(
+            'relative rounded-2xl px-3.5 py-2.5 text-sm leading-[1.625]',
+            isUser ? 'rounded-br-sm bg-[#0494fc] text-white shadow-sm' : 'rounded-bl-sm bg-[#f3f4f6] text-[#1f2937]',
+          )}
+        >
+          {!isUser && isLast && canRedo && onRedo && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={onRedo}
+                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-[#0494fc] transition-colors hover:text-[#0280d9]"
+                    aria-label="Redo last change"
+                  >
+                    <CornerDownLeft className="h-3.5 w-3.5 scale-x-[-1]" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Redo</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          {!isUser && isLast && !canRedo && canUndo && onUndo && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={onUndo}
+                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition-colors hover:text-slate-600"
+                    aria-label="Undo last change"
+                  >
+                    <CornerDownLeft className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Undo</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          <p className={cn(!expanded && isLong && 'line-clamp-4 overflow-hidden', !isUser && isLast && (canUndo || canRedo) && 'pr-8')}>{message.text}</p>
+          {isLong && (
+            <>
+              <div className={cn('my-1.5 border-t', isUser ? 'border-white/20' : 'border-slate-300/60')} />
+              <button
+                onClick={onToggleExpanded}
+                className={cn(
+                  'flex w-full items-center justify-center gap-1 text-xs font-semibold',
+                  isUser ? 'text-white/70 hover:text-white' : 'text-slate-500 hover:text-slate-700',
+                )}
+              >
+                <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', expanded && 'rotate-180')} />
+                {expanded ? 'Show less' : 'Show more'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -1148,7 +1354,6 @@ function CanvasScreen({
   setTemplateId,
   jobDescription,
   setJobDescription,
-  showJdHint,
 }: {
   setScreen: (screen: BuilderScreen) => void
   resume: ResumeData
@@ -1157,9 +1362,7 @@ function CanvasScreen({
   setTemplateId: (id: string) => void
   jobDescription: string
   setJobDescription: Dispatch<SetStateAction<string>>
-  showJdHint?: boolean
 }) {
-  const [jdHintDismissed, setJdHintDismissed] = useState(false)
   const [walkthroughStep, setWalkthroughStep] = useState<number | null>(() => {
     return localStorage.getItem('lf_walkthrough_completed') === 'true' ? null : 1
   })
@@ -1180,43 +1383,89 @@ function CanvasScreen({
     setWalkthroughStep(null)
   }
 
-  function handleWalkthroughReset() {
+  function handleWalkthroughRestart() {
     localStorage.removeItem('lf_walkthrough_completed')
     setWalkthroughStep(1)
-    setSidebarTab('chat')
   }
 
-  const [improveMode, setImproveMode] = useState<ImproveMode>('closed')
   const [expanded, setExpanded] = useState('Experience')
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('chat')
   const [resumeName, setResumeName] = useState("Adedamola's CV")
   const [isEditingName, setIsEditingName] = useState(false)
   const [chatDraft, setChatDraft] = useState('')
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(initialCanvasChatMessages)
   const [addSectionOpen, setAddSectionOpen] = useState(false)
   const [visibleSections, setVisibleSections] = useState(['Personal Information', 'Professional Summary', 'Experience', 'Education', 'Skills', 'Language', 'Certificates', 'Website and Social Links'])
-  const [zoom, setZoom] = useState(0.82)
+  const [zoom, setZoom] = useState(0.85)
   const [downloadOpen, setDownloadOpen] = useState(false)
   const [mobileAtsOpen, setMobileAtsOpen] = useState(false)
   const [atsPanelOpen, setAtsPanelOpen] = useState(false)
+  const [atsReportOpen, setAtsReportOpen] = useState(false)
   const [expandedMessageIds, setExpandedMessageIds] = useState<number[]>([])
+  const [resumeHistory, setResumeHistory] = useState<ResumeData[]>([])
+  const [undoneResume, setUndoneResume] = useState<ResumeData | null>(null)
   const [selectionToolMode, setSelectionToolMode] = useState<'closed' | 'button' | 'panel'>('closed')
   const [selectedCanvasText, setSelectedCanvasText] = useState('')
   const [selectedCanvasRange, setSelectedCanvasRange] = useState<Range | null>(null)
   const navigate = useNavigate()
-  const selectedTemplate = TEMPLATES.find((template) => template.id === templateId) ?? TEMPLATES[0]
   const zoomPercent = Math.round(zoom * 100)
   const quickPrompts = ['Add metrics to work highlights', 'Expand skills with technical proficiencies', 'Include notable projects or case studies']
   const availableSections = ['Projects', 'Awards', 'Volunteer Work', 'Publications'].filter((item) => !visibleSections.includes(item))
 
+  useEffect(() => {
+    if (walkthroughStep !== 1) return
+    const text = 'Please update my professional summary to make it more impactful and results-driven.'
+    let index = 0
+    setChatDraft('')
+    const interval = setInterval(() => {
+      index++
+      setChatDraft(text.slice(0, index))
+      if (index >= text.length) clearInterval(interval)
+    }, 40)
+    return () => clearInterval(interval)
+  }, [walkthroughStep])
+
   function handleTailor() {
     if (!jobDescription.trim()) return
+    setUndoneResume(null)
+    setResumeHistory((h) => [...h, resume])
     setResume((current) => tailorResumeFromJobDescription(current, jobDescription))
     setChatMessages((messages) => [
       ...messages,
       { id: Date.now(), role: 'user', text: 'Rewrite my resume for this job description.' },
       { id: Date.now() + 1, role: 'ai', text: 'The resume has been tailored for the job description. Review the changes when you are ready, then download the final version.' },
     ])
+  }
+
+  function applyIssueFix(updater: (current: ResumeData) => ResumeData, prompt: string, confirmText: string) {
+    setUndoneResume(null)
+    setResumeHistory((h) => [...h, resume])
+    setResume(updater)
+    setChatMessages((messages) => [
+      ...messages,
+      { id: Date.now(), role: 'user', text: prompt },
+      { id: Date.now() + 1, role: 'ai', text: confirmText },
+    ])
+    setSidebarTab('chat')
+  }
+
+  function applyAllIssueFixes(issues: Array<{ apply: (current: ResumeData) => ResumeData; prompt: string; confirmText: string }>) {
+    if (issues.length === 0) return
+    setUndoneResume(null)
+    setResumeHistory((h) => [...h, resume])
+    const base = Date.now()
+    const newMessages: ChatMessage[] = []
+    let next = resume
+    issues.forEach((issue, i) => {
+      next = issue.apply(next)
+      newMessages.push({ id: base + i * 2, role: 'user', text: issue.prompt })
+      newMessages.push({ id: base + i * 2 + 1, role: 'ai', text: issue.confirmText })
+    })
+    setResume(next)
+    setChatMessages((messages) => [...messages, ...newMessages])
+    setSidebarTab('chat')
+    setAtsPanelOpen(false)
+    setAtsReportOpen(false)
   }
 
   function sendChat(message = chatDraft) {
@@ -1226,6 +1475,8 @@ function CanvasScreen({
     if (walkthroughStep === 1) {
       setWalkthroughStep(2)
     }
+    setUndoneResume(null)
+    setResumeHistory((h) => [...h, resume])
     let aiText = 'I updated the resume canvas with that direction. Review the changes when you are ready, then download the final version.'
     if (normalized.includes('short')) {
       updateResumeField(setResume, 'summary', resume.summary.split('.').slice(0, 2).join('.').trim())
@@ -1260,6 +1511,21 @@ function CanvasScreen({
 
   function toggleMessageExpanded(id: number) {
     setExpandedMessageIds((current) => (current.includes(id) ? current.filter((value) => value !== id) : [...current, id]))
+  }
+
+  function undoLastChange() {
+    if (resumeHistory.length === 0) return
+    const previous = resumeHistory[resumeHistory.length - 1]
+    setResumeHistory((h) => h.slice(0, -1))
+    setUndoneResume(resume)
+    setResume(previous)
+  }
+
+  function redoLastChange() {
+    if (!undoneResume) return
+    setResumeHistory((h) => [...h, resume])
+    setResume(undoneResume)
+    setUndoneResume(null)
   }
 
   function handleCanvasSelection() {
@@ -1310,9 +1576,7 @@ function CanvasScreen({
                   <div className="mx-auto max-w-xs">
                     <h1 className="text-xl font-black leading-tight text-slate-950">Paste your job description</h1>
                     <p className="mt-3 text-base leading-7 text-slate-500">I can rewrite your resume for the role, then we can refine it together.</p>
-                    <button onClick={() => setMobileAtsOpen(true)} className="mt-6 rounded-full border border-slate-200 px-4 py-2 text-sm font-bold text-[#149cf2]">
-                      View ATS tips
-                    </button>
+
                   </div>
                 ) : (
                   <div className="space-y-4 text-left">
@@ -1326,29 +1590,11 @@ function CanvasScreen({
                     <p className="text-base leading-7 text-slate-600">
                       {chatMessages.filter((message) => message.role === 'ai').at(-1)?.text ?? 'Your edits are ready to review.'}
                     </p>
-                    <button onClick={() => setMobileAtsOpen(true)} className="flex w-full items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-left">
-                      <span>
-                        <span className="block text-base font-black text-slate-800">ATS Tips</span>
-                        <span className="mt-0.5 block text-sm text-slate-500">Live score and keyword suggestions</span>
-                      </span>
-                      <ChevronDown className="h-5 w-5 rotate-180 text-slate-500" />
-                    </button>
                   </div>
                 )}
               </div>
               <div className="sticky bottom-0 space-y-3 border-t border-slate-200 bg-white pt-3">
-                {showJdHint && !jdHintDismissed && chatMessages.length === 0 && (
-                  <div className="flex items-start gap-2.5 rounded-xl border border-primary/30 bg-[#EEF4FF] px-3 py-2.5">
-                    <span className="mt-0.5 text-base">👋</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-primary">Start here</p>
-                      <p className="text-xs leading-5 text-slate-600">Paste your job description to tailor your resume in seconds.</p>
-                    </div>
-                    <button onClick={() => setJdHintDismissed(true)} className="shrink-0 text-slate-400 transition-colors hover:text-slate-600">
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                )}
+
                 <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
                   {quickPrompts.map((prompt) => (
                     <button key={prompt} onClick={() => sendChat(prompt)} className="shrink-0 rounded-full border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600">
@@ -1364,14 +1610,36 @@ function CanvasScreen({
                     <textarea
                       value={chatDraft}
                       onChange={(event) => setChatDraft(event.target.value)}
-                      onFocus={() => setJdHintDismissed(true)}
                       rows={2}
                       className="min-w-0 flex-1 resize-none text-base leading-6 text-slate-700 outline-none"
                       placeholder={walkthroughStep === 1 ? "Paste a job description here to get started..." : "Message Lightforth AI..."}
                     />
-                    <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#149cf2] text-white">
-                      <Send className="h-5 w-5" />
-                    </button>
+                    <div className="flex items-end gap-1.5">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={handleWalkthroughRestart}
+                              aria-label="Restart tour"
+                              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-400 transition-colors hover:text-slate-600"
+                            >
+                              <HelpCircle className="h-4 w-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">Restart tour</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button onClick={() => sendChat()} aria-label="Send chat message" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#149cf2] text-white">
+                              <Send className="h-5 w-5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">Send</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </div>
                   {walkthroughStep === 1 && (
                     <p className="mt-1 text-xs text-slate-400 text-center font-medium">
@@ -1414,9 +1682,7 @@ function CanvasScreen({
               </div>
               <MobileSectionRow icon={<BriefcaseIcon />} title="Experience" action={<Plus className="h-5 w-5" />} />
               <MobileResumeFileCard onOpen={() => setScreen('preview')} />
-              <button onClick={() => setMobileAtsOpen(true)} className="w-full rounded-xl border border-slate-200 py-3 text-sm font-bold text-[#149cf2]">
-                View ATS tips
-              </button>
+
             </section>
           )}
 
@@ -1443,7 +1709,7 @@ function CanvasScreen({
         {mobileAtsOpen && <MobileAtsSheet resume={resume} jobDescription={jobDescription} onClose={() => setMobileAtsOpen(false)} />}
       </div>
 
-      <div className="hidden h-screen flex-col overflow-hidden bg-[#f5f6f8] font-sans text-slate-950 lg:flex">
+      <div className="hidden h-screen flex-col overflow-hidden bg-[#f4f5f7] font-sans text-slate-950 lg:flex">
         <FullscreenTopbar
         left={(
           <div className="flex items-center gap-3">
@@ -1474,33 +1740,25 @@ function CanvasScreen({
         )}
         right={(
           <>
-            <OutlineButton onClick={handleWalkthroughReset} className="h-8 px-3 text-xs border-dashed text-slate-500 hover:text-slate-900 mr-1.5">
-              Reset Tour
-            </OutlineButton>
             <span className="mr-2 hidden items-center gap-1.5 text-xs font-semibold text-green-600 lg:inline-flex">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Saved
             </span>
-            <OutlineButton onClick={() => setAtsPanelOpen(true)} className="h-8 px-3 text-xs">ATS Score <Info className="h-3.5 w-3.5" /></OutlineButton>
-            <OutlineButton onClick={() => setScreen('preview')} className="h-8 px-3 text-xs">Preview <Eye className="h-3.5 w-3.5" /></OutlineButton>
+            <OutlineButton onClick={() => setAtsPanelOpen(true)} className="h-9 px-4 text-sm">ATS Score <Target className="h-4 w-4" /></OutlineButton>
+            <OutlineButton onClick={() => setScreen('preview')} className="h-9 px-4 text-sm">Preview <Eye className="h-4 w-4" /></OutlineButton>
             <ActionMenu
               open={downloadOpen}
               setOpen={setDownloadOpen}
               alignRight
-              button={<PrimaryButton className="h-8 px-3 text-xs">Download <Download className="ml-2 h-3.5 w-3.5" /></PrimaryButton>}
+              button={<PrimaryButton className="h-9 px-4 text-sm">Download <Download className="ml-2 h-4 w-4" /> <ChevronDown className="ml-1.5 h-3.5 w-3.5" /></PrimaryButton>}
               items={['Export as PDF', 'Export as DOCX', 'Export as Text']}
             />
           </>
         )}
         />
-        <main className="grid min-h-0 flex-1 grid-cols-[340px_minmax(640px,1fr)] gap-3 overflow-hidden px-3 py-2">
-        <aside className="flex max-h-[48vh] min-h-[320px] flex-col overflow-hidden rounded-md bg-white p-3 lg:max-h-none lg:min-h-0">
-          <div className="mb-6 flex shrink-0 items-center gap-3 text-sm font-bold">
-            <Menu className="h-4 w-4 text-[#123667]" />
-            <span className="min-w-0 flex-1 truncate">Adedamola’s CV</span>
-            <Pencil className="h-3.5 w-3.5 text-slate-500" />
-          </div>
-          <div className="mb-4 grid shrink-0 grid-cols-3 rounded-md border border-slate-200 bg-slate-50 p-1 text-center text-xs font-semibold">
+        <main className="grid min-h-0 flex-1 grid-cols-[340px_minmax(640px,1fr)] overflow-hidden">
+        <aside className="flex max-h-[48vh] min-h-[320px] flex-col overflow-hidden border-r border-slate-200 bg-white p-3 lg:max-h-none lg:min-h-0">
+          <div className="mb-6 grid shrink-0 grid-cols-3 rounded-md bg-[#f0f1f3] p-1 text-center text-sm font-semibold">
             {[
               ['chat', 'Chat'],
               ['create', 'Create'],
@@ -1523,47 +1781,33 @@ function CanvasScreen({
                     <div className="max-w-[13rem]">
                       <p className="text-base font-black text-slate-900">Paste your job description</p>
                       <p className="mt-2 text-sm leading-6 text-slate-500">I can rewrite your resume for the role, then we can refine it together.</p>
-                      <button onClick={() => setAtsPanelOpen(true)} className="mt-4 text-xs font-bold text-[#0494fc] hover:underline">
-                        View ATS tips
-                      </button>
+
                     </div>
                   </div>
                 ) : (
-                  chatMessages.map((message) => (
+                  chatMessages.map((message, index) => (
                     <ChatBubble
                       key={message.id}
                       message={message}
                       expanded={expandedMessageIds.includes(message.id)}
                       onToggleExpanded={() => toggleMessageExpanded(message.id)}
+                      isLast={index === chatMessages.length - 1 && message.role === 'ai'}
+                      canUndo={index === chatMessages.length - 1 && message.role === 'ai' && resumeHistory.length > 0}
+                      canRedo={index === chatMessages.length - 1 && message.role === 'ai' && undoneResume !== null}
+                      onUndo={undoLastChange}
+                      onRedo={redoLastChange}
                     />
                   ))
                 )}
               </div>
-              <div className="mt-3 shrink-0 space-y-2.5 border-t border-slate-200 pt-3">
-                {showJdHint && !jdHintDismissed && chatMessages.length === 0 && (
-                  <div className="flex items-start gap-2 rounded-lg border border-primary/30 bg-[#EEF4FF] px-2.5 py-2">
-                    <span className="text-sm">👋</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-bold text-primary">Start here</p>
-                      <p className="text-[11px] leading-4 text-slate-600">Paste your job description to tailor your resume.</p>
-                    </div>
-                    <button onClick={() => setJdHintDismissed(true)} className="shrink-0 text-slate-400 transition-colors hover:text-slate-600">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-                {chatMessages.length > 0 && (
-                  <button onClick={() => setAtsPanelOpen(true)} className="flex items-center gap-2 text-sm font-bold text-[#0494fc]">
-                    <ChevronDown className="h-4 w-4 rotate-180" /> ATS Tips
-                  </button>
-                )}
+          <div className="mt-3 shrink-0 space-y-2.5 pt-3">
+
                 <ChatQuickPrompts prompts={quickPrompts} onSelect={(prompt) => sendChat(prompt)} />
                 <div>
                   <div id="walkthrough-chat-input" className="rounded-2xl border border-[#0494fc] bg-white p-1 shadow-[0px_4px_6px_-4px_rgba(4,148,252,0.6),0px_2px_4px_-2px_#0494fc]">
                     <textarea
                       value={chatDraft}
                       onChange={(event) => setChatDraft(event.target.value)}
-                      onFocus={() => setJdHintDismissed(true)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' && !event.shiftKey) {
                           event.preventDefault()
@@ -1574,17 +1818,38 @@ function CanvasScreen({
                       className="min-w-0 w-full resize-none px-3 pt-2.5 text-sm leading-5 text-slate-700 outline-none placeholder:text-[#9ca3af]"
                       placeholder={chatMessages.length === 0 ? "Paste a job description here to get started…" : "Message Lightforth AI..."}
                     />
-                    <div className="flex justify-end px-2 pb-2">
-                      <button
-                        onClick={() => sendChat()}
-                        aria-label="Send chat message"
-                        className={cn(
-                          'grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-colors',
-                          chatDraft.trim() ? 'bg-[#0494fc] text-white' : 'bg-[#f3f4f6] text-slate-400',
-                        )}
-                      >
-                        <ArrowUp className="h-3.5 w-3.5" />
-                      </button>
+                    <div className="flex items-center justify-end gap-1.5 px-2 pb-2">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={handleWalkthroughRestart}
+                              aria-label="Restart tour"
+                              className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-400 transition-colors hover:text-slate-600"
+                            >
+                              <HelpCircle className="h-3.5 w-3.5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">Restart tour</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => sendChat()}
+                              aria-label="Send chat message"
+                              className={cn(
+                                'grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-colors',
+                                chatDraft.trim() ? 'bg-[#0494fc] text-white' : 'bg-[#f3f4f6] text-slate-400',
+                              )}
+                            >
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">Send</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                   <p className="mt-1.5 text-center text-[11px] font-medium text-slate-400">
@@ -1805,21 +2070,32 @@ function CanvasScreen({
           )}
         </aside>
 
-        <section className="relative flex min-h-[70vh] flex-col overflow-hidden rounded-md border border-slate-200 bg-[#eef1f5] shadow-inner lg:min-h-0">
-          <div className="flex h-10 shrink-0 items-center justify-between border-b border-slate-200 bg-white/80 px-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Canvas</p>
-            <div className="flex items-center gap-1 rounded-md border border-slate-200 bg-white p-1 text-slate-500">
-              <button onClick={() => setZoom((value) => Math.max(0.55, Number((value - 0.08).toFixed(2))))} className="grid h-7 w-7 place-items-center rounded hover:bg-slate-50" aria-label="Zoom out"><ZoomOut className="h-4 w-4" /></button>
-              <button onClick={() => setZoom(0.9)} className="px-2 text-xs font-semibold text-slate-700">{zoomPercent}%</button>
-              <button onClick={() => setZoom((value) => Math.min(1.25, Number((value + 0.08).toFixed(2))))} className="grid h-7 w-7 place-items-center rounded hover:bg-slate-50" aria-label="Zoom in"><ZoomIn className="h-4 w-4" /></button>
-            </div>
+        <section className="relative flex min-h-[70vh] flex-col overflow-hidden bg-[#f0f1f3] lg:min-h-0">
+          <div className="absolute right-4 top-3 z-20 flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1 text-slate-500 shadow-sm">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={() => setZoom((value) => Math.max(0.55, Number((value - 0.08).toFixed(2))))} className="grid h-6 w-6 place-items-center rounded-full hover:bg-slate-50" aria-label="Zoom out"><ZoomOut className="h-3.5 w-3.5" /></button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Zoom out</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <button onClick={() => setZoom(0.85)} className="px-2 text-xs font-semibold text-slate-700">{zoomPercent}%</button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button onClick={() => setZoom((value) => Math.min(1.25, Number((value + 0.08).toFixed(2))))} className="grid h-6 w-6 place-items-center rounded-full hover:bg-slate-50" aria-label="Zoom in"><ZoomIn className="h-3.5 w-3.5" /></button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Zoom in</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <div
-            className="relative min-h-0 flex-1 overflow-auto px-3 py-4 sm:px-5"
+            className="relative min-h-0 flex-1 overflow-auto px-3 py-16 sm:px-5"
             onMouseUp={handleCanvasSelection}
             onKeyUp={handleCanvasSelection}
           >
-            <div className="mx-auto" style={{ width: 816 * zoom, height: 1056 * zoom }}>
+            <div className="mx-auto" style={{ width: 816 * zoom, height: 3364 * zoom }}>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
                 <ResumePaper
                   editable
@@ -1828,6 +2104,10 @@ function CanvasScreen({
                   templateId={templateId}
                   walkthroughStep={walkthroughStep}
                   onWalkthroughNext={handleWalkthroughNext}
+                  onSwitchToCreate={() => {
+                    setSidebarTab('create')
+                    setExpanded('Professional Summary')
+                  }}
                 />
               </div>
             </div>
@@ -1849,23 +2129,47 @@ function CanvasScreen({
         </main>
       </div>
 
+      {(atsPanelOpen || atsReportOpen) && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-950/20"
+          onClick={() => { setAtsPanelOpen(false); setAtsReportOpen(false) }}
+        />
+      )}
+
       {atsPanelOpen && (
-        <CanvasRightPanel resume={resume} jobDescription={jobDescription} onClose={() => setAtsPanelOpen(false)} />
+        <CanvasRightPanel
+          resume={resume}
+          jobDescription={jobDescription}
+          setJobDescription={setJobDescription}
+          onClose={() => setAtsPanelOpen(false)}
+          onOpenReport={() => setAtsReportOpen(true)}
+          pushLeft={atsReportOpen}
+        />
+      )}
+
+      {atsReportOpen && (
+        <ATSReportDrawer
+          resume={resume}
+          jobDescription={jobDescription}
+          onClose={() => setAtsReportOpen(false)}
+          onApplyFix={applyIssueFix}
+          onApplyAllFixes={applyAllIssueFixes}
+        />
       )}
 
       {walkthroughStep === 1 && (
         <WalkthroughTooltip
           targetId="walkthrough-chat-input"
-          title="Paste a Job Description"
-          description="Tooltips are used to describe or identify an element. In most scenarios, tooltips help the user understand meaning, function or alt-text."
+          title="Send your First Message"
+          description="Chat or paste a job description and Lightforth will rewrite your resume to match key words"
           onSkip={handleWalkthroughSkip}
         />
       )}
       {walkthroughStep === 2 && (
         <WalkthroughTooltip
           targetId="walkthrough-diff-actions"
-          title="Accept or Decline Changes"
-          description="Tooltips are used to describe or identify an element."
+          title="Accept or Reject Changes"
+          description="The AI has suggested edits to your resume. Review each one and accept the changes you like or reject the ones you don't."
           onSkip={handleWalkthroughSkip}
         />
       )}
@@ -1873,7 +2177,7 @@ function CanvasScreen({
         <WalkthroughTooltip
           targetId="walkthrough-summary-section"
           title="Click to Edit"
-          description="Tooltips are used to describe or identify an element."
+          description="Changes are live on your resume. Click directly on any section to make manual edits."
           onSkip={handleWalkthroughSkip}
         />
       )}
@@ -2363,7 +2667,7 @@ function buildCanvasImprovementSuggestions(selectedText: string, round = 0) {
 }
 
 function replaceResumeSelection(resume: ResumeData, selectedText: string, replacement: string): ResumeData {
-  const fields: Array<keyof ResumeData> = ['name', 'email', 'location', 'website', 'summary', 'experienceBullets', 'education', 'certificate', 'skills', 'languages']
+  const fields: Array<keyof ResumeData> = ['firstName', 'lastName', 'title', 'email', 'phone', 'city', 'portfolio', 'linkedin', 'summary', 'experienceBullets', 'education', 'school', 'certificate', 'certificateDate', 'skills', 'languages']
   for (const field of fields) {
     const currentValue = resume[field]
     const nextValue = replaceTextMatch(currentValue, selectedText, replacement)
@@ -2486,34 +2790,113 @@ function ImprovePopover({ mode, setMode }: { mode: ImproveMode; setMode: (mode: 
 function CanvasRightPanel({
   resume,
   jobDescription,
+  setJobDescription,
   onClose,
+  onOpenReport,
+  pushLeft,
 }: {
   resume: ResumeData
   jobDescription: string
+  setJobDescription: Dispatch<SetStateAction<string>>
   onClose: () => void
+  onOpenReport: () => void
+  pushLeft?: boolean
 }) {
   const insights = getATSInsights(resume, jobDescription)
+  const score = insights.score
+  const gradeLabel = score >= 85 ? 'Excellent' : score >= 70 ? 'Good' : 'Needs work'
+  const gradeBadge = score >= 85 ? 'bg-green-100 text-green-700' : score >= 70 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+
+  const hasMetrics = /\d|%|\$|revenue|growth|reduced|increased|launched|saved/i.test(resume.experienceBullets)
+  const hasSummary = resume.summary.trim().split(/\s+/).length >= 18
+  const hasSkills = resume.skills.split(',').filter((s) => s.trim()).length >= 6
+  const urgentCount = (!hasMetrics ? 1 : 0) + insights.missingKeywords.length
+  const criticalCount = !hasSummary ? 1 : 0
+  const optionalCount = !hasSkills ? 3 : 1
+
+  const summaryText = (() => {
+    const parts: string[] = []
+    if (score >= 85) parts.push(`Your resume scores ${score}% — ${gradeLabel.toLowerCase()}.`)
+    else if (score >= 70) parts.push(`Your resume scores ${score}% — ${gradeLabel.toLowerCase()}.`)
+    else parts.push(`Your resume scores ${score}% and needs improvement.`)
+    if (hasMetrics) parts.push('It showcases strong, quantifiable achievements.')
+    else parts.push('Adding measurable impact (numbers, %, $) would significantly boost your score.')
+    if (hasSummary) parts.push('Your summary is well-developed.')
+    else parts.push('Your summary needs more context to stand out.')
+    return parts.join(' ')
+  })()
+
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setVisible(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-slate-950/20" onClick={onClose} />
-      <aside className="fixed inset-y-0 right-0 z-50 w-[320px] space-y-3 overflow-y-auto bg-white p-3 shadow-2xl">
+    <aside
+      className={cn(
+        'fixed inset-y-0 right-0 z-50 w-[320px] space-y-3 overflow-y-auto bg-white p-3 shadow-2xl transition-[transform,right] duration-300 ease-out',
+        visible ? 'translate-x-0' : 'translate-x-full',
+        pushLeft && 'sm:right-[460px]',
+      )}
+    >
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-black text-slate-900">ATS Score</h2>
         <button onClick={onClose} aria-label="Close ATS panel" className="rounded-md p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600">
           <X className="h-4 w-4" />
         </button>
       </div>
-      <section className="rounded-md border border-slate-200 p-3">
+
+      {/* Grade + counters */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-slate-200 p-3">
         <div className="flex items-center gap-2.5">
-          <div className="relative grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#149cf2 ${insights.score}%, #f1f2f4 0)` }}>
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-white text-sm font-black text-slate-600">{insights.score}%</div>
+          <div className="relative grid h-[52px] w-[52px] shrink-0 place-items-center rounded-full" style={{ background: `conic-gradient(#149cf2 ${score}%, #f1f2f4 0)` }}>
+            <div className="grid h-9 w-9 place-items-center rounded-full bg-white text-sm font-black text-slate-600">{score}%</div>
           </div>
-          <div>
-            <h3 className="text-sm font-black text-slate-900">Live ATS score</h3>
-            <p className="mt-1 text-[11px] leading-4 text-slate-500">Updates as you edit the resume and chat prompt.</p>
-          </div>
+          <span className={cn('inline-flex rounded-full px-2.5 py-1 text-xs font-semibold', gradeBadge)}>{gradeLabel}</span>
         </div>
-        <div className="mt-4 space-y-2.5">
+        <div className="flex gap-1.5">
+          {([
+            { label: 'Urgent', count: urgentCount, text: 'text-red-600' },
+            { label: 'Critical', count: criticalCount, text: 'text-amber-600' },
+            { label: 'Optional', count: optionalCount, text: 'text-blue-600' },
+          ] as const).map((chip) => (
+            <div key={chip.label} className="w-[58px] rounded-md border border-slate-100 px-1 py-1.5 text-center">
+              <p className={cn('text-base font-bold', chip.text)}>{chip.count}</p>
+              <p className="mt-0.5 text-[8px] font-semibold uppercase tracking-wide text-slate-400">{chip.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Analysis Summary */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">Analysis Summary</h3>
+        <p className="mt-1.5 text-xs leading-5 text-slate-600">{summaryText}</p>
+      </div>
+
+      <button
+        onClick={onOpenReport}
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-primary px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/5"
+      >
+        View Full Report <ArrowLeft className="h-3.5 w-3.5 rotate-180" />
+      </button>
+
+      {/* Job Description — optional, always visible */}
+      <section className="rounded-md border border-slate-200 p-3">
+        <h3 className="text-sm font-black text-slate-900">Job Description <span className="font-normal text-slate-400">(optional)</span></h3>
+        <p className="mt-1 text-[11px] leading-4 text-slate-500">Paste the job description here — Lightforth scores your resume against it for a more accurate ATS report.</p>
+        <textarea
+          value={jobDescription}
+          onChange={(e) => setJobDescription(e.target.value)}
+          placeholder="Paste the job description..."
+          className="lf-input mt-2 h-20 w-full resize-none p-2.5 text-xs leading-5"
+        />
+      </section>
+
+      <section className="rounded-md border border-slate-200 p-3">
+        <h3 className="text-sm font-black text-slate-900">Score Breakdown</h3>
+        <p className="mb-3 mt-1 text-[11px] leading-4 text-slate-500">Updates as you edit the resume and chat prompt.</p>
+        <div className="space-y-2.5">
           {insights.scores.map(([label, value]) => (
             <div key={label}>
               <div className="mb-1 flex justify-between text-[11px] font-bold text-slate-500"><span>{label}</span><span>{value}%</span></div>
@@ -2534,21 +2917,8 @@ function CanvasRightPanel({
             </p>
           ))}
         </div>
-        {insights.missingKeywords.length > 0 && (
-          <div className="mt-3 rounded-md bg-amber-50 p-2.5">
-            <p className="text-[11px] font-bold text-amber-800">Recommended keywords</p>
-            <p className="mt-1 text-[11px] leading-4 text-amber-700">{insights.missingKeywords.join(', ')}</p>
-          </div>
-        )}
-        {insights.matchedKeywords.length > 0 && (
-          <div className="mt-2.5 rounded-md bg-emerald-50 p-2.5">
-            <p className="text-[11px] font-bold text-emerald-800">Already matched</p>
-            <p className="mt-1 text-[11px] leading-4 text-emerald-700">{insights.matchedKeywords.join(', ')}</p>
-          </div>
-        )}
       </section>
       </aside>
-    </>
   )
 }
 
@@ -2559,13 +2929,11 @@ function ATSScreen({
   resume,
   setResume,
   jobDescription,
-  setJobDescription,
 }: {
   setScreen: (screen: BuilderScreen) => void
   resume: ResumeData
   setResume: Dispatch<SetStateAction<ResumeData>>
   jobDescription: string
-  setJobDescription: Dispatch<SetStateAction<string>>
 }) {
   const navigate = useNavigate()
   const [downloadOpen, setDownloadOpen] = useState(false)
@@ -2601,100 +2969,13 @@ function ATSScreen({
         <section className="flex min-h-[70vh] items-center justify-center overflow-auto rounded-md border border-slate-200 bg-[#eef1f5] p-3 shadow-inner sm:p-4 lg:min-h-0 lg:overflow-hidden">
           <ResumePaper editable resume={resume} setResume={setResume} fitViewport />
         </section>
-        <ATSOverviewPanel resume={resume} jobDescription={jobDescription} setJobDescription={setJobDescription} />
+        <ATSOverviewPanel
+          resume={resume}
+          jobDescription={jobDescription}
+          onApplyFix={(updater) => setResume(updater)}
+          onApplyAllFixes={(issues) => setResume((current) => issues.reduce((acc, issue) => issue.apply(acc), current))}
+        />
       </main>
-    </div>
-  )
-}
-
-function ATSSectionFixPanel({
-  section,
-  issue,
-  onClose,
-}: {
-  section: { title: string; why: string }
-  issue: { type: 'Urgent' | 'Critical' | 'Minor'; label: string; desc: string; howToImprove: string; original: string; aiVersion: string }
-  onClose: () => void
-}) {
-  const [ownVersion, setOwnVersion] = useState('')
-  const [feedback, setFeedback] = useState<null | 'great' | 'unexpected'>(null)
-  const badgeCls = (type: 'Urgent' | 'Critical' | 'Minor') =>
-    type === 'Urgent' ? 'bg-red-100 text-red-700' : type === 'Critical' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
-  return (
-    <div className="fixed inset-y-0 right-0 z-50 flex w-full flex-col overflow-y-auto border-l border-slate-200 bg-white shadow-2xl lg:w-[460px]">
-      <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Fix Issue</p>
-          <h3 className="text-sm font-bold text-slate-900">{section.title}</h3>
-        </div>
-        <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600">
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="space-y-5 p-5">
-        <div className="flex items-center gap-2">
-          <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold', badgeCls(issue.type))}>{issue.type}</span>
-          <span className="text-sm font-semibold text-slate-700">{issue.label}</span>
-        </div>
-        <div>
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Original</p>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs italic leading-5 text-slate-600">
-            {issue.original.length > 160 ? `${issue.original.slice(0, 160)}…` : issue.original}
-          </div>
-        </div>
-        <div>
-          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Issue Detected</p>
-          <p className="text-xs leading-5 text-slate-700">{issue.desc}</p>
-        </div>
-        <div>
-          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Why This Is Important</p>
-          <p className="text-xs leading-5 text-slate-600">{section.why}</p>
-        </div>
-        <div>
-          <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">How to Improve</p>
-          <p className="text-xs leading-5 text-slate-600">{issue.howToImprove}</p>
-        </div>
-        <div className="rounded-xl border border-primary/20 bg-[#EEF4FF] p-4">
-          <p className="mb-3 text-[10px] font-bold uppercase tracking-wide text-primary">AI-Generated Version</p>
-          <div className="mb-2 rounded-md bg-red-50 px-3 py-2 text-xs leading-5 text-slate-500 line-through">
-            {issue.original.length > 100 ? `${issue.original.slice(0, 100)}…` : issue.original}
-          </div>
-          <div className="rounded-md bg-emerald-50 px-3 py-2 text-xs leading-5 text-emerald-800">{issue.aiVersion}</div>
-        </div>
-        <div>
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">Write Your New Version</p>
-          <textarea
-            value={ownVersion}
-            onChange={(e) => setOwnVersion(e.target.value)}
-            rows={3}
-            placeholder="Write your improved version here…"
-            className="lf-input w-full resize-none text-xs leading-5"
-          />
-          <button
-            disabled={!ownVersion.trim()}
-            className="mt-2 w-full rounded-lg bg-primary py-2.5 text-xs font-bold text-white transition hover:bg-primary/90 disabled:opacity-40"
-          >
-            Submit New Version
-          </button>
-        </div>
-        <div className="rounded-lg border border-slate-200 p-4 text-center">
-          <p className="mb-3 text-xs font-semibold text-slate-600">Was This Suggestion Helpful?</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFeedback('great')}
-              className={cn('flex-1 rounded-lg border py-2 text-xs font-semibold transition-colors', feedback === 'great' ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700')}
-            >
-              Looks Great!
-            </button>
-            <button
-              onClick={() => setFeedback('unexpected')}
-              className={cn('flex-1 rounded-lg border py-2 text-xs font-semibold transition-colors', feedback === 'unexpected' ? 'border-slate-400 bg-slate-100 text-slate-700' : 'border-slate-200 text-slate-600 hover:bg-slate-100')}
-            >
-              Not What I Expected
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }
@@ -2702,43 +2983,68 @@ function ATSSectionFixPanel({
 function ATSOverviewPanel({
   resume,
   jobDescription,
-  setJobDescription,
+  onClose,
+  onApplyFix,
+  onApplyAllFixes,
 }: {
   resume: ResumeData
   jobDescription: string
-  setJobDescription: Dispatch<SetStateAction<string>>
+  onClose?: () => void
+  onApplyFix: ApplyFix
+  onApplyAllFixes: ApplyAllFixes
 }) {
   const insights = getATSInsights(resume, jobDescription)
-  const score = insights.score
-  const grade = score >= 85 ? 'A' : score >= 70 ? 'B' : 'C'
-  const gradeLabel = score >= 85 ? 'EXCELLENT' : score >= 70 ? 'GOOD' : 'NEEDS WORK'
-  const gradeColor = score >= 85 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : score >= 70 ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-red-700 bg-red-50 border-red-200'
 
   const hasMetrics = /\d|%|\$|revenue|growth|reduced|increased|launched|saved/i.test(resume.experienceBullets)
   const hasSummary = resume.summary.trim().split(/\s+/).length >= 18
   const hasSkills = resume.skills.split(',').filter((s) => s.trim()).length >= 6
 
   const urgentCount = (!hasMetrics ? 1 : 0) + insights.missingKeywords.length
-  const criticalCount = !hasSummary ? 1 : 0
-  const optionalCount = !hasSkills ? 3 : 1
 
-  const [openSection, setOpenSection] = useState<number | null>(0)
-  const [jdOpen, setJdOpen] = useState(false)
-  const [fixSection, setFixSection] = useState<{ secIdx: number; issueIdx: number } | null>(null)
+  const [expandedWhy, setExpandedWhy] = useState<number[]>([])
 
-  const summaryText = (() => {
-    const parts: string[] = []
-    if (score >= 85) parts.push(`Your resume scores an ${gradeLabel} (${score}%).`)
-    else if (score >= 70) parts.push(`Your resume earns a solid ${grade} grade (${score}%).`)
-    else parts.push(`Your resume needs improvement (${score}%).`)
-    if (hasMetrics) parts.push('It showcases strong, quantifiable achievements.')
-    else parts.push('Adding measurable impact (numbers, %, $) would significantly boost your score.')
-    if (hasSummary) parts.push('Your summary is well-developed.')
-    else parts.push('Your summary needs more context to stand out.')
-    return parts.join(' ')
-  })()
+  type ATSIssue = {
+    type: 'Urgent' | 'Critical' | 'Minor'
+    label: string
+    count: number
+    desc: string
+    original: string
+    aiVersion: string
+    prompt: string
+    confirmText: string
+    apply: (current: ResumeData) => ResumeData
+  }
 
-  type ATSIssue = { type: 'Urgent' | 'Critical' | 'Minor'; label: string; count: number; desc: string; howToImprove: string; original: string; aiVersion: string }
+  function replaceBulletLine(text: string, oldLine: string, newLine: string): string {
+    const lines = text.split('\n')
+    const idx = lines.indexOf(oldLine)
+    if (idx === -1) return [...lines, newLine].join('\n').trim()
+    lines[idx] = newLine
+    return lines.join('\n')
+  }
+
+  const bulletLines = resume.experienceBullets.split('\n').filter(Boolean)
+  const firstBulletLine = bulletLines.find(Boolean) ?? 'Led product development initiatives.'
+  const fillerLine = bulletLines.find((line) => /\b(responsible for|assisted with|worked with)\b/i.test(line))
+  const fillerAiVersion = fillerLine
+    ? fillerLine
+        .replace(/\bresponsible for\b/i, 'Led')
+        .replace(/\bassisted with\b/i, 'Drove')
+        .replace(/\bworked with\b/i, 'Partnered with')
+    : ''
+
+  const metricBulletCount = bulletLines.filter((line) => /\d|%|\$/.test(line)).length
+  const lowMetricCoverage = bulletLines.length > 0 && metricBulletCount / bulletLines.length < 0.6
+  const lowMetricBullet = bulletLines.find((line) => !/\d|%|\$/.test(line))
+  const lowMetricAiVersion = lowMetricBullet ? `${lowMetricBullet.replace(/\.$/, '')}, boosting team performance by an estimated 25%.` : ''
+
+  const verbSynonyms: Record<string, string> = { led: 'Directed', built: 'Engineered', designed: 'Architected', managed: 'Oversaw', created: 'Established', grew: 'Scaled', drove: 'Propelled', shipped: 'Delivered' }
+  const firstWords = bulletLines.map((line) => line.trim().split(/\s+/)[0]?.toLowerCase() ?? '')
+  const duplicateVerbIdx = firstWords.findIndex((w, i) => w && firstWords.indexOf(w) !== i)
+  const duplicateVerbLine = duplicateVerbIdx >= 0 ? bulletLines[duplicateVerbIdx] : undefined
+  const duplicateVerbAiVersion = duplicateVerbLine
+    ? duplicateVerbLine.replace(/^\S+/, (verb) => verbSynonyms[verb.toLowerCase()] ?? 'Spearheaded')
+    : ''
 
   const sections: Array<{ number: number; title: string; issues: ATSIssue[]; why: string }> = [
     {
@@ -2751,9 +3057,11 @@ function ATSOverviewPanel({
               label: 'Summary Needs Improvement',
               count: 1,
               desc: 'Your summary does not effectively showcase your qualifications and alignment with the job you are targeting.',
-              howToImprove: 'Rewrite your summary to lead with your title, years of experience, and a clear value proposition. Aim for 3–4 focused sentences that highlight measurable impact.',
               original: resume.summary || 'No professional summary provided.',
               aiVersion: 'Accomplished Product Manager with 5+ years driving SaaS growth and cross-functional team alignment. Proven record of delivering 20%+ revenue improvements through data-informed product roadmaps. Recognized for translating complex user needs into scalable, market-ready features.',
+              prompt: "Fix my professional summary — it isn't showcasing my qualifications or fit for this role.",
+              confirmText: 'Done — I rewrote your summary to lead with your experience and a clear value proposition. Review it on the canvas.',
+              apply: (current: ResumeData) => ({ ...current, summary: 'Accomplished Product Manager with 5+ years driving SaaS growth and cross-functional team alignment. Proven record of delivering 20%+ revenue improvements through data-informed product roadmaps. Recognized for translating complex user needs into scalable, market-ready features.' }),
             }
           : null,
         insights.missingKeywords.length > 0
@@ -2762,9 +3070,24 @@ function ATSOverviewPanel({
               label: 'Missing Job Keywords',
               count: insights.missingKeywords.length,
               desc: `Keywords missing from your resume: ${insights.missingKeywords.slice(0, 4).join(', ')}.`,
-              howToImprove: `Weave these keywords naturally into your experience bullets and skills section: ${insights.missingKeywords.slice(0, 4).join(', ')}. Don't keyword-stuff — add context around each one.`,
               original: resume.skills || 'No skills listed.',
               aiVersion: [resume.skills, ...insights.missingKeywords.slice(0, 3)].filter(Boolean).join(', '),
+              prompt: `Work these missing keywords into my resume: ${insights.missingKeywords.slice(0, 4).join(', ')}.`,
+              confirmText: 'Done — I added those keywords to your skills section without keyword-stuffing.',
+              apply: (current: ResumeData) => ({ ...current, skills: [current.skills, ...insights.missingKeywords.slice(0, 3)].filter(Boolean).join(', ') }),
+            }
+          : null,
+        !resume.certificate.trim()
+          ? {
+              type: 'Minor' as const,
+              label: 'No Certifications Listed',
+              count: 1,
+              desc: 'Adding a relevant certification can strengthen your credibility and help you stand out for this role.',
+              original: '(no certifications listed)',
+              aiVersion: `${resume.title || 'Professional'} Certification`,
+              prompt: "I don't have any certifications listed — suggest one relevant to my role and add it.",
+              confirmText: 'Done — I added a certification relevant to your role. Review it on the canvas.',
+              apply: (current: ResumeData) => ({ ...current, certificate: `${current.title || 'Professional'} Certification`, certificateDate: String(new Date().getFullYear()) }),
             }
           : null,
       ].filter(Boolean) as ATSIssue[],
@@ -2780,9 +3103,24 @@ function ATSOverviewPanel({
               label: 'Methodology Explanation',
               count: urgentCount,
               desc: 'Some of your experience lacks specific approaches and measurable outcomes that showcase domain expertise.',
-              howToImprove: 'Replace vague verbs ("managed", "helped", "worked on") with strong action verbs followed by a quantified result. Format: [Action verb] + [what you did] + [measurable outcome, e.g. 30% faster, $2M ARR].',
-              original: resume.experienceBullets.split('\n').find(Boolean) ?? 'Led product development initiatives.',
+              original: firstBulletLine,
               aiVersion: 'Spearheaded product roadmap for 3 enterprise verticals, accelerating feature delivery by 40% and generating $2.1M in incremental ARR over 18 months.',
+              prompt: "This bullet doesn't show measurable impact — rewrite it with a stronger verb and a quantified result.",
+              confirmText: 'Done — I rewrote that bullet to lead with a strong action verb and a measurable outcome.',
+              apply: (current: ResumeData) => ({ ...current, experienceBullets: replaceBulletLine(current.experienceBullets, firstBulletLine, 'Spearheaded product roadmap for 3 enterprise verticals, accelerating feature delivery by 40% and generating $2.1M in incremental ARR over 18 months.') }),
+            }
+          : null,
+        lowMetricCoverage && lowMetricBullet
+          ? {
+              type: 'Critical' as const,
+              label: 'Limited Quantified Impact',
+              count: bulletLines.length - metricBulletCount,
+              desc: `${bulletLines.length - metricBulletCount} of your ${bulletLines.length} bullets lack measurable results. Recruiters and ATS systems weigh quantified impact heavily.`,
+              original: lowMetricBullet,
+              aiVersion: lowMetricAiVersion,
+              prompt: "Most of my bullets don't have measurable results — add a quantified outcome to one of them.",
+              confirmText: 'Done — I added a measurable outcome to that bullet.',
+              apply: (current: ResumeData) => ({ ...current, experienceBullets: replaceBulletLine(current.experienceBullets, lowMetricBullet, lowMetricAiVersion) }),
             }
           : null,
       ].filter(Boolean) as ATSIssue[],
@@ -2792,24 +3130,43 @@ function ATSOverviewPanel({
       number: 3,
       title: 'Brevity & Effectiveness',
       issues: [
-        {
-          type: 'Minor' as const,
-          label: 'Use of Filler Words',
-          count: 1,
-          desc: 'Your resume contains filler phrases that do not add value and could be streamlined for greater impact.',
-          howToImprove: 'Remove phrases like "responsible for", "assisted with", "worked with". Start every bullet with an active, past-tense verb that states exactly what you accomplished.',
-          original: 'Responsible for managing the product roadmap and working with engineering teams to deliver features on time.',
-          aiVersion: 'Directed product roadmap execution, partnering with 8 engineers to ship 14 features on schedule with 0 critical post-launch issues.',
-        },
+        fillerLine
+          ? {
+              type: 'Minor' as const,
+              label: 'Use of Filler Words',
+              count: 1,
+              desc: 'One of your bullets uses filler phrases that do not add value and could be streamlined for greater impact.',
+              original: fillerLine,
+              aiVersion: fillerAiVersion,
+              prompt: 'This bullet uses filler language like "responsible for" — tighten it up with an active verb.',
+              confirmText: 'Done — I removed the filler language and tightened that bullet.',
+              apply: (current: ResumeData) => ({ ...current, experienceBullets: replaceBulletLine(current.experienceBullets, fillerLine, fillerAiVersion) }),
+            }
+          : null,
+        duplicateVerbLine
+          ? {
+              type: 'Minor' as const,
+              label: 'Repeated Action Verbs',
+              count: 1,
+              desc: 'More than one bullet starts with the same verb. Varying your verbs keeps the resume engaging and avoids sounding repetitive.',
+              original: duplicateVerbLine,
+              aiVersion: duplicateVerbAiVersion,
+              prompt: 'A couple of my bullets start with the same verb — vary the wording on one of them.',
+              confirmText: 'Done — I swapped in a stronger, less repetitive verb for that bullet.',
+              apply: (current: ResumeData) => ({ ...current, experienceBullets: replaceBulletLine(current.experienceBullets, duplicateVerbLine, duplicateVerbAiVersion) }),
+            }
+          : null,
         !hasSkills
           ? {
               type: 'Minor' as const,
               label: 'Skills Section Incomplete',
               count: 1,
               desc: 'Add at least 6 specific skills to improve ATS keyword matching.',
-              howToImprove: 'Add at least 6 specific, relevant skills. Mix hard skills (tools/frameworks) with soft skills that appear in job descriptions for your target role.',
               original: resume.skills || '(empty)',
               aiVersion: [resume.skills, 'Agile', 'Scrum', 'SQL', 'Figma', 'Stakeholder Management', 'Data Analysis'].filter(Boolean).join(', '),
+              prompt: 'My skills section is too short — add more relevant skills.',
+              confirmText: 'Done — I added more relevant skills to round out that section.',
+              apply: (current: ResumeData) => ({ ...current, skills: [current.skills, 'Agile', 'Scrum', 'SQL', 'Figma', 'Stakeholder Management', 'Data Analysis'].filter(Boolean).join(', ') }),
             }
           : null,
       ].filter(Boolean) as ATSIssue[],
@@ -2817,159 +3174,136 @@ function ATSOverviewPanel({
     },
   ]
 
-  const badgeStyle = (type: 'Urgent' | 'Critical' | 'Minor') => {
-    if (type === 'Urgent') return 'bg-red-100 text-red-700'
-    if (type === 'Critical') return 'bg-amber-100 text-amber-700'
-    return 'bg-blue-100 text-blue-700'
+  const issueStyle: Record<'Urgent' | 'Critical' | 'Minor', { badge: string; groupLabel: string }> = {
+    Urgent: { badge: 'bg-red-100 text-red-700', groupLabel: 'Urgent Issues' },
+    Critical: { badge: 'bg-amber-100 text-amber-700', groupLabel: 'Critical Issues' },
+    Minor: { badge: 'bg-blue-100 text-blue-700', groupLabel: 'Minor Issues' },
   }
 
-  const fixedSec = fixSection !== null ? sections[fixSection.secIdx] : null
-  const fixedIssue = fixSection !== null ? fixedSec?.issues[fixSection.issueIdx] : null
+  function toggleWhy(sectionNumber: number) {
+    setExpandedWhy((current) => (current.includes(sectionNumber) ? current.filter((n) => n !== sectionNumber) : [...current, sectionNumber]))
+  }
+
+  const allIssues = sections.flatMap((sec) => sec.issues)
 
   return (
-    <>
-      <aside className="min-h-0 overflow-y-auto rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <div className="h-full overflow-y-auto bg-white p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-bold text-slate-800">Resume Analysis Report</h2>
-        <span className="text-xs text-slate-400">Last updated just now</span>
+      <div className="mb-5 flex items-center gap-2 border-b border-border pb-4">
+        <button onClick={onClose} disabled={!onClose} className="rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground disabled:invisible">
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <h2 className="text-base font-semibold text-foreground">Resume Analysis Report</h2>
       </div>
-
-      {/* Grade + counters */}
-      <div className="mb-5 flex items-center gap-4 rounded-xl border border-slate-200 p-4">
-        <div className={cn('flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border-2 text-lg font-extrabold', gradeColor)}>
-          {grade}
-        </div>
-        <div>
-          <p className={cn('text-xs font-bold', gradeColor.split(' ')[0])}>{gradeLabel}</p>
-          <p className="text-[11px] text-slate-500">Overall score: {score}%</p>
-        </div>
-        <div className="ml-auto flex gap-3 text-center">
-          <div>
-            <p className="text-base font-bold text-red-600">{urgentCount}</p>
-            <p className="text-[9px] font-semibold uppercase tracking-wide text-red-400">Urgent Fix</p>
-          </div>
-          <div>
-            <p className="text-base font-bold text-amber-600">{criticalCount}</p>
-            <p className="text-[9px] font-semibold uppercase tracking-wide text-amber-400">Critical Fix</p>
-          </div>
-          <div>
-            <p className="text-base font-bold text-blue-600">{optionalCount}</p>
-            <p className="text-[9px] font-semibold uppercase tracking-wide text-blue-400">Optional</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Analysis Summary */}
-      <div className="mb-5 rounded-lg bg-slate-50 p-4">
-        <p className="mb-1 text-xs font-bold text-slate-700">Analysis Summary</p>
-        <p className="text-xs leading-5 text-slate-600">{summaryText}</p>
-      </div>
-
-      {/* Job Description (collapsible) */}
-      <button
-        onClick={() => setJdOpen((o) => !o)}
-        className="mb-3 flex w-full items-center justify-between text-xs font-semibold text-slate-600 hover:text-slate-800"
-      >
-        <span>Job Description (optional)</span>
-        {jdOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-      </button>
-      {jdOpen && (
-        <textarea
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
-          placeholder="Paste the job description here to get tailored keyword analysis..."
-          className="lf-input mb-4 h-24 w-full resize-none p-3 text-xs leading-5"
-        />
-      )}
-
-      {/* Keyword match chips */}
-      {insights.matchedKeywords.length > 0 && (
-        <div className="mb-5">
-          <p className="mb-2 text-xs font-semibold text-slate-600">Matched Keywords</p>
-          <div className="flex flex-wrap gap-1.5">
-            {insights.matchedKeywords.map((kw) => (
-              <span key={kw} className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700">
-                ✓ {kw}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="mb-1 border-t border-slate-100" />
 
       {/* Analysis Highlights */}
-      <p className="mb-3 mt-4 text-xs font-bold text-slate-700">Analysis Highlights</p>
-      <div className="space-y-2">
-        {sections.map((sec) => (
-          <div key={sec.number} className="rounded-lg border border-slate-200 overflow-hidden">
-            <button
-              onClick={() => setOpenSection(openSection === sec.number ? null : sec.number)}
-              className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-            >
+      <h3 className="mb-4 text-sm font-semibold text-foreground">Analysis Highlights</h3>
+      <div className="space-y-6">
+        {sections.map((sec) => {
+          const isWhyExpanded = expandedWhy.includes(sec.number)
+          const severityOrder: Array<'Urgent' | 'Critical' | 'Minor'> = ['Urgent', 'Critical', 'Minor']
+          const groups = severityOrder
+            .map((type) => ({ type, issues: sec.issues.filter((issue) => issue.type === type) }))
+            .filter((group) => group.issues.length > 0)
+
+          return (
+            <div key={sec.number}>
               <div className="flex items-center gap-2.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 text-[10px] font-bold text-white">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                   {sec.number}
                 </span>
-                <span className="text-xs font-semibold text-slate-800">{sec.title}</span>
+                <span className="text-sm font-semibold text-foreground">{sec.title}</span>
               </div>
-              {openSection === sec.number ? (
-                <ChevronUp className="h-3.5 w-3.5 text-slate-400" />
-              ) : (
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-              )}
-            </button>
+              <div className="mt-3 border-t border-border" />
 
-            {openSection === sec.number && (
-              <div className="border-t border-slate-100 px-4 pb-4 pt-3">
-                {sec.issues.length === 0 ? (
-                  <p className="text-xs text-emerald-600">✓ No issues found in this area.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {sec.issues.map((issue, issueIdx) => (
-                      <div key={issue.label}>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold', badgeStyle(issue.type))}>
-                            {issue.type}
-                          </span>
-                          <span className="text-[11px] font-semibold text-slate-700">{issue.label}</span>
-                          <span className="text-[10px] text-slate-400">· {issue.count} {issue.count === 1 ? 'issue' : 'issues'}</span>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setFixSection({ secIdx: sec.number - 1, issueIdx }) }}
-                            className="ml-auto rounded border border-primary/30 bg-primary/5 px-2 py-0.5 text-[10px] font-bold text-primary transition-colors hover:bg-primary/10"
-                          >
-                            FIX
-                          </button>
+              {groups.length === 0 ? (
+                <p className="mt-3 text-xs font-medium text-green-600">✓ No issues found in this area.</p>
+              ) : (
+                groups.map((group) => (
+                  <div key={group.type} className="mt-4">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{issueStyle[group.type].groupLabel}</p>
+                    <div className="space-y-2">
+                      {group.issues.map((issue) => (
+                        <div key={issue.label} className="lf-panel p-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[13px] font-semibold text-foreground">{issue.label}</span>
+                            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', issueStyle[issue.type].badge)}>
+                              {issue.count} {issue.count === 1 ? 'issue' : 'issues'}
+                            </span>
+                            <button
+                              onClick={() => onApplyFix(issue.apply, issue.prompt, issue.confirmText)}
+                              className="ml-auto text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                            >
+                              Fix
+                            </button>
+                          </div>
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">{issue.desc}</p>
                         </div>
-                        <p className="text-[11px] leading-4 text-slate-600">{issue.desc}</p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                )}
-                <div className="mt-3 border-t border-slate-100 pt-3">
-                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Why This Is Important</p>
-                  <p className="text-[11px] leading-4 text-slate-500">{sec.why}</p>
-                </div>
+                ))
+              )}
+
+              <div className="mt-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Why This Is Important</p>
+                <p className={cn('mt-1.5 text-sm leading-6 text-slate-700', !isWhyExpanded && 'line-clamp-2')}>{sec.why}</p>
+                <button
+                  onClick={() => toggleWhy(sec.number)}
+                  className="mt-2 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  {isWhyExpanded ? 'Show less' : 'Learn why this matters'}
+                </button>
               </div>
-            )}
-          </div>
-        ))}
+            </div>
+          )
+        })}
       </div>
 
       {/* CTA */}
-      <button className="mt-5 w-full rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700">
-        Begin Improvements Now
-      </button>
-      </aside>
-      {fixSection !== null && fixedSec && fixedIssue && (
-        <ATSSectionFixPanel
-          section={{ title: fixedSec.title, why: fixedSec.why }}
-          issue={fixedIssue}
-          onClose={() => setFixSection(null)}
-        />
+      {allIssues.length > 0 && (
+        <button
+          onClick={() => onApplyAllFixes(allIssues)}
+          className="mt-8 w-full rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+        >
+          Fix All
+        </button>
       )}
-    </>
+    </div>
+  )
+}
+
+type ApplyFix = (updater: (current: ResumeData) => ResumeData, prompt: string, confirmText: string) => void
+type ApplyAllFixes = (issues: Array<{ apply: (current: ResumeData) => ResumeData; prompt: string; confirmText: string }>) => void
+
+function ATSReportDrawer({
+  resume,
+  jobDescription,
+  onClose,
+  onApplyFix,
+  onApplyAllFixes,
+}: {
+  resume: ResumeData
+  jobDescription: string
+  onClose: () => void
+  onApplyFix: ApplyFix
+  onApplyAllFixes: ApplyAllFixes
+}) {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setVisible(true))
+    return () => cancelAnimationFrame(raf)
+  }, [])
+
+  return (
+    <aside
+      className={cn(
+        'fixed inset-y-0 right-0 z-50 w-full overflow-hidden border-l border-border bg-white shadow-2xl transition-transform duration-300 ease-out sm:w-[460px]',
+        visible ? 'translate-x-0' : 'translate-x-full',
+      )}
+    >
+      <ATSOverviewPanel resume={resume} jobDescription={jobDescription} onClose={onClose} onApplyFix={onApplyFix} onApplyAllFixes={onApplyAllFixes} />
+    </aside>
   )
 }
 
@@ -3550,8 +3884,8 @@ export default function ResumeBuilder() {
   if (screen === 'upload') return <UploadResumeScreen setScreen={setScreen} skipTemplate={mode === 'resume'} />
   if (screen === 'template') return <TemplateSelectScreen setScreen={setScreen} templateId={templateId} setTemplateId={setTemplateId} nextScreen={nextScreenAfterTemplate} />
   if (screen === 'jobTitle') return <JobTitleScreen setScreen={setScreen} resume={resume} setResume={setResume} />
-  if (screen === 'canvas') return <CanvasScreen setScreen={setScreen} resume={resume} setResume={setResume} templateId={templateId} setTemplateId={setTemplateId} jobDescription={jobDescription} setJobDescription={setJobDescription} showJdHint={mode === 'resume' || mode === 'tailor'} />
-  if (screen === 'ats') return <ATSScreen setScreen={setScreen} resume={resume} setResume={setResume} jobDescription={jobDescription} setJobDescription={setJobDescription} />
+  if (screen === 'canvas') return <CanvasScreen setScreen={setScreen} resume={resume} setResume={setResume} templateId={templateId} setTemplateId={setTemplateId} jobDescription={jobDescription} setJobDescription={setJobDescription} />
+  if (screen === 'ats') return <ATSScreen setScreen={setScreen} resume={resume} setResume={setResume} jobDescription={jobDescription} />
   if (screen === 'preview') return <PreviewScreen setScreen={setScreen} resume={resume} />
   if (screen === 'experienceList') return <ExperienceList setScreen={setScreen} />
   if (screen === 'experienceForm') return <ExperienceForm setScreen={setScreen} />
