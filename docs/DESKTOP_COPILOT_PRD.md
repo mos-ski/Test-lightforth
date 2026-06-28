@@ -1,9 +1,9 @@
 # Lightforth Copilot (Desktop) — Product Requirements Document
 
-**Version:** 1.0
-**Status:** Draft / In-Review
-**Author:** Product
-**Product:** A stealth, real-time AI assistant that runs on a user's desktop during live interviews, coding assessments, meetings, and sales calls — sold as three distinct products to three distinct buyers.
+- **Version:** 1.0
+- **Status:** Draft / In-Review
+- **Author:** Product
+- **Product:** A stealth, real-time AI assistant that runs on a user's desktop during live interviews, coding assessments, meetings, and sales calls — sold as three distinct products to three distinct buyers.
 
 ---
 
@@ -209,11 +209,80 @@ Credits are tied to session length, not session count: a session **under 1 hour 
 
 ---
 
-## 12. Decisions (resolved from the prior open questions)
+## 12. User Stories & Acceptance Criteria
 
-1. **Audio source for multi-speaker detection — resolved.** Captured from the other party's side of the call (the interviewer, the meeting attendees, the customer/prospect), not the user's own microphone. The assistant must distinguish between multiple distinct voices on that side whenever more than one person is present. See §5.3.
-2. **Enterprise data retention — resolved.** Up to 90 days for call transcripts and recordings. Role-based access control is explicitly deferred to a later phase — for MVP, the admin has unrestricted access to every area of their own dashboard, with no separate permission tiers yet. See §7.3 and §9.
-3. **Compliance — resolved (deferred).** SOC 2, consent disclosures, and data-residency guarantees are out of scope for MVP. This is revisited once real enterprise demand makes it necessary, not before.
-4. **Self-serve seat activation — resolved.** No self-serve. The admin always activates (and pays for) each rep's seat. See §7.3.
-5. **Exam proctoring conflicts — intentionally not specified here.** This PRD does not document "defeating anti-cheating/proctoring software" as a product requirement. Helping a candidate evade the controls a certification or licensing body uses to verify a test-taker's own knowledge is a materially different kind of harm than the interview/meeting "stealth" framing used elsewhere in this document (§5.5) — it's enabling fraud against whoever issues the credential and against anyone who later relies on it. If Exam Copilot's $500 price point is meant to be justified specifically by defeating proctoring, that's a product direction worth a direct conversation with whoever owns this line, not something to quietly formalize in a requirements doc. Everything else about Exam Copilot already documented in §6 (one-time pricing, dedicated landing/checkout, screenshot-based Q&A) stands as-is.
-6. **Credit/usage limits — resolved.** See "How a credit is consumed" under §8: under 1 hour = 1 credit, each additional full hour = 1 more credit, with a low-balance notification before the user's last hour of credit runs out.
+### Individual — Regular Copilot
+
+**US-1. Sign-up and payment happen on the website, not in the app.**
+As an individual job seeker, I want to create my account and pay on the website, so that the desktop app stays focused on just running my live sessions.
+
+- Given I open the desktop app for the first time, when I reach the welcome screen, then I see three ways to continue — Email, Google, LinkedIn (in that order) — and a separate "Sign in" link for returning users.
+- Given I choose any of the three sign-up methods, when I click it, then I'm taken to the website to complete account creation and payment; no pricing or payment screen exists inside the desktop app itself.
+- Given I've completed checkout on the website, when I return to the desktop app, then I land on sign-in with my email already filled in, and only need to enter my password.
+- Given I try to sign in with an email that has no account yet, when I submit, then I see an inline error directing me to sign up on the website — I am never silently dropped into a broken or missing screen.
+
+**US-2. My plan determines exactly which use cases I can reach.**
+As a Pro or Premium subscriber, I want to only see the use cases I've paid for, so that I'm never confused or tempted by a feature I haven't unlocked.
+
+- Given I'm signed in on a Pro plan, when I reach setup, then I see exactly Interview and Coding as tabs — Meeting is not present anywhere on screen, not just disabled.
+- Given I'm signed in on a Premium plan, when I reach setup, then I see Interview, Coding, and Meeting.
+- Given my account upgrades from Pro to Premium on the website, when I next sign in, then Meeting becomes available without any other change to my setup.
+
+**US-3. Copilot keeps up when more than one other person is talking.**
+As a user in a live Interview or Meeting session, I want Copilot to tell multiple other speakers apart, so that I get the right context no matter who's asking.
+
+- Given a session is live, when audio comes in, then it's captured from the other party's side of the call, not my own microphone.
+- Given a new voice that hasn't been heard yet joins the conversation, when it speaks, then it's automatically tracked as distinct from voices already identified — I never have to manually introduce an attendee.
+- Given one speaker cuts into another speaker's question before they finish, when that happens, then the interjection is visually distinguishable from a normal back-and-forth turn in my transcript.
+
+**US-4. I always know how my credits are being spent.**
+As a subscriber, I want to understand my credit usage in real time, so that I'm never surprised mid-session.
+
+- Given a session runs under 1 hour, when it ends, then exactly 1 credit is deducted.
+- Given a session runs past a full additional hour, when each hour completes, then 1 more credit is deducted (a 2-hour session costs 2 credits, a 3-hour session costs 3).
+- Given my remaining credit balance drops under 1 hour during a live session, when that threshold is crossed, then I'm notified on screen before I run out.
+
+### Exam candidate
+
+**US-5. Purchase takes me straight into the exam, with nothing in between.**
+As someone who bought Exam Copilot, I want to go directly from sign-in to the exam interface, so that I don't waste time on setup or a use-case picker.
+
+- Given I've completed the Exam Copilot purchase on its dedicated website checkout, when I return to the desktop app and sign in, then I land directly on the Exam screenshot canvas.
+- Given I'm an exam account, when I sign in, then no use-case picker or setup form is shown — there's exactly one thing to land on.
+
+*Note — intentionally out of scope:* this PRD does not specify "defeating anti-cheating or remote-proctoring software" as a requirement for Exam Copilot. Helping a candidate evade the controls a certification or licensing body uses to verify a test-taker's own knowledge is a different kind of harm than the "the other person on the call can't see it" framing used for Interview/Meeting (§5.5) — it risks enabling fraud against whoever issues the credential and against anyone who later relies on it. If the $500 price point is meant to be justified specifically by defeating proctoring, that's a direction worth a direct conversation with whoever owns this product line, not something to quietly write into a requirements doc.
+
+### Enterprise admin
+
+**US-6. I can tell at a glance whether my team is actually using this.**
+As an enterprise admin, I want full visibility into my team's usage from one dashboard, so that I know whether the product is being used and used well.
+
+- Given I open the dashboard, when the Overview page loads, then I see setup-fee status, active-seat count out of total added, total completed calls, the rep with the most calls, and average call length.
+
+**US-7. I only pay for reps who are actually active.**
+As an enterprise admin, I want to control exactly which reps have paid access, so that I'm never billed for someone who isn't using the product.
+
+- Given I add a rep by name and email, when I save them, then they receive an invite code but have no desktop access yet and I am not charged for their seat.
+- Given a rep's seat has not been activated, when they try to sign in with their invite code, then they're clearly told their seat isn't active yet, not silently rejected.
+- Given I activate a rep's seat, when I do, then I'm billed $79/mo for that seat starting immediately, independent of every other rep's status.
+- Given I am the admin, when I complete my own setup, then my own seat is active immediately, regardless of whether any rep has been added yet.
+- There is no self-serve path for a rep to activate or expense their own seat — activation is admin-only in this version.
+
+**US-8. Our call data is handled responsibly enough to trust with real client conversations.**
+As an enterprise admin, I want clear limits on how our data is retained and who can see it, so that I can trust the product with real client calls.
+
+- Given a call completes, when it's saved, then its transcript and recording are retained for up to 90 days.
+- Given I am the admin, when I access the dashboard, then I have full access to every area (Knowledge Base, Team, Call History, Billing, Integrations) — there are no separate per-rep permission tiers in this version.
+
+**US-9. My knowledge base actually shapes what the AI says on a call.**
+As an enterprise admin, I want the AI to answer from our own material instead of generic knowledge, so that reps sound like they know our product, not like they're using a generic tool.
+
+- Given I add content to Documents, FAQs, Knowledge Center, Text, or Links, when a rep is on a live call, then the AI's answers draw from that content.
+- Given I want to temporarily silence an entry without losing it, when I toggle it off, then it stops being used but remains saved.
+
+### Enterprise rep
+
+**US-10. Copilot keeps up even when more than one person joins from the prospect's side.**
+As an enterprise rep on a live sales call, I want Copilot to tell multiple prospect-side voices apart, so that I don't lose the thread when a second stakeholder joins partway through.
+
+- Given more than one voice is present on the prospect's side of the call, when each speaks, then Copilot tracks and labels them as distinct speakers, the same way it does for an Interview or Meeting session.
