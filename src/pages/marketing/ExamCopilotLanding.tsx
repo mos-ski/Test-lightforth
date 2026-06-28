@@ -26,7 +26,7 @@ const PRICING_BULLETS = [
 const FAQ_ITEMS = [
   {
     q: 'Can my proctor see this?',
-    a: "No. Exam Copilot only renders on your display — it doesn't appear in screen recordings, shared screens, or remote-proctoring capture.",
+    a: "No. Exam Ghost only renders on your display — it doesn't appear in screen recordings, shared screens, or remote-proctoring capture.",
   },
   {
     q: 'How fast is the answer, really?',
@@ -47,7 +47,7 @@ export default function ExamCopilotLanding() {
 
       <section className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:py-28">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-600">Exam Copilot</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-600">Exam Ghost</p>
           <h1 className="mt-4 text-4xl font-black leading-[1.1] tracking-tight text-slate-900 sm:text-5xl">
             The proctor sees a calm test-taker.
             <br />
@@ -63,7 +63,7 @@ export default function ExamCopilotLanding() {
               className="bg-amber-500 text-white hover:bg-amber-600"
               onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Get Exam Copilot — ${EXAM_PRICE}
+              Get Exam Ghost — ${EXAM_PRICE}
             </Button>
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function ExamCopilotLanding() {
           <h2 className="text-2xl font-bold text-slate-900">One price. Lifetime access.</h2>
           <article className="mt-8 rounded-2xl border border-amber-200 bg-white p-8 text-left shadow-lg shadow-amber-900/5">
             <div className="flex items-baseline justify-between">
-              <h3 className="text-lg font-black text-slate-900">Exam Copilot</h3>
+              <h3 className="text-lg font-black text-slate-900">Exam Ghost</h3>
               <p className="text-3xl font-black text-slate-900">
                 ${EXAM_PRICE} <span className="text-sm font-medium text-slate-500">one-time</span>
               </p>
@@ -117,7 +117,7 @@ export default function ExamCopilotLanding() {
               ))}
             </ul>
             <Button size="lg" className="mt-8 w-full bg-amber-500 text-white hover:bg-amber-600" onClick={() => navigate('/copilot/exam/checkout')}>
-              Get Exam Copilot — ${EXAM_PRICE}
+              Get Exam Ghost — ${EXAM_PRICE}
             </Button>
           </article>
         </div>

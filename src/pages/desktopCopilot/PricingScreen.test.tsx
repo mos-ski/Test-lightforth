@@ -8,10 +8,10 @@ describe('PricingScreen', () => {
     render(<PricingScreen onBack={() => {}} onSelect={() => {}} />)
     expect(screen.getByText('Pro')).toBeInTheDocument()
     expect(screen.getByText('$49')).toBeInTheDocument()
-    expect(screen.getByText('100 Credits')).toBeInTheDocument()
+    expect(screen.getByText('50 Credits')).toBeInTheDocument()
     expect(screen.getByText('Premium')).toBeInTheDocument()
     expect(screen.getByText('$79')).toBeInTheDocument()
-    expect(screen.getByText('250 Credits')).toBeInTheDocument()
+    expect(screen.getByText('100 Credits')).toBeInTheDocument()
     expect(screen.getByText('Most Popular')).toBeInTheDocument()
   })
 

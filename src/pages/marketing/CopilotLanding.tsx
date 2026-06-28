@@ -19,8 +19,8 @@ const FEATURES = [
 ]
 
 const PLAN_BULLETS: Record<PlanId, string[]> = {
-  pro: ['Interview & Coding Copilot', '100 credits / month', 'Real-time answers, every session'],
-  premium: ['Everything in Pro, plus Meeting Copilot', '250 credits / month', 'Priority response speed', 'Best for daily interview prep'],
+  pro: ['Interview & Coding Copilot', '50 credits / month', 'Real-time answers, every session'],
+  premium: ['Everything in Pro, plus Meeting Copilot', '100 credits / month', 'Priority response speed', 'Best for daily interview prep'],
 }
 
 const FAQ_ITEMS = [

@@ -9,8 +9,8 @@ export default function ExamCheckoutPage() {
 
   return (
     <CheckoutFlow
-      productLabel="Exam Copilot"
-      lineItems={[{ label: 'Exam Copilot — one-time', amount: `$${EXAM_PRICE}` }]}
+      productLabel="Exam Ghost"
+      lineItems={[{ label: 'Exam Ghost — one-time', amount: `$${EXAM_PRICE}` }]}
       totalLabel={`$${EXAM_PRICE}`}
       payButtonLabel={`Pay $${EXAM_PRICE}`}
       accentClassName="bg-amber-500 hover:bg-amber-600"

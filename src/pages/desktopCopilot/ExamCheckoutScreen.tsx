@@ -20,7 +20,7 @@ export function ExamCheckoutScreen({ onPaid, onBack }: { onPaid: () => void; onB
         </button>
         <h1 className="mb-2 text-2xl font-bold text-white">Confirm payment</h1>
         <p className="mb-6 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-          ${EXAM_PRICE} one-time — Exam Copilot
+          ${EXAM_PRICE} one-time — Exam Ghost
         </p>
 
         <div className="space-y-4 rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
@@ -78,14 +78,14 @@ export function ExamCheckoutSuccessScreen({ onContinue }: { onContinue: () => vo
       </div>
       <h1 className="mb-3 text-2xl font-bold text-white">You're all set</h1>
       <p className="mb-8 max-w-sm text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
-        Your Exam Copilot purchase is complete. Taking you straight to your exam session — no setup needed.
+        Your Exam Ghost purchase is complete. Taking you straight to your exam session — no setup needed.
       </p>
       <button
         onClick={onContinue}
         className="h-11 rounded-xl px-8 text-sm font-bold text-white hover:opacity-90"
         style={{ background: BLUE }}
       >
-        Continue to Exam Copilot
+        Continue to Exam Ghost
       </button>
     </div>
   )

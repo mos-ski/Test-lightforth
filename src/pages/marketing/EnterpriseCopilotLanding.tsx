@@ -25,7 +25,7 @@ const PRICING_BULLETS = [
 const FAQ_ITEMS = [
   {
     q: "How is this different from Gong or Chorus?",
-    a: "Call-intelligence tools tell you what went wrong after the call ends. Copilot answers the objection while the rep is still on the line — coaching happens in the moment that decides the deal, not in a Monday recap.",
+    a: "Call-intelligence tools tell you what went wrong after the call ends. Sales Closer AI answers the objection while the rep is still on the line — coaching happens in the moment that decides the deal, not in a Monday recap.",
   },
   {
     q: 'What does the $5,000 setup fee actually cover?',
@@ -41,7 +41,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What if there's more than one person on the prospect's side of the call?",
-    a: "Copilot tells the voices on the other end apart, so the answer it surfaces still applies to whoever's actually asking — your rep doesn't lose the thread when a second stakeholder joins partway through.",
+    a: "Sales Closer AI tells the voices on the other end apart, so the answer it surfaces still applies to whoever's actually asking — your rep doesn't lose the thread when a second stakeholder joins partway through.",
   },
 ]
 
@@ -55,7 +55,7 @@ export default function EnterpriseCopilotLanding() {
       <section className="bg-[#08285c] px-6 py-20 lg:py-28">
         <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-300">For sales teams</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-300">Sales Closer AI</p>
             <h1 className="mt-4 text-4xl font-black leading-[1.1] tracking-tight text-white sm:text-5xl">
               Stop losing deals to reps who freeze on objections.
             </h1>
@@ -80,7 +80,7 @@ export default function EnterpriseCopilotLanding() {
               lines={[
                 { speaker: 'Prospect', text: "It's more than we budgeted for this year." },
                 {
-                  speaker: 'Copilot',
+                  speaker: 'Sales Closer AI',
                   text: 'Reframe around the cost of staying put — ask what the status quo is actually costing them per month...',
                   isAnswer: true,
                 },
@@ -113,7 +113,7 @@ export default function EnterpriseCopilotLanding() {
         <div className="mx-auto max-w-3xl px-6 text-center">
           <h2 className="text-2xl font-bold text-slate-900">Simple, per-seat pricing</h2>
           <article className="mt-8 rounded-2xl border border-teal-200 bg-white p-8 text-left shadow-lg shadow-teal-900/5">
-            <h3 className="text-lg font-black text-slate-900">Enterprise</h3>
+            <h3 className="text-lg font-black text-slate-900">Sales Closer AI</h3>
             <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <p className="text-2xl font-black text-slate-900">
                 $5,000 <span className="text-sm font-medium text-slate-500">one-time setup</span>

@@ -13,7 +13,7 @@ High-stakes live conversations — job interviews, technical assessments, client
 
 Lightforth Copilot removes that disadvantage. It listens (or watches the screen), understands what's being asked in real time, and surfaces the right response — invisibly, so the other party never knows it's there.
 
-The product serves three very different buyers with three very different needs, so it is packaged and sold as three separate products built on one shared core engine.
+The product serves three very different buyers with three very different needs, so it is packaged and sold as three separate products built on one shared core engine: **Regular Copilot** (Interview, Coding, Meeting), **Exam Ghost** (proctored professional exams), and **Sales Closer AI** (enterprise sales teams).
 
 ---
 
@@ -35,8 +35,8 @@ Three products, three buyers, one underlying engine:
 |---|---|---|---|
 | **Regular Copilot — Pro** | Individual | **$49/mo** | Interview and Coding use cases |
 | **Regular Copilot — Premium** | Individual | **$79/mo** | Everything in Pro, **plus** the Meeting use case |
-| **Exam Copilot** | Individual | **$500 one-time** | Exam use case only — no subscription, no other use cases |
-| **Enterprise Sales Copilot** | Company (admin buys on behalf of team) | **$5,000 one-time setup fee** + **$79/seat/month** | Sales Call use case for every activated rep, plus a web admin dashboard for the company |
+| **Exam Ghost** | Individual | **$500 one-time** | Exam use case only — no subscription, no other use cases |
+| **Sales Closer AI** | Company (admin buys on behalf of team) | **$5,000 one-time setup fee** + **$79/seat/month** | Sales Call use case for every activated rep, plus a web admin dashboard for the company |
 
 Each product has its own landing page, its own checkout, and its own first-run destination after purchase. A buyer should never see pricing, features, or setup steps belonging to a product they didn't choose.
 
@@ -119,17 +119,17 @@ A single, clear "End" action. On completion, the user gets confirmation that the
 
 ## 6. Core Experience: The Screenshot Canvas (Coding & Exam)
 
-Coding rounds and exams aren't spoken conversations — they're a question on screen that needs an answer. This is a separate, simpler canvas pattern shared by the Coding use case (under Regular Copilot) and the standalone Exam Copilot.
+Coding rounds and exams aren't spoken conversations — they're a question on screen that needs an answer. This is a separate, simpler canvas pattern shared by the Coding use case (under Regular Copilot) and the standalone Exam Ghost.
 
 - **Auto-capture by default.** The assistant watches the screen and automatically captures and answers new questions as they appear — the user shouldn't have to remember to trigger anything during a timed exam.
 - **Manual override always available.** Power users or edge cases (a question the auto-capture missed, or wanting to force a re-read) can trigger a capture manually at any time. Two ways to trigger it, so the user isn't boxed into one input method (e.g., a single key press, or a key combination) — both must always work side-by-side with auto-capture, never one replacing the other.
 - Response streams in the same way as the live canvas: fast, visibly "thinking," then answering.
 
-**Exam Copilot specifically:** after purchase, the user goes straight from download/sign-in to this canvas. There is no use-case picker, no setup screen asking which use case they want — they bought exactly one thing and should land on exactly that.
+**Exam Ghost specifically:** after purchase, the user goes straight from download/sign-in to this canvas. There is no use-case picker, no setup screen asking which use case they want — they bought exactly one thing and should land on exactly that.
 
 ---
 
-## 7. Enterprise Sales Copilot — Admin Dashboard
+## 7. Sales Closer AI — Admin Dashboard
 
 This is the part of the product that doesn't live in the desktop app at all — it's a web dashboard for the company admin who bought the product. Think of it as the control plane for everything the sales team's Copilot says and does.
 
@@ -245,12 +245,12 @@ As a subscriber, I want to understand my credit usage in real time, so that I'm 
 ### Exam candidate
 
 **US-5. Purchase takes me straight into the exam, with nothing in between.**
-As someone who bought Exam Copilot, I want to go directly from sign-in to the exam interface, so that I don't waste time on setup or a use-case picker.
+As someone who bought Exam Ghost, I want to go directly from sign-in to the exam interface, so that I don't waste time on setup or a use-case picker.
 
-- Given I've completed the Exam Copilot purchase on its dedicated website checkout, when I return to the desktop app and sign in, then I land directly on the Exam screenshot canvas.
+- Given I've completed the Exam Ghost purchase on its dedicated website checkout, when I return to the desktop app and sign in, then I land directly on the Exam screenshot canvas.
 - Given I'm an exam account, when I sign in, then no use-case picker or setup form is shown — there's exactly one thing to land on.
 
-*Note — intentionally out of scope:* this PRD does not specify "defeating anti-cheating or remote-proctoring software" as a requirement for Exam Copilot. Helping a candidate evade the controls a certification or licensing body uses to verify a test-taker's own knowledge is a different kind of harm than the "the other person on the call can't see it" framing used for Interview/Meeting (§5.5) — it risks enabling fraud against whoever issues the credential and against anyone who later relies on it. If the $500 price point is meant to be justified specifically by defeating proctoring, that's a direction worth a direct conversation with whoever owns this product line, not something to quietly write into a requirements doc.
+*Note — intentionally out of scope:* this PRD does not specify "defeating anti-cheating or remote-proctoring software" as a requirement for Exam Ghost. Helping a candidate evade the controls a certification or licensing body uses to verify a test-taker's own knowledge is a different kind of harm than the "the other person on the call can't see it" framing used for Interview/Meeting (§5.5) — it risks enabling fraud against whoever issues the credential and against anyone who later relies on it. If the $500 price point is meant to be justified specifically by defeating proctoring, that's a direction worth a direct conversation with whoever owns this product line, not something to quietly write into a requirements doc.
 
 ### Enterprise admin
 
