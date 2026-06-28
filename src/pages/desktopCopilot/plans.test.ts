@@ -7,10 +7,9 @@ describe('plans config', () => {
     expect(PLANS.map(p => p.id)).toEqual(['pro', 'premium'])
   })
 
-  it('Pro and Premium both unlock interview, coding, and meeting (exam is its own standalone product)', () => {
-    for (const id of ['pro', 'premium'] as const) {
-      expect(getPlan(id).unlockedUseCases).toEqual(['interview', 'coding', 'meeting'])
-    }
+  it('Pro unlocks interview and coding only; Premium adds meeting on top', () => {
+    expect(getPlan('pro').unlockedUseCases).toEqual(['interview', 'coding'])
+    expect(getPlan('premium').unlockedUseCases).toEqual(['interview', 'coding', 'meeting'])
   })
 
   it('only Premium is marked popular', () => {

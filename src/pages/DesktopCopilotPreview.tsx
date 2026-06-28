@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Bell, Check, ChevronDown, CornerDownRight, ExternalLink, FileText, HelpCircle, Mic, Play, Settings, Sparkles, Upload, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getUseCase, type UseCaseId } from './desktopCopilot/useCases'
 import { BG, CARD, BORDER, INPUT_BG, INPUT_BD, BLUE, formatTime, LightningLogo, MacWindow, Toggle } from './desktopCopilot/shared'
-import type { PlanId } from './desktopCopilot/plans'
+import { getPlan, type PlanId } from './desktopCopilot/plans'
 import { SignInScreen } from './desktopCopilot/SignInScreen'
-import { PricingScreen } from './desktopCopilot/PricingScreen'
-import { PaymentScreen } from './desktopCopilot/PaymentScreen'
 import { ExamCheckoutScreen, ExamCheckoutSuccessScreen } from './desktopCopilot/ExamCheckoutScreen'
 import { setAccount } from './desktopCopilot/mockAccounts'
 import { findMemberByEmail, recordCall } from '@/pages/sales/mockOrg'
@@ -34,7 +32,7 @@ const MOCK_RESUMES = [
   { name: 'Darnell Smith', role: 'Software Engineer', date: '3rd Jan, 2026' },
 ]
 
-type DesktopView = 'splash' | 'onboarding' | 'sign-in' | 'pricing' | 'payment' | 'exam-checkout' | 'exam-checkout-success' | 'regular-setup' | 'setup' | 'live' | 'complete'
+type DesktopView = 'splash' | 'onboarding' | 'sign-in' | 'exam-checkout' | 'exam-checkout-success' | 'regular-setup' | 'setup' | 'live' | 'complete'
 type CopilotStatus = 'listening' | 'processing' | 'answering'
 
 // ---------------------------------------------------------------------------
@@ -603,8 +601,9 @@ function SuggestInput({ value, onChange, placeholder, suggestions }: { value: st
   )
 }
 
-export function RegularSetupScreen({ onBack, onContinue }: { onBack: () => void; onContinue: (useCaseId: RegularUseCase, primaryLabel: string) => void }) {
-  const [activeTab, setActiveTab] = useState<RegularUseCase>('interview')
+export function RegularSetupScreen({ onBack, onContinue, unlockedUseCases }: { onBack: () => void; onContinue: (useCaseId: RegularUseCase, primaryLabel: string) => void; unlockedUseCases: RegularUseCase[] }) {
+  const availableTabs = REGULAR_TABS.filter(tab => unlockedUseCases.includes(tab.id))
+  const [activeTab, setActiveTab] = useState<RegularUseCase>(availableTabs[0]?.id ?? 'interview')
   const [jobTitle, setJobTitle] = useState('')
   const [jobDesc, setJobDesc] = useState('')
   const [language, setLanguage] = useState('')
@@ -646,7 +645,7 @@ export function RegularSetupScreen({ onBack, onContinue }: { onBack: () => void;
 
       <div className="flex flex-shrink-0 justify-center border-b py-4" style={{ borderColor: BORDER }}>
         <div className="inline-flex items-center gap-1 rounded-full p-1" style={{ background: INPUT_BG }}>
-          {REGULAR_TABS.map(tab => {
+          {availableTabs.map(tab => {
             const Icon = getUseCase(tab.id).icon
             return (
               <button
@@ -1342,6 +1341,7 @@ export function CompleteScreen({ useCaseId, onBack, onGoHome }: { useCaseId: Use
 // Main
 // ---------------------------------------------------------------------------
 export default function DesktopCopilotPreview() {
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const recognizedEmail = searchParams.get('email')
 
@@ -1359,7 +1359,7 @@ export default function DesktopCopilotPreview() {
     <MacWindow
       blendBar={
         view === 'splash' || view === 'onboarding' || view === 'sign-in' ||
-        view === 'pricing' || view === 'payment' || view === 'exam-checkout' ||
+        view === 'exam-checkout' ||
         view === 'exam-checkout-success' || view === 'regular-setup' || view === 'complete'
       }
       transparency={view === 'live' ? transparency : 0}
@@ -1370,15 +1370,14 @@ export default function DesktopCopilotPreview() {
         <SignInScreen
           prefillEmail={recognizedEmail ?? undefined}
           onBack={() => setView('onboarding')}
+          onSignUp={() => navigate('/copilot')}
           onContinue={({ email, track, existingAccount }) => {
             setPendingEmail(email)
             if (track === 'enterprise-invite') {
               setUseCase('sales-call')
               setReturnView('sign-in')
               setView('setup')
-            } else if (track === 'exam-signup') {
-              setView('exam-checkout')
-            } else if (track === 'regular-signin' && existingAccount) {
+            } else if (existingAccount) {
               if (existingAccount.accountType === 'exam') {
                 setUseCase('exam')
                 setReturnView('sign-in')
@@ -1391,22 +1390,7 @@ export default function DesktopCopilotPreview() {
                 if (existingAccount.planId) setSelectedPlan(existingAccount.planId)
                 setView('regular-setup')
               }
-            } else {
-              setView('pricing')
             }
-          }}
-        />
-      )}
-      {view === 'pricing' && (
-        <PricingScreen onBack={() => setView('sign-in')} onSelect={id => { setSelectedPlan(id); setView('payment') }} />
-      )}
-      {view === 'payment' && (
-        <PaymentScreen
-          planId={selectedPlan}
-          onBack={() => setView('pricing')}
-          onPaid={() => {
-            if (pendingEmail) setAccount(pendingEmail, { accountType: 'regular', planId: selectedPlan })
-            setView('regular-setup')
           }}
         />
       )}
@@ -1432,6 +1416,7 @@ export default function DesktopCopilotPreview() {
         <RegularSetupScreen
           onBack={() => setView('sign-in')}
           onContinue={(id, label) => { setUseCase(id); setPrimaryLabel(label); setReturnView('regular-setup'); setView('live') }}
+          unlockedUseCases={getPlan(selectedPlan).unlockedUseCases as RegularUseCase[]}
         />
       )}
       {view === 'setup' && (

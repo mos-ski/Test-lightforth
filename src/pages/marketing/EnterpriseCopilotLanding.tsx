@@ -12,7 +12,7 @@ const PROOF = ['Live during the call, not after it', 'Every rep, same playbook',
 const FEATURES = [
   { icon: Database, title: 'Knowledge base', text: 'Upload your playbook, pricing, and objection handling once.' },
   { icon: UserPlus, title: 'Team management', text: 'Invite reps by email and generate their login in seconds.' },
-  { icon: Headphones, title: 'Live coaching', text: 'Real-time answers during every call, not just after it.' },
+  { icon: Headphones, title: 'Live coaching', text: "Real-time answers during every call, not just after it — even when there's more than one voice on the prospect's side." },
 ]
 
 const PRICING_BULLETS = [
@@ -34,6 +34,14 @@ const FAQ_ITEMS = [
   {
     q: 'Do all my reps need to be live at once?',
     a: 'No. Your own seat activates the moment you pay for it, independent of the rest of the team — add and pay for reps one at a time as you onboard them.',
+  },
+  {
+    q: 'What happens to our call recordings and transcripts?',
+    a: "They're kept for up to 90 days and reviewable in your Call History. For now, the admin who set up the account has access to everything in the dashboard — granular per-rep permissions are on our roadmap, not available yet.",
+  },
+  {
+    q: "What if there's more than one person on the prospect's side of the call?",
+    a: "Copilot tells the voices on the other end apart, so the answer it surfaces still applies to whoever's actually asking — your rep doesn't lose the thread when a second stakeholder joins partway through.",
   },
 ]
 

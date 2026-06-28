@@ -15,12 +15,12 @@ const PROOF = ['Invisible on screen shares & recordings', '~2s average response 
 const FEATURES = [
   { icon: Video, title: 'Interview', text: "Live answers while you talk — timed so it never looks like you're reading." },
   { icon: Code2, title: 'Coding', text: 'Screenshot the problem. Get working code back before you finish re-reading it.' },
-  { icon: Users, title: 'Meeting', text: 'Tracks every speaker and feeds you talking points without anyone noticing.' },
+  { icon: Users, title: 'Meeting', text: "Tells every attendee on the other side apart — even with several people on the call — and feeds you talking points without anyone noticing." },
 ]
 
 const PLAN_BULLETS: Record<PlanId, string[]> = {
-  pro: ['Interview, Coding & Meeting Copilot', '100 credits / month', 'Real-time answers, every session'],
-  premium: ['Interview, Coding & Meeting Copilot', '250 credits / month', 'Priority response speed', 'Best for daily interview prep'],
+  pro: ['Interview & Coding Copilot', '100 credits / month', 'Real-time answers, every session'],
+  premium: ['Everything in Pro, plus Meeting Copilot', '250 credits / month', 'Priority response speed', 'Best for daily interview prep'],
 }
 
 const FAQ_ITEMS = [
@@ -35,6 +35,14 @@ const FAQ_ITEMS = [
   {
     q: 'Does it work on Zoom, Teams, and Google Meet?',
     a: "Yes — it runs as a separate window on your desktop, so it's compatible with any video call software, no plugin or extension required.",
+  },
+  {
+    q: 'What if there\'s more than one interviewer, or several people in the meeting?',
+    a: "Copilot tells the other voices on the call apart and labels who's speaking, so the transcript stays accurate even with a multi-person panel or a full meeting room — you just need to know which voice is yours.",
+  },
+  {
+    q: 'How do credits actually get used?',
+    a: "Credits are based on session length, not session count: a session under an hour is 1 credit, and each additional full hour adds one more. We'll flag it on screen once you've got under an hour of credit left, so you're never caught off guard mid-session.",
   },
 ]
 

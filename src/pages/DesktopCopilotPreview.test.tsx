@@ -5,6 +5,7 @@ import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { SetupScreen, RegularSetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas, CompleteScreen } from './DesktopCopilotPreview'
 import { createOrg, emptyKnowledgeBase, generateInviteCode } from './sales/mockOrg'
+import { setAccount } from './desktopCopilot/mockAccounts'
 
 describe('SetupScreen', () => {
   it('renders Position, Resume, and Job description fields for interview', () => {
@@ -38,7 +39,7 @@ describe('SetupScreen', () => {
 
 describe('RegularSetupScreen', () => {
   it('defaults to the Interview tab and swaps fields when Coding or Meeting is clicked', () => {
-    render(<RegularSetupScreen onBack={() => {}} onContinue={() => {}} />)
+    render(<RegularSetupScreen onBack={() => {}} onContinue={() => {}} unlockedUseCases={['interview', 'coding', 'meeting']} />)
     expect(screen.getByText('Position')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Coding' }))
@@ -51,7 +52,7 @@ describe('RegularSetupScreen', () => {
   })
 
   it('requires a label for Interview and Meeting, but Continue is always enabled for Coding', () => {
-    render(<RegularSetupScreen onBack={() => {}} onContinue={() => {}} />)
+    render(<RegularSetupScreen onBack={() => {}} onContinue={() => {}} unlockedUseCases={['interview', 'coding', 'meeting']} />)
     expect(screen.getByText('Continue')).toHaveStyle({ opacity: 0.45 })
 
     fireEvent.click(screen.getByRole('button', { name: 'Coding' }))
@@ -60,11 +61,18 @@ describe('RegularSetupScreen', () => {
 
   it('calls onContinue with the active tab id and label after confirming preference', () => {
     const onContinue = vi.fn()
-    render(<RegularSetupScreen onBack={() => {}} onContinue={onContinue} />)
+    render(<RegularSetupScreen onBack={() => {}} onContinue={onContinue} unlockedUseCases={['interview', 'coding', 'meeting']} />)
     fireEvent.change(screen.getByPlaceholderText('e.g. Product Manager'), { target: { value: 'Staff Engineer' } })
     fireEvent.click(screen.getByText('Continue'))
     fireEvent.click(screen.getByText('Confirm'))
     expect(onContinue).toHaveBeenCalledWith('interview', 'Staff Engineer')
+  })
+
+  it('hides the Meeting tab for plans that have not unlocked it (Pro)', () => {
+    render(<RegularSetupScreen onBack={() => {}} onContinue={() => {}} unlockedUseCases={['interview', 'coding']} />)
+    expect(screen.getByRole('button', { name: 'Interview' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Coding' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Meeting' })).not.toBeInTheDocument()
   })
 })
 
@@ -203,23 +211,18 @@ describe('DesktopCopilotPreview end to end', () => {
     )
   }
 
-  it('walks from splash through sign-up and a Premium purchase straight to the tabbed setup (no picker), then into the Interview canvas', async () => {
+  it('walks from splash through sign-in to a returning Premium account straight to the tabbed setup (no picker), then into the Interview canvas', async () => {
+    setAccount('me@example.com', { accountType: 'regular', planId: 'premium' })
     renderApp()
     await act(async () => { vi.advanceTimersByTime(2300) })
     expect(screen.getByText('Welcome to Lightforth Co-Pilot')).toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Continue'))
+    expect(screen.getByText('Welcome to Lightforth Copilot')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Sign in'))
     fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'me@example.com' } })
     fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
-    fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
     fireEvent.click(screen.getByText('Continue'))
-    expect(screen.getByText('Level Up')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByText('Upgrade to Premium'))
-    fireEvent.change(screen.getByPlaceholderText('1234 1234 1234 1234'), { target: { value: '4242424242424242' } })
-    fireEvent.change(screen.getByPlaceholderText('MM/YY'), { target: { value: '12/30' } })
-    fireEvent.change(screen.getByPlaceholderText('123'), { target: { value: '123' } })
-    fireEvent.click(screen.getByText('Pay $79/mo'))
 
     // Straight onto the tabbed setup — no "What are you using Copilot for?" picker anymore
     expect(screen.queryByText('What are you using Copilot for?')).not.toBeInTheDocument()
@@ -233,21 +236,17 @@ describe('DesktopCopilotPreview end to end', () => {
     expect(screen.getByText('Interview for Staff Engineer')).toBeInTheDocument()
   })
 
-  it('a Pro purchase lands on the tabbed setup, and switching to the Coding tab routes into the screenshot canvas', async () => {
+  it('a returning Pro account lands on the tabbed setup with Meeting hidden, and switching to the Coding tab routes into the screenshot canvas', async () => {
+    setAccount('me2@example.com', { accountType: 'regular', planId: 'pro' })
     renderApp()
     await act(async () => { vi.advanceTimersByTime(2300) })
     fireEvent.click(screen.getByText('Continue'))
+    fireEvent.click(screen.getByText('Sign in'))
     fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'me2@example.com' } })
     fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
-    fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
     fireEvent.click(screen.getByText('Continue'))
 
-    fireEvent.click(screen.getByText('Pro'))
-    fireEvent.change(screen.getByPlaceholderText('1234 1234 1234 1234'), { target: { value: '4242424242424242' } })
-    fireEvent.change(screen.getByPlaceholderText('MM/YY'), { target: { value: '12/30' } })
-    fireEvent.change(screen.getByPlaceholderText('123'), { target: { value: '123' } })
-    fireEvent.click(screen.getByText('Pay $49/mo'))
-
+    expect(screen.queryByRole('button', { name: 'Meeting' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Coding' }))
     expect(screen.getByText(/Language/)).toBeInTheDocument()
     expect(screen.queryByText('Position')).not.toBeInTheDocument()
@@ -255,6 +254,17 @@ describe('DesktopCopilotPreview end to end', () => {
     fireEvent.click(screen.getByText('Continue'))
     fireEvent.click(screen.getByText('Confirm'))
     expect(screen.getAllByText(/Watching your screen/).length).toBeGreaterThan(0)
+  })
+
+  it('signing in with an email that has no account shows an error instead of falling through to a removed pricing screen', async () => {
+    renderApp()
+    await act(async () => { vi.advanceTimersByTime(2300) })
+    fireEvent.click(screen.getByText('Continue'))
+    fireEvent.click(screen.getByText('Sign in'))
+    fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'nobody@example.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
+    fireEvent.click(screen.getByText('Continue'))
+    expect(screen.getByText(/sign up on lightforth\.com first/)).toBeInTheDocument()
   })
 
   it('an invite code at sign-in is validated against the org — wrong code is rejected, correct code activates the seat and skips Pricing', async () => {

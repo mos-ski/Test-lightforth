@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Mail } from 'lucide-react'
 import { BG, INPUT_BG, INPUT_BD, BLUE } from './shared'
 import { getAccount, setAccount } from './mockAccounts'
 import { findMemberByEmail } from '@/pages/sales/mockOrg'
 
-type SignInMode = 'signup' | 'signin' | 'enterprise' | 'exam-signup'
+type SignInMode = 'welcome' | 'signin' | 'enterprise'
 
-export type SignInTrack = 'regular-signup' | 'regular-signin' | 'exam-signup' | 'enterprise-invite'
+export type SignInTrack = 'regular-signin' | 'enterprise-invite'
 
 export interface SignInResult {
   email: string
@@ -18,14 +18,17 @@ export interface SignInResult {
 export function SignInScreen({
   onBack,
   onContinue,
+  onSignUp,
   prefillEmail,
 }: {
   onBack: () => void
   onContinue: (result: SignInResult) => void
+  /** Account creation now happens entirely on the website — this sends the user there. */
+  onSignUp: () => void
   /** Carried over from the website checkout — prefills the email but still requires a real login. */
   prefillEmail?: string
 }) {
-  const [mode, setMode] = useState<SignInMode>(prefillEmail ? 'signin' : 'signup')
+  const [mode, setMode] = useState<SignInMode>(prefillEmail ? 'signin' : 'welcome')
   const [email, setEmail] = useState(prefillEmail ?? '')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -36,14 +39,13 @@ export function SignInScreen({
 
   const canContinue =
     mode === 'enterprise' ? inviteCode.trim().length > 0 && email.trim().length > 0 && password.length > 0 && password === confirmPassword :
-    mode === 'signup' || mode === 'exam-signup' ? email.trim().length > 0 && password.length > 0 && password === confirmPassword :
-    email.trim().length > 0 && password.length > 0
+    mode === 'signin' ? email.trim().length > 0 && password.length > 0 :
+    false
 
   const heading =
     mode === 'enterprise' ? 'Activate your seat' :
-    mode === 'exam-signup' ? 'Sign up for Exam Copilot' :
-    mode === 'signup' ? 'Create your account' :
-    'Welcome back'
+    mode === 'signin' ? 'Welcome back' :
+    'Welcome to Lightforth Copilot'
 
   function handleContinue() {
     if (!canContinue) return
@@ -67,12 +69,13 @@ export function SignInScreen({
         orgName: found.org.orgName,
       })
       onContinue({ email, track: 'enterprise-invite' })
-    } else if (mode === 'exam-signup') {
-      onContinue({ email, track: 'exam-signup' })
-    } else if (mode === 'signin') {
-      onContinue({ email, track: 'regular-signin', existingAccount: getAccount(email) })
     } else {
-      onContinue({ email, track: 'regular-signup' })
+      const existingAccount = getAccount(email)
+      if (!existingAccount) {
+        setError("We couldn't find an account for that email — sign up on lightforth.com first.")
+        return
+      }
+      onContinue({ email, track: 'regular-signin', existingAccount })
     }
   }
 
@@ -87,12 +90,52 @@ export function SignInScreen({
       <p className="mb-8 max-w-lg text-center text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
         {mode === 'enterprise'
           ? "Enter the organizational email and invite code your admin gave you, then create a password. You'll just sign in with email and password after this."
-          : mode === 'exam-signup'
-          ? 'Create an account to purchase Exam Copilot — a $500 one-time purchase that takes you straight to the exam interface.'
-          : 'Sign in or create an account to continue to Lightforth Copilot.'}
+          : mode === 'signin'
+          ? 'Sign in with the email and password you created on lightforth.com.'
+          : 'Sign up on the web to get started, or sign in below if you already have an account.'}
       </p>
 
       <div className="w-full max-w-sm space-y-4">
+        {mode === 'welcome' && (
+          <>
+            <button
+              onClick={onSignUp}
+              className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+              style={{ background: BLUE }}
+            >
+              <Mail className="h-4 w-4" /> Continue with Email
+            </button>
+            <button
+              onClick={onSignUp}
+              className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-bold text-white/90 transition-colors hover:bg-white/10"
+              style={inputStyle}
+            >
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[10px] font-black text-slate-900">G</span>
+              Continue with Google
+            </button>
+            <button
+              onClick={onSignUp}
+              className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-bold text-white/90 transition-colors hover:bg-white/10"
+              style={inputStyle}
+            >
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#0A66C2] text-[10px] font-black text-white">in</span>
+              Continue with LinkedIn
+            </button>
+
+            <p className="pt-2 text-center text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              Already have an account?{' '}
+              <button onClick={() => setMode('signin')} className="font-semibold text-blue-400 hover:underline">
+                Sign in
+              </button>
+            </p>
+            <p className="text-center text-sm">
+              <button onClick={() => setMode('enterprise')} className="font-semibold text-blue-400 hover:underline">
+                I have an invite code
+              </button>
+            </p>
+          </>
+        )}
+
         {mode === 'enterprise' && (
           <div>
             <label className="mb-2 block text-sm font-semibold text-white">Invite code</label>
@@ -106,93 +149,63 @@ export function SignInScreen({
           </div>
         )}
 
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-white">
-            {mode === 'enterprise' ? 'Organizational email' : 'Email'}
-          </label>
-          <input
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-            style={inputStyle}
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-semibold text-white">{mode === 'enterprise' ? 'Create a password' : 'Password'}</label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-            style={inputStyle}
-          />
-        </div>
-
-        {(mode === 'signup' || mode === 'exam-signup' || mode === 'enterprise') && (
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-white">Confirm password</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              placeholder="Confirm your password"
-              className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-              style={inputStyle}
-            />
-          </div>
-        )}
-
-        {error && <p className="text-sm text-red-400">{error}</p>}
-
-        <button
-          onClick={handleContinue}
-          className="h-11 w-full rounded-xl text-sm font-bold text-white transition-opacity"
-          style={{ background: BLUE, opacity: canContinue ? 1 : 0.45 }}
-        >
-          {mode === 'enterprise' ? 'Activate & sign in' : 'Continue'}
-        </button>
-
-        {(mode === 'signup' || mode === 'signin') && (
+        {(mode === 'signin' || mode === 'enterprise') && (
           <>
-            <p className="text-center text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-              {mode === 'signup' ? 'Already have an account? ' : "Don't have an account? "}
-              <button
-                onClick={() => setMode(mode === 'signup' ? 'signin' : 'signup')}
-                className="font-semibold text-blue-400 hover:underline"
-              >
-                {mode === 'signup' ? 'Sign in' : 'Create one'}
-              </button>
-            </p>
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-white">
+                {mode === 'enterprise' ? 'Organizational email' : 'Email'}
+              </label>
+              <input
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
+                style={inputStyle}
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-white">{mode === 'enterprise' ? 'Create a password' : 'Password'}</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
+                style={inputStyle}
+              />
+            </div>
+
+            {mode === 'enterprise' && (
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-white">Confirm password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
+                  style={inputStyle}
+                />
+              </div>
+            )}
+
+            {error && <p className="text-sm text-red-400">{error}</p>}
+
+            <button
+              onClick={handleContinue}
+              className="h-11 w-full rounded-xl text-sm font-bold text-white transition-opacity"
+              style={{ background: BLUE, opacity: canContinue ? 1 : 0.45 }}
+            >
+              {mode === 'enterprise' ? 'Activate & sign in' : 'Continue'}
+            </button>
+
             <p className="text-center text-sm">
-              <button onClick={() => setMode('enterprise')} className="font-semibold text-blue-400 hover:underline">
-                I have an invite code
-              </button>
-            </p>
-            <p className="text-center text-sm">
-              <button onClick={() => setMode('exam-signup')} className="font-semibold text-blue-400 hover:underline">
-                Buy Exam Copilot ($500 one-time)
+              <button onClick={() => setMode('welcome')} className="font-semibold text-blue-400 hover:underline">
+                ← Back
               </button>
             </p>
           </>
-        )}
-
-        {mode === 'exam-signup' && (
-          <p className="text-center text-sm">
-            <button onClick={() => setMode('signup')} className="font-semibold text-blue-400 hover:underline">
-              ← Back to regular sign up
-            </button>
-          </p>
-        )}
-
-        {mode === 'enterprise' && (
-          <p className="text-center text-sm">
-            <button onClick={() => setMode('signin')} className="font-semibold text-blue-400 hover:underline">
-              ← Use regular sign in instead
-            </button>
-          </p>
         )}
       </div>
     </div>
