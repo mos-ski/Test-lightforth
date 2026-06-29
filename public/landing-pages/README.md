@@ -24,10 +24,24 @@ One folder per funnel, `index.html` as the entry point.
 ## Adding a new funnel page
 
 1. `cp _template.html <new-funnel-name>/index.html`
-2. Customize the hero, pricing/offer copy, and FAQ. Keep the CSS variables and base
-   nav/footer markup as-is so it stays visually consistent with the others.
+2. Customize the hero, pricing/offer copy, and FAQ. Keep the CSS variables, the real
+   logo markup, and base nav/footer markup as-is so it stays visually consistent with
+   the others.
 3. Wire up the mock checkout (see "Checkout flow" below) or copy the pattern from
    `concierge/index.html` or `manager/index.html`.
+
+## Design standards
+
+- **Use the real logo** — the inline SVG already in `_template.html`'s nav, same mark
+  `src/components/shared/LightforthLogo.tsx` renders elsewhere in the app. Never swap in
+  a placeholder icon.
+- **Every page needs real motion** — scroll-reveal on each major section, a hero entrance
+  animation, and hover/press feedback on buttons. This is already wired into
+  `_template.html`; keep it when copying from there rather than stripping it out.
+- **Long lead forms (6+ fields) must be a multi-step wizard**, not one long scrolling
+  panel — see `concierge/index.html` for the worked example (progress bar, per-step
+  validation, back/continue). Short forms (~5 fields or fewer, low-friction funnels) stay
+  a single step — see `manager/index.html`.
 
 ## Checkout flow (prototype — no real payment processing)
 
