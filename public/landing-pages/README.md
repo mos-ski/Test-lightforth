@@ -14,12 +14,17 @@ No separate Vercel project needed — these are live the moment the main app dep
 
 ```
 public/landing-pages/
-  _template.html       starter file for a new funnel page
-  concierge/index.html Lightforth Concierge — $500 one-time "Success Manager" upsell
-  manager/index.html   Lightforth Manager — $10 first-month Pro coupon funnel
+  _template.html              starter for a new funnel's landing page
+  _template-checkout.html     starter for that funnel's checkout/index.html
+  concierge/index.html        Lightforth Concierge — $500 one-time "Success Manager" upsell
+  concierge/checkout/index.html   its checkout (separate page, see "Checkout flow" below)
+  manager/index.html          Lightforth Manager — $10 first-month Pro coupon funnel
+  manager/checkout/index.html     its checkout (separate page)
 ```
 
-One folder per funnel, `index.html` as the entry point.
+One folder per funnel, `index.html` as the entry point. Each funnel also has its own
+`checkout/` subfolder — see "Checkout flow" for why that's a separate page rather than
+part of the landing page itself.
 
 ## Adding a new funnel page
 
@@ -27,8 +32,10 @@ One folder per funnel, `index.html` as the entry point.
 2. Customize the hero, pricing/offer copy, and FAQ. Keep the CSS variables, the real
    logo markup, and base nav/footer markup as-is so it stays visually consistent with
    the others.
-3. Wire up the mock checkout (see "Checkout flow" below) or copy the pattern from
-   `concierge/index.html` or `manager/index.html`.
+3. `cp _template-checkout.html <new-funnel-name>/checkout/index.html` for the actual
+   signup/payment flow — it's single-step by default; follow
+   `concierge/checkout/index.html`'s pattern instead if the form needs 6+ fields. Point
+   the landing page's pricing CTA at `checkout/` as a real link, never an inline panel.
 
 ## Design standards
 
@@ -38,25 +45,32 @@ One folder per funnel, `index.html` as the entry point.
 - **Every page needs real motion** — scroll-reveal on each major section, a hero entrance
   animation, and hover/press feedback on buttons. This is already wired into
   `_template.html`; keep it when copying from there rather than stripping it out.
-- **Long lead forms (6+ fields) must be a multi-step wizard**, not one long scrolling
-  panel — see `concierge/index.html` for the worked example (progress bar, per-step
-  validation, back/continue). Short forms (~5 fields or fewer, low-friction funnels) stay
-  a single step — see `manager/index.html`.
+- **Checkout is always a separate page, never an inline panel on the landing page.**
+  The landing page shows the offer/pricing card and links to `checkout/`; that page owns
+  the lead form, the mock card entry, and the success state. This mirrors how
+  `RegularCheckoutPage.tsx` works for the main app's Copilot funnel — marketing content
+  and the actual signup/payment flow are always two different pages.
+- **Long lead forms (6+ fields) must be a multi-step wizard** within the checkout page,
+  not one long scrolling panel — see `concierge/checkout/index.html` for the worked
+  example (progress bar, per-step validation, back/continue). Short forms (~5 fields or
+  fewer, low-friction funnels) stay a single step — see `manager/checkout/index.html`.
 
 ## Checkout flow (prototype — no real payment processing)
 
-Every funnel uses the same pattern: an offer/pricing card → a lead-capture form → a mock
-card-entry panel → a success state, all as same-page show/hide toggles (see the
-`<script>` block at the bottom of each `index.html`). There's no real Stripe integration
-and no backend call — clicking "Pay" just reveals the success state.
+Each checkout page is its own self-contained `index.html` under `<funnel>/checkout/`:
+a lead-capture form (single-step or wizard) → a mock card-entry panel → a success state,
+all as same-page show/hide toggles within that one checkout page (see its `<script>`
+block). There's no real Stripe integration and no backend call — clicking "Pay" just
+reveals the success state. The "← Back" on the first form step, and the nav's
+"← Back to overview" link, navigate back to the landing page (`../`).
 
-Each page's lead form logs the captured fields plus auto-captured UTM params and device
-info to the browser console (`Lead captured (prototype only, not sent anywhere): ...`).
-**Nothing is sent to a CRM yet.** Wiring this to GoHighLevel (or any real CRM/webhook) is
-real backend work — replace the `console.log(...)` in the `<script>` block with a real
-`fetch()` POST once you have a webhook URL. Calendly booking, email/SMS tracking, and
-Clay enrichment are not implemented here for the same reason — they need real third-party
-accounts and credentials this prototype doesn't have.
+Each checkout page's lead form logs the captured fields plus auto-captured UTM params and
+device info to the browser console (`Lead captured (prototype only, not sent anywhere):
+...`). **Nothing is sent to a CRM yet.** Wiring this to GoHighLevel (or any real
+CRM/webhook) is real backend work — replace the `console.log(...)` in the `<script>`
+block with a real `fetch()` POST once you have a webhook URL. Calendly booking, email/SMS
+tracking, and Clay enrichment are not implemented here for the same reason — they need
+real third-party accounts and credentials this prototype doesn't have.
 
 ## Going live on a real domain
 
