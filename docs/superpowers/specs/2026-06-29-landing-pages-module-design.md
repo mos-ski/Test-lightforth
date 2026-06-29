@@ -8,17 +8,27 @@ framework, no dependency on the main app's codebase.
 
 ## Structure
 ```
-landing-pages/
+public/landing-pages/
   _template.html       shared starter: design system + empty scaffold
   README.md            what this folder is, naming convention, how to deploy one page
   concierge/index.html Lightforth Concierge ($500 one-time "Success Manager" upsell)
   manager/index.html   Lightforth Manager ($10 first-month Pro coupon funnel)
 ```
 
-One folder per funnel, each with `index.html` as the entry point, so a Vercel project
-rooted at that folder serves the page at the domain root (no filename in the URL).
-Completely decoupled from `src/` and the main app's routing/build — nothing here can
-break or depend on the production app.
+**Revised from the original design:** initially built as a repo-root `landing-pages/`
+folder deployed as separate, brand-new Vercel projects per funnel. The user's actual
+expectation was that everything stay reachable from the one Vercel link already being
+shared/bookmarked (`test-lightforth.vercel.app`), not a fresh, unfamiliar link per page.
+Moved into `public/landing-pages/` instead — Vite copies `public/` verbatim into the
+build output, so each page is served as a real static file at
+`test-lightforth.vercel.app/landing-pages/<funnel>/`, automatically, on every deploy of
+the main app. No separate Vercel project, no extra step.
+
+Each page is still a fully self-contained `index.html` with zero build step and zero
+dependency on `src/` or the main app's React code — only the *hosting* changed, not the
+page format. A funnel can still be pulled into its own standalone Vercel project later if
+it needs a real standalone custom domain (documented in the README) — that path still
+works, it's just no longer the default.
 
 ## Design system (shared across funnels)
 Extracted from the two existing reference pages into `_template.html`:

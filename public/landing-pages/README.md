@@ -1,13 +1,19 @@
 # Landing Pages
 
-Standalone marketing-funnel pages, separate from the main Lightforth app. Each one is a
-single self-contained `index.html` — no build step, no framework, no dependency on
-`src/` or anything else in this repo. Safe to copy, safe to deploy independently.
+Marketing-funnel pages. Each one is a single self-contained `index.html` — no build
+step, no framework, no dependency on `src/` or anything else in this repo's app code.
+
+This folder lives under `public/`, so Vite copies it verbatim into the build output and
+it deploys automatically with the main app, reachable at:
+- `https://test-lightforth.vercel.app/landing-pages/concierge/`
+- `https://test-lightforth.vercel.app/landing-pages/manager/`
+
+No separate Vercel project needed — these are live the moment the main app deploys.
 
 ## Structure
 
 ```
-landing-pages/
+public/landing-pages/
   _template.html       starter file for a new funnel page
   concierge/index.html Lightforth Concierge — $500 one-time "Success Manager" upsell
   manager/index.html   Lightforth Manager — $10 first-month Pro coupon funnel
@@ -38,12 +44,15 @@ real backend work — replace the `console.log(...)` in the `<script>` block wit
 Clay enrichment are not implemented here for the same reason — they need real third-party
 accounts and credentials this prototype doesn't have.
 
-## Deploying one page live
+## Going live on a real domain
 
-1. Create a new Vercel project.
-2. Set **Root Directory** to `landing-pages/<funnel-name>` (e.g. `landing-pages/concierge`).
-3. Deploy — Vercel serves the `index.html` with zero build config.
-4. Attach your real domain in the Vercel project's Domains settings.
+By default every page just rides along with the main app's deployment (see above) —
+good for review and for running ads where a `/landing-pages/...` path is fine.
 
-Each funnel is fully independent — deploying, breaking, or redesigning one never affects
-another or the main Lightforth app.
+If a funnel needs its own bare domain (e.g. `getlightforthconcierge.com` with nothing
+else on it), pull that one folder out into its own Vercel project instead:
+1. Create a new Vercel project from this repo.
+2. Set **Root Directory** to `public/landing-pages/<funnel-name>`.
+3. Deploy, then attach the real domain in that project's Domains settings.
+This is a separate, independent deployment from the main app at that point — breaking
+or redesigning it won't affect `test-lightforth.vercel.app` or any other funnel.
