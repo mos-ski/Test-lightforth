@@ -46,15 +46,72 @@ export function MarketingNav({ active }: { active: ActiveProduct }) {
   )
 }
 
+const FOOTER_COLUMNS: { title: string; links: { label: string; to: string }[] }[] = [
+  {
+    title: 'Products',
+    links: [
+      { label: 'Interview & Coding', to: '/copilot' },
+      { label: 'Exam Ghost', to: '/copilot/exam' },
+      { label: 'Sales Closer AI', to: '/copilot/enterprise' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'About', to: '/copilot' },
+      { label: 'Careers', to: '/copilot' },
+      { label: 'Contact', to: '/copilot' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'How it works', to: '/copilot' },
+      { label: 'FAQ', to: '/copilot' },
+      { label: 'Support', to: '/copilot' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { label: 'Privacy', to: '/copilot' },
+      { label: 'Terms', to: '/copilot' },
+    ],
+  },
+]
+
 export function MarketingFooter({ active = 'individuals' }: { active?: ActiveProduct }) {
   return (
-    <footer className="border-t border-slate-200 py-10">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
-        <LightforthLogo to="/copilot" />
-        <p className="text-sm text-slate-500">© {new Date().getFullYear()} Lightforth. All rights reserved.</p>
-        <Link to={signInPathFor(active)} className="text-sm font-medium text-primary hover:underline">
-          Sign in
-        </Link>
+    <footer className="border-t border-slate-200 bg-slate-50/60 py-14">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1fr_1fr]">
+          <div>
+            <LightforthLogo to="/copilot" />
+            <p className="mt-4 max-w-[220px] text-sm leading-6 text-slate-500">
+              A stealth AI copilot for interviews, exams, and sales calls.
+            </p>
+          </div>
+          {FOOTER_COLUMNS.map(col => (
+            <div key={col.title}>
+              <p className="text-sm font-bold text-slate-900">{col.title}</p>
+              <ul className="mt-4 space-y-3">
+                {col.links.map(link => (
+                  <li key={link.label}>
+                    <Link to={link.to} className="text-sm text-slate-500 hover:text-slate-900">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-8 sm:flex-row">
+          <p className="text-sm text-slate-500">© {new Date().getFullYear()} Lightforth. All rights reserved.</p>
+          <Link to={signInPathFor(active)} className="text-sm font-medium text-primary hover:underline">
+            Sign in
+          </Link>
+        </div>
       </div>
     </footer>
   )

@@ -72,6 +72,9 @@ export default function EnterpriseCopilotLanding() {
                 Get started
               </Button>
             </div>
+            <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-teal-200">
+              $5,000 setup + $79/seat/mo — pay only for active reps
+            </p>
           </div>
           <div className="flex justify-center lg:justify-end">
             <LiveTranscriptCard
@@ -97,7 +100,7 @@ export default function EnterpriseCopilotLanding() {
           <h2 className="text-2xl font-bold text-slate-900">Built for rolling out a whole team</h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {FEATURES.map(f => (
-              <div key={f.title}>
+              <div key={f.title} className="border-l-2 border-teal-300 pl-5">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
                   <f.icon className="h-5 w-5" />
                 </div>
@@ -105,6 +108,12 @@ export default function EnterpriseCopilotLanding() {
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">{f.text}</p>
               </div>
             ))}
+          </div>
+          <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-slate-50 p-6 shadow-sm">
+            <p className="text-sm font-semibold text-slate-700">Ready to stop losing deals to silence on the call?</p>
+            <Button className="bg-[#08285c] text-white hover:bg-[#08285c]/90" onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
+              Get started
+            </Button>
           </div>
         </div>
       </section>

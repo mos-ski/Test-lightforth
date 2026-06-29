@@ -66,6 +66,9 @@ export default function ExamCopilotLanding() {
               Get Exam Ghost — ${EXAM_PRICE}
             </Button>
           </div>
+          <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700">
+            ${EXAM_PRICE} once — no subscription, lifetime access
+          </p>
         </div>
         <div className="flex justify-center lg:justify-end">
           <LiveTranscriptCard
@@ -86,7 +89,7 @@ export default function ExamCopilotLanding() {
           <h2 className="text-2xl font-bold text-slate-900">Built for exam day, not a monthly plan</h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {FEATURES.map(f => (
-              <div key={f.title}>
+              <div key={f.title} className="border-l-2 border-amber-300 pl-5">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
                   <f.icon className="h-5 w-5" />
                 </div>
@@ -94,6 +97,12 @@ export default function ExamCopilotLanding() {
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">{f.text}</p>
               </div>
             ))}
+          </div>
+          <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold text-slate-700">One payment. Lifetime access. No subscription.</p>
+            <Button className="bg-amber-500 text-white hover:bg-amber-600" onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
+              Get Exam Ghost — ${EXAM_PRICE}
+            </Button>
           </div>
         </div>
       </section>

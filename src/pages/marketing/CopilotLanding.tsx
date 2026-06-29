@@ -74,6 +74,9 @@ export default function CopilotLanding() {
               How it stays invisible →
             </a>
           </div>
+          <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
+            Starting at $49<span className="text-slate-400">/mo</span>
+          </p>
         </div>
         <div className="flex justify-center lg:justify-end">
           <LiveTranscriptCard
@@ -98,7 +101,7 @@ export default function CopilotLanding() {
           <h2 className="text-2xl font-bold text-slate-900">One copilot, three moments that matter</h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {FEATURES.map(f => (
-              <div key={f.title}>
+              <div key={f.title} className="border-l-2 border-primary/30 pl-5">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <f.icon className="h-5 w-5" />
                 </div>
@@ -106,6 +109,12 @@ export default function CopilotLanding() {
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">{f.text}</p>
               </div>
             ))}
+          </div>
+          <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold text-slate-700">Ready to stop going in unprepared?</p>
+            <Button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
+              See plans
+            </Button>
           </div>
         </div>
       </section>
