@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, Code2, Eye, Users, Video } from 'lucide-react'
+import { Check, Code2, Eye, Users, Video, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MarketingNav, MarketingFooter } from '@/components/marketing/MarketingChrome'
@@ -16,6 +16,13 @@ const FEATURES = [
   { icon: Video, title: 'Interview', text: "Live answers while you talk — timed so it never looks like you're reading." },
   { icon: Code2, title: 'Coding', text: 'Screenshot the problem. Get working code back before you finish re-reading it.' },
   { icon: Users, title: 'Meeting', text: "Tells every attendee on the other side apart — even with several people on the call — and feeds you talking points without anyone noticing." },
+]
+
+const STATS = [
+  ['~2s', 'Average response time'],
+  ['3', 'Use cases, one copilot'],
+  ['100+', 'Credits included monthly'],
+  ['0', 'Times it has shown up on a recording'],
 ]
 
 const PLAN_BULLETS: Record<PlanId, string[]> = {
@@ -56,45 +63,50 @@ export default function CopilotLanding() {
     <div className="bg-white">
       <MarketingNav active="individuals" />
 
-      <section className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:py-28">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Interview · Coding · Meetings</p>
-          <h1 className="mt-4 text-4xl font-black leading-[1.1] tracking-tight text-slate-900 sm:text-5xl">
-            Nobody on the call can see it. That's the point.
+      {/* HERO — dotted background, headline + CTA stacked above a full-width product demo, not split side-by-side */}
+      <section
+        className="relative overflow-hidden bg-[#061a3a] text-white"
+        style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+      >
+        <div className="mx-auto max-w-5xl px-6 py-20 text-center lg:py-28">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Interview · Coding · Meetings</p>
+          <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-black leading-[1.1] tracking-tight sm:text-6xl">
+            Nobody on the call can <span className="underline decoration-sky-400 decoration-4 underline-offset-8">see it</span>. That's the point.
           </h1>
-          <p className="mt-5 max-w-md text-base leading-7 text-slate-600">
+          <p className="mx-auto mt-5 max-w-md text-base leading-7 text-white/70">
             An invisible overlay reads the conversation and feeds you the answer in real time — undetectable on
             Zoom, Teams, and Google Meet.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Button size="lg" onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Button size="lg" className="bg-white text-[#061a3a] hover:bg-sky-50" onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
               See plans
             </Button>
-            <a href="#stealth" className="text-sm font-semibold text-slate-600 hover:text-slate-900">
+            <a href="#stealth" className="text-sm font-semibold text-white/70 hover:text-white">
               How it stays invisible →
             </a>
           </div>
-          <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
-            Starting at $49<span className="text-slate-400">/mo</span>
+          <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-sky-200">
+            Starting at $49/mo
           </p>
-        </div>
-        <div className="flex justify-center lg:justify-end">
-          <LiveTranscriptCard
-            accent={ACCENT}
-            badge="Only visible to you"
-            lines={[
-              { speaker: 'Interviewer', text: 'Walk me through a time you disagreed with a teammate.' },
-              {
-                speaker: 'Copilot',
-                text: 'Frame it as alignment, not conflict — describe the disagreement, your reasoning, and how you reached a shared decision...',
-                isAnswer: true,
-              },
-            ]}
-          />
+
+          <div className="mt-14 flex justify-center">
+            <LiveTranscriptCard
+              accent={ACCENT}
+              badge="Only visible to you"
+              lines={[
+                { speaker: 'Interviewer', text: 'Walk me through a time you disagreed with a teammate.' },
+                {
+                  speaker: 'Copilot',
+                  text: 'Frame it as alignment, not conflict — describe the disagreement, your reasoning, and how you reached a shared decision...',
+                  isAnswer: true,
+                },
+              ]}
+            />
+          </div>
         </div>
       </section>
 
-      <ProofStrip items={PROOF} />
+      <ProofStrip items={PROOF} tone="dark" />
 
       <section className="border-t border-slate-100 bg-slate-50/60 py-20">
         <div className="mx-auto max-w-6xl px-6">
@@ -120,11 +132,11 @@ export default function CopilotLanding() {
       </section>
 
       <section id="stealth" className="py-20">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 lg:grid-cols-2">
-          <div>
+        <div className="mx-auto grid max-w-6xl items-center gap-14 px-6 lg:grid-cols-2">
+          <div className="border-l-4 border-primary pl-6">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Why it's invisible</p>
             <h2 className="mt-3 text-2xl font-bold text-slate-900">Built to stay out of sight, not just out of mind.</h2>
-            <ul className="mt-6 space-y-4 text-sm leading-6 text-slate-600">
+            <ul className="mt-6 space-y-5 text-sm leading-6 text-slate-600">
               <li className="flex gap-3">
                 <Eye className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
                 <span><strong className="text-slate-900">Stealth Mode</strong> keeps the window off screen shares and recordings entirely.</span>
@@ -152,7 +164,31 @@ export default function CopilotLanding() {
         </div>
       </section>
 
-      <section id="pricing" className="border-t border-slate-100 bg-slate-50/60 py-20">
+      {/* TESTIMONIAL */}
+      <section className="border-t border-slate-100 bg-white py-20">
+        <div className="mx-auto max-w-3xl px-6 text-center">
+          <p className="text-2xl tracking-[0.2em] text-amber-400">★★★★★</p>
+          <blockquote className="mt-5 text-2xl font-semibold leading-snug tracking-tight text-slate-900">
+            "I used to freeze up mid-answer. Now I just talk — Copilot has the structure ready before I even finish the question."
+          </blockquote>
+          <p className="mt-6 text-sm font-semibold text-slate-900">— Priya N.</p>
+          <p className="text-sm text-slate-500">Senior Product Manager, hired after 3 rounds</p>
+        </div>
+      </section>
+
+      {/* STATS STRIP */}
+      <section className="border-y border-slate-100 bg-slate-50/60 py-16">
+        <div className="mx-auto grid max-w-6xl gap-10 px-6 text-center sm:grid-cols-2 lg:grid-cols-4">
+          {STATS.map(([value, label]) => (
+            <div key={label}>
+              <p className="text-4xl font-black text-slate-900">{value}</p>
+              <p className="mt-2 text-sm font-semibold text-slate-600">{label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="pricing" className="border-t border-slate-100 py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <h2 className="text-2xl font-bold text-slate-900">Plans for individuals</h2>
@@ -203,6 +239,16 @@ export default function CopilotLanding() {
       </section>
 
       <Faq title="Before you ask" items={FAQ_ITEMS} />
+
+      <section className="border-t border-slate-100 bg-[#061a3a] py-16 text-center text-white">
+        <div className="mx-auto max-w-2xl px-6">
+          <Zap className="mx-auto h-8 w-8 text-sky-300" />
+          <h2 className="mt-4 text-2xl font-bold">Your next interview is coming up. Be ready for it.</h2>
+          <Button size="lg" className="mt-6 bg-white text-[#061a3a] hover:bg-sky-50" onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
+            See plans
+          </Button>
+        </div>
+      </section>
 
       <MarketingFooter active="individuals" />
     </div>
