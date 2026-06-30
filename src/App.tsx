@@ -25,6 +25,9 @@ const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview')
 const CopilotLanding = lazy(() => import('@/pages/marketing/CopilotLanding'))
 const ExamCopilotLanding = lazy(() => import('@/pages/marketing/ExamCopilotLanding'))
 const EnterpriseCopilotLanding = lazy(() => import('@/pages/marketing/EnterpriseCopilotLanding'))
+const FigmaInteriorLanding = lazy(() => import('@/pages/marketing/FigmaInteriorLanding'))
+const FigmaRemoteTeamsLanding = lazy(() => import('@/pages/marketing/FigmaRemoteTeamsLanding'))
+const FigmaMyNotesLanding = lazy(() => import('@/pages/marketing/FigmaMyNotesLanding'))
 const RegularCheckoutPage = lazy(() => import('@/pages/marketing/checkout/RegularCheckoutPage'))
 const ExamCheckoutPage = lazy(() => import('@/pages/marketing/checkout/ExamCheckoutPage'))
 const EnterpriseCheckoutPage = lazy(() => import('@/pages/marketing/checkout/EnterpriseCheckoutPage'))
@@ -123,6 +126,9 @@ export default function App() {
             <Route path="/copilot" element={<Suspense fallback={null}><CopilotLanding /></Suspense>} />
             <Route path="/copilot/exam" element={<Suspense fallback={null}><ExamCopilotLanding /></Suspense>} />
             <Route path="/copilot/enterprise" element={<Suspense fallback={null}><EnterpriseCopilotLanding /></Suspense>} />
+            <Route path="/figma-interiors" element={<Suspense fallback={null}><FigmaInteriorLanding /></Suspense>} />
+            <Route path="/figma-remote-teams" element={<Suspense fallback={null}><FigmaRemoteTeamsLanding /></Suspense>} />
+            <Route path="/figma-my-notes" element={<Suspense fallback={null}><FigmaMyNotesLanding /></Suspense>} />
             <Route path="/copilot/checkout/:planId" element={<Suspense fallback={null}><RegularCheckoutPage /></Suspense>} />
             <Route path="/copilot/exam/checkout" element={<Suspense fallback={null}><ExamCheckoutPage /></Suspense>} />
             <Route path="/copilot/enterprise/checkout" element={<Suspense fallback={null}><EnterpriseCheckoutPage /></Suspense>} />
