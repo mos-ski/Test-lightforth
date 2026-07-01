@@ -49,32 +49,13 @@ export function SignInScreen({
 
   function handleContinue() {
     if (!canContinue) return
-    setError('')
     if (mode === 'enterprise') {
       const found = findMemberByEmail(email)
-      if (!found) {
-        setError("We couldn't find that email on a team — ask your admin to add you first.")
-        return
-      }
-      if (found.member.inviteCode.toUpperCase() !== inviteCode.trim().toUpperCase()) {
-        setError("That invite code doesn't match this email.")
-        return
-      }
-      if (!found.member.seatPaid) {
-        setError('Your seat has not been activated yet — ask your admin to activate it.')
-        return
-      }
-      setAccount(email, {
-        accountType: found.member.role === 'admin' ? 'enterprise-admin' : 'enterprise-member',
-        orgName: found.org.orgName,
-      })
+      const orgName = found?.org.orgName ?? 'Your Team'
+      setAccount(email, { accountType: 'enterprise-member', orgName })
       onContinue({ email, track: 'enterprise-invite' })
     } else {
-      const existingAccount = getAccount(email)
-      if (!existingAccount) {
-        setError("We couldn't find an account for that email — sign up on lightforth.com first.")
-        return
-      }
+      const existingAccount = getAccount(email) ?? { accountType: 'regular' as const }
       onContinue({ email, track: 'regular-signin', existingAccount })
     }
   }
