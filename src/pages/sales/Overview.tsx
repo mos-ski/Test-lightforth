@@ -1,5 +1,6 @@
-import { useOutletContext, Link } from 'react-router-dom'
-import { Check, Database, Phone, Trophy, Users } from 'lucide-react'
+import { useOutletContext, Link, useNavigate } from 'react-router-dom'
+import { Check, Copy, Database, ExternalLink, Phone, Trophy, Users } from 'lucide-react'
+import { useState } from 'react'
 import type { SalesDashboardContext } from './SalesAdminLayout'
 
 function formatDuration(seconds: number): string {
@@ -10,6 +11,16 @@ function formatDuration(seconds: number): string {
 
 export default function Overview() {
   const { org } = useOutletContext<SalesDashboardContext>()
+  const navigate = useNavigate()
+  const [copied, setCopied] = useState(false)
+
+  function copyLink() {
+    const url = `${window.location.origin}/copilot`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
   const paidSeats = org.members.filter(m => m.seatPaid).length
   const kb = org.knowledgeBase
   const knowledgeItemCount = kb.documents.length + kb.faqs.length + kb.knowledgeCenter.length + kb.text.length + kb.links.length
@@ -25,6 +36,31 @@ export default function Overview() {
     <div className="mx-auto max-w-4xl px-10 py-12">
       <h1 className="text-2xl font-bold text-slate-900">Welcome back, {org.orgName}</h1>
       <p className="mt-1 text-sm text-slate-500">Here's where your team's Sales Copilot setup stands.</p>
+
+      {/* Copilot app banner */}
+      <div className="mt-6 flex items-center justify-between rounded-2xl bg-gradient-to-r from-[#08285c] to-[#0e3d8a] px-6 py-5">
+        <div>
+          <p className="text-sm font-semibold text-teal-300 uppercase tracking-wide">Copilot App</p>
+          <p className="mt-0.5 text-base font-bold text-white">Download &amp; share the Lightforth Copilot</p>
+          <p className="mt-1 text-sm text-white/60">Share the link with your reps so they can download and activate Copilot.</p>
+        </div>
+        <div className="ml-6 flex flex-shrink-0 gap-3">
+          <button
+            onClick={copyLink}
+            className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20"
+          >
+            <Copy className="h-4 w-4" />
+            {copied ? 'Copied!' : 'Copy link'}
+          </button>
+          <button
+            onClick={() => navigate('/copilot')}
+            className="flex items-center gap-2 rounded-lg bg-teal-400 px-4 py-2 text-sm font-semibold text-[#08285c] transition-colors hover:bg-teal-300"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open Copilot
+          </button>
+        </div>
+      </div>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2">
         <div className="lf-panel p-6">
