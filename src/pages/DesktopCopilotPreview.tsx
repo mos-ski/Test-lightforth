@@ -736,6 +736,21 @@ export function RegularSetupScreen({ onBack, onContinue, unlockedUseCases }: { o
                     Meetings work best when you share your screen — Copilot uses it to tell speakers apart.
                   </p>
                 </div>
+                <div className="mb-5">
+                  <label className="mb-2 block text-sm font-semibold text-white">Context <span className="font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>(optional)</span></label>
+                  <textarea
+                    placeholder="Paste any background info — brief, talking points, reports..."
+                    className="h-20 w-full resize-none rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
+                    style={inputStyle}
+                  />
+                  <button
+                    className="mt-2 flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-white/10"
+                    style={{ color: 'rgba(255,255,255,0.55)', border: `1px solid ${INPUT_BD}` }}
+                    onClick={e => e.preventDefault()}
+                  >
+                    <Upload className="h-3.5 w-3.5" /> Upload document
+                  </button>
+                </div>
               </>
             )}
 

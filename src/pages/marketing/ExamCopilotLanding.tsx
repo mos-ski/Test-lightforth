@@ -9,10 +9,10 @@ import { ProofStrip, Faq } from '@/components/marketing/ProofStrip'
 const ACCENT = '#f59e0b'
 const EXAM_PRICE = 500
 
-const PROOF = ['Invisible to recordings & remote proctoring', '~2s average response time', 'One payment, no subscription']
+const PROOF = ['Invisible to recordings & remote proctoring', '~2s average response time', '30 days access, no auto-renewal']
 
 const FEATURES = [
-  { icon: ScanLine, title: 'One-time fee', text: 'Pay once, keep access — no subscription, no recurring charge.' },
+  { icon: ScanLine, title: 'One-time fee', text: 'Pay once, get 30 days of access — no subscription, no auto-renewal.' },
   { icon: BookOpen, title: 'Any subject', text: 'Works on math, science, language, and licensing exams alike.' },
   { icon: Download, title: 'No setup', text: "Buy it, download it, and you're straight into the exam screen." },
 ]
@@ -66,7 +66,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Can I use it for more than one exam?',
-    a: "Yes — it's a one-time purchase with lifetime access, not a single-use code. Use it for every exam you take afterward.",
+    a: "Yes — your 30-day window starts the moment you pay. Use it for as many exams as you sit during that period. No auto-renewal — when the 30 days are up, you're done unless you buy again.",
   },
 ]
 
@@ -98,7 +98,7 @@ export default function ExamCopilotLanding() {
             <div className="mt-8 max-w-sm rounded-2xl border border-white/20 bg-white p-5 text-slate-900 shadow-2xl shadow-black/30 sm:flex sm:items-center sm:justify-between sm:gap-4">
               <div>
                 <p className="text-sm text-slate-500">One-time payment</p>
-                <p className="mt-1 text-2xl font-black">${EXAM_PRICE} <span className="text-sm font-medium text-slate-500">lifetime</span></p>
+                <p className="mt-1 text-2xl font-black">${EXAM_PRICE} <span className="text-sm font-medium text-slate-500">/ 30 days</span></p>
               </div>
               <Button className="mt-3 w-full bg-amber-500 text-white hover:bg-amber-600 sm:mt-0 sm:w-auto" onClick={() => navigate('/copilot/exam/checkout')}>
                 Get Exam Ghost
@@ -135,7 +135,7 @@ export default function ExamCopilotLanding() {
             ))}
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold text-slate-700">One payment. Lifetime access. No subscription.</p>
+            <p className="text-sm font-semibold text-slate-700">One payment. 30 days access. No auto-renewal.</p>
             <Button className="bg-amber-500 text-white hover:bg-amber-600" onClick={() => navigate('/copilot/exam/checkout')}>
               Get Exam Ghost — ${EXAM_PRICE}
             </Button>
@@ -201,7 +201,7 @@ export default function ExamCopilotLanding() {
 
       <section id="pricing" className="border-t border-slate-100 py-20">
         <div className="mx-auto max-w-3xl px-6 text-center">
-          <h2 className="text-2xl font-bold text-slate-900">One price. Lifetime access.</h2>
+          <h2 className="text-2xl font-bold text-slate-900">One price. 30 days access.</h2>
           <article className="mt-8 rounded-2xl border border-amber-200 bg-white p-8 text-left shadow-lg shadow-amber-900/5">
             <div className="flex items-baseline justify-between">
               <h3 className="text-lg font-black text-slate-900">Exam Ghost</h3>
