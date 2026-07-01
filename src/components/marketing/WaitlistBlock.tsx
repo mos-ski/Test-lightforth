@@ -8,18 +8,26 @@ interface WaitlistBlockProps {
   accentFg?: string
 }
 
+const COUNTRIES = [
+  'United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'France',
+  'India', 'Japan', 'Brazil', 'Mexico', 'Netherlands', 'Sweden', 'Singapore',
+  'Ireland', 'South Korea', 'Israel', 'New Zealand', 'Switzerland', 'Spain', 'Other',
+]
+
 export default function WaitlistBlock({ product, accent = '#061a3a', accentFg = '#fff' }: WaitlistBlockProps) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [country, setCountry] = useState('')
+  const [phone, setPhone] = useState('')
   const [done, setDone] = useState(false)
 
-  const canSubmit = name.trim().length > 0 && email.includes('@')
+  const canSubmit = name.trim().length > 0 && email.includes('@') && country.length > 0 && phone.trim().length > 0
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
     // prototype — log only, no backend
-    console.log('Waitlist submission:', { product, name, email, ts: new Date().toISOString() })
+    console.log('Waitlist submission:', { product, name, email, country, phone, ts: new Date().toISOString() })
     setDone(true)
   }
 
@@ -63,6 +71,29 @@ export default function WaitlistBlock({ product, accent = '#061a3a', accentFg = 
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
+                  className="lf-input"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Country</label>
+                <select
+                  value={country}
+                  onChange={e => setCountry(e.target.value)}
+                  className="lf-input"
+                >
+                  <option value="" disabled>Select your country</option>
+                  {COUNTRIES.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Phone number</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  placeholder="+1 (555) 000-0000"
                   className="lf-input"
                 />
               </div>
