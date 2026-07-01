@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { BookOpen, Calculator, Check, Download, Languages, ScanLine, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MarketingNav, MarketingFooter } from '@/components/marketing/MarketingChrome'
 import { LiveTranscriptCard } from '@/components/marketing/LiveTranscriptCard'
 import { ProofStrip, Faq } from '@/components/marketing/ProofStrip'
+import WaitlistBlock from '@/components/marketing/WaitlistBlock'
 
 const ACCENT = '#f59e0b'
 const EXAM_PRICE = 500
@@ -72,6 +73,9 @@ const FAQ_ITEMS = [
 
 export default function ExamCopilotLanding() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isWaitlist = searchParams.has('waitlist')
+  const scrollToWaitlist = () => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
   const [activeTab, setActiveTab] = useState(0)
 
   return (
@@ -100,8 +104,8 @@ export default function ExamCopilotLanding() {
                 <p className="text-sm text-slate-500">One-time payment</p>
                 <p className="mt-1 text-2xl font-black">${EXAM_PRICE} <span className="text-sm font-medium text-slate-500">/ 30 days</span></p>
               </div>
-              <Button className="mt-3 w-full bg-amber-500 text-white hover:bg-amber-600 sm:mt-0 sm:w-auto" onClick={() => navigate('/copilot/exam/checkout')}>
-                Get Exam Ghost
+              <Button className="mt-3 w-full bg-amber-500 text-white hover:bg-amber-600 sm:mt-0 sm:w-auto" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/exam/checkout')}>
+                {isWaitlist ? 'Join the waitlist →' : 'Get Exam Ghost'}
               </Button>
             </div>
           </div>
@@ -136,8 +140,8 @@ export default function ExamCopilotLanding() {
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold text-slate-700">One payment. 30 days access. No auto-renewal.</p>
-            <Button className="bg-amber-500 text-white hover:bg-amber-600" onClick={() => navigate('/copilot/exam/checkout')}>
-              Get Exam Ghost — ${EXAM_PRICE}
+            <Button className="bg-amber-500 text-white hover:bg-amber-600" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/exam/checkout')}>
+              {isWaitlist ? 'Join the waitlist →' : `Get Exam Ghost — $${EXAM_PRICE}`}
             </Button>
           </div>
         </div>
@@ -217,8 +221,8 @@ export default function ExamCopilotLanding() {
                 </li>
               ))}
             </ul>
-            <Button size="lg" className="mt-8 w-full bg-amber-500 text-white hover:bg-amber-600" onClick={() => navigate('/copilot/exam/checkout')}>
-              Get Exam Ghost — ${EXAM_PRICE}
+            <Button size="lg" className="mt-8 w-full bg-amber-500 text-white hover:bg-amber-600" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/exam/checkout')}>
+              {isWaitlist ? 'Join the waitlist →' : `Get Exam Ghost — $${EXAM_PRICE}`}
             </Button>
           </article>
         </div>
@@ -229,12 +233,13 @@ export default function ExamCopilotLanding() {
       <section className="border-t border-slate-100 bg-[#1a1206] py-16 text-center text-white">
         <div className="mx-auto max-w-2xl px-6">
           <h2 className="text-2xl font-bold">Exam day is coming. Walk in ready.</h2>
-          <Button size="lg" className="mt-6 bg-amber-500 text-white hover:bg-amber-600" onClick={() => navigate('/copilot/exam/checkout')}>
+          <Button size="lg" className="mt-6 bg-amber-500 text-white hover:bg-amber-600" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/exam/checkout')}>
             Get Exam Ghost — ${EXAM_PRICE}
           </Button>
         </div>
       </section>
 
+      {isWaitlist && <WaitlistBlock product="Exam Ghost" accent="#f59e0b" accentFg="#fff" />}
       <MarketingFooter active="exam" />
     </div>
   )

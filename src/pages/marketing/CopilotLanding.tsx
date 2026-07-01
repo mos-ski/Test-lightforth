@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Check, Code2, Eye, Users, Video, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -7,6 +7,7 @@ import { MarketingNav, MarketingFooter } from '@/components/marketing/MarketingC
 import { LiveTranscriptCard } from '@/components/marketing/LiveTranscriptCard'
 import { ProofStrip, Faq } from '@/components/marketing/ProofStrip'
 import { PLANS, annualMonthlyEquivalent, type BillingCycle, type PlanId } from '@/pages/desktopCopilot/plans'
+import WaitlistBlock from '@/components/marketing/WaitlistBlock'
 
 const ACCENT = '#0494fc'
 
@@ -55,6 +56,9 @@ const FAQ_ITEMS = [
 
 export default function CopilotLanding() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isWaitlist = searchParams.has('waitlist')
+  const scrollToWaitlist = () => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
   const isAnnual = billingCycle === 'annual'
   const priceFor = (monthlyPrice: number) => (isAnnual ? annualMonthlyEquivalent(monthlyPrice) : monthlyPrice)
@@ -78,7 +82,7 @@ export default function CopilotLanding() {
             Zoom, Teams, and Google Meet.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <Button size="lg" className="bg-white text-[#061a3a] hover:bg-sky-50" onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button size="lg" className="bg-white text-[#061a3a] hover:bg-sky-50" onClick={() => isWaitlist ? scrollToWaitlist() : document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
               See plans
             </Button>
             <a href="#stealth" className="text-sm font-semibold text-white/70 hover:text-white">
@@ -124,7 +128,7 @@ export default function CopilotLanding() {
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold text-slate-700">Ready to stop going in unprepared?</p>
-            <Button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button onClick={() => isWaitlist ? scrollToWaitlist() : document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
               See plans
             </Button>
           </div>
@@ -228,8 +232,8 @@ export default function CopilotLanding() {
                   ))}
                 </ul>
                 <p className="mt-6 text-sm italic text-slate-500">{plan.bestForNote}</p>
-                <Button size="lg" variant={plan.popular ? 'default' : 'outline'} className="mt-6" onClick={() => navigate(`/copilot/checkout/${plan.id}`)}>
-                  Get {plan.label}
+                <Button size="lg" variant={plan.popular ? 'default' : 'outline'} className="mt-6" onClick={() => isWaitlist ? scrollToWaitlist() : navigate(`/copilot/checkout/${plan.id}`)}>
+                  {isWaitlist ? 'Join the waitlist →' : `Get ${plan.label}`}
                 </Button>
               </article>
             ))}
@@ -244,12 +248,13 @@ export default function CopilotLanding() {
         <div className="mx-auto max-w-2xl px-6">
           <Zap className="mx-auto h-8 w-8 text-sky-300" />
           <h2 className="mt-4 text-2xl font-bold">Your next interview is coming up. Be ready for it.</h2>
-          <Button size="lg" className="mt-6 bg-white text-[#061a3a] hover:bg-sky-50" onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
+          <Button size="lg" className="mt-6 bg-white text-[#061a3a] hover:bg-sky-50" onClick={() => isWaitlist ? scrollToWaitlist() : document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
             See plans
           </Button>
         </div>
       </section>
 
+      {isWaitlist && <WaitlistBlock product="Lightforth Copilot" accent="#061a3a" accentFg="#fff" />}
       <MarketingFooter active="individuals" />
     </div>
   )

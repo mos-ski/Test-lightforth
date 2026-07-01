@@ -1,9 +1,10 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Check, Database, Headphones, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MarketingNav, MarketingFooter } from '@/components/marketing/MarketingChrome'
 import { LiveTranscriptCard } from '@/components/marketing/LiveTranscriptCard'
 import { ProofStrip, Faq } from '@/components/marketing/ProofStrip'
+import WaitlistBlock from '@/components/marketing/WaitlistBlock'
 
 const ACCENT = '#2dd4bf'
 
@@ -53,6 +54,9 @@ const FAQ_ITEMS = [
 
 export default function EnterpriseCopilotLanding() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isWaitlist = searchParams.has('waitlist')
+  const scrollToWaitlist = () => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })
 
   return (
     <div className="bg-white">
@@ -75,9 +79,9 @@ export default function EnterpriseCopilotLanding() {
             <Button
               size="lg"
               className="bg-teal-500 font-bold text-white hover:bg-teal-600"
-              onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => isWaitlist ? scrollToWaitlist() : document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Get started
+              {isWaitlist ? 'Join the waitlist →' : 'Get started'}
             </Button>
             <a href="#features" className="text-sm font-semibold text-slate-600 hover:text-slate-900">
               See what reps get →
@@ -125,8 +129,8 @@ export default function EnterpriseCopilotLanding() {
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-slate-50 p-6 shadow-sm">
             <p className="text-sm font-semibold text-slate-700">Ready to stop losing deals to silence on the call?</p>
-            <Button className="bg-[#08285c] text-white hover:bg-[#08285c]/90" onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
-              Get started
+            <Button className="bg-[#08285c] text-white hover:bg-[#08285c]/90" onClick={() => isWaitlist ? scrollToWaitlist() : document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
+              {isWaitlist ? 'Join the waitlist →' : 'Get started'}
             </Button>
           </div>
         </div>
@@ -198,8 +202,8 @@ export default function EnterpriseCopilotLanding() {
                 </li>
               ))}
             </ul>
-            <Button size="lg" className="mt-8 w-full bg-[#08285c] text-white hover:bg-[#08285c]/90" onClick={() => navigate('/copilot/enterprise/checkout')}>
-              Get started
+            <Button size="lg" className="mt-8 w-full bg-[#08285c] text-white hover:bg-[#08285c]/90" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/enterprise/checkout')}>
+              {isWaitlist ? 'Join the waitlist →' : 'Get started'}
             </Button>
           </article>
         </div>
@@ -210,12 +214,13 @@ export default function EnterpriseCopilotLanding() {
       <section className="border-t border-slate-100 bg-[#08285c] py-16 text-center text-white">
         <div className="mx-auto max-w-2xl px-6">
           <h2 className="text-2xl font-bold">Give your whole team the same playbook.</h2>
-          <Button size="lg" className="mt-6 bg-teal-400 font-bold text-[#08285c] hover:bg-teal-300" onClick={() => navigate('/copilot/enterprise/checkout')}>
+          <Button size="lg" className="mt-6 bg-teal-400 font-bold text-[#08285c] hover:bg-teal-300" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/enterprise/checkout')}>
             Get started
           </Button>
         </div>
       </section>
 
+      {isWaitlist && <WaitlistBlock product="Lightforth Sales Copilot" accent="#08285c" accentFg="#fff" />}
       <MarketingFooter active="enterprise" />
     </div>
   )
