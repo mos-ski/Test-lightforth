@@ -72,8 +72,9 @@ export default function EnterpriseCopilotLanding() {
             Stop losing deals to reps who freeze on objections.
           </h1>
           <p className="mx-auto mt-5 max-w-md text-base leading-7 text-slate-600">
-            Upload your playbook once. Every rep — from day one — gets the right answer live, on the call, pulled
-            straight from your own knowledge base.
+            {isWaitlist
+              ? 'Join the early access list for live sales-call coaching powered by your own playbook and knowledge base.'
+              : 'Upload your playbook once. Every rep — from day one — gets the right answer live, on the call, pulled straight from your own knowledge base.'}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Button
@@ -87,9 +88,11 @@ export default function EnterpriseCopilotLanding() {
               See what reps get →
             </a>
           </div>
-          <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#08285c]/5 px-4 py-2 text-sm font-semibold text-[#08285c]">
-            $5,000 setup + $79/seat/mo — pay only for active reps
-          </p>
+          {isWaitlist && (
+            <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#08285c]/5 px-4 py-2 text-sm font-semibold text-[#08285c]">
+              Early access waitlist now open
+            </p>
+          )}
 
           <div className="mt-14 flex justify-center">
             <LiveTranscriptCard
@@ -121,8 +124,8 @@ export default function EnterpriseCopilotLanding() {
                 </div>
                 <h3 className="mt-4 font-bold text-slate-900">{f.title}</h3>
                 <p className="mt-1.5 text-sm leading-6 text-slate-600">{f.text}</p>
-                <a href="#pricing" className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-teal-700">
-                  See how <ArrowRight className="h-3.5 w-3.5" />
+                <a href={isWaitlist ? '#waitlist' : '#pricing'} className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-teal-700">
+                  {isWaitlist ? 'Join waitlist' : 'See how'} <ArrowRight className="h-3.5 w-3.5" />
                 </a>
               </div>
             ))}
@@ -181,35 +184,40 @@ export default function EnterpriseCopilotLanding() {
         </div>
       </section>
 
-      <section id="pricing" className="border-t border-slate-100 bg-slate-50/60 py-20">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <h2 className="text-2xl font-bold text-slate-900">Simple, per-seat pricing</h2>
-          <article className="mt-8 rounded-2xl border border-teal-200 bg-white p-8 text-left shadow-lg shadow-teal-900/5">
-            <h3 className="text-lg font-black text-slate-900">Sales Closer AI</h3>
-            <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <p className="text-2xl font-black text-slate-900">
-                $5,000 <span className="text-sm font-medium text-slate-500">one-time setup</span>
-              </p>
-              <p className="text-2xl font-black text-slate-900">
-                + $79 <span className="text-sm font-medium text-slate-500">/ seat / month</span>
-              </p>
-            </div>
-            <ul className="mt-6 space-y-3 text-sm text-slate-600">
-              {PRICING_BULLETS.map(b => (
-                <li key={b} className="flex items-start gap-2.5">
-                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
-                  {b}
-                </li>
-              ))}
-            </ul>
-            <Button size="lg" className="mt-8 w-full bg-[#08285c] text-white hover:bg-[#08285c]/90" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/enterprise/checkout')}>
-              {isWaitlist ? 'Join the waitlist →' : 'Get started'}
-            </Button>
-          </article>
-        </div>
-      </section>
+      {!isWaitlist && (
+        <section id="pricing" className="border-t border-slate-100 bg-slate-50/60 py-20">
+          <div className="mx-auto max-w-3xl px-6 text-center">
+            <h2 className="text-2xl font-bold text-slate-900">Simple, per-seat pricing</h2>
+            <article className="mt-8 rounded-2xl border border-teal-200 bg-white p-8 text-left shadow-lg shadow-teal-900/5">
+              <h3 className="text-lg font-black text-slate-900">Sales Closer AI</h3>
+              <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p className="text-2xl font-black text-slate-900">
+                  $5,000 <span className="text-sm font-medium text-slate-500">one-time setup</span>
+                </p>
+                <p className="text-2xl font-black text-slate-900">
+                  + $79 <span className="text-sm font-medium text-slate-500">/ seat / month</span>
+                </p>
+              </div>
+              <ul className="mt-6 space-y-3 text-sm text-slate-600">
+                {PRICING_BULLETS.map(b => (
+                  <li key={b} className="flex items-start gap-2.5">
+                    <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
+                    {b}
+                  </li>
+                ))}
+              </ul>
+              <Button size="lg" className="mt-8 w-full bg-[#08285c] text-white hover:bg-[#08285c]/90" onClick={() => navigate('/copilot/enterprise/checkout')}>
+                Get started
+              </Button>
+            </article>
+          </div>
+        </section>
+      )}
 
-      <Faq title="Before you ask" items={FAQ_ITEMS} />
+      <Faq
+        title="Before you ask"
+        items={isWaitlist ? FAQ_ITEMS.filter(item => !item.q.includes('$')) : FAQ_ITEMS}
+      />
 
       <section className="border-t border-slate-100 bg-[#08285c] py-16 text-center text-white">
         <div className="mx-auto max-w-2xl px-6">
@@ -221,7 +229,7 @@ export default function EnterpriseCopilotLanding() {
       </section>
 
       {isWaitlist && <WaitlistBlock product="Lightforth Sales Copilot" accent="#08285c" accentFg="#fff" />}
-      <MarketingFooter active="enterprise" />
+      {!isWaitlist && <MarketingFooter active="enterprise" />}
     </div>
   )
 }

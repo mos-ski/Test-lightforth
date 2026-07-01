@@ -95,14 +95,17 @@ export default function ExamCopilotLanding() {
               You see every answer.
             </h1>
             <p className="mt-5 max-w-md text-base leading-7 text-amber-50/80">
-              A single $500 payment. Screenshot the question, get the worked answer back in seconds — invisible to
-              screen recording and remote proctoring.
+              {isWaitlist
+                ? 'Join the early access list for screenshot-to-answer exam support that stays invisible to screen recording and remote proctoring.'
+                : 'A single $500 payment. Screenshot the question, get the worked answer back in seconds — invisible to screen recording and remote proctoring.'}
             </p>
 
             <div className="mt-8 max-w-sm rounded-2xl border border-white/20 bg-white p-5 text-slate-900 shadow-2xl shadow-black/30 sm:flex sm:items-center sm:justify-between sm:gap-4">
               <div>
-                <p className="text-sm text-slate-500">One-time payment</p>
-                <p className="mt-1 text-2xl font-black">${EXAM_PRICE} <span className="text-sm font-medium text-slate-500">/ 30 days</span></p>
+                <p className="text-sm text-slate-500">{isWaitlist ? 'Early access' : 'One-time payment'}</p>
+                <p className="mt-1 text-2xl font-black">
+                  {isWaitlist ? 'Waitlist open' : <>${EXAM_PRICE} <span className="text-sm font-medium text-slate-500">/ 30 days</span></>}
+                </p>
               </div>
               <Button className="mt-3 w-full bg-amber-500 text-white hover:bg-amber-600 sm:mt-0 sm:w-auto" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/exam/checkout')}>
                 {isWaitlist ? 'Join the waitlist →' : 'Get Exam Ghost'}
@@ -139,7 +142,9 @@ export default function ExamCopilotLanding() {
             ))}
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold text-slate-700">One payment. 30 days access. No auto-renewal.</p>
+            <p className="text-sm font-semibold text-slate-700">
+              {isWaitlist ? 'Want early access before your next exam window?' : 'One payment. 30 days access. No auto-renewal.'}
+            </p>
             <Button className="bg-amber-500 text-white hover:bg-amber-600" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/exam/checkout')}>
               {isWaitlist ? 'Join the waitlist →' : `Get Exam Ghost — $${EXAM_PRICE}`}
             </Button>
@@ -203,30 +208,32 @@ export default function ExamCopilotLanding() {
         </div>
       </section>
 
-      <section id="pricing" className="border-t border-slate-100 py-20">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <h2 className="text-2xl font-bold text-slate-900">One price. 30 days access.</h2>
-          <article className="mt-8 rounded-2xl border border-amber-200 bg-white p-8 text-left shadow-lg shadow-amber-900/5">
-            <div className="flex items-baseline justify-between">
-              <h3 className="text-lg font-black text-slate-900">Exam Ghost</h3>
-              <p className="text-3xl font-black text-slate-900">
-                ${EXAM_PRICE} <span className="text-sm font-medium text-slate-500">one-time</span>
-              </p>
-            </div>
-            <ul className="mt-6 space-y-3 text-sm text-slate-600">
-              {PRICING_BULLETS.map(b => (
-                <li key={b} className="flex items-start gap-2.5">
-                  <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
-                  {b}
-                </li>
-              ))}
-            </ul>
-            <Button size="lg" className="mt-8 w-full bg-amber-500 text-white hover:bg-amber-600" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/exam/checkout')}>
-              {isWaitlist ? 'Join the waitlist →' : `Get Exam Ghost — $${EXAM_PRICE}`}
-            </Button>
-          </article>
-        </div>
-      </section>
+      {!isWaitlist && (
+        <section id="pricing" className="border-t border-slate-100 py-20">
+          <div className="mx-auto max-w-3xl px-6 text-center">
+            <h2 className="text-2xl font-bold text-slate-900">One price. 30 days access.</h2>
+            <article className="mt-8 rounded-2xl border border-amber-200 bg-white p-8 text-left shadow-lg shadow-amber-900/5">
+              <div className="flex items-baseline justify-between">
+                <h3 className="text-lg font-black text-slate-900">Exam Ghost</h3>
+                <p className="text-3xl font-black text-slate-900">
+                  ${EXAM_PRICE} <span className="text-sm font-medium text-slate-500">one-time</span>
+                </p>
+              </div>
+              <ul className="mt-6 space-y-3 text-sm text-slate-600">
+                {PRICING_BULLETS.map(b => (
+                  <li key={b} className="flex items-start gap-2.5">
+                    <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
+                    {b}
+                  </li>
+                ))}
+              </ul>
+              <Button size="lg" className="mt-8 w-full bg-amber-500 text-white hover:bg-amber-600" onClick={() => navigate('/copilot/exam/checkout')}>
+                Get Exam Ghost — ${EXAM_PRICE}
+              </Button>
+            </article>
+          </div>
+        </section>
+      )}
 
       <Faq title="Before you ask" items={FAQ_ITEMS} />
 
@@ -234,13 +241,13 @@ export default function ExamCopilotLanding() {
         <div className="mx-auto max-w-2xl px-6">
           <h2 className="text-2xl font-bold">Exam day is coming. Walk in ready.</h2>
           <Button size="lg" className="mt-6 bg-amber-500 text-white hover:bg-amber-600" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/exam/checkout')}>
-            Get Exam Ghost — ${EXAM_PRICE}
+            {isWaitlist ? 'Join the waitlist' : `Get Exam Ghost — $${EXAM_PRICE}`}
           </Button>
         </div>
       </section>
 
       {isWaitlist && <WaitlistBlock product="Exam Ghost" accent="#f59e0b" accentFg="#fff" />}
-      <MarketingFooter active="exam" />
+      {!isWaitlist && <MarketingFooter active="exam" />}
     </div>
   )
 }

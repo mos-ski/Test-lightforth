@@ -78,20 +78,23 @@ export default function CopilotLanding() {
             Nobody on the call can <span className="underline decoration-sky-400 decoration-4 underline-offset-8">see it</span>. That's the point.
           </h1>
           <p className="mx-auto mt-5 max-w-md text-base leading-7 text-white/70">
-            An invisible overlay reads the conversation and feeds you the answer in real time — undetectable on
-            Zoom, Teams, and Google Meet.
+            {isWaitlist
+              ? 'Join the early access list for the invisible overlay that reads the conversation and feeds you the answer in real time.'
+              : 'An invisible overlay reads the conversation and feeds you the answer in real time — undetectable on Zoom, Teams, and Google Meet.'}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" className="bg-white text-[#061a3a] hover:bg-sky-50" onClick={() => isWaitlist ? scrollToWaitlist() : document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
-              See plans
+              {isWaitlist ? 'Join the waitlist' : 'See plans'}
             </Button>
             <a href="#stealth" className="text-sm font-semibold text-white/70 hover:text-white">
               How it stays invisible →
             </a>
           </div>
-          <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-sky-200">
-            Starting at $49/mo
-          </p>
+          {isWaitlist && (
+            <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-sky-200">
+              Early access waitlist now open
+            </p>
+          )}
 
           <div className="mt-14 flex justify-center">
             <LiveTranscriptCard
@@ -127,9 +130,11 @@ export default function CopilotLanding() {
             ))}
           </div>
           <div className="mt-12 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold text-slate-700">Ready to stop going in unprepared?</p>
+            <p className="text-sm font-semibold text-slate-700">
+              {isWaitlist ? 'Want early access when Copilot opens?' : 'Ready to stop going in unprepared?'}
+            </p>
             <Button onClick={() => isWaitlist ? scrollToWaitlist() : document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
-              See plans
+              {isWaitlist ? 'Join the waitlist' : 'See plans'}
             </Button>
           </div>
         </div>
@@ -192,55 +197,57 @@ export default function CopilotLanding() {
         </div>
       </section>
 
-      <section id="pricing" className="border-t border-slate-100 py-20">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <h2 className="text-2xl font-bold text-slate-900">Plans for individuals</h2>
-            <button
-              onClick={() => setBillingCycle(c => (c === 'monthly' ? 'annual' : 'monthly'))}
-              className="flex items-center gap-2.5 text-sm font-semibold text-slate-700"
-            >
-              <span className={cn('relative flex h-5 w-9 items-center rounded-full px-0.5 transition-colors', isAnnual ? 'bg-primary' : 'bg-slate-300')}>
-                <span className={cn('h-4 w-4 rounded-full bg-white shadow transition-transform', isAnnual ? 'translate-x-4' : 'translate-x-0')} />
-              </span>
-              Annual <span className="text-emerald-600">(save 20%)</span>
-            </button>
-          </div>
-
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
-            {PLANS.map(plan => (
-              <article
-                key={plan.id}
-                className={cn(
-                  'flex flex-col rounded-2xl border bg-white p-7',
-                  plan.popular ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-slate-200',
-                )}
+      {!isWaitlist && (
+        <section id="pricing" className="border-t border-slate-100 py-20">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+              <h2 className="text-2xl font-bold text-slate-900">Plans for individuals</h2>
+              <button
+                onClick={() => setBillingCycle(c => (c === 'monthly' ? 'annual' : 'monthly'))}
+                className="flex items-center gap-2.5 text-sm font-semibold text-slate-700"
               >
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-black text-slate-900">{plan.label}</h3>
-                  {plan.popular && <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">Most popular</span>}
-                </div>
-                <p className="mt-5 text-3xl font-black text-slate-900">
-                  ${priceFor(plan.monthlyPrice)} <span className="text-sm font-medium text-slate-500">/mo</span>
-                </p>
-                <ul className="mt-6 space-y-3 text-sm text-slate-600">
-                  {PLAN_BULLETS[plan.id].map(b => (
-                    <li key={b} className="flex items-start gap-2.5">
-                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-6 text-sm italic text-slate-500">{plan.bestForNote}</p>
-                <Button size="lg" variant={plan.popular ? 'default' : 'outline'} className="mt-6" onClick={() => isWaitlist ? scrollToWaitlist() : navigate(`/copilot/checkout/${plan.id}`)}>
-                  {isWaitlist ? 'Join the waitlist →' : `Get ${plan.label}`}
-                </Button>
-              </article>
-            ))}
+                <span className={cn('relative flex h-5 w-9 items-center rounded-full px-0.5 transition-colors', isAnnual ? 'bg-primary' : 'bg-slate-300')}>
+                  <span className={cn('h-4 w-4 rounded-full bg-white shadow transition-transform', isAnnual ? 'translate-x-4' : 'translate-x-0')} />
+                </span>
+                Annual <span className="text-emerald-600">(save 20%)</span>
+              </button>
+            </div>
+
+            <div className="mt-8 grid gap-6 sm:grid-cols-2">
+              {PLANS.map(plan => (
+                <article
+                  key={plan.id}
+                  className={cn(
+                    'flex flex-col rounded-2xl border bg-white p-7',
+                    plan.popular ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-slate-200',
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-black text-slate-900">{plan.label}</h3>
+                    {plan.popular && <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">Most popular</span>}
+                  </div>
+                  <p className="mt-5 text-3xl font-black text-slate-900">
+                    ${priceFor(plan.monthlyPrice)} <span className="text-sm font-medium text-slate-500">/mo</span>
+                  </p>
+                  <ul className="mt-6 space-y-3 text-sm text-slate-600">
+                    {PLAN_BULLETS[plan.id].map(b => (
+                      <li key={b} className="flex items-start gap-2.5">
+                        <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-6 text-sm italic text-slate-500">{plan.bestForNote}</p>
+                  <Button size="lg" variant={plan.popular ? 'default' : 'outline'} className="mt-6" onClick={() => navigate(`/copilot/checkout/${plan.id}`)}>
+                    Get {plan.label}
+                  </Button>
+                </article>
+              ))}
+            </div>
+            <p className="mt-6 text-center text-sm text-slate-500">Cancel anytime. No questions asked.</p>
           </div>
-          <p className="mt-6 text-center text-sm text-slate-500">Cancel anytime. No questions asked.</p>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Faq title="Before you ask" items={FAQ_ITEMS} />
 
@@ -249,13 +256,13 @@ export default function CopilotLanding() {
           <Zap className="mx-auto h-8 w-8 text-sky-300" />
           <h2 className="mt-4 text-2xl font-bold">Your next interview is coming up. Be ready for it.</h2>
           <Button size="lg" className="mt-6 bg-white text-[#061a3a] hover:bg-sky-50" onClick={() => isWaitlist ? scrollToWaitlist() : document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}>
-            See plans
+            {isWaitlist ? 'Join the waitlist' : 'See plans'}
           </Button>
         </div>
       </section>
 
       {isWaitlist && <WaitlistBlock product="Lightforth Copilot" accent="#061a3a" accentFg="#fff" />}
-      <MarketingFooter active="individuals" />
+      {!isWaitlist && <MarketingFooter active="individuals" />}
     </div>
   )
 }
