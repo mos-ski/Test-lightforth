@@ -91,6 +91,18 @@ describe('RegularSetupScreen', () => {
     expect(screen.getByRole('button', { name: 'Coding' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Meeting' })).not.toBeInTheDocument()
   })
+
+  it('renders a Context picker on the Interview tab, sourced from the personal Context library', () => {
+    render(<RegularSetupScreen onBack={() => {}} onContinue={() => {}} unlockedUseCases={['interview', 'coding', 'meeting']} />)
+    expect(screen.getByText(/Add context from your documents/)).toBeInTheDocument()
+  })
+
+  it('replaces the old free-text Context textarea on the Meeting tab with a picker', () => {
+    render(<RegularSetupScreen onBack={() => {}} onContinue={() => {}} unlockedUseCases={['interview', 'coding', 'meeting']} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Meeting' }))
+    expect(screen.queryByPlaceholderText(/Paste any background info/)).not.toBeInTheDocument()
+    expect(screen.getByText(/Add context from your documents/)).toBeInTheDocument()
+  })
 })
 
 describe('PreferenceModal', () => {

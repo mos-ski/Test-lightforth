@@ -610,20 +610,23 @@ function SuggestInput({ value, onChange, placeholder, suggestions }: { value: st
   )
 }
 
-export function RegularSetupScreen({ onBack, onContinue, unlockedUseCases }: { onBack: () => void; onContinue: (useCaseId: RegularUseCase, primaryLabel: string) => void; unlockedUseCases: RegularUseCase[] }) {
+export function RegularSetupScreen({ email, onBack, onContinue, unlockedUseCases }: { email?: string; onBack: () => void; onContinue: (useCaseId: RegularUseCase, primaryLabel: string) => void; unlockedUseCases: RegularUseCase[] }) {
   const availableTabs = REGULAR_TABS.filter(tab => unlockedUseCases.includes(tab.id))
   const [activeTab, setActiveTab] = useState<RegularUseCase>(availableTabs[0]?.id ?? 'interview')
   const [jobTitle, setJobTitle] = useState('')
   const [jobDesc, setJobDesc] = useState('')
+  const [interviewContext, setInterviewContext] = useState<ContextDoc[]>([])
   const [language, setLanguage] = useState('')
   const [meetingTitle, setMeetingTitle] = useState('')
   const [agenda, setAgenda] = useState('')
+  const [meetingContext, setMeetingContext] = useState<ContextDoc[]>([])
   const [audioConnected, setAudioConnected] = useState(true)
   const [dontAskAgain, setDontAskAgain] = useState(true)
   const [showPreference, setShowPreference] = useState(false)
 
   const config = getUseCase(activeTab)
   const inputStyle = { background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none' } as const
+  const contextDocs = resolveContextDocs(email ?? '')
 
   const primaryLabel = activeTab === 'interview' ? jobTitle : activeTab === 'meeting' ? meetingTitle : language
   const canContinue = activeTab === 'coding' ? true : primaryLabel.trim().length > 0
@@ -704,6 +707,9 @@ export function RegularSetupScreen({ onBack, onContinue, unlockedUseCases }: { o
                     </button>
                   </div>
                 </div>
+                <div className="mb-5">
+                  <ContextPickerField docs={contextDocs} selected={interviewContext} onChange={setInterviewContext} />
+                </div>
               </>
             )}
 
@@ -746,19 +752,7 @@ export function RegularSetupScreen({ onBack, onContinue, unlockedUseCases }: { o
                   </p>
                 </div>
                 <div className="mb-5">
-                  <label className="mb-2 block text-sm font-semibold text-white">Context <span className="font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>(optional)</span></label>
-                  <textarea
-                    placeholder="Paste any background info — brief, talking points, reports..."
-                    className="h-20 w-full resize-none rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                    style={inputStyle}
-                  />
-                  <button
-                    className="mt-2 flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-white/10"
-                    style={{ color: 'rgba(255,255,255,0.55)', border: `1px solid ${INPUT_BD}` }}
-                    onClick={e => e.preventDefault()}
-                  >
-                    <Upload className="h-3.5 w-3.5" /> Upload document
-                  </button>
+                  <ContextPickerField docs={contextDocs} selected={meetingContext} onChange={setMeetingContext} />
                 </div>
               </>
             )}
@@ -1458,6 +1452,7 @@ export default function DesktopCopilotPreview() {
       )}
       {view === 'regular-setup' && (
         <RegularSetupScreen
+          email={pendingEmail}
           onBack={() => setView('sign-in')}
           onContinue={(id, label) => { setUseCase(id); setPrimaryLabel(label); setReturnView('regular-setup'); setView('live') }}
           unlockedUseCases={getPlan(selectedPlan).unlockedUseCases as RegularUseCase[]}
