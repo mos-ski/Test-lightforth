@@ -50,8 +50,8 @@
 
 **Files:**
 - Modify: `src/pages/sales/mockOrg.ts:79-86` (interface), `:96-111` (`normalizeOrg`), `:330-427` (`demoSeedOrg`)
-- Modify: `src/pages/desktopCopilot/SignInScreen.test.tsx:78-85,100-107`
-- Modify: `src/pages/DesktopCopilotPreview.test.tsx:272-282`
+- Modify: `src/pages/desktopCopilot/SignInScreen.test.tsx:81-88,102-109` (line numbers as of commit `733a1f2`; locate by the `orgName: 'Acme Inc'` literals if they've drifted further)
+- Modify: `src/pages/DesktopCopilotPreview.test.tsx:274-284` (same caveat — locate by the `orgName: 'Acme Inc'` literal)
 - Test: `src/pages/sales/mockOrg.test.ts` (new)
 
 **Interfaces:**
@@ -268,8 +268,8 @@ export function demoSeedOrg(adminEmail: string, adminName: string, orgName: stri
 ```
 
 Update the two hand-built `SalesOrg` test fixtures (they're both enterprise-invite scenarios) — add `planTier: 'enterprise',` right after `orgName: 'Acme Inc',` in each:
-- `src/pages/desktopCopilot/SignInScreen.test.tsx:79` and `:101`
-- `src/pages/DesktopCopilotPreview.test.tsx:273`
+- `src/pages/desktopCopilot/SignInScreen.test.tsx:82` and `:103`
+- `src/pages/DesktopCopilotPreview.test.tsx:275`
 
 - [ ] **Step 4: Run test to verify it passes**
 
