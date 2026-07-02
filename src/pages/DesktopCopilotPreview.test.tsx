@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { act } from 'react'
 import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { SetupScreen, RegularSetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas, CompleteScreen } from './DesktopCopilotPreview'
+import { SetupScreen, RegularSetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas, SalesLiveCanvas, CompleteScreen } from './DesktopCopilotPreview'
 import { createOrg, emptyKnowledgeBase, generateInviteCode } from './sales/mockOrg'
 import { setAccount } from './desktopCopilot/mockAccounts'
 
@@ -187,7 +187,7 @@ describe('LiveCanvas', () => {
   })
 
   it('labels the speaker "Customer" and titles the bar "Sales Call with {label}"', () => {
-    render(<LiveCanvas useCaseId="sales-call" primaryLabel="Acme Corp" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    render(<SalesLiveCanvas primaryLabel="Acme Corp" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     expect(screen.getByText('Sales Call with Acme Corp')).toBeInTheDocument()
     fireEvent.keyDown(window, { code: 'Space' })
     expect(screen.getAllByText('Customer').length).toBeGreaterThan(0)

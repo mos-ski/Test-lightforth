@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Bell, Check, ChevronDown, CornerDownRight, ExternalLink, FileText, HelpCircle, Mic, Play, Settings, Sparkles, Upload, X } from 'lucide-react'
+import { ArrowLeft, Bell, Check, ChevronDown, CornerDownRight, ExternalLink, FileText, HelpCircle, Mic, Phone, Play, Settings, Sparkles, Upload, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getUseCase, type UseCaseId } from './desktopCopilot/useCases'
 import { BG, CARD, BORDER, INPUT_BG, INPUT_BD, BLUE, formatTime, LightningLogo, MacWindow, Toggle } from './desktopCopilot/shared'
@@ -800,7 +800,7 @@ export function RegularSetupScreen({ email, onBack, onContinue, unlockedUseCases
 // ---------------------------------------------------------------------------
 // Screen 3a: Conversational Canvas (Interview / Sales Call / Meeting)
 // ---------------------------------------------------------------------------
-type ConversationalUseCase = 'interview' | 'sales-call' | 'meeting'
+type ConversationalUseCase = 'interview' | 'meeting'
 
 const MOCK_SALES_QA = [
   { speaker: 'Customer', q: "Look, I like the product, but the price point is a stretch for us this quarter.", a: "Acknowledge the budget concern, then re-anchor on value: \"I hear you on budget — a lot of our customers felt the same before they saw the time saved. What if we started with the core tier and revisited expansion next quarter?\"" },
@@ -853,13 +853,11 @@ function flattenTranscript(history: ConversationalTurn[], repName: string): { sp
 
 const CONVERSATIONAL_BANKS: Record<ConversationalUseCase, ConversationalTurn[]> = {
   interview: MOCK_QA,
-  'sales-call': MOCK_SALES_QA,
   meeting: MOCK_MEETING_TRANSCRIPT,
 }
 
 const TITLE_TEXT: Record<ConversationalUseCase, (label: string) => string> = {
   interview: label => `Interview for ${label}`,
-  'sales-call': label => `Sales Call with ${label}`,
   meeting: label => `Meeting: ${label}`,
 }
 
@@ -1138,6 +1136,422 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
             <AIAssistantPanel context={primaryLabel} onClose={() => setShowAI(false)} />
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Screen 3a-b: Sales Live Canvas (Sales-specific interface)
+// ---------------------------------------------------------------------------
+
+const SALES_MOCK_TALK_TRACK = [
+  'Lead with ROI — 60% faster onboarding',
+  'No migration needed — native integration',
+  'Start with core tier, expand next quarter',
+  'SOC 2 docs ready to send',
+]
+
+const SALES_MOCK_OBJECTIONS = [
+  { objection: 'Price is too high', tip: 'Re-anchor on value: mention time saved and ROI. Offer a phased approach.' },
+  { objection: 'We have an existing solution', tip: 'Highlight native integration and zero migration cost. Reference similar customer wins.' },
+  { objection: 'Need to check with procurement', tip: 'Offer to send SOC 2 docs proactively. Suggest a brief call with their procurement lead.' },
+]
+
+export function SalesLiveCanvas({ primaryLabel, onEnd, onBack, transparency, onTransparencyChange }: { primaryLabel: string; onEnd: (elapsed: number, history: ConversationalTurn[]) => void; onBack: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
+  const bank = MOCK_SALES_QA
+  const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const [qDisplayed, setQDisplayed] = useState('')
+  const [interjectionDisplayed, setInterjectionDisplayed] = useState('')
+  const [aDisplayed, setADisplayed] = useState('')
+  const [history, setHistory] = useState<ConversationalTurn[]>([])
+  const [elapsed, setElapsed] = useState(0)
+  const [showSettings, setShowSettings] = useState(false)
+  const [stealthMode, setStealthMode] = useState(true)
+  const [alwaysOnTop, setAlwaysOnTop] = useState(false)
+  const [fontSize, setFontSize] = useState(14)
+  const [autoRespond, setAutoRespond] = useState(false)
+  const [showAI, setShowAI] = useState(true)
+  const [dealStage, setDealStage] = useState<DealStage>('Discovery')
+  const [activeRightTab, setActiveRightTab] = useState<'deal' | 'track' | 'objections'>('deal')
+
+  const statusRef = useRef(copilotStatus)
+  const qIndexRef = useRef(questionIndex)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const stickToBottomRef = useRef(true)
+  useEffect(() => { statusRef.current = copilotStatus }, [copilotStatus])
+  useEffect(() => { qIndexRef.current = questionIndex }, [questionIndex])
+
+  useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
+
+  useEffect(() => {
+    const el = panelRef.current
+    if (!el) return
+    const handleScroll = () => {
+      stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+    }
+    el.addEventListener('scroll', handleScroll)
+    return () => el.removeEventListener('scroll', handleScroll)
+  }, [])
+  useEffect(() => {
+    if (panelRef.current && stickToBottomRef.current && 'scrollTo' in panelRef.current) {
+      panelRef.current.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' })
+    }
+  }, [qDisplayed, aDisplayed, copilotStatus])
+
+  const advance = () => {
+    const cur = statusRef.current
+    const qi = qIndexRef.current
+    const turn = bank[qi]
+    if (cur === 'listening') {
+      setQDisplayed(questionTextFor(turn))
+      if (turn.interjection) setInterjectionDisplayed(turn.interjection.text)
+      setCopilotStatus('processing')
+    }
+    else if (cur === 'processing') { setCopilotStatus('answering') }
+    else {
+      setHistory(h => [...h, turn])
+      setQuestionIndex(i => (i + 1) % bank.length)
+      setCopilotStatus('listening')
+      // Auto-advance deal stage based on conversation progress
+      const nextIdx = (questionIndex + 1) % bank.length
+      if (nextIdx === 1) setDealStage('Demo')
+      else if (nextIdx === 2) setDealStage('Negotiation')
+    }
+  }
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || autoRespond) return
+      e.preventDefault()
+      advance()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [autoRespond, bank])
+
+  useEffect(() => {
+    if (!autoRespond) return
+    const delay = copilotStatus === 'listening' ? 1800 : copilotStatus === 'processing' ? 1200 : 1800
+    const id = setTimeout(advance, delay)
+    return () => clearTimeout(id)
+  }, [autoRespond, copilotStatus, questionIndex])
+
+  useEffect(() => {
+    if (copilotStatus !== 'listening') return
+    setQDisplayed(''); setADisplayed(''); setInterjectionDisplayed('')
+    const turn = bank[questionIndex]
+    const qText = questionTextFor(turn)
+    let i = 0
+    let interjectionTimeout: ReturnType<typeof setTimeout> | undefined
+    let interjectionInterval: ReturnType<typeof setInterval> | undefined
+    const qInterval = setInterval(() => {
+      i++
+      setQDisplayed(qText.slice(0, i))
+      if (i >= qText.length) {
+        clearInterval(qInterval)
+        if (turn.interjection) {
+          interjectionTimeout = setTimeout(() => {
+            let j = 0
+            const interjectionText = turn.interjection!.text
+            interjectionInterval = setInterval(() => {
+              j++
+              setInterjectionDisplayed(interjectionText.slice(0, j))
+              if (j >= interjectionText.length) clearInterval(interjectionInterval)
+            }, 22)
+          }, 350)
+        }
+      }
+    }, 22)
+    return () => {
+      clearInterval(qInterval)
+      if (interjectionTimeout) clearTimeout(interjectionTimeout)
+      if (interjectionInterval) clearInterval(interjectionInterval)
+    }
+  }, [copilotStatus, questionIndex, bank])
+
+  useEffect(() => {
+    if (copilotStatus !== 'answering') return
+    setADisplayed('')
+    const text = bank[questionIndex].a; let i = 0
+    const id = setInterval(() => { i += 6; setADisplayed(text.slice(0, i)); if (i >= text.length) clearInterval(id) }, 10)
+    return () => clearInterval(id)
+  }, [copilotStatus, questionIndex, bank])
+
+  const statusText: Record<CopilotStatus, string> = { listening: 'Listening to customer...', processing: 'Preparing response...', answering: 'Coaching...' }
+  const speakerLabel = bank[questionIndex].speaker
+  const stageIndex = DEAL_STAGES.indexOf(dealStage)
+
+  return (
+    <div className="flex flex-1 min-h-0 flex-col" style={{ background: '#0A1628' }}>
+      <style>{`
+        @keyframes glowPulse { 0%,100%{box-shadow:0 0 6px rgba(34,197,94,0.3),0 0 14px rgba(34,197,94,0.1)}50%{box-shadow:0 0 12px rgba(34,197,94,0.45),0 0 24px rgba(34,197,94,0.15)} }
+        @keyframes processingDot { 0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-5px);opacity:1} }
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
+        @keyframes salesPulse { 0%,100%{opacity:.6}50%{opacity:1} }
+      `}</style>
+
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+            <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: '#1E2D45' }}>
+              <p className="text-sm font-semibold text-white">Settings</p>
+              <button onClick={() => setShowSettings(false)}><X className="h-4 w-4 text-slate-400 hover:text-white" /></button>
+            </div>
+            <div className="space-y-6 p-5">
+              <div>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Session Preferences</p>
+                <div className="space-y-2 rounded-lg p-3 text-xs" style={{ background: '#0A1628' }}>
+                  <div className="flex justify-between"><span className="text-slate-500">Customer</span><span className="font-medium text-slate-200 truncate max-w-[140px]">{primaryLabel}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Deal Stage</span><span className="font-medium text-blue-400">{dealStage}</span></div>
+                </div>
+              </div>
+              <div className="border-t" style={{ borderColor: '#1E2D45' }} />
+              <div>
+                <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Window Settings</p>
+                <div className="space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div><p className="text-sm font-medium text-slate-200">Stealth Mode</p><p className="mt-0.5 text-xs text-slate-500">Hides Copilot from screen share</p></div>
+                    <Toggle on={stealthMode} onToggle={() => setStealthMode(s => !s)} />
+                  </div>
+                  <div>
+                    <div className="mb-2 flex justify-between"><p className="text-sm font-medium text-slate-200">Transparent Background</p><span className="text-xs text-slate-400">{transparency}%</span></div>
+                    <input type="range" min={0} max={100} value={transparency} onChange={e => onTransparencyChange(Number(e.target.value))} className="w-full accent-primary" />
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div><p className="text-sm font-medium text-slate-200">Always on Top</p><p className="mt-0.5 text-xs text-slate-500">Keeps Copilot above all other windows</p></div>
+                    <Toggle on={alwaysOnTop} onToggle={() => setAlwaysOnTop(s => !s)} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: '#0A1628' }}>
+        <div className="flex items-center gap-2 text-sm text-slate-300">
+          <button onClick={onBack} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Back">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
+          <span>Sales Call with {primaryLabel}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-sm text-slate-300">{formatTime(elapsed)}</span>
+          <button onClick={() => onEnd(elapsed, history)} className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600">End Call</button>
+        </div>
+      </div>
+
+      {/* Status bar */}
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-2" style={{ background: '#0F2340' }}>
+        <div className="flex items-center gap-5 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="flex items-end gap-[3px]">{[5,8,11,14].map((h,i) => <div key={i} className="w-[3px] rounded-sm bg-green-400" style={{height:h}} />)}</div>
+            <span className="text-green-400">Strong</span>
+          </div>
+          <span className="italic text-slate-400">{statusText[copilotStatus]}</span>
+        </div>
+        <div className="flex items-center gap-4 text-xs text-slate-300">
+          <button
+            onClick={() => setShowAI(a => !a)}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors',
+              showAI ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-white/10',
+            )}
+          >
+            <Sparkles className="h-3 w-3" /> AI Assistant
+          </button>
+          <label className="flex items-center gap-2">
+            Font size
+            <input type="range" min={12} max={20} value={fontSize} onChange={e => setFontSize(Number(e.target.value))} className="w-20 accent-primary" />
+            <span className="w-5 text-slate-500">{fontSize}</span>
+          </label>
+          <button data-testid="open-settings" onClick={() => setShowSettings(true)}><Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" /></button>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="flex flex-1 min-h-0 overflow-hidden p-2 gap-2">
+        {/* Left: Customer Statement + AI Response */}
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl" style={{ background: '#0D1929', border: copilotStatus === 'listening' ? '1px solid #22c55e' : '1px solid #1E2D45', ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
+          <div className="flex flex-shrink-0 items-center justify-between border-b px-4 py-3" style={{ borderColor: '#1E2D45' }}>
+            <div className="flex items-center gap-2 text-sm font-medium text-white">
+              <div className="flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5 text-green-400" />
+                Live Coaching
+              </div>
+              <div className="h-2 w-2 rounded-full bg-red-500" />
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Deal stage indicator */}
+              <div className="flex items-center gap-1 rounded-lg px-2 py-1" style={{ background: 'rgba(26,122,255,0.15)' }}>
+                {DEAL_STAGES.map((s, i) => (
+                  <div key={s} className="flex items-center gap-1">
+                    <div className={cn(
+                      'h-1.5 w-1.5 rounded-full transition-colors',
+                      i <= stageIndex ? 'bg-blue-400' : 'bg-slate-600',
+                    )} />
+                    {i < DEAL_STAGES.length - 1 && <div className={cn('h-px w-3', i < stageIndex ? 'bg-blue-400' : 'bg-slate-700')} />}
+                  </div>
+                ))}
+                <span className="ml-1 text-[10px] font-semibold text-blue-400">{dealStage}</span>
+              </div>
+            </div>
+          </div>
+
+          <div ref={panelRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
+            {/* History */}
+            {history.map((item, i) => (
+              <div key={i} className="space-y-3">
+                <div>
+                  <p className="mb-1 text-xs font-semibold" style={{ color: speakerColor(item.speaker) }}>{item.speaker}</p>
+                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
+                    <p className="text-sm text-white">{questionTextFor(item)}{item.interjection && '...'}</p>
+                  </div>
+                </div>
+                {item.interjection && (
+                  <div className="ml-4 flex items-start gap-1.5 border-l-2 pl-3" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
+                    <CornerDownRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-slate-500" />
+                    <p className="text-xs leading-relaxed text-slate-300">
+                      <span className="font-semibold" style={{ color: speakerColor(item.interjection.speaker) }}>{item.interjection.speaker}</span>
+                      {' '}{item.interjection.text}
+                    </p>
+                  </div>
+                )}
+                <div className="ml-2 border-l-2 pl-3" style={{ borderColor: 'rgba(59,130,246,0.4)' }}>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-blue-400">Suggested Response</p>
+                  <p className="text-sm leading-relaxed text-slate-200">{item.a}</p>
+                </div>
+              </div>
+            ))}
+
+            {/* Current turn */}
+            <div className="space-y-3">
+              {qDisplayed && (
+                <div>
+                  <p className="mb-1 text-xs font-semibold" style={{ color: speakerColor(speakerLabel) }}>{speakerLabel}</p>
+                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
+                    <p className="text-sm text-white">
+                      {qDisplayed}
+                      {bank[questionIndex].interjection && qDisplayed.length >= questionTextFor(bank[questionIndex]).length && '...'}
+                      {!bank[questionIndex].interjection && copilotStatus === 'listening' && qDisplayed.length < bank[questionIndex].q.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {interjectionDisplayed && bank[questionIndex].interjection && (
+                <div className="ml-4 flex items-start gap-1.5 border-l-2 pl-3" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
+                  <CornerDownRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-slate-500" />
+                  <p className="text-xs leading-relaxed text-slate-300">
+                    <span className="font-semibold" style={{ color: speakerColor(bank[questionIndex].interjection!.speaker) }}>{bank[questionIndex].interjection!.speaker}</span>
+                    {' '}{interjectionDisplayed}
+                    {copilotStatus === 'listening' && interjectionDisplayed.length < bank[questionIndex].interjection!.text.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}
+                  </p>
+                </div>
+              )}
+              {copilotStatus === 'processing' && (
+                <div className="flex items-center gap-2 py-1">
+                  <span className="text-xs text-blue-400 font-medium" style={{ animation: 'salesPulse 1.5s ease-in-out infinite' }}>Preparing coaching tip...</span>
+                  <div className="flex items-center gap-1">{[0,1,2].map(i => <div key={i} className="h-1.5 w-1.5 rounded-full bg-blue-400" style={{ animation: 'processingDot 0.9s ease-in-out infinite', animationDelay: `${i * 0.18}s` }} />)}</div>
+                </div>
+              )}
+              {copilotStatus === 'answering' && aDisplayed && (
+                <div className="ml-2 border-l-2 pl-3" style={{ borderColor: 'rgba(59,130,246,0.4)' }}>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-blue-400">Suggested Response</p>
+                  <p className="leading-relaxed text-slate-200" style={{ fontSize }}>{aDisplayed}{aDisplayed.length < bank[questionIndex].a.length && <span className="ml-px inline-block w-[2px] bg-primary align-middle" style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }} />}</p>
+                </div>
+              )}
+              {!qDisplayed && history.length === 0 && <p className="text-xs italic text-slate-600">{autoRespond ? 'Listening to the call...' : 'Press Space to start the sales simulation...'}</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* Right sidebar: Deal / Talk Track / Objections */}
+        <div className="hidden lg:flex lg:min-w-[260px] lg:max-w-[300px] flex-col gap-2">
+          {/* Tabs */}
+          <div className="flex gap-1 rounded-lg p-1" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+            {([ { id: 'deal' as const, label: 'Deal' }, { id: 'track' as const, label: 'Talk Track' }, { id: 'objections' as const, label: 'Objections' } ]).map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveRightTab(tab.id)}
+                className={cn(
+                  'flex-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors',
+                  activeRightTab === tab.id ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300',
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Deal Stage Panel */}
+          {activeRightTab === 'deal' && (
+            <div className="flex-1 rounded-xl p-4" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Deal Progress</p>
+              <div className="mb-4 space-y-2">
+                {DEAL_STAGES.map((s, i) => (
+                  <div key={s} className="flex items-center gap-3">
+                    <div className={cn(
+                      'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold',
+                      i < stageIndex ? 'bg-green-500/20 text-green-400' : i === stageIndex ? 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-400/50' : 'bg-white/5 text-slate-600',
+                    )}>
+                      {i < stageIndex ? '✓' : i + 1}
+                    </div>
+                    <div className="flex-1">
+                      <p className={cn('text-xs font-medium', i <= stageIndex ? 'text-white' : 'text-slate-600')}>{s}</p>
+                      {i === stageIndex && <p className="text-[10px] text-blue-400" style={{ animation: 'salesPulse 2s ease-in-out infinite' }}>Current stage</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-lg p-3" style={{ background: 'rgba(26,122,255,0.08)' }}>
+                <p className="text-[10px] font-semibold text-blue-400 mb-1">Customer</p>
+                <p className="text-xs text-white font-medium">{primaryLabel}</p>
+                <p className="text-[10px] text-slate-500 mt-1">Call duration: {formatTime(elapsed)}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Talk Track Panel */}
+          {activeRightTab === 'track' && (
+            <div className="flex-1 rounded-xl p-4" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Talk Track</p>
+              <div className="space-y-2">
+                {SALES_MOCK_TALK_TRACK.map((point, i) => (
+                  <div key={i} className="flex items-start gap-2 rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                    <div className="mt-0.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-400" />
+                    <p className="text-xs text-slate-300 leading-relaxed">{point}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Objections Panel */}
+          {activeRightTab === 'objections' && (
+            <div className="flex-1 rounded-xl p-4" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Objection Handling</p>
+              <div className="space-y-3">
+                {SALES_MOCK_OBJECTIONS.map((item, i) => (
+                  <div key={i} className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <p className="text-xs font-semibold text-amber-400 mb-1">{item.objection}</p>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">{item.tip}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI Assistant Panel */}
+          {showAI && (
+            <div className="flex-1 min-h-0">
+              <AIAssistantPanel context={primaryLabel} onClose={() => setShowAI(false)} compact variant="sales" />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -1466,12 +1880,11 @@ export default function DesktopCopilotPreview() {
           onContinue={label => { setPrimaryLabel(label); setView('live') }}
         />
       )}
-      {view === 'live' && config.canvasPattern === 'conversational' && (
-        <LiveCanvas
-          useCaseId={useCase as 'interview' | 'sales-call' | 'meeting'}
+      {view === 'live' && config.canvasPattern === 'conversational' && useCase === 'sales-call' && (
+        <SalesLiveCanvas
           primaryLabel={primaryLabel}
           onEnd={(elapsed, history) => {
-            if (useCase === 'sales-call' && pendingEmail) {
+            if (pendingEmail) {
               const found = findMemberByEmail(pendingEmail)
               if (found) {
                 recordCall(found.adminEmail, {
@@ -1483,6 +1896,18 @@ export default function DesktopCopilotPreview() {
                 })
               }
             }
+            setView('complete')
+          }}
+          onBack={() => setView(returnView)}
+          transparency={transparency}
+          onTransparencyChange={setTransparency}
+        />
+      )}
+      {view === 'live' && config.canvasPattern === 'conversational' && useCase !== 'sales-call' && (
+        <LiveCanvas
+          useCaseId={useCase as 'interview' | 'meeting'}
+          primaryLabel={primaryLabel}
+          onEnd={(elapsed, history) => {
             setView('complete')
           }}
           onBack={() => setView(returnView)}
