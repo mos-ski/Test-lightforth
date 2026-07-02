@@ -1420,7 +1420,7 @@ export default function DesktopCopilotPreview() {
                 setUseCase('exam')
                 setReturnView('sign-in')
                 setView('setup')
-              } else if (existingAccount.accountType === 'enterprise-admin' || existingAccount.accountType === 'enterprise-member') {
+              } else if (existingAccount.accountType === 'sales-individual' || existingAccount.accountType === 'enterprise-admin' || existingAccount.accountType === 'enterprise-member') {
                 setUseCase('sales-call')
                 setReturnView('sign-in')
                 setView('setup')

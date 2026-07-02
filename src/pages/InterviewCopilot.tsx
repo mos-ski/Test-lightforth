@@ -840,11 +840,11 @@ function LiveInterview({
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden p-3 gap-2">
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-3 lg:flex-row lg:min-h-0 lg:overflow-hidden">
         {/* Left: Live Interview Response */}
         <div
           className={cn(
-            'flex min-h-0 flex-col overflow-hidden rounded-xl transition-all duration-300',
+            'flex min-h-[420px] flex-col overflow-hidden rounded-xl transition-all duration-300 lg:min-h-0',
             showAI ? 'w-full lg:w-[50%]' : 'w-full lg:w-[70%]',
           )}
           style={{
