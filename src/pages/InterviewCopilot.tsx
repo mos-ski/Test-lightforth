@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import DocumentPickerModal from '@/components/shared/DocumentPickerModal'
+import AIAssistantPanel from '@/components/shared/AIAssistantPanel'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -630,6 +631,7 @@ function LiveInterview({
   const [fontSize, setFontSize] = useState(14)
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [showSettings, setShowSettings] = useState(false)
+  const [showAI, setShowAI] = useState(true)
 
   type CopilotStatus = 'listening' | 'processing' | 'answering' | 'paused'
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
@@ -800,8 +802,17 @@ function LiveInterview({
           </div>
         </div>
 
-        {/* Right: Auto scroll + Font size */}
+        {/* Right: Auto scroll + Font size + AI toggle */}
         <div className="flex items-center gap-5 text-xs text-slate-300">
+          <button
+            onClick={() => setShowAI(a => !a)}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors',
+              showAI ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-white/10',
+            )}
+          >
+            <Sparkles className="h-3 w-3" /> AI Assistant
+          </button>
           <label className="flex items-center gap-2">
             Auto scroll
             <input
@@ -829,10 +840,13 @@ function LiveInterview({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-3 lg:flex-row lg:overflow-hidden">
+      <div className="flex flex-1 min-h-0 overflow-hidden p-3 gap-2">
         {/* Left: Live Interview Response */}
         <div
-          className="flex min-h-[420px] w-full flex-col overflow-hidden rounded-xl lg:min-h-0 lg:w-[70%]"
+          className={cn(
+            'flex min-h-0 flex-col overflow-hidden rounded-xl transition-all duration-300',
+            showAI ? 'w-full lg:w-[50%]' : 'w-full lg:w-[70%]',
+          )}
           style={{
             background: '#0D1929',
             border: copilotStatus === 'listening' && liveState === 'interviewing' ? '1px solid #22c55e' : '1px solid #1E2D45',
@@ -948,7 +962,10 @@ function LiveInterview({
         </div>
 
         {/* Right: Your Interview + Your Transcript */}
-        <div className="flex min-w-0 flex-1 flex-col gap-2 lg:min-w-[280px]">
+        <div className={cn(
+          'flex min-w-0 flex-1 flex-col gap-2 transition-all duration-300',
+          showAI ? 'lg:min-w-[200px] lg:max-w-[250px]' : 'lg:min-w-[280px]',
+        )}>
           {/* Your Interview */}
           <div className="flex flex-col overflow-hidden rounded-xl" style={{ height: '66%', background: '#0D1929', border: '1px solid #1E2D45' }}>
             <div className="px-4 py-3 border-b text-sm font-medium text-white" style={{ borderColor: '#1E2D45' }}>
@@ -1005,6 +1022,13 @@ function LiveInterview({
             </div>
           </div>
         </div>
+
+        {/* AI Assistant Panel */}
+        {showAI && (
+          <div className="hidden lg:flex lg:min-w-[280px] lg:max-w-[320px]">
+            <AIAssistantPanel context={jobTitle} onClose={() => setShowAI(false)} />
+          </div>
+        )}
       </div>
     </>
   )

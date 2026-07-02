@@ -9,6 +9,7 @@ import { SignInScreen } from './desktopCopilot/SignInScreen'
 import { ExamCheckoutScreen, ExamCheckoutSuccessScreen } from './desktopCopilot/ExamCheckoutScreen'
 import { setAccount } from './desktopCopilot/mockAccounts'
 import { findMemberByEmail, recordCall } from '@/pages/sales/mockOrg'
+import AIAssistantPanel from '@/components/shared/AIAssistantPanel'
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -875,6 +876,7 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
   const [fontSize, setFontSize] = useState(14)
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [autoRespond, setAutoRespond] = useState(false)
+  const [showAI, setShowAI] = useState(true)
 
   const statusRef = useRef(copilotStatus)
   const qIndexRef = useRef(questionIndex)
@@ -1046,6 +1048,15 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
           <span className="italic text-slate-400">{statusText[copilotStatus]}</span>
         </div>
         <div className="flex items-center gap-4 text-xs text-slate-300">
+          <button
+            onClick={() => setShowAI(a => !a)}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors',
+              showAI ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-white/10',
+            )}
+          >
+            <Sparkles className="h-3 w-3" /> AI Assistant
+          </button>
           <label className="flex items-center gap-2">
             Auto scroll
             <input type="range" min={1} max={5} value={scrollSpeed} onChange={e => setScrollSpeed(Number(e.target.value))} className="w-20 accent-primary" />
@@ -1059,8 +1070,11 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden p-2">
-        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl transition-all duration-500" style={{ background: '#0D1929', border: copilotStatus === 'listening' ? '1px solid #22c55e' : '1px solid #1E2D45', ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
+      <div className="flex flex-1 min-h-0 overflow-hidden p-2 gap-2">
+        <div className={cn(
+          'flex min-h-0 flex-col overflow-hidden rounded-xl transition-all duration-500',
+          showAI ? 'w-full lg:w-[65%]' : 'w-full',
+        )} style={{ background: '#0D1929', border: copilotStatus === 'listening' ? '1px solid #22c55e' : '1px solid #1E2D45', ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
           <div className="flex flex-shrink-0 items-center justify-between border-b px-4 py-3" style={{ borderColor: '#1E2D45' }}>
             <div className="flex items-center gap-2 text-sm font-medium text-white">Live Response<div className="h-2 w-2 rounded-full bg-red-500" /></div>
             <button data-testid="open-settings" onClick={() => setShowSettings(true)}><Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" /></button>
@@ -1115,6 +1129,13 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
             </div>
           </div>
         </div>
+
+        {/* AI Assistant Panel */}
+        {showAI && (
+          <div className="hidden lg:flex lg:min-w-[260px] lg:max-w-[300px]">
+            <AIAssistantPanel context={primaryLabel} onClose={() => setShowAI(false)} />
+          </div>
+        )}
       </div>
     </div>
   )
