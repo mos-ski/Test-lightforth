@@ -35,6 +35,23 @@ describe('SetupScreen', () => {
     fireEvent.click(screen.getByText('Continue'))
     expect(screen.getByText('Preference')).toBeInTheDocument()
   })
+
+  it('renders a Context picker for sales-call, sourced from the org Knowledge Base for an enterprise account', () => {
+    createOrg('admin@acme.com', {
+      orgName: 'Acme Inc',
+      planTier: 'enterprise',
+      setupFeePaid: true,
+      knowledgeBase: { ...emptyKnowledgeBase(), documents: [{ id: 'd1', name: 'Battlecard.pdf', enabled: true }] },
+      calls: [],
+      connectedIntegrations: [],
+      members: [{ id: '1', name: 'Admin', email: 'admin@acme.com', role: 'admin', inviteCode: generateInviteCode(), seatPaid: true }],
+    })
+    setAccount('admin@acme.com', { accountType: 'enterprise-admin', orgName: 'Acme Inc' })
+    render(<SetupScreen useCaseId="sales-call" email="admin@acme.com" onContinue={() => {}} />)
+    expect(screen.getByText(/Add context from your documents/)).toBeInTheDocument()
+    fireEvent.click(screen.getByText(/Add context from your documents/))
+    expect(screen.getByText('Battlecard.pdf')).toBeInTheDocument()
+  })
 })
 
 describe('RegularSetupScreen', () => {

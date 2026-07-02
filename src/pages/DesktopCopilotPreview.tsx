@@ -10,6 +10,8 @@ import { ExamCheckoutScreen, ExamCheckoutSuccessScreen } from './desktopCopilot/
 import { setAccount } from './desktopCopilot/mockAccounts'
 import { findMemberByEmail, recordCall } from '@/pages/sales/mockOrg'
 import AIAssistantPanel from '@/components/shared/AIAssistantPanel'
+import { ContextPickerField } from './desktopCopilot/ContextPickerField'
+import { resolveContextDocs, type ContextDoc } from './desktopCopilot/resolveContextDocs'
 
 // ---------------------------------------------------------------------------
 // Mock data
@@ -266,9 +268,10 @@ export function PreferenceModal({ hasAnswerLength, onClose, onNext }: { hasAnswe
 type DealStage = 'Discovery' | 'Demo' | 'Negotiation' | 'Closing'
 const DEAL_STAGES: DealStage[] = ['Discovery', 'Demo', 'Negotiation', 'Closing']
 
-export function SetupScreen({ useCaseId, onBack, onContinue }: { useCaseId: UseCaseId; onBack: () => void; onContinue: (primaryLabel: string) => void }) {
+export function SetupScreen({ useCaseId, email, onBack, onContinue }: { useCaseId: UseCaseId; email?: string; onBack: () => void; onContinue: (primaryLabel: string) => void }) {
   const config = getUseCase(useCaseId)
   const fields = new Set(config.setupFields)
+  const contextDocs = resolveContextDocs(email ?? '')
 
   const [jobTitle, setJobTitle] = useState('')
   const [selectedResume, setSelectedResume] = useState<string | null>('adewale_damola_PM_resume.pdf')
@@ -276,6 +279,7 @@ export function SetupScreen({ useCaseId, onBack, onContinue }: { useCaseId: UseC
   const [customerName, setCustomerName] = useState('')
   const [dealStage, setDealStage] = useState<DealStage>('Discovery')
   const [talkTrack, setTalkTrack] = useState('')
+  const [context, setContext] = useState<ContextDoc[]>([])
   const [meetingTitle, setMeetingTitle] = useState('')
   const [agenda, setAgenda] = useState('')
   const [subject, setSubject] = useState('')
@@ -431,6 +435,10 @@ export function SetupScreen({ useCaseId, onBack, onContinue }: { useCaseId: UseC
                   style={{ ...inputStyle, height: 72 }}
                 />
               </div>
+            )}
+
+            {fields.has('context') && (
+              <ContextPickerField docs={contextDocs} selected={context} onChange={setContext} />
             )}
 
             {fields.has('meeting-title') && (
@@ -1458,6 +1466,7 @@ export default function DesktopCopilotPreview() {
       {view === 'setup' && (
         <SetupScreen
           useCaseId={useCase}
+          email={pendingEmail}
           onBack={() => setView(returnView)}
           onContinue={label => { setPrimaryLabel(label); setView('live') }}
         />
