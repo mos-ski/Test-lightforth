@@ -11,7 +11,7 @@ function formatDuration(seconds: number): string {
 }
 
 export default function Overview() {
-  const { org } = useOutletContext<SalesDashboardContext>()
+  const { org, adminEmail } = useOutletContext<SalesDashboardContext>()
   const navigate = useNavigate()
   const [copied, setCopied] = useState(false)
 
@@ -54,7 +54,7 @@ export default function Overview() {
             {copied ? 'Copied!' : 'Copy link'}
           </button>
           <button
-            onClick={() => navigate('/desktop-copilot-preview')}
+            onClick={() => navigate(`/desktop-copilot-preview?email=${encodeURIComponent(adminEmail)}`)}
             className="flex items-center gap-2 rounded-lg bg-teal-400 px-4 py-2 text-sm font-semibold text-[#08285c] transition-colors hover:bg-teal-300"
           >
             <ExternalLink className="h-4 w-4" />

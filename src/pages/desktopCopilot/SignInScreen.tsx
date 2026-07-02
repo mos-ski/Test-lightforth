@@ -23,8 +23,8 @@ export function SignInScreen({
 }: {
   onBack: () => void
   onContinue: (result: SignInResult) => void
-  /** Account creation now happens entirely on the website — this sends the user there. */
-  onSignUp: () => void
+  /** Account creation now happens entirely on the website — this sends the user there. When omitted, the welcome buttons switch to sign-in mode instead. */
+  onSignUp?: () => void
   /** Carried over from the website checkout — prefills the email but still requires a real login. */
   prefillEmail?: string
 }) {
@@ -80,14 +80,14 @@ export function SignInScreen({
         {mode === 'welcome' && (
           <>
             <button
-              onClick={onSignUp}
+              onClick={onSignUp ?? (() => setMode('signin'))}
               className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
               style={{ background: BLUE }}
             >
               <Mail className="h-4 w-4" /> Continue with Email
             </button>
             <button
-              onClick={onSignUp}
+              onClick={onSignUp ?? (() => setMode('signin'))}
               className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-bold text-white/90 transition-colors hover:bg-white/10"
               style={inputStyle}
             >
@@ -95,7 +95,7 @@ export function SignInScreen({
               Continue with Google
             </button>
             <button
-              onClick={onSignUp}
+              onClick={onSignUp ?? (() => setMode('signin'))}
               className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-bold text-white/90 transition-colors hover:bg-white/10"
               style={inputStyle}
             >
