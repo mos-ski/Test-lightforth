@@ -31,6 +31,7 @@ const FigmaMyNotesLanding = lazy(() => import('@/pages/marketing/FigmaMyNotesLan
 const RegularCheckoutPage = lazy(() => import('@/pages/marketing/checkout/RegularCheckoutPage'))
 const ExamCheckoutPage = lazy(() => import('@/pages/marketing/checkout/ExamCheckoutPage'))
 const EnterpriseCheckoutPage = lazy(() => import('@/pages/marketing/checkout/EnterpriseCheckoutPage'))
+const IndividualCheckoutPage = lazy(() => import('@/pages/marketing/checkout/IndividualCheckoutPage'))
 const DownloadCopilotPage = lazy(() => import('@/pages/marketing/checkout/DownloadCopilotPage'))
 const SalesAdminLayout = lazy(() => import('@/pages/sales/SalesAdminLayout'))
 const SalesSignIn = lazy(() => import('@/pages/sales/SalesSignIn'))
@@ -132,6 +133,7 @@ export default function App() {
             <Route path="/copilot/checkout/:planId" element={<Suspense fallback={null}><RegularCheckoutPage /></Suspense>} />
             <Route path="/copilot/exam/checkout" element={<Suspense fallback={null}><ExamCheckoutPage /></Suspense>} />
             <Route path="/copilot/enterprise/checkout" element={<Suspense fallback={null}><EnterpriseCheckoutPage /></Suspense>} />
+            <Route path="/copilot/individual/checkout" element={<Suspense fallback={null}><IndividualCheckoutPage /></Suspense>} />
             <Route path="/copilot/download" element={<Suspense fallback={null}><DownloadCopilotPage /></Suspense>} />
             <Route path="/sales/sign-in" element={<Suspense fallback={null}><SalesSignIn /></Suspense>} />
             <Route path="/sales/dashboard" element={<Suspense fallback={null}><SalesAdminLayout /></Suspense>}>
