@@ -1,6 +1,7 @@
 import { useOutletContext, Link, useNavigate } from 'react-router-dom'
 import { Check, Copy, Database, ExternalLink, Phone, Trophy, Users } from 'lucide-react'
 import { useState } from 'react'
+import { cn } from '@/lib/utils'
 import type { SalesDashboardContext } from './SalesAdminLayout'
 
 function formatDuration(seconds: number): string {
@@ -63,13 +64,23 @@ export default function Overview() {
       </div>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2">
-        <div className="lf-panel p-6">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
-            <Check className="h-4 w-4 text-emerald-500" /> Setup fee
+        {org.planTier === 'enterprise' ? (
+          <div className="lf-panel p-6">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
+              <Check className="h-4 w-4 text-emerald-500" /> Setup fee
+            </div>
+            <p className="mt-3 text-2xl font-black text-slate-900">{org.setupFeePaid ? 'Paid' : 'Unpaid'}</p>
+            <p className="mt-1 text-sm text-slate-500">One-time $5,000 setup, already settled.</p>
           </div>
-          <p className="mt-3 text-2xl font-black text-slate-900">{org.setupFeePaid ? 'Paid' : 'Unpaid'}</p>
-          <p className="mt-1 text-sm text-slate-500">One-time $5,000 setup, already settled.</p>
-        </div>
+        ) : (
+          <div className="lf-panel p-6">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
+              <Check className="h-4 w-4 text-emerald-500" /> Plan
+            </div>
+            <p className="mt-3 text-2xl font-black text-slate-900">Individual</p>
+            <p className="mt-1 text-sm text-slate-500">$99.90/mo, no setup fee.</p>
+          </div>
+        )}
 
         <div className="lf-panel p-6">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
@@ -78,7 +89,9 @@ export default function Overview() {
           <p className="mt-3 text-2xl font-black text-slate-900">
             {paidSeats} <span className="text-base font-medium text-slate-500">of {org.members.length} added</span>
           </p>
-          <p className="mt-1 text-sm text-slate-500">$79/mo per active seat — only pay for reps who are live.</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {org.planTier === 'enterprise' ? '$79/mo per active seat — only pay for reps who are live.' : 'Your own seat, included in your $99.90/mo plan.'}
+          </p>
         </div>
       </div>
 
@@ -109,7 +122,7 @@ export default function Overview() {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2">
+      <div className={cn('mt-8 grid gap-5', org.planTier === 'enterprise' ? 'sm:grid-cols-2' : 'sm:grid-cols-1')}>
         <Link to="/sales/dashboard/knowledge-base" className="lf-panel flex items-center gap-4 p-6 transition-colors hover:bg-slate-50">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
             <Database className="h-5 w-5" />
@@ -120,15 +133,17 @@ export default function Overview() {
           </div>
         </Link>
 
-        <Link to="/sales/dashboard/team" className="lf-panel flex items-center gap-4 p-6 transition-colors hover:bg-slate-50">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Users className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="font-bold text-slate-900">Team</p>
-            <p className="text-sm text-slate-500">{org.members.length} member{org.members.length === 1 ? '' : 's'} total</p>
-          </div>
-        </Link>
+        {org.planTier === 'enterprise' && (
+          <Link to="/sales/dashboard/team" className="lf-panel flex items-center gap-4 p-6 transition-colors hover:bg-slate-50">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900">Team</p>
+              <p className="text-sm text-slate-500">{org.members.length} member{org.members.length === 1 ? '' : 's'} total</p>
+            </div>
+          </Link>
+        )}
       </div>
     </div>
   )
