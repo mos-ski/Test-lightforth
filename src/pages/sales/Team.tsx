@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Check, Copy, UserPlus } from 'lucide-react'
 import { addMember, emailDomain, markMemberSeatPaid } from './mockOrg'
 import type { SalesDashboardContext } from './SalesAdminLayout'
@@ -8,10 +8,17 @@ const SEAT_PRICE = 79
 
 export default function Team() {
   const { adminEmail, org, refresh } = useOutletContext<SalesDashboardContext>()
+  const navigate = useNavigate()
   const [showAddForm, setShowAddForm] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (org.planTier === 'individual') navigate('/sales/dashboard', { replace: true })
+  }, [org.planTier, navigate])
+
+  if (org.planTier === 'individual') return null
 
   const orgDomain = emailDomain(adminEmail)
   const domainMismatch = email.trim().length > 0 && emailDomain(email) !== orgDomain
