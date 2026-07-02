@@ -22,7 +22,15 @@ Enterprise's feature bullets (`PRICING_BULLETS`) stay as marketing copy; only th
 
 The hero CTA and closing-section CTA (both currently "Get started" → `#pricing` or `/copilot/enterprise/checkout`) keep scrolling to `#pricing` — they don't need to pick a plan on the visitor's behalf.
 
-The existing `?waitlist` mode (hides pricing entirely) is untouched — this change only affects the non-waitlist pricing section.
+The existing `?waitlist` mode (hides pricing entirely) keeps that behavior — it still shows no pricing/checkout CTAs. It only needs a copy pass (see "Copy consistency pass" below) so nothing on the page contradicts the new two-plan model once waitlist mode is turned off.
+
+### Copy consistency pass
+
+Beyond the pricing section itself, scrub stray copy elsewhere on `EnterpriseCopilotLanding.tsx` that assumes the old single-plan (Enterprise-only, $5,000 setup, admin-and-team-only) framing, so the page reads consistently now that Individual is also a persona:
+
+- FAQ item "What does the $5,000 setup fee actually cover?" — removed per Part 1 above (applies in both waitlist and non-waitlist FAQ variants — `FAQ_ITEMS.filter(item => !item.q.includes('$'))` already strips it from the waitlist variant, so removing the item outright keeps both variants correct without further filtering logic).
+- FAQ item "What happens to our call recordings and transcripts?" says "the admin who set up the account has access to everything" — reword to also cover the Individual case (a solo user is effectively their own admin, so this still holds; just avoid implying an admin/rep hierarchy is required).
+- Leave hero copy, `FEATURES`, and `CASE_STUDIES` as-is — they read fine for both a team rollout and a solo rep ("every rep gets the right answer" applies whether there's one rep or twelve). No broader messaging rewrite requested.
 
 ### Checkout (`IndividualCheckoutPage.tsx`, new — mirrors `EnterpriseCheckoutPage.tsx`)
 
