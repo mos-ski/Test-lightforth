@@ -80,6 +80,7 @@ describe('SignInScreen', () => {
   it('activates the seat and calls onContinue even when the invite code does not match the email on record (validation removed — any credentials work)', () => {
     createOrg('admin@acme.com', {
       orgName: 'Acme Inc',
+      planTier: 'enterprise',
       setupFeePaid: true,
       knowledgeBase: emptyKnowledgeBase(),
       calls: [],
@@ -101,6 +102,7 @@ describe('SignInScreen', () => {
     const inviteCode = generateInviteCode()
     createOrg('admin@acme.com', {
       orgName: 'Acme Inc',
+      planTier: 'enterprise',
       setupFeePaid: true,
       knowledgeBase: emptyKnowledgeBase(),
       calls: [],

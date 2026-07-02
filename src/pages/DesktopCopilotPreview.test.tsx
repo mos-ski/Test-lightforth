@@ -273,6 +273,7 @@ describe('DesktopCopilotPreview end to end', () => {
     const inviteCode = generateInviteCode()
     createOrg('admin@acme.com', {
       orgName: 'Acme Inc',
+      planTier: 'enterprise',
       setupFeePaid: true,
       knowledgeBase: emptyKnowledgeBase(),
       calls: [],

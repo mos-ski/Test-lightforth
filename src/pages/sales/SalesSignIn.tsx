@@ -18,7 +18,7 @@ export default function SalesSignIn() {
     if (!org) {
       const domain = emailDomain(email)
       const orgName = domain ? domain.split('.')[0].replace(/^\w/, c => c.toUpperCase()) + ' Team' : 'My Team'
-      org = demoSeedOrg(email, firstName.trim(), orgName)
+      org = demoSeedOrg(email, firstName.trim(), orgName, 'enterprise')
       createOrg(email, org)
     }
     setActiveAdminEmail(email)

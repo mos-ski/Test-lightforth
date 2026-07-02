@@ -78,6 +78,7 @@ export interface CallRecord {
 
 export interface SalesOrg {
   orgName: string
+  planTier: 'individual' | 'enterprise'
   setupFeePaid: boolean
   knowledgeBase: KnowledgeBaseData
   members: TeamMember[]
@@ -98,6 +99,7 @@ function normalizeOrg(org: SalesOrg): SalesOrg {
   const hasUncategorized = knowledgeCenter.some(k => k.permanent)
   return {
     ...org,
+    planTier: org.planTier ?? 'enterprise',
     calls: org.calls ?? [],
     connectedIntegrations: org.connectedIntegrations ?? [],
     knowledgeBase: {
@@ -327,14 +329,16 @@ function daysAgo(n: number): string {
  * content everywhere instead of empty states. Generic enough not to look like
  * it belongs to a specific other company.
  */
-export function demoSeedOrg(adminEmail: string, adminName: string, orgName: string): SalesOrg {
+export function demoSeedOrg(adminEmail: string, adminName: string, orgName: string, planTier: 'individual' | 'enterprise'): SalesOrg {
   const domain = emailDomain(adminEmail)
-  const reps = [
-    { name: 'Jordan Lee', local: 'jordan', seatPaid: true },
-    { name: 'Sam Patel', local: 'sam', seatPaid: true },
-    { name: 'Taylor Brooks', local: 'taylor', seatPaid: false },
-    { name: 'Morgan Reyes', local: 'morgan', seatPaid: true },
-  ]
+  const reps = planTier === 'enterprise'
+    ? [
+        { name: 'Jordan Lee', local: 'jordan', seatPaid: true },
+        { name: 'Sam Patel', local: 'sam', seatPaid: true },
+        { name: 'Taylor Brooks', local: 'taylor', seatPaid: false },
+        { name: 'Morgan Reyes', local: 'morgan', seatPaid: true },
+      ]
+    : []
   const members: TeamMember[] = [
     { id: crypto.randomUUID(), name: adminName, email: adminEmail, role: 'admin', inviteCode: generateInviteCode(), seatPaid: true },
     ...reps.map(r => ({
@@ -382,48 +386,69 @@ export function demoSeedOrg(adminEmail: string, adminName: string, orgName: stri
     ],
   }
 
-  const calls: CallRecord[] = [
+  const callAuthorCycle = planTier === 'individual'
+    ? [{ name: adminName, email: adminEmail }]
+    : [
+        { name: 'Jordan Lee', email: `jordan@${domain}` },
+        { name: 'Sam Patel', email: `sam@${domain}` },
+        { name: 'Morgan Reyes', email: `morgan@${domain}` },
+      ]
+
+  const callTemplates = [
     {
-      id: crypto.randomUUID(), repEmail: `jordan@${domain}`, repName: 'Jordan Lee', date: daysAgo(1), durationSeconds: 612,
+      daysAgoN: 1, durationSeconds: 612,
       transcript: [
         { speaker: 'Prospect', text: "Look, I like the product, but the price point is a stretch for us this quarter." },
-        { speaker: 'Jordan Lee', text: "I hear you on budget — a lot of our customers felt the same before they saw the time saved. What if we started with the core tier and revisited expansion next quarter?" },
+        { speaker: 'Rep', text: "I hear you on budget — a lot of our customers felt the same before they saw the time saved. What if we started with the core tier and revisited expansion next quarter?" },
         { speaker: 'Prospect', text: "That could work. Can you send over a proposal?" },
-        { speaker: 'Jordan Lee', text: "Absolutely, I'll have it in your inbox by Thursday." },
+        { speaker: 'Rep', text: "Absolutely, I'll have it in your inbox by Thursday." },
       ],
     },
     {
-      id: crypto.randomUUID(), repEmail: `sam@${domain}`, repName: 'Sam Patel', date: daysAgo(2), durationSeconds: 845,
+      daysAgoN: 2, durationSeconds: 845,
       transcript: [
         { speaker: 'Prospect', text: "What makes you different from your competitors?" },
-        { speaker: 'Sam Patel', text: "We integrate natively with your existing stack — no migration needed. A similar customer cut onboarding time by 60% switching to us." },
+        { speaker: 'Rep', text: "We integrate natively with your existing stack — no migration needed. A similar customer cut onboarding time by 60% switching to us." },
       ],
     },
     {
-      id: crypto.randomUUID(), repEmail: `morgan@${domain}`, repName: 'Morgan Reyes', date: daysAgo(4), durationSeconds: 503,
+      daysAgoN: 4, durationSeconds: 503,
       transcript: [
         { speaker: 'Prospect', text: "We're already locked into a contract with another vendor until next year." },
-        { speaker: 'Morgan Reyes', text: "Totally understand — a lot of teams start with a pilot on a smaller team so you're ready to switch the moment your contract's up." },
+        { speaker: 'Rep', text: "Totally understand — a lot of teams start with a pilot on a smaller team so you're ready to switch the moment your contract's up." },
       ],
     },
     {
-      id: crypto.randomUUID(), repEmail: `jordan@${domain}`, repName: 'Jordan Lee', date: daysAgo(6), durationSeconds: 721,
+      daysAgoN: 6, durationSeconds: 721,
       transcript: [
         { speaker: 'Prospect', text: "How long does implementation usually take?" },
-        { speaker: 'Jordan Lee', text: "Most teams are fully live within two weeks, including data migration and rep onboarding." },
+        { speaker: 'Rep', text: "Most teams are fully live within two weeks, including data migration and rep onboarding." },
       ],
     },
     {
-      id: crypto.randomUUID(), repEmail: `sam@${domain}`, repName: 'Sam Patel', date: daysAgo(9), durationSeconds: 398,
+      daysAgoN: 9, durationSeconds: 398,
       transcript: [
         { speaker: 'Prospect', text: "Can you send over a proposal by end of week?" },
-        { speaker: 'Sam Patel', text: "Absolutely, I'll have it in your inbox by Thursday. Should we put 30 minutes on the calendar Friday to walk through it together?" },
+        { speaker: 'Rep', text: "Absolutely, I'll have it in your inbox by Thursday. Should we put 30 minutes on the calendar Friday to walk through it together?" },
       ],
     },
   ]
 
+  const calls: CallRecord[] = callTemplates.map((t, i) => {
+    const author = callAuthorCycle[i % callAuthorCycle.length]
+    return {
+      id: crypto.randomUUID(),
+      repEmail: author.email,
+      repName: author.name,
+      date: daysAgo(t.daysAgoN),
+      durationSeconds: t.durationSeconds,
+      transcript: t.transcript.map(line => ({ speaker: line.speaker === 'Rep' ? author.name : line.speaker, text: line.text })),
+    }
+  })
+
   return {
     orgName,
+    planTier,
     setupFeePaid: true,
     knowledgeBase,
     members,

@@ -24,7 +24,7 @@ export default function EnterpriseCheckoutPage() {
       onComplete={({ email, fullName, companyName }) => {
         const orgName = companyName ?? `${fullName}'s team`
         setAccount(email, { accountType: 'enterprise-admin', orgName })
-        createOrg(email, demoSeedOrg(email, fullName, orgName))
+        createOrg(email, demoSeedOrg(email, fullName, orgName, 'enterprise'))
         setActiveAdminEmail(email)
         navigate('/sales/dashboard')
       }}
