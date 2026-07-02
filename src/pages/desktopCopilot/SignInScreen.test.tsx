@@ -40,15 +40,18 @@ describe('SignInScreen', () => {
     expect(screen.queryByPlaceholderText('Confirm your password')).not.toBeInTheDocument()
   })
 
-  it('shows an error and does not call onContinue when signing in with an email that has no account', () => {
+  it('calls onContinue with a fallback "regular" account when signing in with an email that has no account on record (validation removed — any credentials work)', () => {
     const onContinue = vi.fn()
     render(<SignInScreen onBack={() => {}} onContinue={onContinue} onSignUp={() => {}} />)
     fireEvent.click(screen.getByText('Sign in'))
     fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'nobody@example.com' } })
     fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
     fireEvent.click(screen.getByText('Continue'))
-    expect(screen.getByText(/sign up on lightforth\.com first/)).toBeInTheDocument()
-    expect(onContinue).not.toHaveBeenCalled()
+    expect(onContinue).toHaveBeenCalledWith({
+      email: 'nobody@example.com',
+      track: 'regular-signin',
+      existingAccount: { accountType: 'regular' },
+    })
   })
 
   it('calls onContinue with track "regular-signin" and the existing account when signing in with a recognized email', () => {
@@ -74,7 +77,7 @@ describe('SignInScreen', () => {
     expect(screen.getByText('Confirm password')).toBeInTheDocument()
   })
 
-  it('rejects an invite code that does not match the email on record', () => {
+  it('activates the seat and calls onContinue even when the invite code does not match the email on record (validation removed — any credentials work)', () => {
     createOrg('admin@acme.com', {
       orgName: 'Acme Inc',
       setupFeePaid: true,
@@ -91,8 +94,7 @@ describe('SignInScreen', () => {
     fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
     fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
     fireEvent.click(screen.getByText('Activate & sign in'))
-    expect(screen.getByText(/doesn't match this email/)).toBeInTheDocument()
-    expect(onContinue).not.toHaveBeenCalled()
+    expect(onContinue).toHaveBeenCalledWith({ email: 'rep@acme.com', track: 'enterprise-invite' })
   })
 
   it('calls onContinue with track "enterprise-invite" once the email, invite code, and seat-paid status all match', () => {

@@ -256,7 +256,7 @@ describe('DesktopCopilotPreview end to end', () => {
     expect(screen.getAllByText(/Watching your screen/).length).toBeGreaterThan(0)
   })
 
-  it('signing in with an email that has no account shows an error instead of falling through to a removed pricing screen', async () => {
+  it('signing in with an email that has no account on record still succeeds (validation removed) and lands on the default Pro tabbed setup', async () => {
     renderApp()
     await act(async () => { vi.advanceTimersByTime(2300) })
     fireEvent.click(screen.getByText('Continue'))
@@ -264,10 +264,12 @@ describe('DesktopCopilotPreview end to end', () => {
     fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'nobody@example.com' } })
     fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
     fireEvent.click(screen.getByText('Continue'))
-    expect(screen.getByText(/sign up on lightforth\.com first/)).toBeInTheDocument()
+    expect(screen.getByText('👋 Hola, Welcome to Interview Co-Pilot')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Coding' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Meeting' })).not.toBeInTheDocument()
   })
 
-  it('an invite code at sign-in is validated against the org — wrong code is rejected, correct code activates the seat and skips Pricing', async () => {
+  it('an invite code at sign-in is no longer validated against the org — a mismatched code still activates the seat and skips Pricing', async () => {
     const inviteCode = generateInviteCode()
     createOrg('admin@acme.com', {
       orgName: 'Acme Inc',
@@ -290,10 +292,6 @@ describe('DesktopCopilotPreview end to end', () => {
     fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'rep@acme.com' } })
     fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
     fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
-    fireEvent.click(screen.getByText('Activate & sign in'))
-    expect(screen.getByText(/doesn't match this email/)).toBeInTheDocument()
-
-    fireEvent.change(screen.getByPlaceholderText('Enter your invite code'), { target: { value: inviteCode } })
     fireEvent.click(screen.getByText('Activate & sign in'))
 
     expect(screen.queryByText('Choose your plan')).not.toBeInTheDocument()

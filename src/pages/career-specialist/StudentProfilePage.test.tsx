@@ -17,15 +17,15 @@ it('renders student name for known id', () => {
   expect(screen.getByText('Sarah Mitchell')).toBeInTheDocument()
 })
 
-it('Agents tab is active by default', () => {
+it('Overview tab is active by default', () => {
   renderWithRouter('1')
-  const agentsTab = screen.getByRole('button', { name: 'Agents' })
-  expect(agentsTab.className).toMatch(/lf-tab-active/)
+  const overviewTab = screen.getByRole('button', { name: 'Overview' })
+  expect(overviewTab.className).toMatch(/border-blue-600 text-blue-600/)
 })
 
-it('clicking Overview tab changes active tab', () => {
+it('clicking Agent tab changes active tab', () => {
   renderWithRouter('1')
-  const overviewBtn = screen.getByRole('button', { name: 'Overview' })
-  fireEvent.click(overviewBtn)
-  expect(overviewBtn.className).toMatch(/lf-tab-active/)
+  const agentBtn = screen.getByRole('button', { name: 'Agent' })
+  fireEvent.click(agentBtn)
+  expect(agentBtn.className).toMatch(/border-blue-600 text-blue-600/)
 })
