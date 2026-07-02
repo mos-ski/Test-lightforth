@@ -29,14 +29,20 @@ const PRICING_BULLETS = [
   'Add seats any time — pay only for active reps',
 ]
 
+const INDIVIDUAL_PRICE = 99.90
+
+const INDIVIDUAL_BULLETS = [
+  'Everything in Sales Closer AI — live coaching, your own knowledge base, call history',
+  'No team required — set up your own playbook and go live solo',
+  'Move to Enterprise any time your team grows',
+]
+
+const ENTERPRISE_BOOKING_URL = 'https://calendly.com/lightforth/enterprise'
+
 const FAQ_ITEMS = [
   {
     q: "How is this different from Gong or Chorus?",
     a: "Call-intelligence tools tell you what went wrong after the call ends. Sales Closer AI answers the objection while the rep is still on the line — coaching happens in the moment that decides the deal, not in a Monday recap.",
-  },
-  {
-    q: 'What does the $5,000 setup fee actually cover?',
-    a: "Standing up your admin dashboard, ingesting your knowledge base, and provisioning your team's first seats — it's a one-time cost, not a recurring charge.",
   },
   {
     q: 'Do all my reps need to be live at once?',
@@ -44,7 +50,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What happens to our call recordings and transcripts?',
-    a: "They're kept for up to 90 days and reviewable in your Call History. For now, the admin who set up the account has access to everything in the dashboard — granular per-rep permissions are on our roadmap, not available yet.",
+    a: "They're kept for up to 90 days and reviewable in your Call History. Whoever owns the account — a solo rep on the Individual plan, or the admin on an Enterprise team — has access to everything in the dashboard; granular per-rep permissions are on our roadmap, not available yet.",
   },
   {
     q: "What if there's more than one person on the prospect's side of the call?",
@@ -186,30 +192,47 @@ export default function EnterpriseCopilotLanding() {
 
       {!isWaitlist && (
         <section id="pricing" className="border-t border-slate-100 bg-slate-50/60 py-20">
-          <div className="mx-auto max-w-3xl px-6 text-center">
-            <h2 className="text-2xl font-bold text-slate-900">Simple, per-seat pricing</h2>
-            <article className="mt-8 rounded-2xl border border-teal-200 bg-white p-8 text-left shadow-lg shadow-teal-900/5">
-              <h3 className="text-lg font-black text-slate-900">Sales Closer AI</h3>
-              <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <p className="text-2xl font-black text-slate-900">
-                  $5,000 <span className="text-sm font-medium text-slate-500">one-time setup</span>
+          <div className="mx-auto max-w-4xl px-6 text-center">
+            <h2 className="text-2xl font-bold text-slate-900">Choose your plan</h2>
+            <div className="mt-8 grid gap-6 sm:grid-cols-2">
+              <article className="rounded-2xl border border-slate-200 bg-white p-8 text-left shadow-lg shadow-slate-900/5">
+                <h3 className="text-lg font-black text-slate-900">Individual</h3>
+                <p className="mt-5 text-2xl font-black text-slate-900">
+                  ${INDIVIDUAL_PRICE.toFixed(2)} <span className="text-sm font-medium text-slate-500">/ month</span>
                 </p>
-                <p className="text-2xl font-black text-slate-900">
-                  + $79 <span className="text-sm font-medium text-slate-500">/ seat / month</span>
-                </p>
-              </div>
-              <ul className="mt-6 space-y-3 text-sm text-slate-600">
-                {PRICING_BULLETS.map(b => (
-                  <li key={b} className="flex items-start gap-2.5">
-                    <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
-                    {b}
-                  </li>
-                ))}
-              </ul>
-              <Button size="lg" className="mt-8 w-full bg-[#08285c] text-white hover:bg-[#08285c]/90" onClick={() => navigate('/copilot/enterprise/checkout')}>
-                Get started
-              </Button>
-            </article>
+                <ul className="mt-6 space-y-3 text-sm text-slate-600">
+                  {INDIVIDUAL_BULLETS.map(b => (
+                    <li key={b} className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+                <Button size="lg" className="mt-8 w-full bg-teal-500 text-white hover:bg-teal-600" onClick={() => navigate('/copilot/individual/checkout')}>
+                  Get started
+                </Button>
+              </article>
+
+              <article className="rounded-2xl border border-teal-200 bg-white p-8 text-left shadow-lg shadow-teal-900/5">
+                <h3 className="text-lg font-black text-slate-900">Enterprise</h3>
+                <p className="mt-5 text-sm font-semibold text-slate-500">Custom rollout for your whole team</p>
+                <ul className="mt-6 space-y-3 text-sm text-slate-600">
+                  {PRICING_BULLETS.map(b => (
+                    <li key={b} className="flex items-start gap-2.5">
+                      <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500" />
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  size="lg"
+                  className="mt-8 w-full bg-[#08285c] text-white hover:bg-[#08285c]/90"
+                  onClick={() => window.open(ENTERPRISE_BOOKING_URL, '_blank', 'noopener,noreferrer')}
+                >
+                  Book a Call
+                </Button>
+              </article>
+            </div>
           </div>
         </section>
       )}
@@ -222,7 +245,11 @@ export default function EnterpriseCopilotLanding() {
       <section className="border-t border-slate-100 bg-[#08285c] py-16 text-center text-white">
         <div className="mx-auto max-w-2xl px-6">
           <h2 className="text-2xl font-bold">Give your whole team the same playbook.</h2>
-          <Button size="lg" className="mt-6 bg-teal-400 font-bold text-[#08285c] hover:bg-teal-300" onClick={() => isWaitlist ? scrollToWaitlist() : navigate('/copilot/enterprise/checkout')}>
+          <Button
+            size="lg"
+            className="mt-6 bg-teal-400 font-bold text-[#08285c] hover:bg-teal-300"
+            onClick={() => isWaitlist ? scrollToWaitlist() : document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+          >
             Get started
           </Button>
         </div>
