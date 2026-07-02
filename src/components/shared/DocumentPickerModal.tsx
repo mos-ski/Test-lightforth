@@ -1,16 +1,15 @@
 import { useState } from 'react'
 import { X, Upload, Sparkles, FileText, Layers, File as FileIcon, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { MOCK_CONTEXT_SOURCES } from '@/lib/mockContextSources'
 
 type DocPickerStep = 'choose' | 'cv' | 'context' | 'other'
 
-const MOCK_CONTEXT_SOURCES = [
-  { id: '1', name: 'Darnell_Smith_Resume.pdf',          type: 'PDF',      icon: FileText },
-  { id: '2', name: 'github.com/darnellsmith',           type: 'GitHub',   icon: Layers },
-  { id: '3', name: 'linkedin.com/in/darnellsmith',      type: 'LinkedIn', icon: Layers },
-  { id: '4', name: 'Interview Prep Notes',              type: 'Note',     icon: FileIcon },
-  { id: '5', name: 'Cover_Letter_Template.docx',        type: 'DOCX',     icon: FileText },
-]
+function iconForContextType(type: string) {
+  if (type === 'GitHub' || type === 'LinkedIn') return Layers
+  if (type === 'Note') return FileIcon
+  return FileText
+}
 
 interface DocumentPickerModalProps {
   onClose: () => void
@@ -172,7 +171,7 @@ export default function DocumentPickerModal({ onClose, onAdd }: DocumentPickerMo
               <p className="lf-label mb-3">Select sources to include</p>
               <div className="space-y-1.5 max-h-64 overflow-y-auto">
                 {MOCK_CONTEXT_SOURCES.map(src => {
-                  const Icon = src.icon
+                  const Icon = iconForContextType(src.type)
                   const isChecked = selected.has(src.id)
                   return (
                     <button key={src.id} onClick={() => toggleContext(src.id)}
