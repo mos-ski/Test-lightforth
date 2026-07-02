@@ -44,7 +44,7 @@ export default function SalesAdminLayout() {
           <p className="mt-6 truncate text-xs font-semibold uppercase tracking-wide text-teal-300">{org.orgName}</p>
 
           <nav className="mt-6 flex flex-col gap-1">
-            {NAV.map(item => (
+            {NAV.filter(item => org.planTier === 'enterprise' || item.label !== 'Team').map(item => (
               <NavLink
                 key={item.to}
                 to={item.to}
