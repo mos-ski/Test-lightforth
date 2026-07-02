@@ -4,7 +4,7 @@ export type UseCaseId = 'interview' | 'sales-call' | 'meeting' | 'exam' | 'codin
 export type CanvasPattern = 'conversational' | 'screenshot-qa'
 export type SetupFieldId =
   | 'position' | 'resume' | 'job-description'
-  | 'customer-name' | 'deal-stage' | 'talk-track'
+  | 'customer-name' | 'deal-stage' | 'talk-track' | 'context'
   | 'meeting-title' | 'agenda' | 'screen-share-note'
   | 'subject' | 'language'
   | 'audio-device'
@@ -40,7 +40,7 @@ export const USE_CASES: UseCaseConfig[] = [
     icon: Phone,
     canvasPattern: 'conversational',
     hasAnswerLength: true,
-    setupFields: ['customer-name', 'deal-stage', 'talk-track', 'audio-device'],
+    setupFields: ['customer-name', 'deal-stage', 'talk-track', 'context', 'audio-device'],
     completeHeading: '🤝 Your Sales Call is complete!',
     completeBody: 'Nice work. Your call notes have been saved for follow-up.',
   },

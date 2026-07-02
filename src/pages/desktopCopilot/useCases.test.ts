@@ -25,4 +25,10 @@ describe('useCases config', () => {
   it('throws for an unknown use case id', () => {
     expect(() => getUseCase('unknown' as never)).toThrow('Unknown use case: unknown')
   })
+
+  it('includes a context field for sales-call, after talk-track', () => {
+    const config = getUseCase('sales-call')
+    expect(config.setupFields).toContain('context')
+    expect(config.setupFields.indexOf('talk-track')).toBeLessThan(config.setupFields.indexOf('context'))
+  })
 })
