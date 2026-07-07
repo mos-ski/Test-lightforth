@@ -12,7 +12,7 @@
 
 - Sales/enterprise landing page only (`src/pages/marketing/EnterpriseCopilotLanding.tsx`) — do not touch `CopilotLanding.tsx` or `ExamCopilotLanding.tsx`.
 - No real photos — all visuals are CSS/Tailwind shapes, no new image assets.
-- Colors: navy `#08285c` / `#0b1530` / `#0c1d48` and teal `#2dd4bf` only — no new palette.
+- Colors: navy `#08285c` / `#0b1530` / `#0c1d48` and teal `#2dd4bf` for all decorative/theme/accent surfaces — no new brand palette. This does not forbid small universal semantic UI colors already used elsewhere on this page (red for a call-end/hang-up button or a recording indicator, matching the existing traffic-light dots and the real product's own "End Call" styling) — those are conventional affordances, not brand-palette choices. User confirmed this reading explicitly when a reviewer flagged `bg-red-500` on the hero's hang-up button as a conflict.
 - Trust-row copy is stealth-forward (explicit user decision) — do not soften wording during implementation.
 - `LiveOverlayDemo`'s existing 4 tests must keep passing unmodified — no existing assertion may need to change.
 - `tsconfig.app.json` has `noUnusedLocals: true` — no unused imports/constants left behind.
