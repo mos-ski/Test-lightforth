@@ -2,6 +2,10 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { LiveOverlayDemo } from './LiveOverlayDemo'
 
 describe('LiveOverlayDemo', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('renders the customer line typing in during the listening phase', async () => {
     render(<LiveOverlayDemo />)
 
@@ -31,5 +35,18 @@ describe('LiveOverlayDemo', () => {
     })
     expect(errorSpy).not.toHaveBeenCalled()
     errorSpy.mockRestore()
+  })
+
+  it('renders a static frame without animating when prefers-reduced-motion is set', () => {
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })
+
+    render(<LiveOverlayDemo />)
+
+    expect(screen.getByText(/more than we budgeted/i)).toBeInTheDocument()
+    expect(screen.getByText('Suggested Response')).toBeInTheDocument()
   })
 })
