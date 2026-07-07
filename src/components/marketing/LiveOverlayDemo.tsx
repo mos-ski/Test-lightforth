@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Send } from 'lucide-react'
 
 const ACCENT = '#2dd4bf'
 const BADGE = 'Live call'
@@ -44,8 +45,12 @@ function usePrefersReducedMotion(): boolean {
   return reduced
 }
 
-export function LiveOverlayDemo() {
+export function LiveOverlayDemo({
+  variant = 'panel',
+  forceStatic = false,
+}: { variant?: 'panel' | 'card'; forceStatic?: boolean } = {}) {
   const reducedMotion = usePrefersReducedMotion()
+  const frozen = reducedMotion || forceStatic
   const [turnIndex, setTurnIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('listening')
   const [qDisplayed, setQDisplayed] = useState('')
@@ -54,7 +59,7 @@ export function LiveOverlayDemo() {
   const intervalRef = useRef<ReturnType<typeof setInterval>>()
 
   useEffect(() => {
-    if (reducedMotion) return
+    if (frozen) return
 
     const clearTimers = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
@@ -96,7 +101,7 @@ export function LiveOverlayDemo() {
     }
 
     return clearTimers
-  }, [phase, turnIndex, reducedMotion])
+  }, [phase, turnIndex, frozen])
 
   const stageIndex = phase === 'hold' ? Math.min(turnIndex + 1, DEAL_STAGES.length - 1) : turnIndex
   const statusText: Record<Phase, string> = {
@@ -106,48 +111,80 @@ export function LiveOverlayDemo() {
     hold: 'Coaching...',
   }
 
-  const displayedQ = reducedMotion ? TURNS[0].q : qDisplayed
-  const displayedA = reducedMotion ? TURNS[0].a : aDisplayed
-  const displayedStageIndex = reducedMotion ? 0 : stageIndex
-  const displayedStatus = reducedMotion ? statusText.answering : statusText[phase]
+  const displayedQ = frozen ? TURNS[0].q : qDisplayed
+  const displayedA = frozen ? TURNS[0].a : aDisplayed
+  const displayedStageIndex = frozen ? 0 : stageIndex
+  const displayedStatus = frozen ? statusText.answering : statusText[phase]
+
+  const dealStageTracker = (
+    <span className="flex items-center gap-1">
+      {DEAL_STAGES.map((stage, i) => (
+        <span
+          key={stage}
+          className="h-1.5 w-1.5 rounded-full transition-colors"
+          style={{ background: i <= displayedStageIndex ? ACCENT : 'rgba(255,255,255,0.15)' }}
+        />
+      ))}
+    </span>
+  )
+
+  const qaContent = (
+    <div className="space-y-4">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-white/35">Prospect</p>
+        <p className="mt-1.5 text-sm leading-relaxed text-white/65">{displayedQ}</p>
+      </div>
+      {displayedA && (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: ACCENT }}>Suggested Response</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-white">{displayedA}</p>
+        </div>
+      )}
+    </div>
+  )
+
+  if (variant === 'card') {
+    return (
+      <div
+        aria-hidden="true"
+        className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0b1530] p-5 shadow-2xl shadow-slate-900/30"
+      >
+        <div className="mb-5 flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+          <span className="ml-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: ACCENT }}>
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: ACCENT }} />
+            {BADGE}
+          </span>
+          <span className="ml-auto">{dealStageTracker}</span>
+        </div>
+
+        <p className="mb-4 text-[11px] italic text-white/40">{displayedStatus}</p>
+
+        {qaContent}
+      </div>
+    )
+  }
 
   return (
     <div
       aria-hidden="true"
-      className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0b1530] p-5 shadow-2xl shadow-slate-900/30"
+      className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0b1530]/95 p-5 shadow-2xl shadow-slate-900/40 backdrop-blur"
     >
-      <div className="mb-5 flex items-center gap-2">
-        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        <span className="ml-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: ACCENT }}>
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: ACCENT }} />
-          {BADGE}
-        </span>
-        <span className="ml-auto flex items-center gap-1">
-          {DEAL_STAGES.map((stage, i) => (
-            <span
-              key={stage}
-              className="h-1.5 w-1.5 rounded-full transition-colors"
-              style={{ background: i <= displayedStageIndex ? ACCENT : 'rgba(255,255,255,0.15)' }}
-            />
-          ))}
-        </span>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-[11px] italic text-white/40">{displayedStatus}</p>
+        {dealStageTracker}
       </div>
 
-      <p className="mb-4 text-[11px] italic text-white/40">{displayedStatus}</p>
+      {qaContent}
 
-      <div className="space-y-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/35">Prospect</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-white/65">{displayedQ}</p>
-        </div>
-        {displayedA && (
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: ACCENT }}>Suggested Response</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-white">{displayedA}</p>
-          </div>
-        )}
+      <div className="mt-5 flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+        <span className="flex-1 text-xs text-white/35">Ask about your screen or conversation...</span>
+        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/50">Smart</span>
+        <span className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: ACCENT }}>
+          <Send className="h-3 w-3 text-[#0b1530]" />
+        </span>
       </div>
     </div>
   )

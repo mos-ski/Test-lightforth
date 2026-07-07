@@ -50,4 +50,19 @@ describe('LiveOverlayDemo', () => {
       window.matchMedia = originalMatchMedia
     }
   })
+
+  it('variant="card" renders the original badge chrome; the default panel variant does not', () => {
+    const { unmount } = render(<LiveOverlayDemo variant="card" />)
+    expect(screen.getByText('Live call')).toBeInTheDocument()
+    unmount()
+
+    render(<LiveOverlayDemo />)
+    expect(screen.queryByText('Live call')).not.toBeInTheDocument()
+  })
+
+  it('forceStatic freezes the frame immediately without animating', () => {
+    render(<LiveOverlayDemo forceStatic />)
+    expect(screen.getByText(/more than we budgeted/i)).toBeInTheDocument()
+    expect(screen.getByText('Suggested Response')).toBeInTheDocument()
+  })
 })
