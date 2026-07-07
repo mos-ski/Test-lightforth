@@ -133,6 +133,94 @@ export default function EnterpriseCopilotLanding() {
 
       <ProofStrip items={PROOF} tone="light" />
 
+      {/* HOW IT HELPS — two-step listen/assist explainer */}
+      <section className="border-t border-slate-100 py-20">
+        <div className="mx-auto max-w-5xl px-6">
+          <h2 className="text-center text-2xl font-bold text-slate-900">How Sales Closer AI helps during a call</h2>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2">
+            <div className="rounded-2xl p-8 text-white" style={{ background: '#08285c' }}>
+              <h3 className="text-lg font-bold">Sales Closer AI listens in to the call</h3>
+              <p className="mt-2 text-sm leading-6 text-white/70">It picks up context in real time, so it's ready the moment you need it.</p>
+              <div className="mt-8 text-center">
+                <p className="text-4xl font-black">00:16</p>
+                <p className="mt-1 flex items-center justify-center gap-1.5 text-xs font-medium text-white/60">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
+                  Recording
+                </p>
+              </div>
+              <div className="mt-6 flex h-10 items-end justify-center gap-[3px]">
+                {[6, 10, 14, 8, 18, 12, 20, 9, 15, 7, 19, 11, 16, 8, 13, 20, 10, 17, 6, 14, 9, 18, 12, 7, 15, 11, 19, 8].map((h, i) => (
+                  <span key={i} className="w-1 rounded-full" style={{ height: h, background: '#2dd4bf' }} />
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900">When you need help, it assists you instantly</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Hit the shortcut and get a live suggested response, pulled from your own playbook.</p>
+              <div className="mt-6 flex justify-center">
+                <LiveOverlayDemo variant="card" forceStatic />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST ROW — stealth-forward, icon-based */}
+      <section className="border-t border-slate-100 bg-slate-50/60 py-20">
+        <div className="mx-auto max-w-6xl px-6 text-center">
+          <h2 className="text-2xl font-bold text-slate-900">Undetectable, every call</h2>
+          <p className="mt-3 text-sm text-slate-600">Your prospect never knows it's there.</p>
+          <div className="mt-10 grid gap-6 sm:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm">
+              <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3">
+                <div>
+                  <p className="mb-1 text-[10px] font-semibold uppercase text-slate-400">You see</p>
+                  <div className="h-14 rounded-lg" style={{ background: '#0b1530' }} />
+                </div>
+                <div>
+                  <p className="mb-1 text-[10px] font-semibold uppercase text-slate-400">They see</p>
+                  <div className="h-14 rounded-lg bg-slate-200" />
+                </div>
+              </div>
+              <h3 className="mt-4 font-bold text-slate-900">Invisible to screen share</h3>
+              <p className="mt-1.5 text-sm leading-6 text-slate-600">Share your screen mid-call — the panel never appears in what they see.</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm">
+              <div className="relative mt-3 h-10 rounded-xl bg-slate-50 p-4">
+                <div className="mt-1 h-1 rounded-full bg-slate-200" />
+                <div className="absolute left-[38%] top-2 flex -translate-x-1/2 flex-col items-center">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: '#2dd4bf' }} />
+                  <span className="mt-1 text-[10px] font-semibold text-teal-600">here</span>
+                </div>
+                <div className="absolute left-[85%] top-2 flex -translate-x-1/2 flex-col items-center">
+                  <span className="h-2.5 w-2.5 rounded-full bg-slate-300" />
+                  <span className="mt-1 text-[10px] text-slate-400">too late</span>
+                </div>
+              </div>
+              <h3 className="mt-8 font-bold text-slate-900">Live during the call, not after it</h3>
+              <p className="mt-1.5 text-sm leading-6 text-slate-600">Coaching happens in the moment that decides the deal.</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm">
+              <div className="rounded-xl bg-slate-50 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-[10px] font-semibold uppercase text-slate-400">Participants (2)</p>
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-600">No AI detected</span>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="h-2.5 w-3/4 rounded bg-slate-200" />
+                  <div className="h-2.5 w-1/2 rounded bg-slate-200" />
+                </div>
+              </div>
+              <h3 className="mt-4 font-bold text-slate-900">No bots, no footprint</h3>
+              <p className="mt-1.5 text-sm leading-6 text-slate-600">Sales Closer AI never joins the call or shows up in the participant list.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="features" className="py-20">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-2xl font-bold text-slate-900">Built for rolling out a whole team</h2>

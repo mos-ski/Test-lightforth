@@ -42,5 +42,8 @@ describe('copilot waitlist landing pages', () => {
     await waitFor(() => {
       expect(screen.getByText('Suggested Response')).toBeInTheDocument()
     }, { timeout: 4000 })
+
+    expect(screen.getByRole('heading', { name: 'Sales Closer AI listens in to the call' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Undetectable, every call' })).toBeInTheDocument()
   })
 })
