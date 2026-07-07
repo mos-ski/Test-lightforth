@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import CopilotLanding from './CopilotLanding'
 import ExamCopilotLanding from './ExamCopilotLanding'
@@ -29,7 +29,7 @@ describe('copilot waitlist landing pages', () => {
     expect(screen.queryByText(/Lightforth\. All rights reserved\./)).not.toBeInTheDocument()
   })
 
-  it('hides enterprise pricing and footer copy in waitlist mode', () => {
+  it('hides enterprise pricing and footer copy in waitlist mode', async () => {
     renderAt('/copilot/enterprise?waitlist', <EnterpriseCopilotLanding />)
 
     expect(screen.getByRole('heading', { name: 'Join the waitlist' })).toBeInTheDocument()
@@ -38,5 +38,9 @@ describe('copilot waitlist landing pages', () => {
     expect(screen.queryByText(/\$79/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Simple, per-seat pricing' })).not.toBeInTheDocument()
     expect(screen.queryByText(/Lightforth\. All rights reserved\./)).not.toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByText('Suggested Response')).toBeInTheDocument()
+    }, { timeout: 4000 })
   })
 })

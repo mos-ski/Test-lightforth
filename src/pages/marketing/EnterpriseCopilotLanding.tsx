@@ -2,11 +2,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, Check, Database, Headphones, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MarketingNav, MarketingFooter } from '@/components/marketing/MarketingChrome'
-import { LiveTranscriptCard } from '@/components/marketing/LiveTranscriptCard'
+import { LiveOverlayDemo } from '@/components/marketing/LiveOverlayDemo'
 import { ProofStrip, Faq } from '@/components/marketing/ProofStrip'
 import WaitlistBlock from '@/components/marketing/WaitlistBlock'
-
-const ACCENT = '#2dd4bf'
 
 const PROOF = ['Live during the call, not after it', 'Every rep, same playbook', 'New hires sound ramped on day one']
 
@@ -101,18 +99,7 @@ export default function EnterpriseCopilotLanding() {
           )}
 
           <div className="mt-14 flex justify-center">
-            <LiveTranscriptCard
-              accent={ACCENT}
-              badge="Live call"
-              lines={[
-                { speaker: 'Prospect', text: "It's more than we budgeted for this year." },
-                {
-                  speaker: 'Sales Closer AI',
-                  text: 'Reframe around the cost of staying put — ask what the status quo is actually costing them per month...',
-                  isAnswer: true,
-                },
-              ]}
-            />
+            <LiveOverlayDemo />
           </div>
         </div>
       </section>
