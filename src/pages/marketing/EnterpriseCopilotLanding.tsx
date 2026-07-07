@@ -1,8 +1,9 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Check, Database, Headphones, UserPlus } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, Database, Headphones, Square, UserPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MarketingNav, MarketingFooter } from '@/components/marketing/MarketingChrome'
 import { LiveOverlayDemo } from '@/components/marketing/LiveOverlayDemo'
+import { CallBackground } from '@/components/marketing/CallBackground'
 import { ProofStrip, Faq } from '@/components/marketing/ProofStrip'
 import WaitlistBlock from '@/components/marketing/WaitlistBlock'
 
@@ -98,8 +99,34 @@ export default function EnterpriseCopilotLanding() {
             </p>
           )}
 
-          <div className="mt-14 flex justify-center">
-            <LiveOverlayDemo />
+          <div className="mt-16 flex justify-center px-4">
+            <div className="relative w-full max-w-3xl">
+              <div className="absolute -top-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full px-3 py-1.5 shadow-lg" style={{ background: '#0c1d48' }}>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full" style={{ background: '#2dd4bf' }}>
+                  <span className="h-2 w-2 rounded-full bg-[#0c1d48]" />
+                </span>
+                <span className="text-xs font-semibold text-white">Hide</span>
+                <ChevronDown className="h-3 w-3 text-white/50" />
+                <span className="ml-1 flex h-5 w-5 items-center justify-center rounded bg-white/10">
+                  <Square className="h-2.5 w-2.5 fill-white/70 text-white/70" />
+                </span>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/10">
+                <div className="flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                  <span className="mx-auto text-xs font-semibold text-slate-400">Zoom — Sales Call</span>
+                </div>
+                <div className="relative h-[360px] sm:h-[420px]">
+                  <CallBackground />
+                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                    <LiveOverlayDemo />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
