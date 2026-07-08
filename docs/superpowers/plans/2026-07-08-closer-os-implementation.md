@@ -808,22 +808,33 @@ git commit -m "feat(closer-os): add closerAccounts mock account registry"
 - Test: `src/pages/closerOS/marketing/CloserOSLanding.test.tsx`
 
 **Interfaces:**
-- Consumes: `@/components/shared/LightforthLogo`, `@/components/ui/button` (`Button`).
+- Consumes: `@/components/shared/LightforthLogo`, `@/components/ui/button` (`Button`), `useNavigate` from `react-router-dom`.
 - Produces: default export `CloserOSLanding`, plus exported consts `CLOSER_OS_SETUP_FEE = 7500` and `CLOSER_OS_SEAT_PRICE = 149` (consumed by Task 4's checkout page).
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
 // src/pages/closerOS/marketing/CloserOSLanding.test.tsx
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import CloserOSLanding from './CloserOSLanding'
 
+function renderLanding() {
+  return render(
+    <MemoryRouter initialEntries={['/closer-os']}>
+      <Routes>
+        <Route path="/closer-os" element={<CloserOSLanding />} />
+        <Route path="/closer-os/checkout" element={<p>Checkout landed</p>} />
+      </Routes>
+    </MemoryRouter>,
+  )
+}
+
 describe('CloserOSLanding', () => {
   it('renders the hero headline and all 7 feature names', () => {
-    render(<MemoryRouter><CloserOSLanding /></MemoryRouter>)
-    expect(screen.getByText(/Closer OS/i)).toBeInTheDocument()
+    renderLanding()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Closer OS helps you get paid')
     expect(screen.getByText('Payment Moment Engine')).toBeInTheDocument()
     expect(screen.getByText('Installment Recovery Copilot')).toBeInTheDocument()
     expect(screen.getByText('Funnel-to-Call Intelligence')).toBeInTheDocument()
@@ -833,13 +844,17 @@ describe('CloserOSLanding', () => {
     expect(screen.getByText('Second Voice')).toBeInTheDocument()
   })
 
-  it('links the CTA button to the checkout route', () => {
-    render(<MemoryRouter><CloserOSLanding /></MemoryRouter>)
-    const cta = screen.getByRole('link', { name: /get started/i })
-    expect(cta).toHaveAttribute('href', '/closer-os/checkout')
+  it('navigates to the checkout route from either Get Started button (hero + pricing)', () => {
+    renderLanding()
+    const ctas = screen.getAllByRole('button', { name: /get started/i })
+    expect(ctas).toHaveLength(2)
+    fireEvent.click(ctas[0])
+    expect(screen.getByText('Checkout landed')).toBeInTheDocument()
   })
 })
 ```
+
+**Note on `Button`:** this repo's `@/components/ui/button` wraps `@base-ui/react/button` and does **not** support an `asChild` prop (confirmed in `src/components/ui/button.tsx` — it renders its own `ButtonPrimitive`, not a Radix-style slot). The established pattern elsewhere in this repo for a button that navigates (see `src/pages/marketing/CopilotLanding.tsx:87`) is `<Button onClick={() => navigate(...)}>`, using `useNavigate()` — not `<Button asChild><Link>...</Link></Button>`. Use that pattern below.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -850,7 +865,7 @@ Expected: FAIL — `Cannot find module './CloserOSLanding'`
 
 ```tsx
 // src/pages/closerOS/marketing/CloserOSLanding.tsx
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { CreditCard, RefreshCw, Radar, MessageSquare, BookOpen, Ghost, Radio } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import LightforthLogo from '@/components/shared/LightforthLogo'
@@ -869,11 +884,12 @@ const FEATURES = [
 ]
 
 export default function CloserOSLanding() {
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <LightforthLogo to="/closer-os" />
-        <Button asChild variant="outline"><Link to="/closer-os/sign-in">Sign in</Link></Button>
+        <Button variant="outline" onClick={() => navigate('/closer-os/sign-in')}>Sign in</Button>
       </header>
 
       <section className="mx-auto max-w-4xl px-6 py-16 text-center">
@@ -884,8 +900,8 @@ export default function CloserOSLanding() {
         <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
           7 money features built directly into the sales call — turning every yes into cash, every missed payment into a save, and every deal into proof.
         </p>
-        <Button asChild size="lg" className="mt-8 bg-emerald-600 hover:bg-emerald-700">
-          <Link to="/closer-os/checkout">Get started</Link>
+        <Button size="lg" className="mt-8 bg-emerald-600 hover:bg-emerald-700" onClick={() => navigate('/closer-os/checkout')}>
+          Get started
         </Button>
       </section>
 
@@ -908,8 +924,8 @@ export default function CloserOSLanding() {
           <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">Pricing</p>
           <p className="mt-3 text-3xl font-black text-slate-900">${CLOSER_OS_SETUP_FEE.toLocaleString()} <span className="text-base font-medium text-slate-500">setup</span></p>
           <p className="mt-1 text-sm text-slate-500">+ ${CLOSER_OS_SEAT_PRICE}/seat/month</p>
-          <Button asChild size="lg" className="mt-6 w-full bg-emerald-600 hover:bg-emerald-700">
-            <Link to="/closer-os/checkout">Get started</Link>
+          <Button size="lg" className="mt-6 w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => navigate('/closer-os/checkout')}>
+            Get started
           </Button>
         </div>
       </section>
