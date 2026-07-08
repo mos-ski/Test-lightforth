@@ -1914,7 +1914,10 @@ git commit -m "feat(closer-os): add F7 danger detector + text whisper overlay"
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import CloserOSLiveCanvas from './CloserOSLiveCanvas'
+import { toast } from 'sonner'
 import type { PriceOption } from '../closerOrgStore'
+
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), info: vi.fn(), error: vi.fn() } }))
 
 const PRICE_OPTION: PriceOption = { label: 'Core Program', pif: 12599, planInstallments: [1599, 3000, 4000, 4000] }
 
@@ -1961,6 +1964,24 @@ describe('CloserOSLiveCanvas', () => {
     render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
     fireEvent.keyDown(window, { key: 'p' })
     expect(screen.getByRole('button', { name: /send pif link/i })).toBeInTheDocument()
+  })
+
+  it('cancels the in-flight payment cascade on End Call, so no late "wins" toast fires and the reported outcome does not later flip to won', () => {
+    const onEnd = vi.fn()
+    render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={onEnd} />)
+    for (let i = 0; i < 4; i++) advanceOneTurn()
+    act(() => { vi.advanceTimersByTime(3000) }) // payment offered
+    fireEvent.click(screen.getByRole('button', { name: /send pif link/i }))
+    act(() => { vi.advanceTimersByTime(1200) }) // only reaches 'link-opened' — cascade still in flight
+
+    fireEvent.click(screen.getByRole('button', { name: /end call/i }))
+    expect(onEnd).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'no-decision' }))
+    expect(onEnd).toHaveBeenCalledTimes(1)
+
+    // If the pending timeout weren't cancelled, this would complete the cascade and fire the toast.
+    act(() => { vi.advanceTimersByTime(5000) })
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(onEnd).toHaveBeenCalledTimes(1)
   })
 })
 ```
@@ -2082,34 +2103,55 @@ export default function CloserOSLiveCanvas({
     return () => window.removeEventListener('keydown', handleKey)
   }, [typingDone])
 
-  // Payment status machine.
+  // Kept in a ref (rather than read directly from state) because the payment cascade below
+  // schedules its timeouts eagerly, nested inside one another, so the final stage needs the
+  // latest "simulate decline" checkbox value at the moment it fires, not a stale closure value.
+  const simulateDeclineRef = useRef(simulateDecline)
+  useEffect(() => { simulateDeclineRef.current = simulateDecline }, [simulateDecline])
+
+  // Holds whichever payment-cascade timeout is currently pending, so it can be cancelled — on
+  // unmount, or if the call ends mid-cascade — instead of firing (and posting a "wins" toast)
+  // after the call has already been reported with a different outcome.
+  const pendingPaymentTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (pendingPaymentTimeoutRef.current) clearTimeout(pendingPaymentTimeoutRef.current) }, [])
+
+  // Toast when the payment lands — this only reacts to the final status, it doesn't drive it.
   useEffect(() => {
-    if (paymentStatus === 'link-sent') {
-      const id = setTimeout(() => setPaymentStatus('link-opened'), 1200)
-      return () => clearTimeout(id)
-    }
-    if (paymentStatus === 'link-opened') {
-      const id = setTimeout(() => setPaymentStatus('card-entering'), 1200)
-      return () => clearTimeout(id)
-    }
-    if (paymentStatus === 'card-entering') {
-      const id = setTimeout(() => setPaymentStatus(simulateDecline ? 'declined' : 'paid'), 1200)
-      return () => clearTimeout(id)
-    }
     if (paymentStatus === 'paid') {
       toast.success(`📣 Posted to #closer-os-wins`, { description: `${prospectName} — $${(paymentChoice === 'plan' ? priceOption.planInstallments[0] : priceOption.pif).toLocaleString()}` })
     }
-  }, [paymentStatus, simulateDecline, prospectName, paymentChoice, priceOption])
+  }, [paymentStatus, prospectName, paymentChoice, priceOption])
 
+  // Payment status cascade. Each stage schedules the next stage's timeout directly (nested),
+  // rather than reacting to a state/prop change in a separate effect keyed on `paymentStatus`.
+  // That matters under fake timers: an effect keyed on `paymentStatus` only re-runs once React
+  // has committed a render for the previous stage, so a single big `advanceTimersByTime` call
+  // would only ever complete one stage per test `act()` boundary — scheduling eagerly, inside
+  // the previous timeout's own callback, lets the whole chain fire within one `act()`.
   function handleSendLink(choice: 'pif' | 'plan') {
     setPaymentChoice(choice)
     setPaymentStatus('link-sent')
     toast.info('Payment link sent by SMS + email')
+    pendingPaymentTimeoutRef.current = setTimeout(() => {
+      setPaymentStatus('link-opened')
+      pendingPaymentTimeoutRef.current = setTimeout(() => {
+        setPaymentStatus('card-entering')
+        pendingPaymentTimeoutRef.current = setTimeout(() => {
+          pendingPaymentTimeoutRef.current = null
+          setPaymentStatus(simulateDeclineRef.current ? 'declined' : 'paid')
+        }, 1200)
+      }, 1200)
+    }, 1200)
   }
 
   function handleBackupOption() {
     setSimulateDecline(false)
+    simulateDeclineRef.current = false
     setPaymentStatus('card-entering')
+    pendingPaymentTimeoutRef.current = setTimeout(() => {
+      pendingPaymentTimeoutRef.current = null
+      setPaymentStatus('paid')
+    }, 1200)
   }
 
   function handleDangerResolve(outcome: 'saved' | 'lost') {
@@ -2122,6 +2164,12 @@ export default function CloserOSLiveCanvas({
   }
 
   function handleEndCall() {
+    // Cancel any in-flight payment-cascade timeout so it can't fire (and post a "wins" toast)
+    // after the call has already been reported with whatever outcome is true right now.
+    if (pendingPaymentTimeoutRef.current) {
+      clearTimeout(pendingPaymentTimeoutRef.current)
+      pendingPaymentTimeoutRef.current = null
+    }
     const outcome: LiveCallResult['outcome'] =
       paymentStatus === 'paid' ? 'won' : dangerResolution?.outcome === 'lost' ? 'lost' : 'no-decision'
     onEnd({
@@ -2196,7 +2244,7 @@ export default function CloserOSLiveCanvas({
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run src/pages/closerOS/app/CloserOSLiveCanvas.test.tsx`
-Expected: PASS (4 tests)
+Expected: PASS (5 tests)
 
 - [ ] **Step 5: Commit**
 
