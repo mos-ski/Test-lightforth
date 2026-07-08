@@ -225,7 +225,14 @@ export function addMember(adminEmail: string, member: { name: string; email: str
     id: crypto.randomUUID(), name: member.name, email: member.email,
     role: 'member', inviteCode: generateInviteCode(), seatPaid: false,
   }
-  const updated = updateOrg(adminEmail, org => appendAudit({ ...org, members: [...org.members, newMember] }, 'member-added', adminEmail, `Added ${member.name}`))
+  const updated = updateOrg(adminEmail, org => {
+    const target = normalizeEmail(member.email)
+    const exists = org.members.some(m => normalizeEmail(m.email) === target)
+    const members = exists
+      ? org.members.map(m => (normalizeEmail(m.email) === target ? newMember : m))
+      : [...org.members, newMember]
+    return appendAudit({ ...org, members }, 'member-added', adminEmail, `Added ${member.name}`)
+  })
   return updated ? newMember : null
 }
 
