@@ -63,6 +63,12 @@ export default function CloserOSLiveCanvas({
   const simulateDeclineRef = useRef(simulateDecline)
   useEffect(() => { simulateDeclineRef.current = simulateDecline }, [simulateDecline])
 
+  // Holds whichever payment-cascade timeout is currently pending, so it can be cancelled — on
+  // unmount, or if the call ends mid-cascade — instead of firing (and posting a "wins" toast)
+  // after the call has already been reported with a different outcome.
+  const pendingPaymentTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => { if (pendingPaymentTimeoutRef.current) clearTimeout(pendingPaymentTimeoutRef.current) }, [])
+
   useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
 
   // Typing effect for the current turn.
@@ -125,15 +131,19 @@ export default function CloserOSLiveCanvas({
   // has committed a render for the previous stage, so a single big `advanceTimersByTime` call
   // would only ever complete one stage per test `act()` boundary. Scheduling eagerly, inside the
   // previous timeout's own callback, lets the whole chain fire within one `advanceTimersByTime`.
+  // Every scheduled id is tracked in `pendingPaymentTimeoutRef` so `handleEndCall` (or unmount)
+  // can cancel it — otherwise a call ended mid-cascade would still complete in the background and
+  // post a "wins" toast for a call already reported with a different outcome.
   function handleSendLink(choice: 'pif' | 'plan') {
     setPaymentChoice(choice)
     setPaymentStatus('link-sent')
     toast.info('Payment link sent by SMS + email')
-    setTimeout(() => {
+    pendingPaymentTimeoutRef.current = setTimeout(() => {
       setPaymentStatus('link-opened')
-      setTimeout(() => {
+      pendingPaymentTimeoutRef.current = setTimeout(() => {
         setPaymentStatus('card-entering')
-        setTimeout(() => {
+        pendingPaymentTimeoutRef.current = setTimeout(() => {
+          pendingPaymentTimeoutRef.current = null
           setPaymentStatus(simulateDeclineRef.current ? 'declined' : 'paid')
         }, 1200)
       }, 1200)
@@ -144,7 +154,10 @@ export default function CloserOSLiveCanvas({
     setSimulateDecline(false)
     simulateDeclineRef.current = false
     setPaymentStatus('card-entering')
-    setTimeout(() => setPaymentStatus('paid'), 1200)
+    pendingPaymentTimeoutRef.current = setTimeout(() => {
+      pendingPaymentTimeoutRef.current = null
+      setPaymentStatus('paid')
+    }, 1200)
   }
 
   function handleDangerResolve(outcome: 'saved' | 'lost') {
@@ -157,6 +170,12 @@ export default function CloserOSLiveCanvas({
   }
 
   function handleEndCall() {
+    // Cancel any in-flight payment-cascade timeout so it can't fire (and post a "wins" toast)
+    // after the call has already been reported with whatever outcome is true right now.
+    if (pendingPaymentTimeoutRef.current) {
+      clearTimeout(pendingPaymentTimeoutRef.current)
+      pendingPaymentTimeoutRef.current = null
+    }
     const outcome: LiveCallResult['outcome'] =
       paymentStatus === 'paid' ? 'won' : dangerResolution?.outcome === 'lost' ? 'lost' : 'no-decision'
     onEnd({

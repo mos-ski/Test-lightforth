@@ -1,7 +1,10 @@
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import CloserOSLiveCanvas from './CloserOSLiveCanvas'
+import { toast } from 'sonner'
 import type { PriceOption } from '../closerOrgStore'
+
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), info: vi.fn(), error: vi.fn() } }))
 
 const PRICE_OPTION: PriceOption = { label: 'Core Program', pif: 12599, planInstallments: [1599, 3000, 4000, 4000] }
 
@@ -11,7 +14,11 @@ function advanceOneTurn() {
 }
 
 describe('CloserOSLiveCanvas', () => {
-  beforeEach(() => vi.useFakeTimers())
+  // The `toast` mock's vi.fn()s are created once by the `vi.mock('sonner', ...)` factory above and
+  // persist across every test in this file (vitest's `clearMocks`/`mockReset` default to false), so
+  // without an explicit reset here, a toast fired by an earlier test (e.g. the full payment flow in
+  // "opens the Payment Moment panel...") would still show up in a later test's call count.
+  beforeEach(() => { vi.useFakeTimers(); vi.clearAllMocks() })
   afterEach(() => vi.useRealTimers())
 
   it('shows the prospect name in the header and starts with an empty transcript', () => {
@@ -48,5 +55,23 @@ describe('CloserOSLiveCanvas', () => {
     render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
     fireEvent.keyDown(window, { key: 'p' })
     expect(screen.getByRole('button', { name: /send pif link/i })).toBeInTheDocument()
+  })
+
+  it('cancels the in-flight payment cascade on End Call, so no late "wins" toast fires and the reported outcome does not later flip to won', () => {
+    const onEnd = vi.fn()
+    render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={onEnd} />)
+    for (let i = 0; i < 4; i++) advanceOneTurn()
+    act(() => { vi.advanceTimersByTime(3000) }) // payment offered
+    fireEvent.click(screen.getByRole('button', { name: /send pif link/i }))
+    act(() => { vi.advanceTimersByTime(1200) }) // only reaches 'link-opened' — cascade still in flight
+
+    fireEvent.click(screen.getByRole('button', { name: /end call/i }))
+    expect(onEnd).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'no-decision' }))
+    expect(onEnd).toHaveBeenCalledTimes(1)
+
+    // If the pending timeout weren't cancelled, this would complete the cascade and fire the toast.
+    act(() => { vi.advanceTimersByTime(5000) })
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(onEnd).toHaveBeenCalledTimes(1)
   })
 })
