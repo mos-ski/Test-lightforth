@@ -2396,7 +2396,7 @@ export default function CloserOSDesktopApp() {
 
     const deal = recordDeal(adminEmail, {
       prospectName, dealType: priceOption.label, priceOption,
-      status: result.outcome === 'won' ? 'paid' : 'open',
+      status: result.outcome === 'won' ? 'paid' : result.outcome === 'lost' ? 'lost' : 'open',
       closerName: member.name, callId: call.id, date: new Date().toISOString(),
     })
 
@@ -2410,7 +2410,10 @@ export default function CloserOSDesktopApp() {
     }
 
     if (result.outcome === 'won') {
-      const dollarValue = result.paymentChoice === 'plan' ? priceOption.planInstallments[0] : priceOption.pif
+      // Ledger dollarValue is always the full deal value (priceOption.pif), matching the
+      // demoSeedCloserOrg precedent and the LiveCallRiskEntry/dollarsSaved writes below — a
+      // payment-plan close still represents the whole deal, not just today's deposit.
+      const dollarValue = priceOption.pif
       if (result.usedObjections.length > 0) {
         addLedgerEntry(adminEmail, { dealId: deal.id, closerName: member.name, objection: result.usedObjections[0].objection, counterUsed: result.usedObjections[0].counter, tag: 'saved', dollarValue, date: new Date().toISOString() })
       } else {
