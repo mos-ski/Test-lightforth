@@ -584,6 +584,8 @@ export function demoSeedCloserOrg(adminEmail: string, adminName: string, orgName
     { id: crypto.randomUUID(), prospectName: 'Jamie Whitfield', dealType: 'Core Program', priceOption: dealTypePriceOptions[0], status: 'paid', closerName: 'Jordan Lee', callId: 'seed-call-1', date: daysAgo(1) },
     { id: crypto.randomUUID(), prospectName: 'Morgan Reyes', dealType: 'Advanced Program', priceOption: dealTypePriceOptions[1], status: 'paid', closerName: 'Sam Patel', callId: 'seed-call-2', date: daysAgo(3) },
     { id: crypto.randomUUID(), prospectName: 'Casey Nguyen', dealType: 'Elite Program', priceOption: dealTypePriceOptions[2], status: 'open', closerName: 'Taylor Brooks', callId: 'seed-call-3', date: daysAgo(0) },
+    // Gives the seeded lost call (below) a matching deal, so "money leaked" joins (org.deals.find(d => d.callId === call.id)) resolve to a real dollar value instead of silently computing $0.
+    { id: crypto.randomUUID(), prospectName: 'Drew Sanders', dealType: 'Core Program', priceOption: dealTypePriceOptions[0], status: 'lost', closerName: 'Taylor Brooks', callId: 'seed-call-lost-1', date: daysAgo(2) },
   ]
 
   const paymentPlans: PaymentPlan[] = [
@@ -634,7 +636,7 @@ export function demoSeedCloserOrg(adminEmail: string, adminName: string, orgName
   const calls: CallRecord[] = [
     { id: 'seed-call-1', closerName: 'Jordan Lee', closerEmail: `jordan@${domain}`, date: daysAgo(1), durationSeconds: 640, transcript: [{ speaker: 'Jamie Whitfield', text: 'The price is a stretch this quarter.' }, { speaker: 'Jordan Lee', text: 'Totally hear you — let\'s look at the ROI versus staying stuck.' }], outcome: 'won', leakReason: null },
     { id: 'seed-call-2', closerName: 'Sam Patel', closerEmail: `sam@${domain}`, date: daysAgo(3), durationSeconds: 820, transcript: [{ speaker: 'Morgan Reyes', text: 'I need to check with my business partner first.' }, { speaker: 'Sam Patel', text: 'Makes sense — want to loop them in on a quick call this week?' }], outcome: 'won', leakReason: null },
-    { id: crypto.randomUUID(), closerName: 'Taylor Brooks', closerEmail: `taylor@${domain}`, date: daysAgo(2), durationSeconds: 410, transcript: [{ speaker: 'Prospect', text: 'Honestly this feels too expensive for what it is.' }, { speaker: 'Taylor Brooks', text: 'I get that — what budget were you expecting?' }, { speaker: 'Prospect', text: "I think I'll pass for now." }], outcome: 'lost', leakReason: 'Price objection' },
+    { id: 'seed-call-lost-1', closerName: 'Taylor Brooks', closerEmail: `taylor@${domain}`, date: daysAgo(2), durationSeconds: 410, transcript: [{ speaker: 'Prospect', text: 'Honestly this feels too expensive for what it is.' }, { speaker: 'Taylor Brooks', text: 'I get that — what budget were you expecting?' }, { speaker: 'Prospect', text: "I think I'll pass for now." }], outcome: 'lost', leakReason: 'Price objection' },
   ]
 
   const ghostSourceCall = calls.find(c => c.outcome === 'lost')!
