@@ -30,5 +30,12 @@ describe('Overview', () => {
     // Sam Patel has the single largest seeded ledger entry ($18,599 assisted), so leads the cash leaderboard.
     const rows = screen.getAllByRole('row').slice(1) // drop the header row
     expect(rows[0]).toHaveTextContent('Sam Patel')
+
+    // Regression: the seeded lost call must join to a deal (Drew Sanders' $12,599 Core Program deal),
+    // otherwise "Money leaked" silently computes to $0 despite showing "1 lost call". Scoped to the
+    // money-leaked panel specifically since $12,599 also appears elsewhere (two closers' cash totals).
+    const moneyLeakedPanel = screen.getByText('Money leaked').closest('.lf-panel')
+    expect(moneyLeakedPanel).toHaveTextContent('$12,599')
+    expect(moneyLeakedPanel).not.toHaveTextContent('$0')
   })
 })

@@ -30,6 +30,15 @@ describe('closerOrgStore', () => {
     expect(org.paymentPlans.some(p => p.riskScore === 'green')).toBe(true)
   })
 
+  it('demoSeedCloserOrg gives the seeded lost call a matching deal (money-leaked join)', () => {
+    const org = demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers')
+    const lostCall = org.calls.find(c => c.outcome === 'lost')
+    expect(lostCall).toBeTruthy()
+    const matchingDeal = org.deals.find(d => d.callId === lostCall!.id)
+    expect(matchingDeal).toBeTruthy()
+    expect(matchingDeal?.status).toBe('lost')
+  })
+
   it('addMember creates a member with an invite code and seatPaid false', () => {
     createOrg('admin@acme.com', demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     const member = addMember('admin@acme.com', { name: 'Jordan Lee', email: 'jordan@acme.com' })
