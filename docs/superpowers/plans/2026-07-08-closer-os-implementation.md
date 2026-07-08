@@ -389,10 +389,21 @@ export function addMember(adminEmail: string, member: { name: string; email: str
     id: crypto.randomUUID(), name: member.name, email: member.email,
     role: 'member', inviteCode: generateInviteCode(), seatPaid: false,
   }
-  const updated = updateOrg(adminEmail, org => appendAudit({ ...org, members: [...org.members, newMember] }, 'member-added', adminEmail, `Added ${member.name}`))
+  const updated = updateOrg(adminEmail, org => {
+    const target = normalizeEmail(member.email)
+    const exists = org.members.some(m => normalizeEmail(m.email) === target)
+    const members = exists
+      ? org.members.map(m => (normalizeEmail(m.email) === target ? newMember : m))
+      : [...org.members, newMember]
+    return appendAudit({ ...org, members }, 'member-added', adminEmail, `Added ${member.name}`)
+  })
   return updated ? newMember : null
 }
+```
 
+**Fixed during Task 6 (upsert, not append):** the original version above unconditionally appended, which meant a real invite to an email colliding with one of `demoSeedCloserOrg`'s three always-seeded demo reps (`jordan@<domain>`, `sam@<domain>`, `taylor@<domain>`) created a shadow duplicate — `findMemberByEmail` returns the *first* array match, so the stale seeded record's invite code kept winning over the real one. `addMember` now upserts by normalized email instead. Note this resets `seatPaid`/`role`/`id` on any collision (including a legitimate re-invite of an already-activated member) — acceptable for this prototype since there's no "resend invite" caller yet, but flag it if a future task adds one.
+
+```ts
 export function markMemberSeatPaid(adminEmail: string, memberId: string): void {
   updateOrg(adminEmail, org => ({ ...org, members: org.members.map(m => (m.id === memberId ? { ...m, seatPaid: true } : m)) }))
 }
