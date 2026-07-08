@@ -5,8 +5,8 @@ import type { CloserDashboardContext } from './CloserOSAdminLayout'
 import { addDealTypePriceOption, removeDealTypePriceOption, toggleIntegration } from '../closerOrgStore'
 
 const PAYMENT_PROCESSORS = [
-  { id: 'nmi', name: 'NMI' },
   { id: 'stripe', name: 'Stripe' },
+  { id: 'nmi', name: 'NMI' },
   { id: 'paypal', name: 'PayPal' },
 ]
 
