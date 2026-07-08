@@ -1744,13 +1744,17 @@ export default function PaymentMomentPanel({
             const isCurrent = status === step.key && status !== 'paid'
             return (
               <div key={step.key} className="flex items-center gap-2 text-sm">
-                {reached ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : isCurrent ? <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-400" /> : <div className="h-3.5 w-3.5 rounded-full border border-white/20" />}
+                {isCurrent ? <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-400" /> : reached ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <div className="h-3.5 w-3.5 rounded-full border border-white/20" />}
                 <span className={reached ? 'font-semibold text-white' : 'text-slate-400'}>{step.label}</span>
               </div>
             )
           })}
         </div>
       )}
+
+      {/* Fixed post-review: `stepReached` uses an inclusive >= comparison, so the currently-active
+          step was always also "reached" — checking `isCurrent` first (not `reached` first) is what
+          actually lets the in-progress spinner render instead of a premature checkmark. */}
 
       {isDeclined && (
         <div className="mt-3 space-y-3">
