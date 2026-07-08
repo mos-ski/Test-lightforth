@@ -39,4 +39,13 @@ describe('PaymentMomentPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /second card/i }))
     expect(onBackupOption).toHaveBeenCalledWith('second-card')
   })
+
+  it('shows the in-progress spinner on the current ticker step, not a checkmark, while earlier steps stay checked', () => {
+    const { container } = render(<PaymentMomentPanel status="link-opened" priceOption={PRICE_OPTION} onSendLink={() => {}} onBackupOption={() => {}} />)
+    // The currently-active step ("Link opened") must show the spinner, not a premature checkmark.
+    expect(container.querySelector('.animate-spin')).toBeInTheDocument()
+    // Only the current step should spin — the earlier, already-completed step ("Link sent")
+    // must not also render a spinner.
+    expect(container.querySelectorAll('.animate-spin')).toHaveLength(1)
+  })
 })
