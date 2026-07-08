@@ -2918,10 +2918,13 @@ describe('PaymentSettings', () => {
     const { rerender } = renderWithContext('ada@acme.com', org, refresh)
 
     // Seeded org already has 'stripe' connected (see demoSeedCloserOrg) — NMI is not, so its button reads "Connect".
+    // Regex is anchored (^...$) so it matches only an exact "Connect" label, not "Disconnect" —
+    // /connect/i without anchors also matches "Disconnect" (it contains the substring "connect"),
+    // which would hit Stripe's already-connected button instead of NMI's.
     expect(org.connectedIntegrations).toContain('stripe')
     expect(org.connectedIntegrations).not.toContain('nmi')
 
-    fireEvent.click(screen.getAllByRole('button', { name: /connect/i })[0]) // NMI's "Connect" button
+    fireEvent.click(screen.getAllByRole('button', { name: /^connect$/i })[0]) // NMI's "Connect" button
     rerender(
       <MemoryRouter>
         <Routes>
@@ -4216,7 +4219,9 @@ describe('Integrations', () => {
         </Routes>
       </MemoryRouter>,
     )
-    fireEvent.click(screen.getAllByRole('button', { name: /connect/i })[0])
+    // Anchored regex: /connect/i without anchors also matches "Disconnect" (already-connected
+    // processors), which would hit a pre-connected integration's Disconnect button instead.
+    fireEvent.click(screen.getAllByRole('button', { name: /^connect$/i })[0])
     expect(getOrgByAdminEmail('ada@acme.com')!.connectedIntegrations.length).toBeGreaterThan(2)
   })
 })
