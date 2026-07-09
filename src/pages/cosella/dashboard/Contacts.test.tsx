@@ -48,4 +48,14 @@ describe('Contacts', () => {
     fireEvent.click(screen.getByRole('button', { name: `Remove ${unassigned.name}` }))
     expect(getOrgByAdminEmail('ada@acme.com')!.contacts.some(c => c.id === unassigned.id)).toBe(false)
   })
+
+  it('shows a populate-demo-contacts action when contacts are empty, and it fills the list', () => {
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    const org = { ...getOrgByAdminEmail('ada@acme.com')!, contacts: [] }
+    renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
+
+    expect(screen.getByText('No contacts yet — add one, or import from your waitlist.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /populate demo contacts/i }))
+    expect(getOrgByAdminEmail('ada@acme.com')!.contacts.length).toBeGreaterThan(0)
+  })
 })

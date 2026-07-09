@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { UserPlus, X } from 'lucide-react'
-import { addContact, assignContact, removeContact, type Contact } from '../cosellaOrgStore'
+import { Sparkles, UserPlus, X } from 'lucide-react'
+import { addContact, assignContact, populateDemoContacts, removeContact, type Contact } from '../cosellaOrgStore'
 import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
 const SOURCE_LABEL: Record<Contact['source'], string> = {
@@ -34,6 +34,11 @@ export default function Contacts() {
     addContact(adminEmail, { name, phone, email, source, assignedTo: null })
     refresh()
     setName(''); setPhone(''); setEmail(''); setSource('manual'); setShowAddForm(false)
+  }
+
+  function handlePopulateDemo() {
+    populateDemoContacts(adminEmail)
+    refresh()
   }
 
   return (
@@ -92,7 +97,14 @@ export default function Contacts() {
           </thead>
           <tbody>
             {org.contacts.length === 0 && (
-              <tr><td colSpan={5} className="lf-table-cell py-8 text-center text-sm italic text-slate-400">No contacts yet — add one, or import from your waitlist.</td></tr>
+              <tr>
+                <td colSpan={5} className="lf-table-cell py-10 text-center">
+                  <p className="text-sm italic text-slate-400">No contacts yet — add one, or import from your waitlist.</p>
+                  <button onClick={handlePopulateDemo} className="mx-auto mt-3 flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50">
+                    <Sparkles className="h-3.5 w-3.5" /> Populate demo contacts
+                  </button>
+                </td>
+              </tr>
             )}
             {org.contacts.map(contact => (
               <tr key={contact.id} className="lf-table-row">

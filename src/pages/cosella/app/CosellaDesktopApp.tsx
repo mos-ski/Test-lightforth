@@ -6,7 +6,7 @@ import CosellaLiveCanvas, { type LiveCallResult } from './CosellaLiveCanvas'
 import { getActiveMemberEmail, getCosellaAccount, setCosellaAccount, setActiveMemberEmail } from '../cosellaAccounts'
 import {
   findMemberByEmail, recordDeal, addPaymentPlan, addLedgerEntry, recordCall,
-  addLiveCallRiskEntry, resolveRescue, setActiveAdminEmail, assignContact,
+  addLiveCallRiskEntry, resolveRescue, setActiveAdminEmail, assignContact, populateDemoContacts,
   type CosellaOrg, type CosellaMember, type ProspectCard, type PriceOption, type Contact,
 } from '../cosellaOrgStore'
 
@@ -52,6 +52,13 @@ export default function CosellaDesktopApp() {
     setActiveMemberEmail(email)
     setContext(found)
     setView('setup')
+  }
+
+  function handlePopulateDemoContacts() {
+    if (!context) return
+    populateDemoContacts(context.adminEmail)
+    const refreshed = findMemberByEmail(context.member.email)
+    if (refreshed) setContext(refreshed)
   }
 
   function handleSignIn() {
@@ -279,7 +286,12 @@ export default function CosellaDesktopApp() {
                   })()}
                 </select>
                 {context.org.contacts.filter(c => c.assignedTo === context.member.email || c.assignedTo === null).length === 0 && (
-                  <p className="mt-1.5 text-xs text-white/40">No contacts to call yet — add some from the Contacts page.</p>
+                  <div className="mt-1.5">
+                    <p className="text-xs text-white/40">No contacts to call yet — add some from the Contacts page, or:</p>
+                    <button type="button" onClick={handlePopulateDemoContacts} className="mt-1.5 text-xs font-semibold" style={{ color: ACCENT }}>
+                      Populate demo contacts
+                    </button>
+                  </div>
                 )}
               </div>
             )}

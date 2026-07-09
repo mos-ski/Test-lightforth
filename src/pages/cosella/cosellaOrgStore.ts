@@ -349,6 +349,16 @@ export function removeContact(adminEmail: string, contactId: string): void {
   updateOrg(adminEmail, org => ({ ...org, contacts: org.contacts.filter(c => c.id !== contactId) }))
 }
 
+// For orgs whose `contacts: []` was already persisted to localStorage by an older build (before the
+// backfill fix), the read-time backfill in normalizeOrg won't touch it — an explicit empty array is
+// left alone on purpose. This gives a manual, one-click way to seed the same demo contacts on top.
+export function populateDemoContacts(adminEmail: string): CosellaOrg | null {
+  return updateOrg(adminEmail, org => {
+    const demo = backfillContacts(org)
+    return appendAudit({ ...org, contacts: [...demo, ...org.contacts] }, 'contacts-demo-populated', adminEmail, `${demo.length} demo contacts added`)
+  })
+}
+
 export function addGhostPersonaFromCall(adminEmail: string, call: CallRecord): GhostPersona {
   const item: GhostPersona = {
     id: crypto.randomUUID(),

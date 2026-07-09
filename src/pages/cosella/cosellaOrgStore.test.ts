@@ -4,6 +4,7 @@ import {
   findMemberByEmail, demoSeedCosellaOrg, recordInstallmentOutcome, addLedgerEntry,
   addGhostPersonaFromCall, resolveRescue, recordDeal, markDealPaid,
   addDealTypePriceOption, updateDealTypePriceOption, removeDealTypePriceOption, logAuditEvent,
+  populateDemoContacts,
 } from './cosellaOrgStore'
 
 describe('cosellaOrgStore', () => {
@@ -63,6 +64,17 @@ describe('cosellaOrgStore', () => {
     createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     updateOrg('admin@acme.com', org => ({ ...org, contacts: [] }))
     expect(getOrgByAdminEmail('admin@acme.com')?.contacts).toEqual([])
+  })
+
+  it('populateDemoContacts manually seeds demo contacts on top of an org stuck with an explicit empty array', () => {
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    updateOrg('admin@acme.com', org => ({ ...org, contacts: [] }))
+    expect(getOrgByAdminEmail('admin@acme.com')?.contacts).toEqual([])
+
+    populateDemoContacts('admin@acme.com')
+    const contacts = getOrgByAdminEmail('admin@acme.com')?.contacts
+    expect(contacts?.length).toBeGreaterThan(0)
+    expect(contacts?.some(c => c.assignedTo !== null)).toBe(true)
   })
 
   it('findMemberByEmail locates a member across orgs', () => {
