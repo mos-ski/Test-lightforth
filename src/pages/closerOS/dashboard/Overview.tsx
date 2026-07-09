@@ -60,7 +60,7 @@ export default function Overview() {
             {copied ? 'Copied!' : 'Copy link'}
           </button>
           <button
-            onClick={() => navigate(`/closer-os/sign-in?email=${encodeURIComponent(adminEmail)}`)}
+            onClick={() => navigate(`/closer-os/app?email=${encodeURIComponent(adminEmail)}`)}
             className="flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-[#052e1f] transition-colors hover:bg-emerald-300"
           >
             <ExternalLink className="h-4 w-4" />

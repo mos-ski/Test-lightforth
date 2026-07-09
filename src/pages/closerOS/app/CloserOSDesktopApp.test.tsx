@@ -3,14 +3,14 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import CloserOSDesktopApp from './CloserOSDesktopApp'
 import { createOrg, demoSeedCloserOrg, addMember, getOrgByAdminEmail } from '../closerOrgStore'
-import { setActiveMemberEmail } from '../closerAccounts'
+import { setActiveMemberEmail, setCloserAccount } from '../closerAccounts'
 
-function renderApp() {
+function renderApp(initialEntry = '/closer-os/app') {
   return render(
-    <MemoryRouter initialEntries={['/closer-os/app']}>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
         <Route path="/closer-os/app" element={<CloserOSDesktopApp />} />
-        <Route path="/closer-os/sign-in" element={<p>Sign-in landed</p>} />
+        <Route path="/closer-os/dashboard" element={<p>Dashboard landed</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -25,9 +25,47 @@ describe('CloserOSDesktopApp', () => {
   beforeEach(() => { localStorage.clear(); vi.useFakeTimers() })
   afterEach(() => vi.useRealTimers())
 
-  it('redirects to sign-in when no member is signed in', () => {
+  it('shows an inline sign-in screen (inside the app shell) when no one is signed in', () => {
     renderApp()
-    expect(screen.getByText('Sign-in landed')).toBeInTheDocument()
+    expect(screen.getByText('Sign in to Closer OS')).toBeInTheDocument()
+  })
+
+  it('signs an already-activated member in inline and lands on setup, without leaving the app route', () => {
+    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    const member = addMember('ada@acme.com', { name: 'Jordan Lee', email: 'jordan@acme.com' })!
+    setCloserAccount(member.email, { accountType: 'closer-os-member', orgName: 'Acme Closers' })
+
+    renderApp()
+    fireEvent.change(screen.getByPlaceholderText('you@company.com'), { target: { value: member.email } })
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'anything' } })
+    fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }))
+
+    expect(screen.getByText('Start a Sales Call')).toBeInTheDocument()
+  })
+
+  it('activates a member via invite code inline and lands on setup', () => {
+    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    const member = addMember('ada@acme.com', { name: 'Jordan Lee', email: 'jordan@acme.com' })!
+
+    renderApp()
+    fireEvent.click(screen.getByRole('button', { name: /i have an invite code/i }))
+    fireEvent.change(screen.getByPlaceholderText('you@company.com'), { target: { value: member.email } })
+    fireEvent.change(screen.getByPlaceholderText('Invite code'), { target: { value: member.inviteCode } })
+    fireEvent.change(screen.getByPlaceholderText('Create a password'), { target: { value: 'newpassword' } })
+    fireEvent.click(screen.getByRole('button', { name: /activate seat/i }))
+
+    expect(screen.getByText('Start a Sales Call')).toBeInTheDocument()
+  })
+
+  it('routes an admin account to the dashboard, not the closer app', () => {
+    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    setCloserAccount('ada@acme.com', { accountType: 'closer-os-admin', orgName: 'Acme Closers' })
+
+    renderApp('/closer-os/app?email=ada%40acme.com')
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'anything' } })
+    fireEvent.click(screen.getByRole('button', { name: /^sign in$/i }))
+
+    expect(screen.getByText('Dashboard landed')).toBeInTheDocument()
   })
 
   it('walks a signed-in closer through setup, prospect card, a full paid call, and writes the deal + ledger + call record', () => {

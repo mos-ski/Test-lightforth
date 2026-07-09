@@ -12,7 +12,7 @@ function renderWithContext(context: CloserDashboardContext) {
         <Route path="/" element={<Outlet context={context} />}>
           <Route index element={<Overview />} />
         </Route>
-        <Route path="/closer-os/sign-in" element={<p>Sign-in landed</p>} />
+        <Route path="/closer-os/app" element={<p>App landed</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -40,12 +40,12 @@ describe('Overview', () => {
     expect(moneyLeakedPanel).not.toHaveTextContent('$0')
   })
 
-  it('shows the Closer OS app banner and opens the sign-in page with the admin email prefilled', () => {
+  it('shows the Closer OS app banner and opens the desktop app directly with the admin email prefilled', () => {
     const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
 
     expect(screen.getByText('Download & share Closer OS')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /open closer os/i }))
-    expect(screen.getByText('Sign-in landed')).toBeInTheDocument()
+    expect(screen.getByText('App landed')).toBeInTheDocument()
   })
 })

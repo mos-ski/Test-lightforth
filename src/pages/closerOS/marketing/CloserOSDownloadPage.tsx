@@ -41,7 +41,7 @@ export default function CloserOSDownloadPage() {
             <Button
               size="lg"
               className="mt-3 w-full bg-emerald-600 hover:bg-emerald-700"
-              onClick={() => navigate(`/closer-os/sign-in${email ? `?email=${encodeURIComponent(email)}` : ''}`)}
+              onClick={() => navigate(`/closer-os/app${email ? `?email=${encodeURIComponent(email)}` : ''}`)}
             >
               Open Closer OS
             </Button>
