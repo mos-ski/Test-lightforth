@@ -251,7 +251,7 @@ export default function CosellaLiveCanvas({
 
           <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: 'rgba(20,34,62,0.4)', backdropFilter: 'blur(10px)' }}>
             <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'rgba(239,68,68,0.85)', boxShadow: '0 0 6px rgba(239,68,68,0.6)' }} />
               <span className="text-xs font-medium text-white">Live Sales Call &mdash; {prospectName}</span>
             </div>
             <div className="flex items-center gap-3">
@@ -291,7 +291,7 @@ export default function CosellaLiveCanvas({
 
           <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: 'rgba(16,29,43,0.2)', backdropFilter: 'blur(10px)' }}>
             <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'rgba(239,68,68,0.85)', boxShadow: '0 0 6px rgba(239,68,68,0.6)' }} />
               <span className="text-xs font-medium text-white">Live Sales Call</span>
             </div>
             <Settings className="h-3.5 w-3.5 text-[#a6acb8]" />
