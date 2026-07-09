@@ -25,6 +25,7 @@ describe('cosellaOrgStore', () => {
     expect(org.ghostSessions.length).toBeGreaterThan(0)
     expect(org.liveCallRiskEntries.length).toBeGreaterThan(0)
     expect(org.calls.length).toBeGreaterThan(0)
+    expect(org.contacts.length).toBeGreaterThan(0)
     expect(org.slackDigestConfig.channel).toMatch(/^#/)
     expect(org.paymentPlans.some(p => p.riskScore === 'red')).toBe(true)
     expect(org.paymentPlans.some(p => p.riskScore === 'green')).toBe(true)
@@ -46,6 +47,14 @@ describe('cosellaOrgStore', () => {
     expect(member?.inviteCode).toMatch(/^[A-Z0-9]{6}$/)
     markMemberSeatPaid('admin@acme.com', member!.id)
     expect(getOrgByAdminEmail('admin@acme.com')?.members.find(m => m.id === member!.id)?.seatPaid).toBe(true)
+  })
+
+  it('backfills a missing contacts array on read, for orgs saved before the Contacts feature existed', () => {
+    const org = demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers')
+    const { contacts, ...orgWithoutContacts } = org
+    localStorage.setItem('cosella-orgs', JSON.stringify({ 'admin@acme.com': orgWithoutContacts }))
+
+    expect(getOrgByAdminEmail('admin@acme.com')?.contacts).toEqual([])
   })
 
   it('findMemberByEmail locates a member across orgs', () => {

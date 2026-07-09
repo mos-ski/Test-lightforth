@@ -165,10 +165,17 @@ export interface CosellaOrg {
 const ORGS_KEY = 'cosella-orgs'
 const ACTIVE_ADMIN_KEY = 'cosella-active-admin'
 
+// Orgs saved before the Contacts feature shipped won't have a `contacts` array in localStorage —
+// every read runs through here so old data self-heals instead of crashing on `org.contacts.map(...)`.
+function normalizeOrg(org: CosellaOrg): CosellaOrg {
+  return { ...org, contacts: org.contacts ?? [] }
+}
+
 function readStore(): Record<string, CosellaOrg> {
   try {
     const raw = localStorage.getItem(ORGS_KEY)
-    return raw ? JSON.parse(raw) : {}
+    const store: Record<string, CosellaOrg> = raw ? JSON.parse(raw) : {}
+    return Object.fromEntries(Object.entries(store).map(([key, org]) => [key, normalizeOrg(org)]))
   } catch {
     return {}
   }
