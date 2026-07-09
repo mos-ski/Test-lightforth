@@ -42,6 +42,25 @@ const SalesCallHistory = lazy(() => import('@/pages/sales/CallHistory'))
 const SalesBilling = lazy(() => import('@/pages/sales/Billing'))
 const SalesIntegrations = lazy(() => import('@/pages/sales/Integrations'))
 const SalesSettings = lazy(() => import('@/pages/sales/Settings'))
+const CloserOSLanding = lazy(() => import('@/pages/closerOS/marketing/CloserOSLanding'))
+const CloserOSCheckoutPage = lazy(() => import('@/pages/closerOS/marketing/CloserOSCheckoutPage'))
+const CloserOSDownloadPage = lazy(() => import('@/pages/closerOS/marketing/CloserOSDownloadPage'))
+const CloserOSSignIn = lazy(() => import('@/pages/closerOS/CloserOSSignIn'))
+const CloserOSDesktopApp = lazy(() => import('@/pages/closerOS/app/CloserOSDesktopApp'))
+const CloserOSAdminLayout = lazy(() => import('@/pages/closerOS/dashboard/CloserOSAdminLayout'))
+const CloserOSOverview = lazy(() => import('@/pages/closerOS/dashboard/Overview'))
+const CloserOSPaymentSettings = lazy(() => import('@/pages/closerOS/dashboard/PaymentSettings'))
+const CloserOSPlanTracker = lazy(() => import('@/pages/closerOS/dashboard/PlanTracker'))
+const CloserOSLedger = lazy(() => import('@/pages/closerOS/dashboard/Ledger'))
+const CloserOSSlackReport = lazy(() => import('@/pages/closerOS/dashboard/SlackReport'))
+const CloserOSProspectIntel = lazy(() => import('@/pages/closerOS/dashboard/ProspectIntel'))
+const CloserOSGhostSimulator = lazy(() => import('@/pages/closerOS/dashboard/GhostSimulator'))
+const CloserOSLiveRescueBoard = lazy(() => import('@/pages/closerOS/dashboard/LiveRescueBoard'))
+const CloserOSTeam = lazy(() => import('@/pages/closerOS/dashboard/Team'))
+const CloserOSCallHistory = lazy(() => import('@/pages/closerOS/dashboard/CallHistory'))
+const CloserOSBilling = lazy(() => import('@/pages/closerOS/dashboard/Billing'))
+const CloserOSIntegrations = lazy(() => import('@/pages/closerOS/dashboard/Integrations'))
+const CloserOSSettings = lazy(() => import('@/pages/closerOS/dashboard/Settings'))
 const MobileAppPreview = lazy(() => import('@/pages/MobileAppPreview'))
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
 const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
@@ -135,6 +154,26 @@ export default function App() {
             <Route path="/copilot/enterprise/checkout" element={<Suspense fallback={null}><EnterpriseCheckoutPage /></Suspense>} />
             <Route path="/copilot/individual/checkout" element={<Suspense fallback={null}><IndividualCheckoutPage /></Suspense>} />
             <Route path="/copilot/download" element={<Suspense fallback={null}><DownloadCopilotPage /></Suspense>} />
+            <Route path="/closer-os" element={<Suspense fallback={null}><CloserOSLanding /></Suspense>} />
+            <Route path="/closer-os/checkout" element={<Suspense fallback={null}><CloserOSCheckoutPage /></Suspense>} />
+            <Route path="/closer-os/download" element={<Suspense fallback={null}><CloserOSDownloadPage /></Suspense>} />
+            <Route path="/closer-os/sign-in" element={<Suspense fallback={null}><CloserOSSignIn /></Suspense>} />
+            <Route path="/closer-os/app" element={<Suspense fallback={null}><CloserOSDesktopApp /></Suspense>} />
+            <Route path="/closer-os/dashboard" element={<Suspense fallback={null}><CloserOSAdminLayout /></Suspense>}>
+              <Route index element={<Suspense fallback={null}><CloserOSOverview /></Suspense>} />
+              <Route path="payment-settings" element={<Suspense fallback={null}><CloserOSPaymentSettings /></Suspense>} />
+              <Route path="plan-tracker" element={<Suspense fallback={null}><CloserOSPlanTracker /></Suspense>} />
+              <Route path="ledger" element={<Suspense fallback={null}><CloserOSLedger /></Suspense>} />
+              <Route path="slack-report" element={<Suspense fallback={null}><CloserOSSlackReport /></Suspense>} />
+              <Route path="prospect-intel" element={<Suspense fallback={null}><CloserOSProspectIntel /></Suspense>} />
+              <Route path="ghost-simulator" element={<Suspense fallback={null}><CloserOSGhostSimulator /></Suspense>} />
+              <Route path="rescue-board" element={<Suspense fallback={null}><CloserOSLiveRescueBoard /></Suspense>} />
+              <Route path="team" element={<Suspense fallback={null}><CloserOSTeam /></Suspense>} />
+              <Route path="calls" element={<Suspense fallback={null}><CloserOSCallHistory /></Suspense>} />
+              <Route path="billing" element={<Suspense fallback={null}><CloserOSBilling /></Suspense>} />
+              <Route path="integrations" element={<Suspense fallback={null}><CloserOSIntegrations /></Suspense>} />
+              <Route path="settings" element={<Suspense fallback={null}><CloserOSSettings /></Suspense>} />
+            </Route>
             <Route path="/sales/sign-in" element={<Suspense fallback={null}><SalesSignIn /></Suspense>} />
             <Route path="/sales/dashboard" element={<Suspense fallback={null}><SalesAdminLayout /></Suspense>}>
               <Route index element={<Suspense fallback={null}><SalesOverview /></Suspense>} />
