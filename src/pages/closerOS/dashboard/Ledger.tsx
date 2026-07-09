@@ -40,7 +40,7 @@ export default function Ledger() {
           <h1 className="text-2xl font-bold text-slate-900">Ledger</h1>
           <p className="mt-1 text-sm text-slate-500">Proof, deal by deal, of exactly what Closer OS has made you.</p>
         </div>
-        <button onClick={handleGenerateRenewalDeck} className="flex h-10 flex-shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">
+        <button onClick={handleGenerateRenewalDeck} className="flex h-10 flex-shrink-0 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">
           <FileDown className="h-4 w-4" /> Generate renewal deck
         </button>
       </div>

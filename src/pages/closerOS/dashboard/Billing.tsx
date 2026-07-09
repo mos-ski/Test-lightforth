@@ -20,7 +20,7 @@ export default function Billing() {
           <p className="mt-1 text-sm text-slate-500">One-time, already settled.</p>
         </div>
         <div className="lf-panel p-6">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-500"><CreditCard className="h-4 w-4 text-primary" /> Monthly subscription</div>
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-500"><CreditCard className="h-4 w-4 text-emerald-600" /> Monthly subscription</div>
           <p className="mt-3 text-2xl font-black text-slate-900">${monthlyTotal.toFixed(2)} <span className="text-base font-medium text-slate-500">/ month</span></p>
           <p className="mt-1 text-sm text-slate-500">{paidSeats.length} active seat{paidSeats.length === 1 ? '' : 's'} at ${CLOSER_OS_SEAT_PRICE}/mo each.</p>
         </div>

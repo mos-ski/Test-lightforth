@@ -29,7 +29,7 @@ export default function Integrations() {
                 <p className="mt-1 text-sm leading-relaxed text-slate-500">{integration.description}</p>
                 <button
                   onClick={() => { toggleIntegration(adminEmail, integration.id); refresh() }}
-                  className={connected ? 'mt-3 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-muted' : 'mt-3 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90'}
+                  className={connected ? 'mt-3 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-muted' : 'mt-3 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700'}
                 >
                   {connected ? 'Disconnect' : 'Connect'}
                 </button>

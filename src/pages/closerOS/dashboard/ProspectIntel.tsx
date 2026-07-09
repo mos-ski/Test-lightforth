@@ -45,7 +45,7 @@ export default function ProspectIntel() {
           <input value={watchPct} onChange={e => setWatchPct(e.target.value)} placeholder="VSL watch %" type="number" className="lf-input" />
           <input value={openingLine} onChange={e => setOpeningLine(e.target.value)} placeholder="Suggested opening line" className="lf-input" />
         </div>
-        <button disabled={!canAdd} onClick={handleAdd} className="mt-4 h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-white disabled:opacity-40">
+        <button disabled={!canAdd} onClick={handleAdd} className="mt-4 h-9 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white disabled:opacity-40">
           Add prospect card
         </button>
       </div>

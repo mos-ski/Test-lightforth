@@ -48,7 +48,7 @@ export default function SlackReport() {
           </div>
         </div>
         <div className="mt-4 flex gap-3">
-          <button onClick={handleSave} className="h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">Save changes</button>
+          <button onClick={handleSave} className="h-9 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">Save changes</button>
           <button onClick={handleSendTest} className="h-9 rounded-lg border border-border px-4 text-sm font-semibold text-slate-700 hover:bg-muted">Send test digest now</button>
         </div>
       </div>

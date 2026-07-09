@@ -30,7 +30,7 @@ export default function GhostSimulator() {
   if (practicing) {
     return (
       <div className="mx-auto max-w-2xl px-10 py-12">
-        <button onClick={() => setPracticing(null)} className="text-sm font-semibold text-primary hover:underline">← Back</button>
+        <button onClick={() => setPracticing(null)} className="text-sm font-semibold text-emerald-600 hover:underline">← Back</button>
         <h1 className="mt-4 text-2xl font-bold text-slate-900">{practicing.name}</h1>
         <p className="mt-1 text-sm text-slate-500">{practicing.tone}</p>
         <div className="mt-4 space-y-2">
@@ -52,7 +52,7 @@ export default function GhostSimulator() {
             <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={closeAttempted} onChange={e => setCloseAttempted(e.target.checked)} /> Close attempted</label>
             <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={paymentAsked} onChange={e => setPaymentAsked(e.target.checked)} /> Payment asked</label>
           </div>
-          <button onClick={handleSubmit} className="mt-5 h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">Submit session</button>
+          <button onClick={handleSubmit} className="mt-5 h-9 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">Submit session</button>
         </div>
       </div>
     )
@@ -70,7 +70,7 @@ export default function GhostSimulator() {
               <p className="font-bold text-slate-900">{ghost.name}</p>
               <p className="mt-1 text-sm text-slate-500">{ghost.objectionStyle}</p>
             </div>
-            <button onClick={() => setPracticing(ghost)} className="h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">Practice</button>
+            <button onClick={() => setPracticing(ghost)} className="h-9 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">Practice</button>
           </div>
         ))}
       </div>

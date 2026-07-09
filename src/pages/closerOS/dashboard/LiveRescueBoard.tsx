@@ -45,7 +45,7 @@ export default function LiveRescueBoard() {
           <h1 className="text-2xl font-bold text-slate-900">Live Rescue Board</h1>
           <p className="mt-1 text-sm text-slate-500">Every call currently at risk — step in before the deal is gone.</p>
         </div>
-        <button onClick={handleSimulate} className="h-10 flex-shrink-0 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">
+        <button onClick={handleSimulate} className="h-10 flex-shrink-0 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">
           Simulate a live call
         </button>
       </div>
@@ -67,7 +67,7 @@ export default function LiveRescueBoard() {
             ) : (
               <div className="mt-4 flex gap-2">
                 <button onClick={() => setResolving({ entry, mode: 'listen' })} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-muted">Listen</button>
-                <button onClick={() => setResolving({ entry, mode: 'whisper' })} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary/90">Whisper</button>
+                <button onClick={() => setResolving({ entry, mode: 'whisper' })} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">Whisper</button>
                 <button onClick={() => setResolving({ entry, mode: 'warm-join' })} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-muted">Warm Join</button>
               </div>
             )}

@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import PlanTracker from './PlanTracker'
-import { demoSeedCloserOrg } from '../closerOrgStore'
+import { createOrg, demoSeedCloserOrg, getOrgByAdminEmail } from '../closerOrgStore'
 import type { CloserDashboardContext } from './CloserOSAdminLayout'
 
 function renderWithContext(context: CloserDashboardContext) {
@@ -18,6 +18,8 @@ function renderWithContext(context: CloserDashboardContext) {
 }
 
 describe('PlanTracker', () => {
+  beforeEach(() => localStorage.clear())
+
   it('lists every payment plan with a risk badge', () => {
     const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
@@ -32,5 +34,14 @@ describe('PlanTracker', () => {
     fireEvent.click(screen.getByText('Morgan Reyes')) // seeded red-risk plan
     expect(screen.getByText(/recovery script/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /send reminder now/i })).toBeInTheDocument()
+  })
+
+  it('logs an audit entry when sending a reminder', () => {
+    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    const org = getOrgByAdminEmail('ada@acme.com')!
+    renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
+    fireEvent.click(screen.getByText('Morgan Reyes'))
+    fireEvent.click(screen.getByRole('button', { name: /send reminder now/i }))
+    expect(getOrgByAdminEmail('ada@acme.com')!.auditLog.some(a => a.action === 'reminder-sent')).toBe(true)
   })
 })

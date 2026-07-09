@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { CloserDashboardContext } from './CloserOSAdminLayout'
-import { recordInstallmentOutcome, type PaymentPlan } from '../closerOrgStore'
+import { logAuditEvent, recordInstallmentOutcome, type PaymentPlan } from '../closerOrgStore'
 
 const RISK_BADGE: Record<PaymentPlan['riskScore'], string> = {
   green: 'bg-emerald-50 text-emerald-600',
@@ -26,7 +26,7 @@ export default function PlanTracker() {
     const nextPending = selected.installments.findIndex(i => i.status !== 'paid')
     return (
       <div className="mx-auto max-w-3xl px-10 py-12">
-        <button onClick={() => setSelected(null)} className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
+        <button onClick={() => setSelected(null)} className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600 hover:underline">
           <ArrowLeft className="h-4 w-4" /> Back to Plan Tracker
         </button>
         <h1 className="mt-4 text-2xl font-bold text-slate-900">{selected.buyerName}</h1>
@@ -36,8 +36,11 @@ export default function PlanTracker() {
           <p className="lf-section-title">Recovery script</p>
           <p className="mt-2 text-sm leading-relaxed text-slate-700">{RECOVERY_SCRIPT[selected.riskScore]}</p>
           <button
-            onClick={() => toast.success(`Reminder sent to ${selected.buyerName}`)}
-            className="mt-4 h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90"
+            onClick={() => {
+              logAuditEvent(adminEmail, 'reminder-sent', adminEmail, `Reminder sent to ${selected.buyerName}`)
+              toast.success(`Reminder sent to ${selected.buyerName}`)
+            }}
+            className="mt-4 h-9 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
           >
             Send reminder now
           </button>

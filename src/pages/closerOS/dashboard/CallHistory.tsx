@@ -22,7 +22,7 @@ export default function CallHistory() {
   if (selected) {
     return (
       <div className="mx-auto max-w-4xl px-10 py-12">
-        <button onClick={() => setSelected(null)} className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
+        <button onClick={() => setSelected(null)} className="flex items-center gap-1.5 text-sm font-semibold text-emerald-600 hover:underline">
           <ArrowLeft className="h-4 w-4" /> Back to call history
         </button>
         <div className="mt-4 flex items-start justify-between gap-4">
@@ -33,7 +33,7 @@ export default function CallHistory() {
           {selected.outcome !== 'won' && (
             <button
               onClick={() => { addGhostPersonaFromCall(adminEmail, selected); refresh(); toast.success('Ghost persona created') }}
-              className="flex h-9 flex-shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-white hover:bg-primary/90"
+              className="flex h-9 flex-shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-semibold text-white hover:bg-emerald-700"
             >
               <Ghost className="h-3.5 w-3.5" /> Make a Ghost
             </button>
@@ -76,7 +76,7 @@ export default function CallHistory() {
                   <td className="lf-table-cell font-medium text-slate-900">{call.closerName}</td>
                   <td className="lf-table-cell text-slate-600">{formatDate(call.date)}</td>
                   <td className="lf-table-cell capitalize text-slate-600">{call.outcome}</td>
-                  <td className="lf-table-cell text-right text-sm font-semibold text-primary">View →</td>
+                  <td className="lf-table-cell text-right text-sm font-semibold text-emerald-600">View →</td>
                 </tr>
               ))}
             </tbody>

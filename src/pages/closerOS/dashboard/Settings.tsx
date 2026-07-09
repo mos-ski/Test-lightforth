@@ -36,7 +36,7 @@ export default function Settings() {
             <input id="admin-email" value={adminEmail} disabled className="lf-input" />
           </div>
         </div>
-        <button onClick={saveProfile} className="mt-5 h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">Save changes</button>
+        <button onClick={saveProfile} className="mt-5 h-9 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">Save changes</button>
       </section>
     </div>
   )

@@ -24,7 +24,7 @@ export default function Team() {
           <h1 className="text-2xl font-bold text-slate-900">Team</h1>
           <p className="mt-1 text-sm text-slate-500">Add closers by name and email, then activate their seat to send their invite code.</p>
         </div>
-        <button onClick={() => setShowAddForm(v => !v)} className="flex h-10 flex-shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">
+        <button onClick={() => setShowAddForm(v => !v)} className="flex h-10 flex-shrink-0 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">
           <UserPlus className="h-4 w-4" /> Add member
         </button>
       </div>
@@ -46,7 +46,7 @@ export default function Team() {
             <button
               disabled={!canAdd}
               onClick={() => { addMember(adminEmail, { name, email }); refresh(); setName(''); setEmail(''); setShowAddForm(false) }}
-              className="h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-white disabled:opacity-40"
+              className="h-9 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white disabled:opacity-40"
             >
               Add to team
             </button>
@@ -69,7 +69,7 @@ export default function Team() {
                   {member.seatPaid ? (
                     <button
                       onClick={() => { navigator.clipboard?.writeText(member.inviteCode); setCopiedCode(member.id); setTimeout(() => setCopiedCode(null), 1500) }}
-                      className="flex items-center gap-1.5 font-mono text-xs font-semibold text-primary hover:underline"
+                      className="flex items-center gap-1.5 font-mono text-xs font-semibold text-emerald-600 hover:underline"
                     >
                       {member.inviteCode}
                       {copiedCode === member.id ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
@@ -80,7 +80,7 @@ export default function Team() {
                   {member.seatPaid ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600"><Check className="h-3 w-3" /> Active</span>
                   ) : (
-                    <button onClick={() => { markMemberSeatPaid(adminEmail, member.id); refresh() }} className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white hover:bg-primary/90">
+                    <button onClick={() => { markMemberSeatPaid(adminEmail, member.id); refresh() }} className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700">
                       Activate seat — ${SEAT_PRICE}/mo
                     </button>
                   )}
