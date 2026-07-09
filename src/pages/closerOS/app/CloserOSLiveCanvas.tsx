@@ -9,6 +9,10 @@ import type { PriceOption } from '../closerOrgStore'
 interface CloserTurn {
   speaker: string
   text: string
+  // What the copilot suggests the closer says next, shown under every turn. For objection turns
+  // this is intentionally the same text as `counter` — it's both "say this now" and the reference
+  // card saved to the Objections sidebar for later. Turns with no objection need their own text.
+  response?: string
   objection?: string
   counter?: string
   isYesSignal?: boolean
@@ -16,12 +20,16 @@ interface CloserTurn {
   whisperLine?: string
 }
 
+function responseTextFor(turn: CloserTurn): string {
+  return turn.response ?? turn.counter ?? ''
+}
+
 const CLOSER_QA: CloserTurn[] = [
-  { speaker: 'Prospect', text: "Thanks for hopping on — I've been looking forward to this." },
+  { speaker: 'Prospect', text: "Thanks for hopping on — I've been looking forward to this.", response: "Mirror their energy and set the agenda: \"Great to have you here — let's cover where you're at today, what's been holding you back, and see if this is the right fit.\"" },
   { speaker: 'Prospect', text: 'Honestly the price is more than I budgeted for this quarter.', objection: 'Price is too high', counter: 'Re-anchor on ROI and time saved — offer a phased start if it helps.' },
-  { speaker: 'Prospect', text: "I don't know... this isn't really clicking the way I hoped.", isDangerSignal: "Prospect sentiment dropping — possible buyer's remorse forming", whisperLine: "Slow down and ask what's really holding them back before you talk price again." },
+  { speaker: 'Prospect', text: "I don't know... this isn't really clicking the way I hoped.", isDangerSignal: "Prospect sentiment dropping — possible buyer's remorse forming", whisperLine: "Slow down and ask what's really holding them back before you talk price again.", response: "Get curious, not defensive: \"What's making you hesitate right now?\" Let them talk before you respond." },
   { speaker: 'Prospect', text: "I'd also want to check with my business partner before committing.", objection: 'Need to check with a partner', counter: 'Offer a 3-way call this week so the partner hears it firsthand.' },
-  { speaker: 'Prospect', text: 'Okay, you know what — let\'s do it. How do I pay?', isYesSignal: true },
+  { speaker: 'Prospect', text: 'Okay, you know what — let\'s do it. How do I pay?', isYesSignal: true, response: "Confirm the yes, then move fast: ask PIF or plan preference and open the payment panel right now — don't let the moment cool off." },
 ]
 
 export interface LiveCallResult {
@@ -43,6 +51,8 @@ export default function CloserOSLiveCanvas({
   const [turnIndex, setTurnIndex] = useState(0)
   const [displayed, setDisplayed] = useState('')
   const [typingDone, setTypingDone] = useState(false)
+  const [responseDisplayed, setResponseDisplayed] = useState('')
+  const [responseDone, setResponseDone] = useState(false)
   const [history, setHistory] = useState<CloserTurn[]>([])
   const [elapsed, setElapsed] = useState(0)
   const [shownObjections, setShownObjections] = useState<{ objection: string; counter: string; used: boolean }[]>([])
@@ -69,19 +79,31 @@ export default function CloserOSLiveCanvas({
   const pendingPaymentTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (pendingPaymentTimeoutRef.current) clearTimeout(pendingPaymentTimeoutRef.current) }, [])
 
+  // Holds the suggested-response interval so a turn change (or unmount) can cancel a still-running
+  // one before starting the next.
+  const responseIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
 
-  // Typing effect for the current turn.
+  // Typing effect for the current turn: the prospect's line, then — chained directly inside that
+  // same interval's completion callback, not a separate effect reacting to `typingDone` — the
+  // copilot's suggested response. Chaining it here (rather than a second useEffect keyed on
+  // `typingDone`) matters under fake timers, for the same reason the payment cascade below is
+  // nested: a separate effect only gets a chance to register its interval once React commits a
+  // render for the state change that would trigger it, which doesn't happen mid-sweep inside one
+  // `act(() => vi.advanceTimersByTime(...))` call.
   useEffect(() => {
     setDisplayed('')
     setTypingDone(false)
+    setResponseDisplayed('')
+    setResponseDone(false)
     const turn = CLOSER_QA[turnIndex]
     let i = 0
-    const id = setInterval(() => {
+    const questionId = setInterval(() => {
       i++
       setDisplayed(turn.text.slice(0, i))
       if (i >= turn.text.length) {
-        clearInterval(id)
+        clearInterval(questionId)
         setTypingDone(true)
         if (turn.objection && turn.counter) {
           setShownObjections(prev => [...prev, { objection: turn.objection!, counter: turn.counter!, used: false }])
@@ -95,12 +117,28 @@ export default function CloserOSLiveCanvas({
         if (turn.isYesSignal) {
           setPaymentStatus('offered')
         }
+
+        const responseText = responseTextFor(turn)
+        let j = 0
+        responseIntervalRef.current = setInterval(() => {
+          j += 2
+          setResponseDisplayed(responseText.slice(0, j))
+          if (j >= responseText.length) {
+            if (responseIntervalRef.current) clearInterval(responseIntervalRef.current)
+            responseIntervalRef.current = null
+            setResponseDone(true)
+          }
+        }, 12)
       }
     }, 22)
-    return () => clearInterval(id)
+    return () => {
+      clearInterval(questionId)
+      if (responseIntervalRef.current) { clearInterval(responseIntervalRef.current); responseIntervalRef.current = null }
+    }
   }, [turnIndex])
 
-  // Advance to the next turn on Space (only once typing has finished and we're not on the final turn).
+  // Advance to the next turn on Space (only once the suggested response has finished, and we're
+  // not on the final turn) — this ensures the closer always sees the full suggestion before moving on.
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'p' || e.key === 'P') {
@@ -109,14 +147,14 @@ export default function CloserOSLiveCanvas({
       }
       if (e.code !== 'Space') return
       e.preventDefault()
-      if (!typingDone) return
+      if (!responseDone) return
       if (turnIndexRef.current >= CLOSER_QA.length - 1) return
       setHistory(h => [...h, CLOSER_QA[turnIndexRef.current]])
       setTurnIndex(i => i + 1)
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [typingDone])
+  }, [responseDone])
 
   // Toast when the payment lands — this only reacts to the final status, it doesn't drive it.
   useEffect(() => {
@@ -206,11 +244,34 @@ export default function CloserOSLiveCanvas({
 
       <div className="flex flex-1 min-h-0 gap-2 overflow-hidden p-2">
         <div className="flex flex-1 min-h-0 flex-col overflow-y-auto rounded-xl p-5" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-          {history.map((turn, i) => (
-            <p key={i} className="mb-3 text-sm text-white"><span className="font-semibold text-emerald-400">{turn.speaker}: </span>{turn.text}</p>
-          ))}
-          <p className="text-sm text-white"><span className="font-semibold text-emerald-400">{CLOSER_QA[turnIndex].speaker}: </span>{displayed}</p>
-          {typingDone && turnIndex < CLOSER_QA.length - 1 && <p className="mt-4 text-xs italic text-slate-500">Press Space to continue...</p>}
+          <style>{'@keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: 0 } }'}</style>
+          {history.map((turn, i) => {
+            const responseText = responseTextFor(turn)
+            return (
+              <div key={i} className="mb-4">
+                <p className="text-sm text-white"><span className="font-semibold text-emerald-400">{turn.speaker}: </span>{turn.text}</p>
+                {responseText && (
+                  <div className="mt-1.5 ml-2 border-l-2 pl-3" style={{ borderColor: 'rgba(16,185,129,0.4)' }}>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-400">Suggested Response</p>
+                    <p className="text-sm leading-relaxed text-slate-200">{responseText}</p>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          <div>
+            <p className="text-sm text-white"><span className="font-semibold text-emerald-400">{CLOSER_QA[turnIndex].speaker}: </span>{displayed}</p>
+            {typingDone && (
+              <div className="mt-1.5 ml-2 border-l-2 pl-3" style={{ borderColor: 'rgba(16,185,129,0.4)' }}>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-400">Suggested Response</p>
+                <p className="text-sm leading-relaxed text-slate-200">
+                  {responseDisplayed}
+                  {!responseDone && <span className="ml-px inline-block w-[2px] bg-emerald-400 align-middle" style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }} />}
+                </p>
+              </div>
+            )}
+            {responseDone && turnIndex < CLOSER_QA.length - 1 && <p className="mt-4 text-xs italic text-slate-500">Press Space to continue...</p>}
+          </div>
         </div>
 
         <div className="flex w-[300px] flex-shrink-0 flex-col gap-2">

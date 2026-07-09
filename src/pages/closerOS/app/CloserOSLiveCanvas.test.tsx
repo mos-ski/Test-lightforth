@@ -51,6 +51,25 @@ describe('CloserOSLiveCanvas', () => {
     expect(onEnd).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'won', paymentChoice: 'pif' }))
   })
 
+  it('shows a suggested response under every turn, and only allows advancing once it finishes typing', () => {
+    render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
+    act(() => { vi.advanceTimersByTime(1300) }) // turn 0's question finishes typing; response typing begins
+    expect(screen.getByText('Suggested Response')).toBeInTheDocument()
+
+    // Space shouldn't advance the turn yet — the suggested response hasn't finished typing.
+    fireEvent.keyDown(window, { code: 'Space' })
+    act(() => { vi.advanceTimersByTime(200) })
+    expect(screen.queryByText('Honestly the price is more than I budgeted for this quarter.')).not.toBeInTheDocument()
+
+    act(() => { vi.advanceTimersByTime(2000) }) // response finishes typing
+    fireEvent.keyDown(window, { code: 'Space' })
+    act(() => { vi.advanceTimersByTime(2000) }) // turn 1's question + its own suggested response type out
+    expect(screen.getByText('Honestly the price is more than I budgeted for this quarter.')).toBeInTheDocument()
+    // Turn 1 has no distinct `response` field, so its suggested response is its objection counter —
+    // the same text also lands in the Objections sidebar, so this appears twice.
+    expect(screen.getAllByText('Re-anchor on ROI and time saved — offer a phased start if it helps.').length).toBeGreaterThan(0)
+  })
+
   it('force-opens the Payment Moment panel with the P hotkey at any time', () => {
     render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
     fireEvent.keyDown(window, { key: 'p' })
