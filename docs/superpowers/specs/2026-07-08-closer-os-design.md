@@ -1,4 +1,4 @@
-# Closer OS — Design Spec
+# Cosella — Design Spec
 
 **Date:** 2026-07-08
 **Source:** `Closer_OS_PRD_7_Money_Features.docx.md` (Thelix Holdings / Lightforth, v1.0, July 2026)
@@ -6,7 +6,7 @@
 
 ## 1. What this is
 
-A brand-new, fully separate sold product — **Closer OS** — forked from the existing Enterprise
+A brand-new, fully separate sold product — **Cosella** — forked from the existing Enterprise
 Sales Copilot (`desktop-copilot-preview`'s Sales Call use case + the `/sales` Sales Admin
 Dashboard), stripped down to sales-only, and extended with the 7 "money features" from the PRD:
 
@@ -25,14 +25,14 @@ implementation is scoped against the production backend (NestJS/FastAPI, Postgre
 PRD's stack section).
 
 Existing Enterprise Sales Copilot code (`/copilot/enterprise`, `/sales/*`,
-`desktop-copilot-preview`'s Sales Call use case) is **untouched** — Closer OS is a duplicate, not a
+`desktop-copilot-preview`'s Sales Call use case) is **untouched** — Cosella is a duplicate, not a
 refactor of shared code.
 
 ## 2. Scope decisions (confirmed with user)
 
 - **One spec, all 7 features.** Implementation will still be sequenced (see plan doc), but the
   design is written as one complete picture.
-- **Sales-only fork.** No Interview/Coding/Meeting/Exam use cases in Closer OS's desktop app —
+- **Sales-only fork.** No Interview/Coding/Meeting/Exam use cases in Cosella's desktop app —
   only the Sales Call flow, rebranded.
 - **Fully simulated integrations**, all 7 features. Nothing calls a real external API.
 - **Fresh visual identity** — a distinct accent (emerald/money-green) instead of the existing
@@ -41,7 +41,7 @@ refactor of shared code.
   same admin login sees Payment Settings, Plan Tracker, Ledger, Slack Report config, Prospect
   Intel, Ghost Simulator, and the Live Rescue Board — mirroring how the existing Sales Admin
   Dashboard already unifies Team/Billing/Integrations under one admin.
-- **Route namespace:** everything under `/closer-os/*`.
+- **Route namespace:** everything under `/cosella/*`.
 
 ## 3. Architecture & file layout
 
@@ -49,18 +49,18 @@ New, isolated directory — nothing shared/parameterized with the existing sales
 UI primitives (shadcn components, `.lf-table`/`.lf-tabs` CSS classes already in `index.css`):
 
 ```
-src/pages/closerOS/
+src/pages/cosella/
   marketing/
-    CloserOSLanding.tsx          — public landing page (7-feature pitch, pricing)
-    CloserOSCheckoutPage.tsx     — signup + mock payment (2-step, mirrors EnterpriseCheckoutPage)
-    CloserOSDownloadPage.tsx     — post-checkout "download the app" page
+    CosellaLanding.tsx          — public landing page (7-feature pitch, pricing)
+    CosellaCheckoutPage.tsx     — signup + mock payment (2-step, mirrors EnterpriseCheckoutPage)
+    CosellaDownloadPage.tsx     — post-checkout "download the app" page
   app/
-    CloserOSDesktopApp.tsx       — orchestrator: sign-in → setup → live call → summary
+    CosellaDesktopApp.tsx       — orchestrator: sign-in → setup → live call → summary
     PaymentMomentPanel.tsx       — F1: green/yellow payment panel overlay
     ProspectCard.tsx             — F3: pre-call brief panel
     DangerWhisper.tsx            — F7: risk indicator + text-whisper overlay
   dashboard/
-    CloserOSAdminLayout.tsx      — sidebar shell, emerald theme
+    CosellaAdminLayout.tsx      — sidebar shell, emerald theme
     Overview.tsx                 — F4 digest preview + F5 guarantee bar + today's cash
     PaymentSettings.tsx          — F1 offer/plan setup + mock payment "connections"
     PlanTracker.tsx              — F2 installment plans + risk + recovery scripts
@@ -71,20 +71,20 @@ src/pages/closerOS/
     LiveRescueBoard.tsx          — F7 live call board (listen/whisper/warm-join)
     Team.tsx, CallHistory.tsx, Billing.tsx, Integrations.tsx, Settings.tsx
                                  — duplicated from src/pages/sales/*, re-themed
-  closerOrgStore.ts              — new mock localStorage store (forked shape from mockOrg.ts)
-  closerAccounts.ts              — new mock account registry (forked from mockAccounts.ts)
+  cosellaOrgStore.ts              — new mock localStorage store (forked shape from mockOrg.ts)
+  cosellaAccounts.ts              — new mock account registry (forked from mockAccounts.ts)
 ```
 
-Routes registered in `src/App.tsx`, lazy-loaded, under `/closer-os`, `/closer-os/checkout`,
-`/closer-os/download`, `/closer-os/app`, `/closer-os/dashboard/*`, `/closer-os/sign-in` — parallel
+Routes registered in `src/App.tsx`, lazy-loaded, under `/cosella`, `/cosella/checkout`,
+`/cosella/download`, `/cosella/app`, `/cosella/dashboard/*`, `/cosella/sign-in` — parallel
 to the existing `/copilot/*` and `/sales/*` routes.
 
-## 4. Data model — `closerOrgStore.ts`
+## 4. Data model — `cosellaOrgStore.ts`
 
-Own localStorage key (e.g. `closer-os-orgs`), forked shape from `SalesOrg`:
+Own localStorage key (e.g. `cosella-orgs`), forked shape from `SalesOrg`:
 
 ```ts
-interface CloserOrg {
+interface CosellaOrg {
   id: string
   name: string
   admin: { name: string; email: string }
@@ -154,30 +154,30 @@ interface SlackDigestConfig { channel: string; sendTime: string; bigWinThreshold
 interface AuditEntry { id: string; action: string; actor: string; timestamp: string; detail: string }
 ```
 
-`demoSeedCloserOrg(adminEmail, adminName, orgName)` seeds all of the above with realistic data on
+`demoSeedCosellaOrg(adminEmail, adminName, orgName)` seeds all of the above with realistic data on
 signup — several deals/plans across green/yellow/red risk, a handful of ledger entries mixing
 organic/assisted/saved, 2-3 prospect cards, 2 ghost personas with sessions, one active live-risk
 entry, a populated Slack config — so the dashboard is never empty on first view, matching the
 existing `demoSeedOrg` pattern for the Enterprise dashboard.
 
-`closerAccounts.ts` mirrors `mockAccounts.ts` — a separate localStorage-backed registry so Closer
+`cosellaAccounts.ts` mirrors `mockAccounts.ts` — a separate localStorage-backed registry so Closer
 OS logins don't collide with Enterprise/regular Copilot accounts.
 
 ## 5. Marketing → Checkout → Download
 
-- **`CloserOSLanding.tsx`** — hero pitch ("every other tool helps closers talk, Closer OS helps you
+- **`CosellaLanding.tsx`** — hero pitch ("every other tool helps closers talk, Cosella helps you
   get paid"), one section per feature (7 cards/rows), pricing: **$7,500 one-time setup +
   $149/seat/month** (placeholder, distinct from Enterprise's $5,000/$79 so the two products don't
   look identical — change freely). CTA → checkout.
-- **`CloserOSCheckoutPage.tsx`** — 2-step (org + admin details, then mock payment), on complete
-  calls `demoSeedCloserOrg()` and redirects to the download page.
-- **`CloserOSDownloadPage.tsx`** — mock Mac/Windows download buttons (toast, no real file) +
-  "Open Closer OS" → `/closer-os/sign-in`.
+- **`CosellaCheckoutPage.tsx`** — 2-step (org + admin details, then mock payment), on complete
+  calls `demoSeedCosellaOrg()` and redirects to the download page.
+- **`CosellaDownloadPage.tsx`** — mock Mac/Windows download buttons (toast, no real file) +
+  "Open Cosella" → `/cosella/sign-in`.
 
 ## 6. Closer's live app (F1, F3, F7)
 
-`CloserOSDesktopApp.tsx` forks the existing sign-in → setup → live-call orchestration, but with
-only one destination (no use-case picker): Sign-In (via `closerAccounts.ts`, invite-code
+`CosellaDesktopApp.tsx` forks the existing sign-in → setup → live-call orchestration, but with
+only one destination (no use-case picker): Sign-In (via `cosellaAccounts.ts`, invite-code
 activation reused from `SignInScreen`'s enterprise mode) → Setup (customer name + deal type/price
 picker, pulling from the org's `Deal.priceOptions`) → **Prospect Card** shown once before the call
 starts (F3: heat signal, VSL/application highlights, 3 opening lines) → Live call canvas, forked
@@ -192,7 +192,7 @@ from `SalesLiveCanvas`, keeping its existing Deal / Talk Track / Objections tabs
   panel manually at any time (R1.8). On PAID: writes a `Deal` (paid) + `PaymentPlan` (if an
   installment plan was chosen) + a `LedgerEntry` (tagged `assisted`/`saved` if an objection/counter
   was shown earlier in this same call, `organic` otherwise) + a `CallRecord`, and simulates
-  "📣 Posted to #closer-os-wins" via toast.
+  "📣 Posted to #cosella-wins" via toast.
 - **Danger detector (F7):** other turns are tagged `isDangerSignal: true`. Reaching one flips a
   corner risk badge to red and simulates a manager Slack ping (toast). After a short delay,
   `DangerWhisper` shows a small text-only overlay ("🎧 Manager whisper: ...") as if a manager
@@ -203,7 +203,7 @@ from `SalesLiveCanvas`, keeping its existing Deal / Talk Track / Objections tabs
 
 ## 7. Owner/Admin dashboard (F2, F4, F5, F6, F7-board)
 
-`CloserOSAdminLayout.tsx` — emerald-accented sidebar, same shell pattern as `SalesAdminLayout`.
+`CosellaAdminLayout.tsx` — emerald-accented sidebar, same shell pattern as `SalesAdminLayout`.
 Nav: **Overview, Payment Settings, Plan Tracker, Ledger, Slack Report, Prospect Intel, Ghost
 Simulator, Live Rescue Board, Team, Call History, Billing, Integrations, Settings.**
 
@@ -230,12 +230,12 @@ Simulator, Live Rescue Board, Team, Call History, Billing, Integrations, Setting
   ending in a scored result screen — not real-time voice AI (explicitly out of scope, confirmed).
 - **Live Rescue Board (F7)** — cards for calls currently live, color-coded green/yellow/red with
   deal value. Since there's no real concurrent call engine in this prototype, the board is driven
-  by a small set of seeded example live entries (from `demoSeedCloserOrg`) that a "Simulate live
+  by a small set of seeded example live entries (from `demoSeedCosellaOrg`) that a "Simulate live
   calls" control can advance/refresh. "Listen"/"Whisper"/"Warm Join" buttons are simulated actions
   that write to the rescue log.
 - **Team, Call History, Billing, Integrations, Settings** — duplicated from `src/pages/sales/*`
-  with Closer OS theming; Call History gains the "Make a Ghost" action and leak/objection tags;
-  Billing reflects the Closer OS pricing model from section 5.
+  with Cosella theming; Call History gains the "Make a Ghost" action and leak/objection tags;
+  Billing reflects the Cosella pricing model from section 5.
 
 ## 8. Cross-cutting concerns
 

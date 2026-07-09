@@ -42,25 +42,25 @@ const SalesCallHistory = lazy(() => import('@/pages/sales/CallHistory'))
 const SalesBilling = lazy(() => import('@/pages/sales/Billing'))
 const SalesIntegrations = lazy(() => import('@/pages/sales/Integrations'))
 const SalesSettings = lazy(() => import('@/pages/sales/Settings'))
-const CloserOSLanding = lazy(() => import('@/pages/closerOS/marketing/CloserOSLanding'))
-const CloserOSCheckoutPage = lazy(() => import('@/pages/closerOS/marketing/CloserOSCheckoutPage'))
-const CloserOSDownloadPage = lazy(() => import('@/pages/closerOS/marketing/CloserOSDownloadPage'))
-const CloserOSSignIn = lazy(() => import('@/pages/closerOS/CloserOSSignIn'))
-const CloserOSDesktopApp = lazy(() => import('@/pages/closerOS/app/CloserOSDesktopApp'))
-const CloserOSAdminLayout = lazy(() => import('@/pages/closerOS/dashboard/CloserOSAdminLayout'))
-const CloserOSOverview = lazy(() => import('@/pages/closerOS/dashboard/Overview'))
-const CloserOSPaymentSettings = lazy(() => import('@/pages/closerOS/dashboard/PaymentSettings'))
-const CloserOSPlanTracker = lazy(() => import('@/pages/closerOS/dashboard/PlanTracker'))
-const CloserOSLedger = lazy(() => import('@/pages/closerOS/dashboard/Ledger'))
-const CloserOSSlackReport = lazy(() => import('@/pages/closerOS/dashboard/SlackReport'))
-const CloserOSProspectIntel = lazy(() => import('@/pages/closerOS/dashboard/ProspectIntel'))
-const CloserOSGhostSimulator = lazy(() => import('@/pages/closerOS/dashboard/GhostSimulator'))
-const CloserOSLiveRescueBoard = lazy(() => import('@/pages/closerOS/dashboard/LiveRescueBoard'))
-const CloserOSTeam = lazy(() => import('@/pages/closerOS/dashboard/Team'))
-const CloserOSCallHistory = lazy(() => import('@/pages/closerOS/dashboard/CallHistory'))
-const CloserOSBilling = lazy(() => import('@/pages/closerOS/dashboard/Billing'))
-const CloserOSIntegrations = lazy(() => import('@/pages/closerOS/dashboard/Integrations'))
-const CloserOSSettings = lazy(() => import('@/pages/closerOS/dashboard/Settings'))
+const CosellaLanding = lazy(() => import('@/pages/cosella/marketing/CosellaLanding'))
+const CosellaCheckoutPage = lazy(() => import('@/pages/cosella/marketing/CosellaCheckoutPage'))
+const CosellaDownloadPage = lazy(() => import('@/pages/cosella/marketing/CosellaDownloadPage'))
+const CosellaSignIn = lazy(() => import('@/pages/cosella/CosellaSignIn'))
+const CosellaDesktopApp = lazy(() => import('@/pages/cosella/app/CosellaDesktopApp'))
+const CosellaAdminLayout = lazy(() => import('@/pages/cosella/dashboard/CosellaAdminLayout'))
+const CosellaOverview = lazy(() => import('@/pages/cosella/dashboard/Overview'))
+const CosellaPaymentSettings = lazy(() => import('@/pages/cosella/dashboard/PaymentSettings'))
+const CosellaPlanTracker = lazy(() => import('@/pages/cosella/dashboard/PlanTracker'))
+const CosellaLedger = lazy(() => import('@/pages/cosella/dashboard/Ledger'))
+const CosellaSlackReport = lazy(() => import('@/pages/cosella/dashboard/SlackReport'))
+const CosellaProspectIntel = lazy(() => import('@/pages/cosella/dashboard/ProspectIntel'))
+const CosellaGhostSimulator = lazy(() => import('@/pages/cosella/dashboard/GhostSimulator'))
+const CosellaLiveRescueBoard = lazy(() => import('@/pages/cosella/dashboard/LiveRescueBoard'))
+const CosellaTeam = lazy(() => import('@/pages/cosella/dashboard/Team'))
+const CosellaCallHistory = lazy(() => import('@/pages/cosella/dashboard/CallHistory'))
+const CosellaBilling = lazy(() => import('@/pages/cosella/dashboard/Billing'))
+const CosellaIntegrations = lazy(() => import('@/pages/cosella/dashboard/Integrations'))
+const CosellaSettings = lazy(() => import('@/pages/cosella/dashboard/Settings'))
 const MobileAppPreview = lazy(() => import('@/pages/MobileAppPreview'))
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
 const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
@@ -154,25 +154,25 @@ export default function App() {
             <Route path="/copilot/enterprise/checkout" element={<Suspense fallback={null}><EnterpriseCheckoutPage /></Suspense>} />
             <Route path="/copilot/individual/checkout" element={<Suspense fallback={null}><IndividualCheckoutPage /></Suspense>} />
             <Route path="/copilot/download" element={<Suspense fallback={null}><DownloadCopilotPage /></Suspense>} />
-            <Route path="/closer-os" element={<Suspense fallback={null}><CloserOSLanding /></Suspense>} />
-            <Route path="/closer-os/checkout" element={<Suspense fallback={null}><CloserOSCheckoutPage /></Suspense>} />
-            <Route path="/closer-os/download" element={<Suspense fallback={null}><CloserOSDownloadPage /></Suspense>} />
-            <Route path="/closer-os/sign-in" element={<Suspense fallback={null}><CloserOSSignIn /></Suspense>} />
-            <Route path="/closer-os/app" element={<Suspense fallback={null}><CloserOSDesktopApp /></Suspense>} />
-            <Route path="/closer-os/dashboard" element={<Suspense fallback={null}><CloserOSAdminLayout /></Suspense>}>
-              <Route index element={<Suspense fallback={null}><CloserOSOverview /></Suspense>} />
-              <Route path="payment-settings" element={<Suspense fallback={null}><CloserOSPaymentSettings /></Suspense>} />
-              <Route path="plan-tracker" element={<Suspense fallback={null}><CloserOSPlanTracker /></Suspense>} />
-              <Route path="ledger" element={<Suspense fallback={null}><CloserOSLedger /></Suspense>} />
-              <Route path="slack-report" element={<Suspense fallback={null}><CloserOSSlackReport /></Suspense>} />
-              <Route path="prospect-intel" element={<Suspense fallback={null}><CloserOSProspectIntel /></Suspense>} />
-              <Route path="ghost-simulator" element={<Suspense fallback={null}><CloserOSGhostSimulator /></Suspense>} />
-              <Route path="rescue-board" element={<Suspense fallback={null}><CloserOSLiveRescueBoard /></Suspense>} />
-              <Route path="team" element={<Suspense fallback={null}><CloserOSTeam /></Suspense>} />
-              <Route path="calls" element={<Suspense fallback={null}><CloserOSCallHistory /></Suspense>} />
-              <Route path="billing" element={<Suspense fallback={null}><CloserOSBilling /></Suspense>} />
-              <Route path="integrations" element={<Suspense fallback={null}><CloserOSIntegrations /></Suspense>} />
-              <Route path="settings" element={<Suspense fallback={null}><CloserOSSettings /></Suspense>} />
+            <Route path="/cosella" element={<Suspense fallback={null}><CosellaLanding /></Suspense>} />
+            <Route path="/cosella/checkout" element={<Suspense fallback={null}><CosellaCheckoutPage /></Suspense>} />
+            <Route path="/cosella/download" element={<Suspense fallback={null}><CosellaDownloadPage /></Suspense>} />
+            <Route path="/cosella/sign-in" element={<Suspense fallback={null}><CosellaSignIn /></Suspense>} />
+            <Route path="/cosella/app" element={<Suspense fallback={null}><CosellaDesktopApp /></Suspense>} />
+            <Route path="/cosella/dashboard" element={<Suspense fallback={null}><CosellaAdminLayout /></Suspense>}>
+              <Route index element={<Suspense fallback={null}><CosellaOverview /></Suspense>} />
+              <Route path="payment-settings" element={<Suspense fallback={null}><CosellaPaymentSettings /></Suspense>} />
+              <Route path="plan-tracker" element={<Suspense fallback={null}><CosellaPlanTracker /></Suspense>} />
+              <Route path="ledger" element={<Suspense fallback={null}><CosellaLedger /></Suspense>} />
+              <Route path="slack-report" element={<Suspense fallback={null}><CosellaSlackReport /></Suspense>} />
+              <Route path="prospect-intel" element={<Suspense fallback={null}><CosellaProspectIntel /></Suspense>} />
+              <Route path="ghost-simulator" element={<Suspense fallback={null}><CosellaGhostSimulator /></Suspense>} />
+              <Route path="rescue-board" element={<Suspense fallback={null}><CosellaLiveRescueBoard /></Suspense>} />
+              <Route path="team" element={<Suspense fallback={null}><CosellaTeam /></Suspense>} />
+              <Route path="calls" element={<Suspense fallback={null}><CosellaCallHistory /></Suspense>} />
+              <Route path="billing" element={<Suspense fallback={null}><CosellaBilling /></Suspense>} />
+              <Route path="integrations" element={<Suspense fallback={null}><CosellaIntegrations /></Suspense>} />
+              <Route path="settings" element={<Suspense fallback={null}><CosellaSettings /></Suspense>} />
             </Route>
             <Route path="/sales/sign-in" element={<Suspense fallback={null}><SalesSignIn /></Suspense>} />
             <Route path="/sales/dashboard" element={<Suspense fallback={null}><SalesAdminLayout /></Suspense>}>

@@ -1,61 +1,61 @@
-# Closer OS Implementation Plan
+# Cosella Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build Closer OS — a standalone, fully-simulated sales product forked from the existing Enterprise Sales Copilot — implementing all 7 PRD money features end-to-end under `/closer-os/*`.
+**Goal:** Build Cosella — a standalone, fully-simulated sales product forked from the existing Enterprise Sales Copilot — implementing all 7 PRD money features end-to-end under `/cosella/*`.
 
-**Architecture:** New, isolated file tree at `src/pages/closerOS/**`. A single new localStorage-backed mock store (`closerOrgStore.ts`) holds all org/deal/plan/ledger/prospect/ghost/risk data. The marketing→checkout→download funnel mirrors the existing Enterprise pattern (reusing the generic `CheckoutFlow` component only). The closer's live-call app and the owner's admin dashboard are new components that borrow visual patterns (MacWindow chrome, `.lf-panel`/`.lf-table` CSS) but do not import from `src/pages/sales/*` or `src/pages/desktopCopilot/*` — full duplication, per the approved design spec.
+**Architecture:** New, isolated file tree at `src/pages/cosella/**`. A single new localStorage-backed mock store (`cosellaOrgStore.ts`) holds all org/deal/plan/ledger/prospect/ghost/risk data. The marketing→checkout→download funnel mirrors the existing Enterprise pattern (reusing the generic `CheckoutFlow` component only). The closer's live-call app and the owner's admin dashboard are new components that borrow visual patterns (MacWindow chrome, `.lf-panel`/`.lf-table` CSS) but do not import from `src/pages/sales/*` or `src/pages/desktopCopilot/*` — full duplication, per the approved design spec.
 
 **Tech Stack:** React 18 + TypeScript, React Router v6, Tailwind (existing `.lf-*` utility classes), lucide-react icons, sonner for toasts, Vitest + Testing Library for tests, localStorage for all mock persistence.
 
 ## Global Constraints
 
-- Spec of record: `docs/superpowers/specs/2026-07-08-closer-os-design.md` — every task below implements a section of it.
+- Spec of record: `docs/superpowers/specs/2026-07-08-cosella-design.md` — every task below implements a section of it.
 - Fully simulated: no real Stripe/NMI/PayPal/Twilio/Slack/voice-AI network calls anywhere in this plan.
-- Route namespace: everything under `/closer-os/*`.
+- Route namespace: everything under `/cosella/*`.
 - Visual identity: emerald/money-green accent (`#10b981` accent, `#052e14`/`#052e1f`-family dark backgrounds), distinct from the existing navy/teal (`#08285c`/teal-400) Enterprise product.
-- No file imports across product boundaries: Closer OS files must not import from `src/pages/sales/*` or `src/pages/desktopCopilot/*`, except the genuinely generic, already-multi-product `CheckoutFlow` component (`src/pages/marketing/checkout/CheckoutFlow.tsx`) and global UI primitives (`@/components/ui/*`, `@/lib/utils`, `@/components/shared/LightforthLogo`).
+- No file imports across product boundaries: Cosella files must not import from `src/pages/sales/*` or `src/pages/desktopCopilot/*`, except the genuinely generic, already-multi-product `CheckoutFlow` component (`src/pages/marketing/checkout/CheckoutFlow.tsx`) and global UI primitives (`@/components/ui/*`, `@/lib/utils`, `@/components/shared/LightforthLogo`).
 - Every new store mutation that represents a "money-moving action" (send link, retry, decline-rescue offered, rescue join, renewal deck generated) must append an `AuditEntry`.
 - Test convention: one `.test.ts`/`.test.tsx` per new file, Vitest + Testing Library, `localStorage.clear()` in `beforeEach` for any store-touching test — matches `src/pages/sales/mockOrg.test.ts` and `src/pages/sales/Overview.test.tsx`.
 - CSS: reuse existing utility classes `.lf-panel`, `.lf-input`, `.lf-tabs`, `.lf-tab`, `.lf-tab-active`, `.lf-table-wrap`, `.lf-table`, `.lf-table-head`, `.lf-table-th`, `.lf-table-row`, `.lf-table-cell`, `.lf-label`, `.lf-section-title` (all already defined in `src/index.css`) instead of inventing new ones.
 
 ---
 
-## Task 1: `closerOrgStore.ts` — data model and mock persistence
+## Task 1: `cosellaOrgStore.ts` — data model and mock persistence
 
 **Files:**
-- Create: `src/pages/closerOS/closerOrgStore.ts`
-- Test: `src/pages/closerOS/closerOrgStore.test.ts`
+- Create: `src/pages/cosella/cosellaOrgStore.ts`
+- Test: `src/pages/cosella/cosellaOrgStore.test.ts`
 
 **Interfaces:**
 - Consumes: nothing (foundation file).
-- Produces: all types and functions below, imported by every other Closer OS file that touches org data:
-  - Types: `CloserMember`, `PriceOption`, `Deal`, `Installment`, `PaymentPlan`, `LedgerEntry`, `ProspectCard`, `GhostPersona`, `GhostSession`, `RescueLog`, `LiveCallRiskEntry`, `SlackDigestConfig`, `CallRecord`, `AuditEntry`, `CloserOrg`
-  - Functions: `getOrgByAdminEmail(adminEmail): CloserOrg | null`, `findMemberByEmail(email): { adminEmail: string; org: CloserOrg; member: CloserMember } | null`, `createOrg(adminEmail, org): void`, `updateOrg(adminEmail, updater): CloserOrg | null`, `addMember(adminEmail, { name, email }): CloserMember | null`, `markMemberSeatPaid(adminEmail, memberId): void`, `emailDomain(email): string`, `generateInviteCode(): string`, `recordDeal(adminEmail, deal): Deal`, `markDealPaid(adminEmail, dealId): void`, `markDealLost(adminEmail, dealId): void`, `addPaymentPlan(adminEmail, plan): PaymentPlan`, `recordInstallmentOutcome(adminEmail, planId, installmentIndex, status): void`, `addLedgerEntry(adminEmail, entry): LedgerEntry`, `addProspectCard(adminEmail, card): ProspectCard`, `addGhostPersonaFromCall(adminEmail, call): GhostPersona`, `recordGhostSession(adminEmail, session): GhostSession`, `addLiveCallRiskEntry(adminEmail, entry): LiveCallRiskEntry`, `resolveRescue(adminEmail, riskEntryId, rescueLog): void`, `updateSlackDigestConfig(adminEmail, config): void`, `recordCall(adminEmail, call): CallRecord`, `toggleIntegration(adminEmail, integrationId): void`, `setActiveAdminEmail(email): void`, `getActiveAdminEmail(): string | null`, `demoSeedCloserOrg(adminEmail, adminName, orgName): CloserOrg`, `addDealTypePriceOption(adminEmail, option): PriceOption`, `updateDealTypePriceOption(adminEmail, label, option): void`, `removeDealTypePriceOption(adminEmail, label): void`, `logAuditEvent(adminEmail, action, actor, detail): void`
+- Produces: all types and functions below, imported by every other Cosella file that touches org data:
+  - Types: `CosellaMember`, `PriceOption`, `Deal`, `Installment`, `PaymentPlan`, `LedgerEntry`, `ProspectCard`, `GhostPersona`, `GhostSession`, `RescueLog`, `LiveCallRiskEntry`, `SlackDigestConfig`, `CallRecord`, `AuditEntry`, `CosellaOrg`
+  - Functions: `getOrgByAdminEmail(adminEmail): CosellaOrg | null`, `findMemberByEmail(email): { adminEmail: string; org: CosellaOrg; member: CosellaMember } | null`, `createOrg(adminEmail, org): void`, `updateOrg(adminEmail, updater): CosellaOrg | null`, `addMember(adminEmail, { name, email }): CosellaMember | null`, `markMemberSeatPaid(adminEmail, memberId): void`, `emailDomain(email): string`, `generateInviteCode(): string`, `recordDeal(adminEmail, deal): Deal`, `markDealPaid(adminEmail, dealId): void`, `markDealLost(adminEmail, dealId): void`, `addPaymentPlan(adminEmail, plan): PaymentPlan`, `recordInstallmentOutcome(adminEmail, planId, installmentIndex, status): void`, `addLedgerEntry(adminEmail, entry): LedgerEntry`, `addProspectCard(adminEmail, card): ProspectCard`, `addGhostPersonaFromCall(adminEmail, call): GhostPersona`, `recordGhostSession(adminEmail, session): GhostSession`, `addLiveCallRiskEntry(adminEmail, entry): LiveCallRiskEntry`, `resolveRescue(adminEmail, riskEntryId, rescueLog): void`, `updateSlackDigestConfig(adminEmail, config): void`, `recordCall(adminEmail, call): CallRecord`, `toggleIntegration(adminEmail, integrationId): void`, `setActiveAdminEmail(email): void`, `getActiveAdminEmail(): string | null`, `demoSeedCosellaOrg(adminEmail, adminName, orgName): CosellaOrg`, `addDealTypePriceOption(adminEmail, option): PriceOption`, `updateDealTypePriceOption(adminEmail, label, option): void`, `removeDealTypePriceOption(adminEmail, label): void`, `logAuditEvent(adminEmail, action, actor, detail): void`
 
 - [ ] **Step 1: Write the failing test for store plumbing + demo seeding**
 
 ```ts
-// src/pages/closerOS/closerOrgStore.test.ts
+// src/pages/cosella/cosellaOrgStore.test.ts
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
   createOrg, getOrgByAdminEmail, updateOrg, addMember, markMemberSeatPaid,
-  findMemberByEmail, demoSeedCloserOrg, recordInstallmentOutcome, addLedgerEntry,
+  findMemberByEmail, demoSeedCosellaOrg, recordInstallmentOutcome, addLedgerEntry,
   addGhostPersonaFromCall, resolveRescue, recordDeal, markDealPaid,
   addDealTypePriceOption, updateDealTypePriceOption, removeDealTypePriceOption, logAuditEvent,
-} from './closerOrgStore'
+} from './cosellaOrgStore'
 
-describe('closerOrgStore', () => {
+describe('cosellaOrgStore', () => {
   beforeEach(() => localStorage.clear())
 
   it('creates and reads back an org by admin email, case-insensitively', () => {
-    const org = demoSeedCloserOrg('Admin@Acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('Admin@Acme.com', 'Ada Admin', 'Acme Closers')
     createOrg('Admin@Acme.com', org)
     expect(getOrgByAdminEmail('admin@acme.com')?.orgName).toBe('Acme Closers')
   })
 
-  it('demoSeedCloserOrg seeds every feature area with non-empty demo data', () => {
-    const org = demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers')
+  it('demoSeedCosellaOrg seeds every feature area with non-empty demo data', () => {
+    const org = demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers')
     expect(org.deals.length).toBeGreaterThan(0)
     expect(org.paymentPlans.length).toBeGreaterThan(0)
     expect(org.ledgerEntries.length).toBeGreaterThan(0)
@@ -70,7 +70,7 @@ describe('closerOrgStore', () => {
   })
 
   it('addMember creates a member with an invite code and seatPaid false', () => {
-    createOrg('admin@acme.com', demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     const member = addMember('admin@acme.com', { name: 'Jordan Lee', email: 'jordan@acme.com' })
     expect(member?.seatPaid).toBe(false)
     expect(member?.inviteCode).toMatch(/^[A-Z0-9]{6}$/)
@@ -79,7 +79,7 @@ describe('closerOrgStore', () => {
   })
 
   it('findMemberByEmail locates a member across orgs', () => {
-    createOrg('admin@acme.com', demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     addMember('admin@acme.com', { name: 'Jordan Lee', email: 'jordan@acme.com' })
     const found = findMemberByEmail('jordan@acme.com')
     expect(found?.adminEmail).toBe('admin@acme.com')
@@ -87,7 +87,7 @@ describe('closerOrgStore', () => {
   })
 
   it('recordInstallmentOutcome flips risk to red on a failed installment and increments retryCount', () => {
-    createOrg('admin@acme.com', demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('admin@acme.com')!
     const plan = org.paymentPlans[0]
     recordInstallmentOutcome('admin@acme.com', plan.id, 0, 'failed')
@@ -98,7 +98,7 @@ describe('closerOrgStore', () => {
   })
 
   it('addLedgerEntry and recordDeal + markDealPaid append an audit entry each', () => {
-    createOrg('admin@acme.com', demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     const deal = recordDeal('admin@acme.com', {
       prospectName: 'Jamie Doe', dealType: 'Core Program',
       priceOption: { label: 'Core', pif: 12599, planInstallments: [1599, 3000, 4000, 4000] },
@@ -111,12 +111,12 @@ describe('closerOrgStore', () => {
     })
     const org = getOrgByAdminEmail('admin@acme.com')!
     expect(org.deals.find(d => d.id === deal.id)?.status).toBe('paid')
-    expect(org.ledgerEntries).toHaveLength(1 + demoSeedCloserOrg('x', 'x', 'x').ledgerEntries.length - demoSeedCloserOrg('x', 'x', 'x').ledgerEntries.length) // sanity: at least the one we added
+    expect(org.ledgerEntries).toHaveLength(1 + demoSeedCosellaOrg('x', 'x', 'x').ledgerEntries.length - demoSeedCosellaOrg('x', 'x', 'x').ledgerEntries.length) // sanity: at least the one we added
     expect(org.auditLog.length).toBeGreaterThanOrEqual(2)
   })
 
   it('addGhostPersonaFromCall builds a persona from a call record', () => {
-    createOrg('admin@acme.com', demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('admin@acme.com')!
     const call = org.calls[0]
     const ghost = addGhostPersonaFromCall('admin@acme.com', call)
@@ -125,7 +125,7 @@ describe('closerOrgStore', () => {
   })
 
   it('resolveRescue writes a rescueLog onto the matching risk entry', () => {
-    createOrg('admin@acme.com', demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     const entry = getOrgByAdminEmail('admin@acme.com')!.liveCallRiskEntries[0]
     resolveRescue('admin@acme.com', entry.id, { managerJoinedAt: new Date().toISOString(), mode: 'whisper', outcome: 'saved', dollarsSaved: 8000 })
     const updated = getOrgByAdminEmail('admin@acme.com')!.liveCallRiskEntries.find(e => e.id === entry.id)!
@@ -133,7 +133,7 @@ describe('closerOrgStore', () => {
   })
 
   it('adds, updates, and removes a deal-type price option', () => {
-    createOrg('admin@acme.com', demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     addDealTypePriceOption('admin@acme.com', { label: 'Starter', pif: 5000, planInstallments: [1000, 2000, 2000] })
     expect(getOrgByAdminEmail('admin@acme.com')!.dealTypePriceOptions.some(o => o.label === 'Starter')).toBe(true)
     updateDealTypePriceOption('admin@acme.com', 'Starter', { label: 'Starter', pif: 5500, planInstallments: [1000, 2000, 2500] })
@@ -143,7 +143,7 @@ describe('closerOrgStore', () => {
   })
 
   it('logAuditEvent appends a standalone audit entry', () => {
-    createOrg('admin@acme.com', demoSeedCloserOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
     const before = getOrgByAdminEmail('admin@acme.com')!.auditLog.length
     logAuditEvent('admin@acme.com', 'renewal-deck-generated', 'Ada Admin', 'Q3 renewal deck')
     const after = getOrgByAdminEmail('admin@acme.com')!.auditLog
@@ -155,18 +155,18 @@ describe('closerOrgStore', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/closerOrgStore.test.ts`
-Expected: FAIL — `Cannot find module './closerOrgStore'`
+Run: `npx vitest run src/pages/cosella/cosellaOrgStore.test.ts`
+Expected: FAIL — `Cannot find module './cosellaOrgStore'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```ts
-// src/pages/closerOS/closerOrgStore.ts
-// Mock, localStorage-backed Closer OS org registry — fully separate from
+// src/pages/cosella/cosellaOrgStore.ts
+// Mock, localStorage-backed Cosella org registry — fully separate from
 // src/pages/sales/mockOrg.ts. Nothing here calls a real backend; every
 // mutation is a local, simulated stand-in for the PRD's real (future) system.
 
-export interface CloserMember {
+export interface CosellaMember {
   id: string
   name: string
   email: string
@@ -296,11 +296,11 @@ export interface AuditEntry {
   detail: string
 }
 
-export interface CloserOrg {
+export interface CosellaOrg {
   orgName: string
   admin: { name: string; email: string }
   setupFeePaid: boolean
-  members: CloserMember[]
+  members: CosellaMember[]
   dealTypePriceOptions: PriceOption[]
   deals: Deal[]
   paymentPlans: PaymentPlan[]
@@ -315,10 +315,10 @@ export interface CloserOrg {
   auditLog: AuditEntry[]
 }
 
-const ORGS_KEY = 'closer-os-orgs'
-const ACTIVE_ADMIN_KEY = 'closer-os-active-admin'
+const ORGS_KEY = 'cosella-orgs'
+const ACTIVE_ADMIN_KEY = 'cosella-active-admin'
 
-function readStore(): Record<string, CloserOrg> {
+function readStore(): Record<string, CosellaOrg> {
   try {
     const raw = localStorage.getItem(ORGS_KEY)
     return raw ? JSON.parse(raw) : {}
@@ -327,7 +327,7 @@ function readStore(): Record<string, CloserOrg> {
   }
 }
 
-function writeStore(store: Record<string, CloserOrg>) {
+function writeStore(store: Record<string, CosellaOrg>) {
   try {
     localStorage.setItem(ORGS_KEY, JSON.stringify(store))
   } catch {
@@ -347,12 +347,12 @@ export function emailDomain(email: string): string {
   return email.split('@')[1]?.trim().toLowerCase() ?? ''
 }
 
-export function getOrgByAdminEmail(adminEmail: string): CloserOrg | null {
+export function getOrgByAdminEmail(adminEmail: string): CosellaOrg | null {
   const store = readStore()
   return store[normalizeEmail(adminEmail)] ?? null
 }
 
-export function findMemberByEmail(email: string): { adminEmail: string; org: CloserOrg; member: CloserMember } | null {
+export function findMemberByEmail(email: string): { adminEmail: string; org: CosellaOrg; member: CosellaMember } | null {
   const store = readStore()
   const target = normalizeEmail(email)
   for (const [adminEmail, org] of Object.entries(store)) {
@@ -362,13 +362,13 @@ export function findMemberByEmail(email: string): { adminEmail: string; org: Clo
   return null
 }
 
-export function createOrg(adminEmail: string, org: CloserOrg): void {
+export function createOrg(adminEmail: string, org: CosellaOrg): void {
   const store = readStore()
   store[normalizeEmail(adminEmail)] = org
   writeStore(store)
 }
 
-export function updateOrg(adminEmail: string, updater: (org: CloserOrg) => CloserOrg): CloserOrg | null {
+export function updateOrg(adminEmail: string, updater: (org: CosellaOrg) => CosellaOrg): CosellaOrg | null {
   const store = readStore()
   const key = normalizeEmail(adminEmail)
   const current = store[key]
@@ -379,13 +379,13 @@ export function updateOrg(adminEmail: string, updater: (org: CloserOrg) => Close
   return next
 }
 
-function appendAudit(org: CloserOrg, action: string, actor: string, detail: string): CloserOrg {
+function appendAudit(org: CosellaOrg, action: string, actor: string, detail: string): CosellaOrg {
   const entry: AuditEntry = { id: crypto.randomUUID(), action, actor, timestamp: new Date().toISOString(), detail }
   return { ...org, auditLog: [entry, ...org.auditLog] }
 }
 
-export function addMember(adminEmail: string, member: { name: string; email: string }): CloserMember | null {
-  const newMember: CloserMember = {
+export function addMember(adminEmail: string, member: { name: string; email: string }): CosellaMember | null {
+  const newMember: CosellaMember = {
     id: crypto.randomUUID(), name: member.name, email: member.email,
     role: 'member', inviteCode: generateInviteCode(), seatPaid: false,
   }
@@ -401,7 +401,7 @@ export function addMember(adminEmail: string, member: { name: string; email: str
 }
 ```
 
-**Fixed during Task 6 (upsert, not append):** the original version above unconditionally appended, which meant a real invite to an email colliding with one of `demoSeedCloserOrg`'s three always-seeded demo reps (`jordan@<domain>`, `sam@<domain>`, `taylor@<domain>`) created a shadow duplicate — `findMemberByEmail` returns the *first* array match, so the stale seeded record's invite code kept winning over the real one. `addMember` now upserts by normalized email instead. Note this resets `seatPaid`/`role`/`id` on any collision (including a legitimate re-invite of an already-activated member) — acceptable for this prototype since there's no "resend invite" caller yet, but flag it if a future task adds one.
+**Fixed during Task 6 (upsert, not append):** the original version above unconditionally appended, which meant a real invite to an email colliding with one of `demoSeedCosellaOrg`'s three always-seeded demo reps (`jordan@<domain>`, `sam@<domain>`, `taylor@<domain>`) created a shadow duplicate — `findMemberByEmail` returns the *first* array match, so the stale seeded record's invite code kept winning over the real one. `addMember` now upserts by normalized email instead. Note this resets `seatPaid`/`role`/`id` on any collision (including a legitimate re-invite of an already-activated member) — acceptable for this prototype since there's no "resend invite" caller yet, but flag it if a future task adds one.
 
 ```ts
 export function markMemberSeatPaid(adminEmail: string, memberId: string): void {
@@ -562,14 +562,14 @@ function daysFromNow(n: number): string {
 }
 
 /** A fully populated demo org — used at signup so the dashboard never shows empty states. */
-export function demoSeedCloserOrg(adminEmail: string, adminName: string, orgName: string): CloserOrg {
+export function demoSeedCosellaOrg(adminEmail: string, adminName: string, orgName: string): CosellaOrg {
   const domain = emailDomain(adminEmail)
   const reps = [
     { name: 'Jordan Lee', local: 'jordan' },
     { name: 'Sam Patel', local: 'sam' },
     { name: 'Taylor Brooks', local: 'taylor' },
   ]
-  const members: CloserMember[] = [
+  const members: CosellaMember[] = [
     { id: crypto.randomUUID(), name: adminName, email: adminEmail, role: 'admin', inviteCode: generateInviteCode(), seatPaid: true },
     ...reps.map(r => ({ id: crypto.randomUUID(), name: r.name, email: `${r.local}@${domain}`, role: 'member' as const, inviteCode: generateInviteCode(), seatPaid: true })),
   ]
@@ -669,7 +669,7 @@ export function demoSeedCloserOrg(adminEmail: string, adminName: string, orgName
     ghostPersonas,
     ghostSessions,
     liveCallRiskEntries,
-    slackDigestConfig: { channel: '#closer-os-wins', sendTime: '18:00', bigWinThreshold: 10000 },
+    slackDigestConfig: { channel: '#cosella-wins', sendTime: '18:00', bigWinThreshold: 10000 },
     calls,
     connectedIntegrations: ['stripe', 'slack'],
     auditLog: [{ id: crypto.randomUUID(), action: 'org-seeded', actor: adminName, timestamp: new Date().toISOString(), detail: `${orgName} created` }],
@@ -679,45 +679,45 @@ export function demoSeedCloserOrg(adminEmail: string, adminName: string, orgName
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/closerOrgStore.test.ts`
+Run: `npx vitest run src/pages/cosella/cosellaOrgStore.test.ts`
 Expected: PASS (11 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/closerOrgStore.ts src/pages/closerOS/closerOrgStore.test.ts
-git commit -m "feat(closer-os): add closerOrgStore mock data model"
+git add src/pages/cosella/cosellaOrgStore.ts src/pages/cosella/cosellaOrgStore.test.ts
+git commit -m "feat(cosella): add cosellaOrgStore mock data model"
 ```
 
 ---
 
-## Task 2: `closerAccounts.ts` — mock account registry
+## Task 2: `cosellaAccounts.ts` — mock account registry
 
 **Files:**
-- Create: `src/pages/closerOS/closerAccounts.ts`
-- Test: `src/pages/closerOS/closerAccounts.test.ts`
+- Create: `src/pages/cosella/cosellaAccounts.ts`
+- Test: `src/pages/cosella/cosellaAccounts.test.ts`
 
 **Interfaces:**
 - Consumes: nothing.
-- Produces: `AccountType = 'closer-os-admin' | 'closer-os-member'`, `CloserAccountRecord { accountType, orgName? }`, `getCloserAccount(email): CloserAccountRecord | null`, `setCloserAccount(email, record): void`, `setActiveMemberEmail(email): void`, `getActiveMemberEmail(): string | null` — used by the checkout page (Task 4) and sign-in page (Task 6). The active-member functions track which closer (non-admin) is currently signed into the live-call app, mirroring `setActiveAdminEmail`/`getActiveAdminEmail` in Task 1's store but for the member/closer role.
+- Produces: `AccountType = 'cosella-admin' | 'cosella-member'`, `CosellaAccountRecord { accountType, orgName? }`, `getCosellaAccount(email): CosellaAccountRecord | null`, `setCosellaAccount(email, record): void`, `setActiveMemberEmail(email): void`, `getActiveMemberEmail(): string | null` — used by the checkout page (Task 4) and sign-in page (Task 6). The active-member functions track which closer (non-admin) is currently signed into the live-call app, mirroring `setActiveAdminEmail`/`getActiveAdminEmail` in Task 1's store but for the member/closer role.
 
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// src/pages/closerOS/closerAccounts.test.ts
+// src/pages/cosella/cosellaAccounts.test.ts
 import { describe, it, expect, beforeEach } from 'vitest'
-import { getCloserAccount, setCloserAccount, getActiveMemberEmail, setActiveMemberEmail } from './closerAccounts'
+import { getCosellaAccount, setCosellaAccount, getActiveMemberEmail, setActiveMemberEmail } from './cosellaAccounts'
 
-describe('closerAccounts', () => {
+describe('cosellaAccounts', () => {
   beforeEach(() => localStorage.clear())
 
   it('returns null for an unknown email', () => {
-    expect(getCloserAccount('nobody@example.com')).toBeNull()
+    expect(getCosellaAccount('nobody@example.com')).toBeNull()
   })
 
   it('stores and retrieves an account record, case-insensitively', () => {
-    setCloserAccount('Admin@Acme.com', { accountType: 'closer-os-admin', orgName: 'Acme Closers' })
-    expect(getCloserAccount('admin@acme.com')).toEqual({ accountType: 'closer-os-admin', orgName: 'Acme Closers' })
+    setCosellaAccount('Admin@Acme.com', { accountType: 'cosella-admin', orgName: 'Acme Closers' })
+    expect(getCosellaAccount('admin@acme.com')).toEqual({ accountType: 'cosella-admin', orgName: 'Acme Closers' })
   })
 
   it('tracks the active signed-in member email', () => {
@@ -730,26 +730,26 @@ describe('closerAccounts', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/closerAccounts.test.ts`
-Expected: FAIL — `Cannot find module './closerAccounts'`
+Run: `npx vitest run src/pages/cosella/cosellaAccounts.test.ts`
+Expected: FAIL — `Cannot find module './cosellaAccounts'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```ts
-// src/pages/closerOS/closerAccounts.ts
-// Mock, localStorage-backed account registry for Closer OS logins —
+// src/pages/cosella/cosellaAccounts.ts
+// Mock, localStorage-backed account registry for Cosella logins —
 // fully separate from src/pages/desktopCopilot/mockAccounts.ts.
 
-export type AccountType = 'closer-os-admin' | 'closer-os-member'
+export type AccountType = 'cosella-admin' | 'cosella-member'
 
-export interface CloserAccountRecord {
+export interface CosellaAccountRecord {
   accountType: AccountType
   orgName?: string
 }
 
-const STORAGE_KEY = 'closer-os-mock-accounts'
+const STORAGE_KEY = 'cosella-mock-accounts'
 
-function readStore(): Record<string, CloserAccountRecord> {
+function readStore(): Record<string, CosellaAccountRecord> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     return raw ? JSON.parse(raw) : {}
@@ -758,7 +758,7 @@ function readStore(): Record<string, CloserAccountRecord> {
   }
 }
 
-function writeStore(store: Record<string, CloserAccountRecord>) {
+function writeStore(store: Record<string, CosellaAccountRecord>) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store))
   } catch {
@@ -770,18 +770,18 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
 }
 
-export function getCloserAccount(email: string): CloserAccountRecord | null {
+export function getCosellaAccount(email: string): CosellaAccountRecord | null {
   const store = readStore()
   return store[normalizeEmail(email)] ?? null
 }
 
-export function setCloserAccount(email: string, record: CloserAccountRecord): void {
+export function setCosellaAccount(email: string, record: CosellaAccountRecord): void {
   const store = readStore()
   store[normalizeEmail(email)] = record
   writeStore(store)
 }
 
-const ACTIVE_MEMBER_KEY = 'closer-os-active-member'
+const ACTIVE_MEMBER_KEY = 'cosella-active-member'
 
 export function setActiveMemberEmail(email: string): void {
   try {
@@ -802,52 +802,52 @@ export function getActiveMemberEmail(): string | null {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/closerAccounts.test.ts`
+Run: `npx vitest run src/pages/cosella/cosellaAccounts.test.ts`
 Expected: PASS (3 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/closerAccounts.ts src/pages/closerOS/closerAccounts.test.ts
-git commit -m "feat(closer-os): add closerAccounts mock account registry"
+git add src/pages/cosella/cosellaAccounts.ts src/pages/cosella/cosellaAccounts.test.ts
+git commit -m "feat(cosella): add cosellaAccounts mock account registry"
 ```
 
 ---
 
-## Task 3: `CloserOSLanding.tsx` — marketing landing page
+## Task 3: `CosellaLanding.tsx` — marketing landing page
 
 **Files:**
-- Create: `src/pages/closerOS/marketing/CloserOSLanding.tsx`
-- Test: `src/pages/closerOS/marketing/CloserOSLanding.test.tsx`
+- Create: `src/pages/cosella/marketing/CosellaLanding.tsx`
+- Test: `src/pages/cosella/marketing/CosellaLanding.test.tsx`
 
 **Interfaces:**
 - Consumes: `@/components/shared/LightforthLogo`, `@/components/ui/button` (`Button`), `useNavigate` from `react-router-dom`.
-- Produces: default export `CloserOSLanding`, plus exported consts `CLOSER_OS_SETUP_FEE = 7500` and `CLOSER_OS_SEAT_PRICE = 149` (consumed by Task 4's checkout page).
+- Produces: default export `CosellaLanding`, plus exported consts `COSELLA_SETUP_FEE = 7500` and `COSELLA_SEAT_PRICE = 149` (consumed by Task 4's checkout page).
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/marketing/CloserOSLanding.test.tsx
+// src/pages/cosella/marketing/CosellaLanding.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
-import CloserOSLanding from './CloserOSLanding'
+import CosellaLanding from './CosellaLanding'
 
 function renderLanding() {
   return render(
-    <MemoryRouter initialEntries={['/closer-os']}>
+    <MemoryRouter initialEntries={['/cosella']}>
       <Routes>
-        <Route path="/closer-os" element={<CloserOSLanding />} />
-        <Route path="/closer-os/checkout" element={<p>Checkout landed</p>} />
+        <Route path="/cosella" element={<CosellaLanding />} />
+        <Route path="/cosella/checkout" element={<p>Checkout landed</p>} />
       </Routes>
     </MemoryRouter>,
   )
 }
 
-describe('CloserOSLanding', () => {
+describe('CosellaLanding', () => {
   it('renders the hero headline and all 7 feature names', () => {
     renderLanding()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Closer OS helps you get paid')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Cosella helps you get paid')
     expect(screen.getByText('Payment Moment Engine')).toBeInTheDocument()
     expect(screen.getByText('Installment Recovery Copilot')).toBeInTheDocument()
     expect(screen.getByText('Funnel-to-Call Intelligence')).toBeInTheDocument()
@@ -871,49 +871,49 @@ describe('CloserOSLanding', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/marketing/CloserOSLanding.test.tsx`
-Expected: FAIL — `Cannot find module './CloserOSLanding'`
+Run: `npx vitest run src/pages/cosella/marketing/CosellaLanding.test.tsx`
+Expected: FAIL — `Cannot find module './CosellaLanding'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/marketing/CloserOSLanding.tsx
+// src/pages/cosella/marketing/CosellaLanding.tsx
 import { useNavigate } from 'react-router-dom'
 import { CreditCard, RefreshCw, Radar, MessageSquare, BookOpen, Ghost, Radio } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import LightforthLogo from '@/components/shared/LightforthLogo'
 
-export const CLOSER_OS_SETUP_FEE = 7500
-export const CLOSER_OS_SEAT_PRICE = 149
+export const COSELLA_SETUP_FEE = 7500
+export const COSELLA_SEAT_PRICE = 149
 
 const FEATURES = [
   { icon: CreditCard, name: 'Payment Moment Engine', description: 'The instant a prospect says yes, the payment link is already on your closer\'s screen.' },
   { icon: RefreshCw, name: 'Installment Recovery Copilot', description: 'Catches at-risk payment plans before they\'re missed, not after.' },
   { icon: Radar, name: 'Funnel-to-Call Intelligence', description: 'Every closer opens the call already knowing what the prospect watched, clicked, and wrote.' },
   { icon: MessageSquare, name: 'The Money Slack Report', description: 'One Slack message every evening: cash collected, deals saved, money leaked.' },
-  { icon: BookOpen, name: 'Revenue Attribution Ledger', description: 'Proof, deal by deal, of exactly how much Closer OS made you.' },
+  { icon: BookOpen, name: 'Revenue Attribution Ledger', description: 'Proof, deal by deal, of exactly how much Cosella made you.' },
   { icon: Ghost, name: 'Ghost Prospect Simulator', description: 'Practice against an AI copy of the real prospect your team lost last week.' },
   { icon: Radio, name: 'Second Voice', description: 'When a deal starts dying live, your best closer can step in before it\'s gone.' },
 ]
 
-export default function CloserOSLanding() {
+export default function CosellaLanding() {
   const navigate = useNavigate()
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <LightforthLogo to="/closer-os" />
-        <Button variant="outline" onClick={() => navigate('/closer-os/sign-in')}>Sign in</Button>
+        <LightforthLogo to="/cosella" />
+        <Button variant="outline" onClick={() => navigate('/cosella/sign-in')}>Sign in</Button>
       </header>
 
       <section className="mx-auto max-w-4xl px-6 py-16 text-center">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">Closer OS</p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">Cosella</p>
         <h1 className="mt-3 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
-          Every other tool helps closers talk. <span className="text-emerald-600">Closer OS helps you get paid.</span>
+          Every other tool helps closers talk. <span className="text-emerald-600">Cosella helps you get paid.</span>
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-600">
           7 money features built directly into the sales call — turning every yes into cash, every missed payment into a save, and every deal into proof.
         </p>
-        <Button size="lg" className="mt-8 bg-emerald-600 hover:bg-emerald-700" onClick={() => navigate('/closer-os/checkout')}>
+        <Button size="lg" className="mt-8 bg-emerald-600 hover:bg-emerald-700" onClick={() => navigate('/cosella/checkout')}>
           Get started
         </Button>
       </section>
@@ -935,9 +935,9 @@ export default function CloserOSLanding() {
       <section className="mx-auto max-w-md px-6 py-16 text-center">
         <div className="rounded-2xl border border-emerald-200 bg-white p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-wide text-emerald-600">Pricing</p>
-          <p className="mt-3 text-3xl font-black text-slate-900">${CLOSER_OS_SETUP_FEE.toLocaleString()} <span className="text-base font-medium text-slate-500">setup</span></p>
-          <p className="mt-1 text-sm text-slate-500">+ ${CLOSER_OS_SEAT_PRICE}/seat/month</p>
-          <Button size="lg" className="mt-6 w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => navigate('/closer-os/checkout')}>
+          <p className="mt-3 text-3xl font-black text-slate-900">${COSELLA_SETUP_FEE.toLocaleString()} <span className="text-base font-medium text-slate-500">setup</span></p>
+          <p className="mt-1 text-sm text-slate-500">+ ${COSELLA_SEAT_PRICE}/seat/month</p>
+          <Button size="lg" className="mt-6 w-full bg-emerald-600 hover:bg-emerald-700" onClick={() => navigate('/cosella/checkout')}>
             Get started
           </Button>
         </div>
@@ -949,44 +949,44 @@ export default function CloserOSLanding() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/marketing/CloserOSLanding.test.tsx`
+Run: `npx vitest run src/pages/cosella/marketing/CosellaLanding.test.tsx`
 Expected: PASS (2 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/marketing/CloserOSLanding.tsx src/pages/closerOS/marketing/CloserOSLanding.test.tsx
-git commit -m "feat(closer-os): add Closer OS marketing landing page"
+git add src/pages/cosella/marketing/CosellaLanding.tsx src/pages/cosella/marketing/CosellaLanding.test.tsx
+git commit -m "feat(cosella): add Cosella marketing landing page"
 ```
 
 ---
 
-## Task 4: `CloserOSCheckoutPage.tsx` — signup + mock payment
+## Task 4: `CosellaCheckoutPage.tsx` — signup + mock payment
 
 **Files:**
-- Create: `src/pages/closerOS/marketing/CloserOSCheckoutPage.tsx`
-- Test: `src/pages/closerOS/marketing/CloserOSCheckoutPage.test.tsx`
+- Create: `src/pages/cosella/marketing/CosellaCheckoutPage.tsx`
+- Test: `src/pages/cosella/marketing/CosellaCheckoutPage.test.tsx`
 
 **Interfaces:**
-- Consumes: `CheckoutFlow`, `CheckoutResult` from `@/pages/marketing/checkout/CheckoutFlow` (the one generic, cross-product component this plan is allowed to reuse), `CLOSER_OS_SETUP_FEE`/`CLOSER_OS_SEAT_PRICE` from Task 3, `setCloserAccount` from Task 2, `createOrg`/`demoSeedCloserOrg`/`setActiveAdminEmail` from Task 1.
-- Produces: default export `CloserOSCheckoutPage`, registered at `/closer-os/checkout` in Task 23.
+- Consumes: `CheckoutFlow`, `CheckoutResult` from `@/pages/marketing/checkout/CheckoutFlow` (the one generic, cross-product component this plan is allowed to reuse), `COSELLA_SETUP_FEE`/`COSELLA_SEAT_PRICE` from Task 3, `setCosellaAccount` from Task 2, `createOrg`/`demoSeedCosellaOrg`/`setActiveAdminEmail` from Task 1.
+- Produces: default export `CosellaCheckoutPage`, registered at `/cosella/checkout` in Task 23.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/marketing/CloserOSCheckoutPage.test.tsx
+// src/pages/cosella/marketing/CosellaCheckoutPage.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
-import CloserOSCheckoutPage from './CloserOSCheckoutPage'
-import { getCloserAccount } from '../closerAccounts'
-import { getOrgByAdminEmail, getActiveAdminEmail } from '../closerOrgStore'
+import CosellaCheckoutPage from './CosellaCheckoutPage'
+import { getCosellaAccount } from '../cosellaAccounts'
+import { getOrgByAdminEmail, getActiveAdminEmail } from '../cosellaOrgStore'
 
-describe('CloserOSCheckoutPage', () => {
+describe('CosellaCheckoutPage', () => {
   beforeEach(() => localStorage.clear())
 
-  it('creates a seeded Closer OS org and account on completed checkout', () => {
-    render(<MemoryRouter><CloserOSCheckoutPage /></MemoryRouter>)
+  it('creates a seeded Cosella org and account on completed checkout', () => {
+    render(<MemoryRouter><CosellaCheckoutPage /></MemoryRouter>)
 
     fireEvent.change(screen.getByPlaceholderText('Acme Inc.'), { target: { value: 'Acme Closers' } })
     fireEvent.change(screen.getByPlaceholderText('Jane Doe'), { target: { value: 'Ada Admin' } })
@@ -999,7 +999,7 @@ describe('CloserOSCheckoutPage', () => {
     fireEvent.change(screen.getByPlaceholderText('123'), { target: { value: '123' } })
     fireEvent.click(screen.getByRole('button', { name: /pay .* and continue/i }))
 
-    expect(getCloserAccount('ada@acme.com')?.accountType).toBe('closer-os-admin')
+    expect(getCosellaAccount('ada@acme.com')?.accountType).toBe('cosella-admin')
     expect(getOrgByAdminEmail('ada@acme.com')?.orgName).toBe('Acme Closers')
     expect(getActiveAdminEmail()).toBe('ada@acme.com')
   })
@@ -1008,40 +1008,40 @@ describe('CloserOSCheckoutPage', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/marketing/CloserOSCheckoutPage.test.tsx`
-Expected: FAIL — `Cannot find module './CloserOSCheckoutPage'`
+Run: `npx vitest run src/pages/cosella/marketing/CosellaCheckoutPage.test.tsx`
+Expected: FAIL — `Cannot find module './CosellaCheckoutPage'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/marketing/CloserOSCheckoutPage.tsx
+// src/pages/cosella/marketing/CosellaCheckoutPage.tsx
 import { useNavigate } from 'react-router-dom'
 import { CheckoutFlow } from '@/pages/marketing/checkout/CheckoutFlow'
-import { CLOSER_OS_SETUP_FEE, CLOSER_OS_SEAT_PRICE } from './CloserOSLanding'
-import { setCloserAccount } from '../closerAccounts'
-import { createOrg, demoSeedCloserOrg, setActiveAdminEmail } from '../closerOrgStore'
+import { COSELLA_SETUP_FEE, COSELLA_SEAT_PRICE } from './CosellaLanding'
+import { setCosellaAccount } from '../cosellaAccounts'
+import { createOrg, demoSeedCosellaOrg, setActiveAdminEmail } from '../cosellaOrgStore'
 
-export default function CloserOSCheckoutPage() {
+export default function CosellaCheckoutPage() {
   const navigate = useNavigate()
 
   return (
     <CheckoutFlow
-      productLabel="Closer OS"
+      productLabel="Cosella"
       collectCompany
       lineItems={[
-        { label: 'Setup fee — one-time', amount: `$${CLOSER_OS_SETUP_FEE.toLocaleString()}` },
-        { label: 'Your seat — first month', amount: `$${CLOSER_OS_SEAT_PRICE}` },
+        { label: 'Setup fee — one-time', amount: `$${COSELLA_SETUP_FEE.toLocaleString()}` },
+        { label: 'Your seat — first month', amount: `$${COSELLA_SEAT_PRICE}` },
       ]}
-      totalLabel={`$${(CLOSER_OS_SETUP_FEE + CLOSER_OS_SEAT_PRICE).toLocaleString()}`}
-      payButtonLabel={`Pay $${(CLOSER_OS_SETUP_FEE + CLOSER_OS_SEAT_PRICE).toLocaleString()} and continue`}
+      totalLabel={`$${(COSELLA_SETUP_FEE + COSELLA_SEAT_PRICE).toLocaleString()}`}
+      payButtonLabel={`Pay $${(COSELLA_SETUP_FEE + COSELLA_SEAT_PRICE).toLocaleString()} and continue`}
       accentClassName="bg-emerald-600 hover:bg-emerald-700"
-      onCancel={() => navigate('/closer-os')}
+      onCancel={() => navigate('/cosella')}
       onComplete={({ email, fullName, companyName }) => {
         const orgName = companyName ?? `${fullName}'s team`
-        setCloserAccount(email, { accountType: 'closer-os-admin', orgName })
-        createOrg(email, demoSeedCloserOrg(email, fullName, orgName))
+        setCosellaAccount(email, { accountType: 'cosella-admin', orgName })
+        createOrg(email, demoSeedCosellaOrg(email, fullName, orgName))
         setActiveAdminEmail(email)
-        navigate(`/closer-os/download?email=${encodeURIComponent(email)}`)
+        navigate(`/cosella/download?email=${encodeURIComponent(email)}`)
       }}
     />
   )
@@ -1050,43 +1050,43 @@ export default function CloserOSCheckoutPage() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/marketing/CloserOSCheckoutPage.test.tsx`
+Run: `npx vitest run src/pages/cosella/marketing/CosellaCheckoutPage.test.tsx`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/marketing/CloserOSCheckoutPage.tsx src/pages/closerOS/marketing/CloserOSCheckoutPage.test.tsx
-git commit -m "feat(closer-os): add Closer OS checkout page"
+git add src/pages/cosella/marketing/CosellaCheckoutPage.tsx src/pages/cosella/marketing/CosellaCheckoutPage.test.tsx
+git commit -m "feat(cosella): add Cosella checkout page"
 ```
 
 ---
 
-## Task 5: `CloserOSDownloadPage.tsx` — post-checkout download page
+## Task 5: `CosellaDownloadPage.tsx` — post-checkout download page
 
 **Files:**
-- Create: `src/pages/closerOS/marketing/CloserOSDownloadPage.tsx`
-- Test: `src/pages/closerOS/marketing/CloserOSDownloadPage.test.tsx`
+- Create: `src/pages/cosella/marketing/CosellaDownloadPage.tsx`
+- Test: `src/pages/cosella/marketing/CosellaDownloadPage.test.tsx`
 
 **Interfaces:**
 - Consumes: `@/components/shared/LightforthLogo`, `@/components/ui/button`, `sonner`'s `toast`.
-- Produces: default export `CloserOSDownloadPage`, registered at `/closer-os/download` in Task 23. "Open Closer OS" navigates to `/closer-os/sign-in?email=...`.
+- Produces: default export `CosellaDownloadPage`, registered at `/cosella/download` in Task 23. "Open Cosella" navigates to `/cosella/sign-in?email=...`.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/marketing/CloserOSDownloadPage.test.tsx
+// src/pages/cosella/marketing/CosellaDownloadPage.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
-import CloserOSDownloadPage from './CloserOSDownloadPage'
+import CosellaDownloadPage from './CosellaDownloadPage'
 
-describe('CloserOSDownloadPage', () => {
-  it('renders download buttons and an Open Closer OS link carrying the email through', () => {
+describe('CosellaDownloadPage', () => {
+  it('renders download buttons and an Open Cosella link carrying the email through', () => {
     render(
-      <MemoryRouter initialEntries={['/closer-os/download?email=ada%40acme.com']}>
+      <MemoryRouter initialEntries={['/cosella/download?email=ada%40acme.com']}>
         <Routes>
-          <Route path="/closer-os/download" element={<CloserOSDownloadPage />} />
+          <Route path="/cosella/download" element={<CosellaDownloadPage />} />
         </Routes>
       </MemoryRouter>,
     )
@@ -1100,13 +1100,13 @@ describe('CloserOSDownloadPage', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/marketing/CloserOSDownloadPage.test.tsx`
-Expected: FAIL — `Cannot find module './CloserOSDownloadPage'`
+Run: `npx vitest run src/pages/cosella/marketing/CosellaDownloadPage.test.tsx`
+Expected: FAIL — `Cannot find module './CosellaDownloadPage'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/marketing/CloserOSDownloadPage.tsx
+// src/pages/cosella/marketing/CosellaDownloadPage.tsx
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Apple, Check, MonitorDown } from 'lucide-react'
@@ -1114,12 +1114,12 @@ import { Button } from '@/components/ui/button'
 import LightforthLogo from '@/components/shared/LightforthLogo'
 
 function mockDownload(os: string) {
-  toast.success(`Downloading Closer OS for ${os}...`, {
+  toast.success(`Downloading Cosella for ${os}...`, {
     description: 'This is a prototype — no file is actually downloading.',
   })
 }
 
-export default function CloserOSDownloadPage() {
+export default function CosellaDownloadPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const email = searchParams.get('email') ?? ''
@@ -1127,14 +1127,14 @@ export default function CloserOSDownloadPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-16">
       <div className="w-full max-w-md text-center">
-        <LightforthLogo className="mx-auto" to="/closer-os" />
+        <LightforthLogo className="mx-auto" to="/cosella" />
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50">
             <Check className="h-6 w-6 text-emerald-500" />
           </div>
           <h1 className="mt-5 text-xl font-bold text-slate-900">You're all set</h1>
-          <p className="mt-1 text-sm text-slate-500">Download Closer OS to your computer to get started.</p>
+          <p className="mt-1 text-sm text-slate-500">Download Cosella to your computer to get started.</p>
 
           <div className="mt-7 space-y-3">
             <Button size="lg" variant="outline" className="w-full" onClick={() => mockDownload('Mac')}>
@@ -1150,9 +1150,9 @@ export default function CloserOSDownloadPage() {
             <Button
               size="lg"
               className="mt-3 w-full bg-emerald-600 hover:bg-emerald-700"
-              onClick={() => navigate(`/closer-os/sign-in${email ? `?email=${encodeURIComponent(email)}` : ''}`)}
+              onClick={() => navigate(`/cosella/sign-in${email ? `?email=${encodeURIComponent(email)}` : ''}`)}
             >
-              Open Closer OS
+              Open Cosella
             </Button>
           </div>
         </div>
@@ -1164,57 +1164,57 @@ export default function CloserOSDownloadPage() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/marketing/CloserOSDownloadPage.test.tsx`
+Run: `npx vitest run src/pages/cosella/marketing/CosellaDownloadPage.test.tsx`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/marketing/CloserOSDownloadPage.tsx src/pages/closerOS/marketing/CloserOSDownloadPage.test.tsx
-git commit -m "feat(closer-os): add Closer OS download page"
+git add src/pages/cosella/marketing/CosellaDownloadPage.tsx src/pages/cosella/marketing/CosellaDownloadPage.test.tsx
+git commit -m "feat(cosella): add Cosella download page"
 ```
 
 ---
 
-## Task 6: `CloserOSSignIn.tsx` — owner sign-in + closer invite-code activation
+## Task 6: `CosellaSignIn.tsx` — owner sign-in + closer invite-code activation
 
 **Files:**
-- Create: `src/pages/closerOS/CloserOSSignIn.tsx`
-- Test: `src/pages/closerOS/CloserOSSignIn.test.tsx`
+- Create: `src/pages/cosella/CosellaSignIn.tsx`
+- Test: `src/pages/cosella/CosellaSignIn.test.tsx`
 
 **Interfaces:**
-- Consumes: `getCloserAccount`, `setCloserAccount` and `setActiveMemberEmail` from Task 2; `findMemberByEmail`, `setActiveAdminEmail` from Task 1.
-- Produces: default export `CloserOSSignIn`, registered at `/closer-os/sign-in` in Task 23. Routes an admin login to `/closer-os/dashboard`, a member login (post-activation) or first-time invite-code activation to `/closer-os/app`.
+- Consumes: `getCosellaAccount`, `setCosellaAccount` and `setActiveMemberEmail` from Task 2; `findMemberByEmail`, `setActiveAdminEmail` from Task 1.
+- Produces: default export `CosellaSignIn`, registered at `/cosella/sign-in` in Task 23. Routes an admin login to `/cosella/dashboard`, a member login (post-activation) or first-time invite-code activation to `/cosella/app`.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/CloserOSSignIn.test.tsx
+// src/pages/cosella/CosellaSignIn.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
-import CloserOSSignIn from './CloserOSSignIn'
-import { createOrg, demoSeedCloserOrg, addMember, getActiveAdminEmail } from './closerOrgStore'
-import { setCloserAccount, getActiveMemberEmail } from './closerAccounts'
+import CosellaSignIn from './CosellaSignIn'
+import { createOrg, demoSeedCosellaOrg, addMember, getActiveAdminEmail } from './cosellaOrgStore'
+import { setCosellaAccount, getActiveMemberEmail } from './cosellaAccounts'
 
-function renderSignIn(initialPath = '/closer-os/sign-in') {
+function renderSignIn(initialPath = '/cosella/sign-in') {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <Routes>
-        <Route path="/closer-os/sign-in" element={<CloserOSSignIn />} />
-        <Route path="/closer-os/dashboard" element={<p>Dashboard landed</p>} />
-        <Route path="/closer-os/app" element={<p>App landed</p>} />
+        <Route path="/cosella/sign-in" element={<CosellaSignIn />} />
+        <Route path="/cosella/dashboard" element={<p>Dashboard landed</p>} />
+        <Route path="/cosella/app" element={<p>App landed</p>} />
       </Routes>
     </MemoryRouter>,
   )
 }
 
-describe('CloserOSSignIn', () => {
+describe('CosellaSignIn', () => {
   beforeEach(() => localStorage.clear())
 
   it('signs an existing admin account in and routes to the dashboard', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
-    setCloserAccount('ada@acme.com', { accountType: 'closer-os-admin', orgName: 'Acme Closers' })
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    setCosellaAccount('ada@acme.com', { accountType: 'cosella-admin', orgName: 'Acme Closers' })
     renderSignIn()
 
     fireEvent.change(screen.getByPlaceholderText('you@company.com'), { target: { value: 'ada@acme.com' } })
@@ -1226,7 +1226,7 @@ describe('CloserOSSignIn', () => {
   })
 
   it('activates a member seat with a correct invite code and routes to the app', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const member = addMember('ada@acme.com', { name: 'Jordan Lee', email: 'jordan@acme.com' })!
 
     renderSignIn()
@@ -1241,7 +1241,7 @@ describe('CloserOSSignIn', () => {
   })
 
   it('rejects a wrong invite code with an inline error and does not navigate', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     addMember('ada@acme.com', { name: 'Jordan Lee', email: 'jordan@acme.com' })
 
     renderSignIn()
@@ -1259,21 +1259,21 @@ describe('CloserOSSignIn', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/CloserOSSignIn.test.tsx`
-Expected: FAIL — `Cannot find module './CloserOSSignIn'`
+Run: `npx vitest run src/pages/cosella/CosellaSignIn.test.tsx`
+Expected: FAIL — `Cannot find module './CosellaSignIn'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/CloserOSSignIn.tsx
+// src/pages/cosella/CosellaSignIn.tsx
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import LightforthLogo from '@/components/shared/LightforthLogo'
-import { findMemberByEmail, setActiveAdminEmail } from './closerOrgStore'
-import { getCloserAccount, setCloserAccount, setActiveMemberEmail } from './closerAccounts'
+import { findMemberByEmail, setActiveAdminEmail } from './cosellaOrgStore'
+import { getCosellaAccount, setCosellaAccount, setActiveMemberEmail } from './cosellaAccounts'
 
-export default function CloserOSSignIn() {
+export default function CosellaSignIn() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [mode, setMode] = useState<'sign-in' | 'invite-code'>('sign-in')
@@ -1284,17 +1284,17 @@ export default function CloserOSSignIn() {
 
   function handleSignIn() {
     setError(null)
-    const account = getCloserAccount(email)
+    const account = getCosellaAccount(email)
     if (!account) {
-      setError('No Closer OS account found for this email.')
+      setError('No Cosella account found for this email.')
       return
     }
-    if (account.accountType === 'closer-os-admin') {
+    if (account.accountType === 'cosella-admin') {
       setActiveAdminEmail(email)
-      navigate('/closer-os/dashboard')
+      navigate('/cosella/dashboard')
     } else {
       setActiveMemberEmail(email)
-      navigate('/closer-os/app')
+      navigate('/cosella/app')
     }
   }
 
@@ -1309,9 +1309,9 @@ export default function CloserOSSignIn() {
       setError("That invite code doesn't match this email.")
       return
     }
-    setCloserAccount(email, { accountType: 'closer-os-member', orgName: found.org.orgName })
+    setCosellaAccount(email, { accountType: 'cosella-member', orgName: found.org.orgName })
     setActiveMemberEmail(email)
-    navigate('/closer-os/app')
+    navigate('/cosella/app')
   }
 
   const signInValid = email.trim().length > 0 && password.length > 0
@@ -1320,12 +1320,12 @@ export default function CloserOSSignIn() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-16">
       <div className="w-full max-w-md">
-        <div className="mb-8"><LightforthLogo to="/closer-os" /></div>
+        <div className="mb-8"><LightforthLogo to="/cosella" /></div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-bold text-slate-900">{mode === 'sign-in' ? 'Sign in to Closer OS' : 'Activate your seat'}</h1>
+          <h1 className="text-xl font-bold text-slate-900">{mode === 'sign-in' ? 'Sign in to Cosella' : 'Activate your seat'}</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {mode === 'sign-in' ? 'Owners and activated closers sign in here.' : "First time on your team's Closer OS? Enter the invite code from your admin."}
+            {mode === 'sign-in' ? 'Owners and activated closers sign in here.' : "First time on your team's Cosella? Enter the invite code from your admin."}
           </p>
 
           <div className="mt-6 space-y-4">
@@ -1372,35 +1372,35 @@ export default function CloserOSSignIn() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/CloserOSSignIn.test.tsx`
+Run: `npx vitest run src/pages/cosella/CosellaSignIn.test.tsx`
 Expected: PASS (3 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/CloserOSSignIn.tsx src/pages/closerOS/CloserOSSignIn.test.tsx
-git commit -m "feat(closer-os): add Closer OS sign-in with owner + invite-code paths"
+git add src/pages/cosella/CosellaSignIn.tsx src/pages/cosella/CosellaSignIn.test.tsx
+git commit -m "feat(cosella): add Cosella sign-in with owner + invite-code paths"
 ```
 
 ---
 
-## Task 7: `app/shared.tsx` — Closer OS live-app chrome (emerald theme)
+## Task 7: `app/shared.tsx` — Cosella live-app chrome (emerald theme)
 
 **Files:**
-- Create: `src/pages/closerOS/app/shared.tsx`
-- Test: `src/pages/closerOS/app/shared.test.tsx`
+- Create: `src/pages/cosella/app/shared.tsx`
+- Test: `src/pages/cosella/app/shared.test.tsx`
 
 **Interfaces:**
 - Consumes: `@/lib/utils` (`cn`).
-- Produces: `BG`, `CARD`, `BORDER`, `GREEN` color constants, `formatTime(seconds): string`, `CloserLogo({ size }): JSX.Element`, `CloserMacWindow({ children, transparency }): JSX.Element`, `Toggle({ on, onToggle }): JSX.Element` — consumed by Tasks 8–12. Deliberately self-contained (does not import `desktopCopilot/shared.tsx`) so Closer OS has its own visual identity per the design spec.
+- Produces: `BG`, `CARD`, `BORDER`, `GREEN` color constants, `formatTime(seconds): string`, `CosellaLogo({ size }): JSX.Element`, `CosellaMacWindow({ children, transparency }): JSX.Element`, `Toggle({ on, onToggle }): JSX.Element` — consumed by Tasks 8–12. Deliberately self-contained (does not import `desktopCopilot/shared.tsx`) so Cosella has its own visual identity per the design spec.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/app/shared.test.tsx
+// src/pages/cosella/app/shared.test.tsx
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import { formatTime, CloserMacWindow } from './shared'
+import { formatTime, CosellaMacWindow } from './shared'
 
 describe('closerOS app shared chrome', () => {
   it('formats seconds as mm:ss', () => {
@@ -1408,8 +1408,8 @@ describe('closerOS app shared chrome', () => {
     expect(formatTime(5)).toBe('00:05')
   })
 
-  it('CloserMacWindow renders its children', () => {
-    render(<CloserMacWindow><p>Inside window</p></CloserMacWindow>)
+  it('CosellaMacWindow renders its children', () => {
+    render(<CosellaMacWindow><p>Inside window</p></CosellaMacWindow>)
     expect(screen.getByText('Inside window')).toBeInTheDocument()
   })
 })
@@ -1417,13 +1417,13 @@ describe('closerOS app shared chrome', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/app/shared.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/shared.test.tsx`
 Expected: FAIL — `Cannot find module './shared'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/app/shared.tsx
+// src/pages/cosella/app/shared.tsx
 import { cn } from '@/lib/utils'
 
 export const BG     = '#03140d'
@@ -1435,7 +1435,7 @@ export function formatTime(s: number) {
   return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 }
 
-export function CloserLogo({ size = 28 }: { size?: number }) {
+export function CosellaLogo({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
       <circle cx="16" cy="16" r="14" fill="#065f46" />
@@ -1444,7 +1444,7 @@ export function CloserLogo({ size = 28 }: { size?: number }) {
   )
 }
 
-export function CloserMacWindow({ children, transparency = 0 }: { children: React.ReactNode; transparency?: number }) {
+export function CosellaMacWindow({ children, transparency = 0 }: { children: React.ReactNode; transparency?: number }) {
   const bgAlpha = (100 - transparency) / 100
   const windowBg = `rgba(3, 20, 13, ${bgAlpha})`
 
@@ -1480,14 +1480,14 @@ export function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) 
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/app/shared.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/shared.test.tsx`
 Expected: PASS (2 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/app/shared.tsx src/pages/closerOS/app/shared.test.tsx
-git commit -m "feat(closer-os): add emerald-themed app chrome shared by the live-call app"
+git add src/pages/cosella/app/shared.tsx src/pages/cosella/app/shared.test.tsx
+git commit -m "feat(cosella): add emerald-themed app chrome shared by the live-call app"
 ```
 
 ---
@@ -1495,21 +1495,21 @@ git commit -m "feat(closer-os): add emerald-themed app chrome shared by the live
 ## Task 8: `ProspectCard.tsx` — F3 pre-call brief screen
 
 **Files:**
-- Create: `src/pages/closerOS/app/ProspectCard.tsx`
-- Test: `src/pages/closerOS/app/ProspectCard.test.tsx`
+- Create: `src/pages/cosella/app/ProspectCard.tsx`
+- Test: `src/pages/cosella/app/ProspectCard.test.tsx`
 
 **Interfaces:**
-- Consumes: `ProspectCard` type (imported and aliased `ProspectCardData`) from `../closerOrgStore`; `BG`/`CARD`/`BORDER`/`GREEN` from Task 7.
+- Consumes: `ProspectCard` type (imported and aliased `ProspectCardData`) from `../cosellaOrgStore`; `BG`/`CARD`/`BORDER`/`GREEN` from Task 7.
 - Produces: default export `ProspectCardScreen({ card: ProspectCardData; onContinue: () => void })` — used by Task 12's orchestrator between Setup and the live call.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/app/ProspectCard.test.tsx
+// src/pages/cosella/app/ProspectCard.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import ProspectCardScreen from './ProspectCard'
-import type { ProspectCard } from '../closerOrgStore'
+import type { ProspectCard } from '../cosellaOrgStore'
 
 const CARD: ProspectCard = {
   id: 'p1', callId: 'c1', prospectName: 'Casey Nguyen', vslWatchPct: 92,
@@ -1537,16 +1537,16 @@ describe('ProspectCardScreen', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/app/ProspectCard.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/ProspectCard.test.tsx`
 Expected: FAIL — `Cannot find module './ProspectCard'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/app/ProspectCard.tsx
+// src/pages/cosella/app/ProspectCard.tsx
 import { Mail, PlayCircle, Sparkles } from 'lucide-react'
 import { BG, CARD as CARD_BG, BORDER, GREEN } from './shared'
-import type { ProspectCard as ProspectCardData } from '../closerOrgStore'
+import type { ProspectCard as ProspectCardData } from '../cosellaOrgStore'
 
 const HEAT_COLOR: Record<ProspectCardData['heatSignal'], string> = {
   HOT: '#ef4444', WARM: '#f59e0b', COLD: '#60a5fa',
@@ -1605,14 +1605,14 @@ export default function ProspectCardScreen({ card, onContinue }: { card: Prospec
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/app/ProspectCard.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/ProspectCard.test.tsx`
 Expected: PASS (2 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/app/ProspectCard.tsx src/pages/closerOS/app/ProspectCard.test.tsx
-git commit -m "feat(closer-os): add F3 prospect card pre-call brief screen"
+git add src/pages/cosella/app/ProspectCard.tsx src/pages/cosella/app/ProspectCard.test.tsx
+git commit -m "feat(cosella): add F3 prospect card pre-call brief screen"
 ```
 
 ---
@@ -1620,21 +1620,21 @@ git commit -m "feat(closer-os): add F3 prospect card pre-call brief screen"
 ## Task 9: `PaymentMomentPanel.tsx` — F1 payment panel
 
 **Files:**
-- Create: `src/pages/closerOS/app/PaymentMomentPanel.tsx`
-- Test: `src/pages/closerOS/app/PaymentMomentPanel.test.tsx`
+- Create: `src/pages/cosella/app/PaymentMomentPanel.tsx`
+- Test: `src/pages/cosella/app/PaymentMomentPanel.test.tsx`
 
 **Interfaces:**
-- Consumes: `PriceOption` type from `../closerOrgStore`.
-- Produces: `PaymentStatus = 'hidden' | 'offered' | 'link-sent' | 'link-opened' | 'card-entering' | 'paid' | 'declined'` type and default export `PaymentMomentPanel({ status, priceOption, onSendLink, onBackupOption }: { status: PaymentStatus; priceOption: PriceOption; onSendLink: (choice: 'pif' | 'plan') => void; onBackupOption: (option: 'second-card' | 'split' | 'smaller-deposit') => void })`. Purely presentational — Task 11 (`CloserOSLiveCanvas`) owns the `PaymentStatus` state machine and its timers.
+- Consumes: `PriceOption` type from `../cosellaOrgStore`.
+- Produces: `PaymentStatus = 'hidden' | 'offered' | 'link-sent' | 'link-opened' | 'card-entering' | 'paid' | 'declined'` type and default export `PaymentMomentPanel({ status, priceOption, onSendLink, onBackupOption }: { status: PaymentStatus; priceOption: PriceOption; onSendLink: (choice: 'pif' | 'plan') => void; onBackupOption: (option: 'second-card' | 'split' | 'smaller-deposit') => void })`. Purely presentational — Task 11 (`CosellaLiveCanvas`) owns the `PaymentStatus` state machine and its timers.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/app/PaymentMomentPanel.test.tsx
+// src/pages/cosella/app/PaymentMomentPanel.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import PaymentMomentPanel, { type PaymentStatus } from './PaymentMomentPanel'
-import type { PriceOption } from '../closerOrgStore'
+import type { PriceOption } from '../cosellaOrgStore'
 
 const PRICE_OPTION: PriceOption = { label: 'Core Program', pif: 12599, planInstallments: [1599, 3000, 4000, 4000] }
 
@@ -1677,15 +1677,15 @@ describe('PaymentMomentPanel', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/app/PaymentMomentPanel.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/PaymentMomentPanel.test.tsx`
 Expected: FAIL — `Cannot find module './PaymentMomentPanel'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/app/PaymentMomentPanel.tsx
+// src/pages/cosella/app/PaymentMomentPanel.tsx
 import { Check, CreditCard, Loader2 } from 'lucide-react'
-import type { PriceOption } from '../closerOrgStore'
+import type { PriceOption } from '../cosellaOrgStore'
 
 export type PaymentStatus = 'hidden' | 'offered' | 'link-sent' | 'link-opened' | 'card-entering' | 'paid' | 'declined'
 
@@ -1775,14 +1775,14 @@ export default function PaymentMomentPanel({
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/app/PaymentMomentPanel.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/PaymentMomentPanel.test.tsx`
 Expected: PASS (5 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/app/PaymentMomentPanel.tsx src/pages/closerOS/app/PaymentMomentPanel.test.tsx
-git commit -m "feat(closer-os): add F1 Payment Moment panel"
+git add src/pages/cosella/app/PaymentMomentPanel.tsx src/pages/cosella/app/PaymentMomentPanel.test.tsx
+git commit -m "feat(cosella): add F1 Payment Moment panel"
 ```
 
 ---
@@ -1790,8 +1790,8 @@ git commit -m "feat(closer-os): add F1 Payment Moment panel"
 ## Task 10: `DangerWhisper.tsx` — F7 risk badge + text whisper overlay
 
 **Files:**
-- Create: `src/pages/closerOS/app/DangerWhisper.tsx`
-- Test: `src/pages/closerOS/app/DangerWhisper.test.tsx`
+- Create: `src/pages/cosella/app/DangerWhisper.tsx`
+- Test: `src/pages/cosella/app/DangerWhisper.test.tsx`
 
 **Interfaces:**
 - Consumes: nothing beyond React.
@@ -1800,7 +1800,7 @@ git commit -m "feat(closer-os): add F1 Payment Moment panel"
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/app/DangerWhisper.test.tsx
+// src/pages/cosella/app/DangerWhisper.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import DangerWhisper from './DangerWhisper'
@@ -1829,13 +1829,13 @@ describe('DangerWhisper', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/app/DangerWhisper.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/DangerWhisper.test.tsx`
 Expected: FAIL — `Cannot find module './DangerWhisper'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/app/DangerWhisper.tsx
+// src/pages/cosella/app/DangerWhisper.tsx
 import { Headphones, TriangleAlert } from 'lucide-react'
 
 export type DangerState = 'none' | 'flagged' | 'whisper-shown'
@@ -1876,27 +1876,27 @@ export default function DangerWhisper({
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/app/DangerWhisper.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/DangerWhisper.test.tsx`
 Expected: PASS (3 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/app/DangerWhisper.tsx src/pages/closerOS/app/DangerWhisper.test.tsx
-git commit -m "feat(closer-os): add F7 danger detector + text whisper overlay"
+git add src/pages/cosella/app/DangerWhisper.tsx src/pages/cosella/app/DangerWhisper.test.tsx
+git commit -m "feat(cosella): add F7 danger detector + text whisper overlay"
 ```
 
 ---
 
-## Task 11: `CloserOSLiveCanvas.tsx` — the live call screen (F1 + F3 tie-in + F5 hook + F7)
+## Task 11: `CosellaLiveCanvas.tsx` — the live call screen (F1 + F3 tie-in + F5 hook + F7)
 
 **Files:**
-- Create: `src/pages/closerOS/app/CloserOSLiveCanvas.tsx`
-- Test: `src/pages/closerOS/app/CloserOSLiveCanvas.test.tsx`
+- Create: `src/pages/cosella/app/CosellaLiveCanvas.tsx`
+- Test: `src/pages/cosella/app/CosellaLiveCanvas.test.tsx`
 
 **Interfaces:**
-- Consumes: `BG`, `CARD`, `BORDER`, `formatTime` from Task 7; `PaymentMomentPanel`, `PaymentStatus` from Task 9; `DangerWhisper`, `DangerState` from Task 10; `PriceOption` type from `../closerOrgStore`; `sonner`'s `toast`.
-- Produces: default export `CloserOSLiveCanvas({ prospectName, priceOption, onEnd }: { prospectName: string; priceOption: PriceOption; onEnd: (result: LiveCallResult) => void })` and exported type:
+- Consumes: `BG`, `CARD`, `BORDER`, `formatTime` from Task 7; `PaymentMomentPanel`, `PaymentStatus` from Task 9; `DangerWhisper`, `DangerState` from Task 10; `PriceOption` type from `../cosellaOrgStore`; `sonner`'s `toast`.
+- Produces: default export `CosellaLiveCanvas({ prospectName, priceOption, onEnd }: { prospectName: string; priceOption: PriceOption; onEnd: (result: LiveCallResult) => void })` and exported type:
   ```ts
   export interface LiveCallResult {
     elapsed: number
@@ -1907,17 +1907,17 @@ git commit -m "feat(closer-os): add F7 danger detector + text whisper overlay"
     dangerResolution: { outcome: 'saved' | 'lost'; reason: string } | null
   }
   ```
-  Consumed by Task 12's orchestrator, which writes the result into `closerOrgStore`.
+  Consumed by Task 12's orchestrator, which writes the result into `cosellaOrgStore`.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/app/CloserOSLiveCanvas.test.tsx
+// src/pages/cosella/app/CosellaLiveCanvas.test.tsx
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import CloserOSLiveCanvas from './CloserOSLiveCanvas'
+import CosellaLiveCanvas from './CosellaLiveCanvas'
 import { toast } from 'sonner'
-import type { PriceOption } from '../closerOrgStore'
+import type { PriceOption } from '../cosellaOrgStore'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), info: vi.fn(), error: vi.fn() } }))
 
@@ -1928,17 +1928,17 @@ function advanceOneTurn() {
   fireEvent.keyDown(window, { code: 'Space' })
 }
 
-describe('CloserOSLiveCanvas', () => {
+describe('CosellaLiveCanvas', () => {
   beforeEach(() => vi.useFakeTimers())
   afterEach(() => vi.useRealTimers())
 
   it('shows the prospect name in the header and starts with an empty transcript', () => {
-    render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
+    render(<CosellaLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
     expect(screen.getByText(/Casey Nguyen/)).toBeInTheDocument()
   })
 
   it('adds an objection to the sidebar once its turn finishes typing, and logs it as used on click', () => {
-    render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
+    render(<CosellaLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
     advanceOneTurn() // turn 0: small talk
     act(() => { vi.advanceTimersByTime(3000) }) // turn 1 finishes typing: price objection
     expect(screen.getByText('Price is too high')).toBeInTheDocument()
@@ -1948,7 +1948,7 @@ describe('CloserOSLiveCanvas', () => {
 
   it('opens the Payment Moment panel once the yes-signal turn is reached, and reports a won outcome on End Call after paying', () => {
     const onEnd = vi.fn()
-    render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={onEnd} />)
+    render(<CosellaLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={onEnd} />)
     // advance through all 4 preceding turns to reach the yes-signal turn
     for (let i = 0; i < 4; i++) advanceOneTurn()
     act(() => { vi.advanceTimersByTime(3000) }) // final turn finishes typing -> payment offered
@@ -1963,14 +1963,14 @@ describe('CloserOSLiveCanvas', () => {
   })
 
   it('force-opens the Payment Moment panel with the P hotkey at any time', () => {
-    render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
+    render(<CosellaLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
     fireEvent.keyDown(window, { key: 'p' })
     expect(screen.getByRole('button', { name: /send pif link/i })).toBeInTheDocument()
   })
 
   it('cancels the in-flight payment cascade on End Call, so no late "wins" toast fires and the reported outcome does not later flip to won', () => {
     const onEnd = vi.fn()
-    render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={onEnd} />)
+    render(<CosellaLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={onEnd} />)
     for (let i = 0; i < 4; i++) advanceOneTurn()
     act(() => { vi.advanceTimersByTime(3000) }) // payment offered
     fireEvent.click(screen.getByRole('button', { name: /send pif link/i }))
@@ -1990,20 +1990,20 @@ describe('CloserOSLiveCanvas', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/app/CloserOSLiveCanvas.test.tsx`
-Expected: FAIL — `Cannot find module './CloserOSLiveCanvas'`
+Run: `npx vitest run src/pages/cosella/app/CosellaLiveCanvas.test.tsx`
+Expected: FAIL — `Cannot find module './CosellaLiveCanvas'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/app/CloserOSLiveCanvas.tsx
+// src/pages/cosella/app/CosellaLiveCanvas.tsx
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import { BG, CARD, BORDER, formatTime } from './shared'
 import PaymentMomentPanel, { type PaymentStatus } from './PaymentMomentPanel'
 import DangerWhisper, { type DangerState } from './DangerWhisper'
-import type { PriceOption } from '../closerOrgStore'
+import type { PriceOption } from '../cosellaOrgStore'
 
 interface CloserTurn {
   speaker: string
@@ -2032,7 +2032,7 @@ export interface LiveCallResult {
   dangerResolution: { outcome: 'saved' | 'lost'; reason: string } | null
 }
 
-export default function CloserOSLiveCanvas({
+export default function CosellaLiveCanvas({
   prospectName, priceOption, onEnd,
 }: {
   prospectName: string
@@ -2120,7 +2120,7 @@ export default function CloserOSLiveCanvas({
   // Toast when the payment lands — this only reacts to the final status, it doesn't drive it.
   useEffect(() => {
     if (paymentStatus === 'paid') {
-      toast.success(`📣 Posted to #closer-os-wins`, { description: `${prospectName} — $${(paymentChoice === 'plan' ? priceOption.planInstallments[0] : priceOption.pif).toLocaleString()}` })
+      toast.success(`📣 Posted to #cosella-wins`, { description: `${prospectName} — $${(paymentChoice === 'plan' ? priceOption.planInstallments[0] : priceOption.pif).toLocaleString()}` })
     }
   }, [paymentStatus, prospectName, paymentChoice, priceOption])
 
@@ -2245,45 +2245,45 @@ export default function CloserOSLiveCanvas({
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/app/CloserOSLiveCanvas.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/CosellaLiveCanvas.test.tsx`
 Expected: PASS (5 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/app/CloserOSLiveCanvas.tsx src/pages/closerOS/app/CloserOSLiveCanvas.test.tsx
-git commit -m "feat(closer-os): add live call canvas wiring F1 payment moment + F7 danger whisper"
+git add src/pages/cosella/app/CosellaLiveCanvas.tsx src/pages/cosella/app/CosellaLiveCanvas.test.tsx
+git commit -m "feat(cosella): add live call canvas wiring F1 payment moment + F7 danger whisper"
 ```
 
 ---
 
-## Task 12: `CloserOSDesktopApp.tsx` — orchestrator (setup → prospect card → live → summary)
+## Task 12: `CosellaDesktopApp.tsx` — orchestrator (setup → prospect card → live → summary)
 
 **Files:**
-- Create: `src/pages/closerOS/app/CloserOSDesktopApp.tsx`
-- Test: `src/pages/closerOS/app/CloserOSDesktopApp.test.tsx`
+- Create: `src/pages/cosella/app/CosellaDesktopApp.tsx`
+- Test: `src/pages/cosella/app/CosellaDesktopApp.test.tsx`
 
 **Interfaces:**
-- Consumes: `getActiveMemberEmail` from Task 2; `findMemberByEmail`, `recordDeal`, `addPaymentPlan`, `addLedgerEntry`, `recordCall`, `addLiveCallRiskEntry`, `resolveRescue` from Task 1; `CloserMacWindow` from Task 7; `ProspectCardScreen` from Task 8; `CloserOSLiveCanvas`, `LiveCallResult` from Task 11.
-- Produces: default export `CloserOSDesktopApp`, registered at `/closer-os/app` in Task 23. This is the task where a completed call's `LiveCallResult` gets translated into real `closerOrgStore` writes (Deal, PaymentPlan, LedgerEntry, CallRecord, LiveCallRiskEntry).
+- Consumes: `getActiveMemberEmail` from Task 2; `findMemberByEmail`, `recordDeal`, `addPaymentPlan`, `addLedgerEntry`, `recordCall`, `addLiveCallRiskEntry`, `resolveRescue` from Task 1; `CosellaMacWindow` from Task 7; `ProspectCardScreen` from Task 8; `CosellaLiveCanvas`, `LiveCallResult` from Task 11.
+- Produces: default export `CosellaDesktopApp`, registered at `/cosella/app` in Task 23. This is the task where a completed call's `LiveCallResult` gets translated into real `cosellaOrgStore` writes (Deal, PaymentPlan, LedgerEntry, CallRecord, LiveCallRiskEntry).
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/app/CloserOSDesktopApp.test.tsx
+// src/pages/cosella/app/CosellaDesktopApp.test.tsx
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import CloserOSDesktopApp from './CloserOSDesktopApp'
-import { createOrg, demoSeedCloserOrg, addMember, getOrgByAdminEmail } from '../closerOrgStore'
-import { setActiveMemberEmail } from '../closerAccounts'
+import CosellaDesktopApp from './CosellaDesktopApp'
+import { createOrg, demoSeedCosellaOrg, addMember, getOrgByAdminEmail } from '../cosellaOrgStore'
+import { setActiveMemberEmail } from '../cosellaAccounts'
 
 function renderApp() {
   return render(
-    <MemoryRouter initialEntries={['/closer-os/app']}>
+    <MemoryRouter initialEntries={['/cosella/app']}>
       <Routes>
-        <Route path="/closer-os/app" element={<CloserOSDesktopApp />} />
-        <Route path="/closer-os/sign-in" element={<p>Sign-in landed</p>} />
+        <Route path="/cosella/app" element={<CosellaDesktopApp />} />
+        <Route path="/cosella/sign-in" element={<p>Sign-in landed</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -2294,7 +2294,7 @@ function advanceOneTurn() {
   fireEvent.keyDown(window, { code: 'Space' })
 }
 
-describe('CloserOSDesktopApp', () => {
+describe('CosellaDesktopApp', () => {
   beforeEach(() => { localStorage.clear(); vi.useFakeTimers() })
   afterEach(() => vi.useRealTimers())
 
@@ -2304,7 +2304,7 @@ describe('CloserOSDesktopApp', () => {
   })
 
   it('walks a signed-in closer through setup, prospect card, a full paid call, and writes the deal + ledger + call record', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const member = addMember('ada@acme.com', { name: 'Jordan Lee', email: 'jordan@acme.com' })!
     setActiveMemberEmail(member.email)
 
@@ -2334,23 +2334,23 @@ describe('CloserOSDesktopApp', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/app/CloserOSDesktopApp.test.tsx`
-Expected: FAIL — `Cannot find module './CloserOSDesktopApp'`
+Run: `npx vitest run src/pages/cosella/app/CosellaDesktopApp.test.tsx`
+Expected: FAIL — `Cannot find module './CosellaDesktopApp'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/app/CloserOSDesktopApp.tsx
+// src/pages/cosella/app/CosellaDesktopApp.tsx
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CloserMacWindow } from './shared'
+import { CosellaMacWindow } from './shared'
 import ProspectCardScreen from './ProspectCard'
-import CloserOSLiveCanvas, { type LiveCallResult } from './CloserOSLiveCanvas'
-import { getActiveMemberEmail } from '../closerAccounts'
+import CosellaLiveCanvas, { type LiveCallResult } from './CosellaLiveCanvas'
+import { getActiveMemberEmail } from '../cosellaAccounts'
 import {
   findMemberByEmail, recordDeal, addPaymentPlan, addLedgerEntry, recordCall,
-  addLiveCallRiskEntry, resolveRescue, type CloserOrg, type CloserMember, type ProspectCard, type PriceOption,
-} from '../closerOrgStore'
+  addLiveCallRiskEntry, resolveRescue, type CosellaOrg, type CosellaMember, type ProspectCard, type PriceOption,
+} from '../cosellaOrgStore'
 
 type View = 'loading' | 'setup' | 'prospect-card' | 'live' | 'summary'
 
@@ -2360,19 +2360,19 @@ function planDueDates(): string[] {
   return [new Date(now).toISOString(), new Date(now + 14 * day).toISOString(), new Date(now + 30 * day).toISOString(), new Date(now + 60 * day).toISOString()]
 }
 
-export default function CloserOSDesktopApp() {
+export default function CosellaDesktopApp() {
   const navigate = useNavigate()
   const [view, setView] = useState<View>('loading')
-  const [context, setContext] = useState<{ adminEmail: string; org: CloserOrg; member: CloserMember } | null>(null)
+  const [context, setContext] = useState<{ adminEmail: string; org: CosellaOrg; member: CosellaMember } | null>(null)
   const [selectedProspect, setSelectedProspect] = useState<ProspectCard | null>(null)
   const [selectedPrice, setSelectedPrice] = useState<PriceOption | null>(null)
   const [lastResult, setLastResult] = useState<LiveCallResult | null>(null)
 
   useEffect(() => {
     const email = getActiveMemberEmail()
-    if (!email) { navigate('/closer-os/sign-in'); return }
+    if (!email) { navigate('/cosella/sign-in'); return }
     const found = findMemberByEmail(email)
-    if (!found) { navigate('/closer-os/sign-in'); return }
+    if (!found) { navigate('/cosella/sign-in'); return }
     setContext(found)
     setView('setup')
   }, [navigate])
@@ -2413,7 +2413,7 @@ export default function CloserOSDesktopApp() {
 
     if (result.outcome === 'won') {
       // Ledger dollarValue is always the full deal value (priceOption.pif), matching the
-      // demoSeedCloserOrg precedent and the LiveCallRiskEntry/dollarsSaved writes below — a
+      // demoSeedCosellaOrg precedent and the LiveCallRiskEntry/dollarsSaved writes below — a
       // payment-plan close still represents the whole deal, not just today's deposit.
       const dollarValue = priceOption.pif
       if (result.usedObjections.length > 0) {
@@ -2439,7 +2439,7 @@ export default function CloserOSDesktopApp() {
   }
 
   return (
-    <CloserMacWindow>
+    <CosellaMacWindow>
       {view === 'setup' && (
         <div className="flex min-h-[580px] flex-col items-center justify-center gap-5 px-10 text-white">
           <h1 className="text-2xl font-bold">Start a Sales Call</h1>
@@ -2480,7 +2480,7 @@ export default function CloserOSDesktopApp() {
       )}
 
       {view === 'live' && selectedProspect && selectedPrice && (
-        <CloserOSLiveCanvas prospectName={selectedProspect.prospectName} priceOption={selectedPrice} onEnd={handleCallEnd} />
+        <CosellaLiveCanvas prospectName={selectedProspect.prospectName} priceOption={selectedPrice} onEnd={handleCallEnd} />
       )}
 
       {view === 'summary' && lastResult && (
@@ -2492,54 +2492,54 @@ export default function CloserOSDesktopApp() {
           </button>
         </div>
       )}
-    </CloserMacWindow>
+    </CosellaMacWindow>
   )
 }
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/app/CloserOSDesktopApp.test.tsx`
+Run: `npx vitest run src/pages/cosella/app/CosellaDesktopApp.test.tsx`
 Expected: PASS (2 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/app/CloserOSDesktopApp.tsx src/pages/closerOS/app/CloserOSDesktopApp.test.tsx
-git commit -m "feat(closer-os): add Closer OS desktop app orchestrator wiring calls into the store"
+git add src/pages/cosella/app/CosellaDesktopApp.tsx src/pages/cosella/app/CosellaDesktopApp.test.tsx
+git commit -m "feat(cosella): add Cosella desktop app orchestrator wiring calls into the store"
 ```
 
 ---
 
-## Task 13: `CloserOSAdminLayout.tsx` — owner/manager dashboard shell
+## Task 13: `CosellaAdminLayout.tsx` — owner/manager dashboard shell
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/CloserOSAdminLayout.tsx`
-- Test: `src/pages/closerOS/dashboard/CloserOSAdminLayout.test.tsx`
+- Create: `src/pages/cosella/dashboard/CosellaAdminLayout.tsx`
+- Test: `src/pages/cosella/dashboard/CosellaAdminLayout.test.tsx`
 
 **Interfaces:**
-- Consumes: `getActiveAdminEmail`, `getOrgByAdminEmail`, `CloserOrg` from Task 1.
-- Produces: default export `CloserOSAdminLayout` and exported `CloserDashboardContext { adminEmail: string; org: CloserOrg; refresh: () => void }` — the outlet context type every dashboard page (Tasks 14–22) reads via `useOutletContext<CloserDashboardContext>()`. Registered as the parent route for `/closer-os/dashboard/*` in Task 23.
+- Consumes: `getActiveAdminEmail`, `getOrgByAdminEmail`, `CosellaOrg` from Task 1.
+- Produces: default export `CosellaAdminLayout` and exported `CosellaDashboardContext { adminEmail: string; org: CosellaOrg; refresh: () => void }` — the outlet context type every dashboard page (Tasks 14–22) reads via `useOutletContext<CosellaDashboardContext>()`. Registered as the parent route for `/cosella/dashboard/*` in Task 23.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/dashboard/CloserOSAdminLayout.test.tsx
+// src/pages/cosella/dashboard/CosellaAdminLayout.test.tsx
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
-import CloserOSAdminLayout from './CloserOSAdminLayout'
-import { createOrg, demoSeedCloserOrg, setActiveAdminEmail } from '../closerOrgStore'
+import CosellaAdminLayout from './CosellaAdminLayout'
+import { createOrg, demoSeedCosellaOrg, setActiveAdminEmail } from '../cosellaOrgStore'
 
-describe('CloserOSAdminLayout', () => {
+describe('CosellaAdminLayout', () => {
   beforeEach(() => localStorage.clear())
 
   it('redirects to the landing page when no admin is signed in', () => {
     render(
-      <MemoryRouter initialEntries={['/closer-os/dashboard']}>
+      <MemoryRouter initialEntries={['/cosella/dashboard']}>
         <Routes>
-          <Route path="/closer-os/dashboard" element={<CloserOSAdminLayout />} />
-          <Route path="/closer-os" element={<p>Landing page</p>} />
+          <Route path="/cosella/dashboard" element={<CosellaAdminLayout />} />
+          <Route path="/cosella" element={<p>Landing page</p>} />
         </Routes>
       </MemoryRouter>,
     )
@@ -2547,12 +2547,12 @@ describe('CloserOSAdminLayout', () => {
   })
 
   it('renders the org name and all 13 nav items for a signed-in admin', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     setActiveAdminEmail('ada@acme.com')
     render(
-      <MemoryRouter initialEntries={['/closer-os/dashboard']}>
+      <MemoryRouter initialEntries={['/cosella/dashboard']}>
         <Routes>
-          <Route path="/closer-os/dashboard" element={<CloserOSAdminLayout />}>
+          <Route path="/cosella/dashboard" element={<CosellaAdminLayout />}>
             <Route index element={<p>Overview page</p>} />
           </Route>
         </Routes>
@@ -2569,13 +2569,13 @@ describe('CloserOSAdminLayout', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/CloserOSAdminLayout.test.tsx`
-Expected: FAIL — `Cannot find module './CloserOSAdminLayout'`
+Run: `npx vitest run src/pages/cosella/dashboard/CosellaAdminLayout.test.tsx`
+Expected: FAIL — `Cannot find module './CosellaAdminLayout'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/dashboard/CloserOSAdminLayout.tsx
+// src/pages/cosella/dashboard/CosellaAdminLayout.tsx
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
@@ -2583,37 +2583,37 @@ import {
   Users, Phone, CircleDollarSign, Plug, Settings as SettingsIcon, LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getActiveAdminEmail, getOrgByAdminEmail, type CloserOrg } from '../closerOrgStore'
+import { getActiveAdminEmail, getOrgByAdminEmail, type CosellaOrg } from '../cosellaOrgStore'
 
 const NAV = [
-  { to: '/closer-os/dashboard', label: 'Overview', icon: LayoutDashboard, end: true },
-  { to: '/closer-os/dashboard/payment-settings', label: 'Payment Settings', icon: CreditCard, end: false },
-  { to: '/closer-os/dashboard/plan-tracker', label: 'Plan Tracker', icon: RefreshCw, end: false },
-  { to: '/closer-os/dashboard/ledger', label: 'Ledger', icon: BookOpen, end: false },
-  { to: '/closer-os/dashboard/slack-report', label: 'Slack Report', icon: MessageSquare, end: false },
-  { to: '/closer-os/dashboard/prospect-intel', label: 'Prospect Intel', icon: Radar, end: false },
-  { to: '/closer-os/dashboard/ghost-simulator', label: 'Ghost Simulator', icon: Ghost, end: false },
-  { to: '/closer-os/dashboard/rescue-board', label: 'Live Rescue Board', icon: Radio, end: false },
-  { to: '/closer-os/dashboard/team', label: 'Team', icon: Users, end: false },
-  { to: '/closer-os/dashboard/calls', label: 'Call History', icon: Phone, end: false },
-  { to: '/closer-os/dashboard/billing', label: 'Billing', icon: CircleDollarSign, end: false },
-  { to: '/closer-os/dashboard/integrations', label: 'Integrations', icon: Plug, end: false },
-  { to: '/closer-os/dashboard/settings', label: 'Settings', icon: SettingsIcon, end: false },
+  { to: '/cosella/dashboard', label: 'Overview', icon: LayoutDashboard, end: true },
+  { to: '/cosella/dashboard/payment-settings', label: 'Payment Settings', icon: CreditCard, end: false },
+  { to: '/cosella/dashboard/plan-tracker', label: 'Plan Tracker', icon: RefreshCw, end: false },
+  { to: '/cosella/dashboard/ledger', label: 'Ledger', icon: BookOpen, end: false },
+  { to: '/cosella/dashboard/slack-report', label: 'Slack Report', icon: MessageSquare, end: false },
+  { to: '/cosella/dashboard/prospect-intel', label: 'Prospect Intel', icon: Radar, end: false },
+  { to: '/cosella/dashboard/ghost-simulator', label: 'Ghost Simulator', icon: Ghost, end: false },
+  { to: '/cosella/dashboard/rescue-board', label: 'Live Rescue Board', icon: Radio, end: false },
+  { to: '/cosella/dashboard/team', label: 'Team', icon: Users, end: false },
+  { to: '/cosella/dashboard/calls', label: 'Call History', icon: Phone, end: false },
+  { to: '/cosella/dashboard/billing', label: 'Billing', icon: CircleDollarSign, end: false },
+  { to: '/cosella/dashboard/integrations', label: 'Integrations', icon: Plug, end: false },
+  { to: '/cosella/dashboard/settings', label: 'Settings', icon: SettingsIcon, end: false },
 ]
 
-export interface CloserDashboardContext {
+export interface CosellaDashboardContext {
   adminEmail: string
-  org: CloserOrg
+  org: CosellaOrg
   refresh: () => void
 }
 
-export default function CloserOSAdminLayout() {
+export default function CosellaAdminLayout() {
   const navigate = useNavigate()
   const [adminEmail] = useState(() => getActiveAdminEmail())
-  const [org, setOrg] = useState<CloserOrg | null>(() => (adminEmail ? getOrgByAdminEmail(adminEmail) : null))
+  const [org, setOrg] = useState<CosellaOrg | null>(() => (adminEmail ? getOrgByAdminEmail(adminEmail) : null))
 
   useEffect(() => {
-    if (!adminEmail || !org) navigate('/closer-os')
+    if (!adminEmail || !org) navigate('/cosella')
   }, [adminEmail, org, navigate])
 
   if (!adminEmail || !org) return null
@@ -2626,7 +2626,7 @@ export default function CloserOSAdminLayout() {
         <div>
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-md bg-emerald-400 text-xs font-black text-[#052e1f]">C</span>
-            <span className="text-base font-bold text-white">Closer OS</span>
+            <span className="text-base font-bold text-white">Cosella</span>
           </div>
           <p className="mt-6 truncate text-xs font-semibold uppercase tracking-wide text-emerald-300">{org.orgName}</p>
 
@@ -2651,7 +2651,7 @@ export default function CloserOSAdminLayout() {
         </div>
 
         <button
-          onClick={() => navigate('/closer-os')}
+          onClick={() => navigate('/cosella')}
           className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white"
         >
           <LogOut className="h-4 w-4" /> Sign out
@@ -2659,7 +2659,7 @@ export default function CloserOSAdminLayout() {
       </aside>
 
       <main className="flex-1 overflow-y-auto">
-        <Outlet context={{ adminEmail, org, refresh } satisfies CloserDashboardContext} />
+        <Outlet context={{ adminEmail, org, refresh } satisfies CosellaDashboardContext} />
       </main>
     </div>
   )
@@ -2668,14 +2668,14 @@ export default function CloserOSAdminLayout() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/CloserOSAdminLayout.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/CosellaAdminLayout.test.tsx`
 Expected: PASS (2 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/CloserOSAdminLayout.tsx src/pages/closerOS/dashboard/CloserOSAdminLayout.test.tsx
-git commit -m "feat(closer-os): add Closer OS admin dashboard shell"
+git add src/pages/cosella/dashboard/CosellaAdminLayout.tsx src/pages/cosella/dashboard/CosellaAdminLayout.test.tsx
+git commit -m "feat(cosella): add Cosella admin dashboard shell"
 ```
 
 ---
@@ -2683,25 +2683,25 @@ git commit -m "feat(closer-os): add Closer OS admin dashboard shell"
 ## Task 14: `Overview.tsx` — F4 digest mirror + F5 guarantee tracker
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/Overview.tsx`
-- Test: `src/pages/closerOS/dashboard/Overview.test.tsx`
+- Create: `src/pages/cosella/dashboard/Overview.tsx`
+- Test: `src/pages/cosella/dashboard/Overview.test.tsx`
 
 **Interfaces:**
-- Consumes: `CloserDashboardContext` from Task 13.
-- Produces: default export `Overview`, registered as the index route under `/closer-os/dashboard` in Task 23. Deliberately aggregates all-time data (not literally "today") since seeded demo dates are relative — matches how `src/pages/sales/Overview.tsx` already avoids day-boundary filtering for the same reason.
+- Consumes: `CosellaDashboardContext` from Task 13.
+- Produces: default export `Overview`, registered as the index route under `/cosella/dashboard` in Task 23. Deliberately aggregates all-time data (not literally "today") since seeded demo dates are relative — matches how `src/pages/sales/Overview.tsx` already avoids day-boundary filtering for the same reason.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/dashboard/Overview.test.tsx
+// src/pages/cosella/dashboard/Overview.test.tsx
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import Overview from './Overview'
-import { demoSeedCloserOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(context: CloserDashboardContext) {
+function renderWithContext(context: CosellaDashboardContext) {
   return render(
     <MemoryRouter>
       <Routes>
@@ -2715,7 +2715,7 @@ function renderWithContext(context: CloserDashboardContext) {
 
 describe('Overview', () => {
   it('shows cash collected, deals saved, money leaked, a leaderboard, and the guarantee tracker', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     expect(screen.getByText('Cash collected')).toBeInTheDocument()
     expect(screen.getByText('Deals saved')).toBeInTheDocument()
@@ -2731,21 +2731,21 @@ describe('Overview', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/Overview.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/Overview.test.tsx`
 Expected: FAIL — `Cannot find module './Overview'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/dashboard/Overview.tsx
+// src/pages/cosella/dashboard/Overview.tsx
 import { useOutletContext } from 'react-router-dom'
 import { DollarSign, Flame, ShieldCheck, TrendingDown, Trophy } from 'lucide-react'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
 const GUARANTEE_TARGET = 20000
 
 export default function Overview() {
-  const { org } = useOutletContext<CloserDashboardContext>()
+  const { org } = useOutletContext<CosellaDashboardContext>()
 
   const cashCollected = org.ledgerEntries.reduce((sum, e) => sum + e.dollarValue, 0)
   const dealsSaved = org.ledgerEntries.filter(e => e.tag === 'saved')
@@ -2832,14 +2832,14 @@ export default function Overview() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/Overview.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/Overview.test.tsx`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/Overview.tsx src/pages/closerOS/dashboard/Overview.test.tsx
-git commit -m "feat(closer-os): add F4/F5 Overview dashboard page"
+git add src/pages/cosella/dashboard/Overview.tsx src/pages/cosella/dashboard/Overview.test.tsx
+git commit -m "feat(cosella): add F4/F5 Overview dashboard page"
 ```
 
 ---
@@ -2847,29 +2847,29 @@ git commit -m "feat(closer-os): add F4/F5 Overview dashboard page"
 ## Task 15: `PaymentSettings.tsx` — F1 offer setup + mock payment connections
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/PaymentSettings.tsx`
-- Test: `src/pages/closerOS/dashboard/PaymentSettings.test.tsx`
+- Create: `src/pages/cosella/dashboard/PaymentSettings.tsx`
+- Test: `src/pages/cosella/dashboard/PaymentSettings.test.tsx`
 
 **Interfaces:**
-- Consumes: `CloserDashboardContext` from Task 13; `addDealTypePriceOption`, `removeDealTypePriceOption`, `toggleIntegration` from Task 1.
-- Produces: default export `PaymentSettings`, registered at `/closer-os/dashboard/payment-settings` in Task 23.
+- Consumes: `CosellaDashboardContext` from Task 13; `addDealTypePriceOption`, `removeDealTypePriceOption`, `toggleIntegration` from Task 1.
+- Produces: default export `PaymentSettings`, registered at `/cosella/dashboard/payment-settings` in Task 23.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/dashboard/PaymentSettings.test.tsx
+// src/pages/cosella/dashboard/PaymentSettings.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
 import PaymentSettings from './PaymentSettings'
-import { createOrg, demoSeedCloserOrg, getOrgByAdminEmail } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { createOrg, demoSeedCosellaOrg, getOrgByAdminEmail } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(adminEmail: string, org: ReturnType<typeof demoSeedCloserOrg>, refresh: () => void) {
+function renderWithContext(adminEmail: string, org: ReturnType<typeof demoSeedCosellaOrg>, refresh: () => void) {
   return render(
     <MemoryRouter>
       <Routes>
-        <Route path="/" element={<Outlet context={{ adminEmail, org, refresh } satisfies CloserDashboardContext} />}>
+        <Route path="/" element={<Outlet context={{ adminEmail, org, refresh } satisfies CosellaDashboardContext} />}>
           <Route index element={<PaymentSettings />} />
         </Route>
       </Routes>
@@ -2881,14 +2881,14 @@ describe('PaymentSettings', () => {
   beforeEach(() => localStorage.clear())
 
   it('lists existing deal-type price options and their PIF price', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext('ada@acme.com', org, () => {})
     expect(screen.getByText('Core Program')).toBeInTheDocument()
     expect(screen.getByText(/\$12,599/)).toBeInTheDocument()
   })
 
   it('adds a new deal type with PIF price and one plan installment amount', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     let org = getOrgByAdminEmail('ada@acme.com')!
     const refresh = () => { org = getOrgByAdminEmail('ada@acme.com')! }
     const { rerender } = renderWithContext('ada@acme.com', org, refresh)
@@ -2901,7 +2901,7 @@ describe('PaymentSettings', () => {
     rerender(
       <MemoryRouter>
         <Routes>
-          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh } satisfies CloserDashboardContext} />}>
+          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh } satisfies CosellaDashboardContext} />}>
             <Route index element={<PaymentSettings />} />
           </Route>
         </Routes>
@@ -2912,12 +2912,12 @@ describe('PaymentSettings', () => {
   })
 
   it('toggles a payment connection on and off', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     let org = getOrgByAdminEmail('ada@acme.com')!
     const refresh = () => { org = getOrgByAdminEmail('ada@acme.com')! }
     const { rerender } = renderWithContext('ada@acme.com', org, refresh)
 
-    // Seeded org already has 'stripe' connected (see demoSeedCloserOrg) — NMI is not, so its button reads "Connect".
+    // Seeded org already has 'stripe' connected (see demoSeedCosellaOrg) — NMI is not, so its button reads "Connect".
     // Regex is anchored (^...$) so it matches only an exact "Connect" label, not "Disconnect" —
     // /connect/i without anchors also matches "Disconnect" (it contains the substring "connect"),
     // which would hit Stripe's already-connected button instead of NMI's.
@@ -2928,7 +2928,7 @@ describe('PaymentSettings', () => {
     rerender(
       <MemoryRouter>
         <Routes>
-          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh } satisfies CloserDashboardContext} />}>
+          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh } satisfies CosellaDashboardContext} />}>
             <Route index element={<PaymentSettings />} />
           </Route>
         </Routes>
@@ -2941,18 +2941,18 @@ describe('PaymentSettings', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/PaymentSettings.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/PaymentSettings.test.tsx`
 Expected: FAIL — `Cannot find module './PaymentSettings'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/dashboard/PaymentSettings.tsx
+// src/pages/cosella/dashboard/PaymentSettings.tsx
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { Trash2 } from 'lucide-react'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
-import { addDealTypePriceOption, removeDealTypePriceOption, toggleIntegration } from '../closerOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
+import { addDealTypePriceOption, removeDealTypePriceOption, toggleIntegration } from '../cosellaOrgStore'
 
 const PAYMENT_PROCESSORS = [
   { id: 'stripe', name: 'Stripe' },
@@ -2961,7 +2961,7 @@ const PAYMENT_PROCESSORS = [
 ]
 
 export default function PaymentSettings() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
   const [label, setLabel] = useState('')
   const [pif, setPif] = useState('')
   const [deposit, setDeposit] = useState('')
@@ -3037,14 +3037,14 @@ export default function PaymentSettings() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/PaymentSettings.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/PaymentSettings.test.tsx`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/PaymentSettings.tsx src/pages/closerOS/dashboard/PaymentSettings.test.tsx
-git commit -m "feat(closer-os): add F1 payment settings page"
+git add src/pages/cosella/dashboard/PaymentSettings.tsx src/pages/cosella/dashboard/PaymentSettings.test.tsx
+git commit -m "feat(cosella): add F1 payment settings page"
 ```
 
 ---
@@ -3052,25 +3052,25 @@ git commit -m "feat(closer-os): add F1 payment settings page"
 ## Task 16: `PlanTracker.tsx` — F2 installment plan risk tracker
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/PlanTracker.tsx`
-- Test: `src/pages/closerOS/dashboard/PlanTracker.test.tsx`
+- Create: `src/pages/cosella/dashboard/PlanTracker.tsx`
+- Test: `src/pages/cosella/dashboard/PlanTracker.test.tsx`
 
 **Interfaces:**
-- Consumes: `CloserDashboardContext` from Task 13; `recordInstallmentOutcome` from Task 1.
-- Produces: default export `PlanTracker`, registered at `/closer-os/dashboard/plan-tracker` in Task 23.
+- Consumes: `CosellaDashboardContext` from Task 13; `recordInstallmentOutcome` from Task 1.
+- Produces: default export `PlanTracker`, registered at `/cosella/dashboard/plan-tracker` in Task 23.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/dashboard/PlanTracker.test.tsx
+// src/pages/cosella/dashboard/PlanTracker.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import PlanTracker from './PlanTracker'
-import { demoSeedCloserOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(context: CloserDashboardContext) {
+function renderWithContext(context: CosellaDashboardContext) {
   return render(
     <MemoryRouter>
       <Routes>
@@ -3084,7 +3084,7 @@ function renderWithContext(context: CloserDashboardContext) {
 
 describe('PlanTracker', () => {
   it('lists every payment plan with a risk badge', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     expect(screen.getByText('Jamie Whitfield')).toBeInTheDocument()
     expect(screen.getByText('Morgan Reyes')).toBeInTheDocument()
@@ -3092,7 +3092,7 @@ describe('PlanTracker', () => {
   })
 
   it('opens a plan detail with the matching recovery script for a red-risk plan', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     fireEvent.click(screen.getByText('Morgan Reyes')) // seeded red-risk plan
     expect(screen.getByText(/recovery script/i)).toBeInTheDocument()
@@ -3103,20 +3103,20 @@ describe('PlanTracker', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/PlanTracker.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/PlanTracker.test.tsx`
 Expected: FAIL — `Cannot find module './PlanTracker'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/dashboard/PlanTracker.tsx
+// src/pages/cosella/dashboard/PlanTracker.tsx
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
-import { recordInstallmentOutcome, type PaymentPlan } from '../closerOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
+import { recordInstallmentOutcome, type PaymentPlan } from '../cosellaOrgStore'
 
 const RISK_BADGE: Record<PaymentPlan['riskScore'], string> = {
   green: 'bg-emerald-50 text-emerald-600',
@@ -3131,7 +3131,7 @@ const RECOVERY_SCRIPT: Record<PaymentPlan['riskScore'], string> = {
 }
 
 export default function PlanTracker() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
   const [selected, setSelected] = useState<PaymentPlan | null>(null)
 
   if (selected) {
@@ -3215,14 +3215,14 @@ export default function PlanTracker() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/PlanTracker.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/PlanTracker.test.tsx`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/PlanTracker.tsx src/pages/closerOS/dashboard/PlanTracker.test.tsx
-git commit -m "feat(closer-os): add F2 installment plan tracker"
+git add src/pages/cosella/dashboard/PlanTracker.tsx src/pages/cosella/dashboard/PlanTracker.test.tsx
+git commit -m "feat(cosella): add F2 installment plan tracker"
 ```
 
 ---
@@ -3230,25 +3230,25 @@ git commit -m "feat(closer-os): add F2 installment plan tracker"
 ## Task 17: `Ledger.tsx` — F5 revenue attribution ledger
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/Ledger.tsx`
-- Test: `src/pages/closerOS/dashboard/Ledger.test.tsx`
+- Create: `src/pages/cosella/dashboard/Ledger.tsx`
+- Test: `src/pages/cosella/dashboard/Ledger.test.tsx`
 
 **Interfaces:**
-- Consumes: `CloserDashboardContext` from Task 13; `logAuditEvent` from Task 1.
-- Produces: default export `Ledger`, registered at `/closer-os/dashboard/ledger` in Task 23.
+- Consumes: `CosellaDashboardContext` from Task 13; `logAuditEvent` from Task 1.
+- Produces: default export `Ledger`, registered at `/cosella/dashboard/ledger` in Task 23.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/dashboard/Ledger.test.tsx
+// src/pages/cosella/dashboard/Ledger.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
 import Ledger from './Ledger'
-import { createOrg, demoSeedCloserOrg, getOrgByAdminEmail } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { createOrg, demoSeedCosellaOrg, getOrgByAdminEmail } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(context: CloserDashboardContext) {
+function renderWithContext(context: CosellaDashboardContext) {
   return render(
     <MemoryRouter>
       <Routes>
@@ -3264,14 +3264,14 @@ describe('Ledger', () => {
   beforeEach(() => localStorage.clear())
 
   it('lists ledger entries and the guarantee tracker', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     expect(screen.getByText('Price is too high')).toBeInTheDocument()
     expect(screen.getByText(/guarantee target/i)).toBeInTheDocument()
   })
 
   it('filters by closer', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     fireEvent.change(screen.getByLabelText(/closer/i), { target: { value: 'Sam Patel' } })
     expect(screen.queryByText('Price is too high')).not.toBeInTheDocument() // that entry belongs to Jordan Lee
@@ -3279,7 +3279,7 @@ describe('Ledger', () => {
   })
 
   it('logs an audit entry when generating a renewal deck', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     fireEvent.click(screen.getByRole('button', { name: /generate renewal deck/i }))
@@ -3290,20 +3290,20 @@ describe('Ledger', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/Ledger.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/Ledger.test.tsx`
 Expected: FAIL — `Cannot find module './Ledger'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/dashboard/Ledger.tsx
+// src/pages/cosella/dashboard/Ledger.tsx
 import { useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
 import { FileDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
-import { logAuditEvent, type LedgerEntry } from '../closerOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
+import { logAuditEvent, type LedgerEntry } from '../cosellaOrgStore'
 
 const GUARANTEE_TARGET = 20000
 
@@ -3314,7 +3314,7 @@ const TAG_BADGE: Record<LedgerEntry['tag'], string> = {
 }
 
 export default function Ledger() {
-  const { adminEmail, org } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org } = useOutletContext<CosellaDashboardContext>()
   const [closerFilter, setCloserFilter] = useState('')
   const [tagFilter, setTagFilter] = useState<'' | LedgerEntry['tag']>('')
 
@@ -3337,7 +3337,7 @@ export default function Ledger() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Ledger</h1>
-          <p className="mt-1 text-sm text-slate-500">Proof, deal by deal, of exactly what Closer OS has made you.</p>
+          <p className="mt-1 text-sm text-slate-500">Proof, deal by deal, of exactly what Cosella has made you.</p>
         </div>
         <button onClick={handleGenerateRenewalDeck} className="flex h-10 flex-shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white hover:bg-primary/90">
           <FileDown className="h-4 w-4" /> Generate renewal deck
@@ -3397,14 +3397,14 @@ export default function Ledger() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/Ledger.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/Ledger.test.tsx`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/Ledger.tsx src/pages/closerOS/dashboard/Ledger.test.tsx
-git commit -m "feat(closer-os): add F5 revenue attribution ledger"
+git add src/pages/cosella/dashboard/Ledger.tsx src/pages/cosella/dashboard/Ledger.test.tsx
+git commit -m "feat(cosella): add F5 revenue attribution ledger"
 ```
 
 ---
@@ -3412,25 +3412,25 @@ git commit -m "feat(closer-os): add F5 revenue attribution ledger"
 ## Task 18: `SlackReport.tsx` — F4 Money Slack Report config + preview
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/SlackReport.tsx`
-- Test: `src/pages/closerOS/dashboard/SlackReport.test.tsx`
+- Create: `src/pages/cosella/dashboard/SlackReport.tsx`
+- Test: `src/pages/cosella/dashboard/SlackReport.test.tsx`
 
 **Interfaces:**
-- Consumes: `CloserDashboardContext` from Task 13; `updateSlackDigestConfig` from Task 1.
-- Produces: default export `SlackReport`, registered at `/closer-os/dashboard/slack-report` in Task 23.
+- Consumes: `CosellaDashboardContext` from Task 13; `updateSlackDigestConfig` from Task 1.
+- Produces: default export `SlackReport`, registered at `/cosella/dashboard/slack-report` in Task 23.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/dashboard/SlackReport.test.tsx
+// src/pages/cosella/dashboard/SlackReport.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
 import SlackReport from './SlackReport'
-import { createOrg, demoSeedCloserOrg, getOrgByAdminEmail } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { createOrg, demoSeedCosellaOrg, getOrgByAdminEmail } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(context: CloserDashboardContext) {
+function renderWithContext(context: CosellaDashboardContext) {
   return render(
     <MemoryRouter>
       <Routes>
@@ -3446,16 +3446,16 @@ describe('SlackReport', () => {
   beforeEach(() => localStorage.clear())
 
   it('shows the configured channel and send time, and a live preview of the digest', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
-    expect(screen.getByDisplayValue('#closer-os-wins')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('#cosella-wins')).toBeInTheDocument()
     expect(screen.getByText(/cash today/i)).toBeInTheDocument()
     expect(screen.getByText(/deals saved/i)).toBeInTheDocument()
     expect(screen.getByText(/money leaked/i)).toBeInTheDocument()
   })
 
   it('saves updated config on Save changes', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     fireEvent.change(screen.getByLabelText(/channel/i), { target: { value: '#sales-wins' } })
@@ -3467,22 +3467,22 @@ describe('SlackReport', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/SlackReport.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/SlackReport.test.tsx`
 Expected: FAIL — `Cannot find module './SlackReport'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/dashboard/SlackReport.tsx
+// src/pages/cosella/dashboard/SlackReport.tsx
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
 import { MessageSquare } from 'lucide-react'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
-import { updateSlackDigestConfig } from '../closerOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
+import { updateSlackDigestConfig } from '../cosellaOrgStore'
 
 export default function SlackReport() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
   const [channel, setChannel] = useState(org.slackDigestConfig.channel)
   const [sendTime, setSendTime] = useState(org.slackDigestConfig.sendTime)
   const [bigWinThreshold, setBigWinThreshold] = useState(String(org.slackDigestConfig.bigWinThreshold))
@@ -3531,7 +3531,7 @@ export default function SlackReport() {
 
       <p className="mt-8 lf-section-title">Live preview</p>
       <div className="mt-3 rounded-xl border border-slate-200 bg-[#1a1d21] p-5 text-white">
-        <p className="flex items-center gap-2 font-bold"><MessageSquare className="h-4 w-4 text-emerald-400" /> Closer OS Bot <span className="text-xs font-normal text-white/40">Today at {sendTime}</span></p>
+        <p className="flex items-center gap-2 font-bold"><MessageSquare className="h-4 w-4 text-emerald-400" /> Cosella Bot <span className="text-xs font-normal text-white/40">Today at {sendTime}</span></p>
         <p className="mt-3 text-sm"><strong>CASH TODAY:</strong> ${cashCollected.toLocaleString()} collected</p>
         <p className="mt-2 text-sm"><strong>DEALS SAVED:</strong> {dealsSaved.length} deal{dealsSaved.length === 1 ? '' : 's'} worth ${dealsSaved.reduce((s, e) => s + e.dollarValue, 0).toLocaleString()} saved by copilot counters</p>
         <p className="mt-2 text-sm"><strong>MONEY LEAKED:</strong> ${moneyLeaked.toLocaleString()} leaked across {lostCalls.length} call{lostCalls.length === 1 ? '' : 's'}</p>
@@ -3543,14 +3543,14 @@ export default function SlackReport() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/SlackReport.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/SlackReport.test.tsx`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/SlackReport.tsx src/pages/closerOS/dashboard/SlackReport.test.tsx
-git commit -m "feat(closer-os): add F4 Money Slack Report config and live preview"
+git add src/pages/cosella/dashboard/SlackReport.tsx src/pages/cosella/dashboard/SlackReport.test.tsx
+git commit -m "feat(cosella): add F4 Money Slack Report config and live preview"
 ```
 
 ---
@@ -3558,25 +3558,25 @@ git commit -m "feat(closer-os): add F4 Money Slack Report config and live previe
 ## Task 19: `ProspectIntel.tsx` — F3 funnel-to-call intelligence management
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/ProspectIntel.tsx`
-- Test: `src/pages/closerOS/dashboard/ProspectIntel.test.tsx`
+- Create: `src/pages/cosella/dashboard/ProspectIntel.tsx`
+- Test: `src/pages/cosella/dashboard/ProspectIntel.test.tsx`
 
 **Interfaces:**
-- Consumes: `CloserDashboardContext` from Task 13; `addProspectCard` from Task 1.
-- Produces: default export `ProspectIntel`, registered at `/closer-os/dashboard/prospect-intel` in Task 23. This is the admin-side view of the same `prospectCards` data the closer's app (Task 8/12) reads from — the "funnel connector" that would ingest real VSL/application data in production is simulated here as a manual-entry form.
+- Consumes: `CosellaDashboardContext` from Task 13; `addProspectCard` from Task 1.
+- Produces: default export `ProspectIntel`, registered at `/cosella/dashboard/prospect-intel` in Task 23. This is the admin-side view of the same `prospectCards` data the closer's app (Task 8/12) reads from — the "funnel connector" that would ingest real VSL/application data in production is simulated here as a manual-entry form.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/dashboard/ProspectIntel.test.tsx
+// src/pages/cosella/dashboard/ProspectIntel.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import ProspectIntel from './ProspectIntel'
-import { demoSeedCloserOrg, getOrgByAdminEmail, createOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg, getOrgByAdminEmail, createOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(context: CloserDashboardContext) {
+function renderWithContext(context: CosellaDashboardContext) {
   return render(
     <MemoryRouter>
       <Routes>
@@ -3590,14 +3590,14 @@ function renderWithContext(context: CloserDashboardContext) {
 
 describe('ProspectIntel', () => {
   it('lists every prospect card with its heat signal', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     expect(screen.getByText('Casey Nguyen')).toBeInTheDocument()
     expect(screen.getByText('HOT')).toBeInTheDocument()
   })
 
   it('adds a new prospect card from the manual-entry form', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
 
@@ -3613,18 +3613,18 @@ describe('ProspectIntel', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/ProspectIntel.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/ProspectIntel.test.tsx`
 Expected: FAIL — `Cannot find module './ProspectIntel'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/dashboard/ProspectIntel.tsx
+// src/pages/cosella/dashboard/ProspectIntel.tsx
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
-import { addProspectCard } from '../closerOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
+import { addProspectCard } from '../cosellaOrgStore'
 
 const HEAT_BADGE: Record<'HOT' | 'WARM' | 'COLD', string> = {
   HOT: 'bg-red-50 text-red-600', WARM: 'bg-amber-50 text-amber-600', COLD: 'bg-blue-50 text-blue-600',
@@ -3637,7 +3637,7 @@ function heatFromWatchPct(pct: number): 'HOT' | 'WARM' | 'COLD' {
 }
 
 export default function ProspectIntel() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
   const [name, setName] = useState('')
   const [watchPct, setWatchPct] = useState('')
   const [openingLine, setOpeningLine] = useState('')
@@ -3693,14 +3693,14 @@ export default function ProspectIntel() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/ProspectIntel.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/ProspectIntel.test.tsx`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/ProspectIntel.tsx src/pages/closerOS/dashboard/ProspectIntel.test.tsx
-git commit -m "feat(closer-os): add F3 prospect intel management page"
+git add src/pages/cosella/dashboard/ProspectIntel.tsx src/pages/cosella/dashboard/ProspectIntel.test.tsx
+git commit -m "feat(cosella): add F3 prospect intel management page"
 ```
 
 ---
@@ -3708,25 +3708,25 @@ git commit -m "feat(closer-os): add F3 prospect intel management page"
 ## Task 20: `GhostSimulator.tsx` — F6 ghost library + practice leaderboard
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/GhostSimulator.tsx`
-- Test: `src/pages/closerOS/dashboard/GhostSimulator.test.tsx`
+- Create: `src/pages/cosella/dashboard/GhostSimulator.tsx`
+- Test: `src/pages/cosella/dashboard/GhostSimulator.test.tsx`
 
 **Interfaces:**
-- Consumes: `CloserDashboardContext` from Task 13; `recordGhostSession` from Task 1.
-- Produces: default export `GhostSimulator`, registered at `/closer-os/dashboard/ghost-simulator` in Task 23. Ghost personas themselves are created from Call History (Task 22's "Make a Ghost" button); this page lists the library and runs practice sessions. Practice is a self-reported scored checklist (closer confirms what they did), not real-time voice AI — an explicit, deliberate simplification since voice AI is out of scope for this prototype.
+- Consumes: `CosellaDashboardContext` from Task 13; `recordGhostSession` from Task 1.
+- Produces: default export `GhostSimulator`, registered at `/cosella/dashboard/ghost-simulator` in Task 23. Ghost personas themselves are created from Call History (Task 22's "Make a Ghost" button); this page lists the library and runs practice sessions. Practice is a self-reported scored checklist (closer confirms what they did), not real-time voice AI — an explicit, deliberate simplification since voice AI is out of scope for this prototype.
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/dashboard/GhostSimulator.test.tsx
+// src/pages/cosella/dashboard/GhostSimulator.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import GhostSimulator from './GhostSimulator'
-import { demoSeedCloserOrg, getOrgByAdminEmail, createOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg, getOrgByAdminEmail, createOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(context: CloserDashboardContext) {
+function renderWithContext(context: CosellaDashboardContext) {
   return render(
     <MemoryRouter>
       <Routes>
@@ -3740,14 +3740,14 @@ function renderWithContext(context: CloserDashboardContext) {
 
 describe('GhostSimulator', () => {
   it('lists ghost personas and the practice leaderboard', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     expect(screen.getByText(/ghost of price objection/i)).toBeInTheDocument()
     expect(screen.getByText('Sam Patel')).toBeInTheDocument() // top scorer (88) in seeded ghostSessions
   })
 
   it('runs a practice session and records the score', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
 
@@ -3766,21 +3766,21 @@ describe('GhostSimulator', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/GhostSimulator.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/GhostSimulator.test.tsx`
 Expected: FAIL — `Cannot find module './GhostSimulator'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/dashboard/GhostSimulator.tsx
+// src/pages/cosella/dashboard/GhostSimulator.tsx
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
-import { recordGhostSession, type GhostPersona } from '../closerOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
+import { recordGhostSession, type GhostPersona } from '../cosellaOrgStore'
 
 export default function GhostSimulator() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
   const [practicing, setPracticing] = useState<GhostPersona | null>(null)
   const [closerName, setCloserName] = useState('')
   const [score, setScore] = useState('')
@@ -3871,14 +3871,14 @@ export default function GhostSimulator() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/GhostSimulator.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/GhostSimulator.test.tsx`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/GhostSimulator.tsx src/pages/closerOS/dashboard/GhostSimulator.test.tsx
-git commit -m "feat(closer-os): add F6 ghost prospect simulator"
+git add src/pages/cosella/dashboard/GhostSimulator.tsx src/pages/cosella/dashboard/GhostSimulator.test.tsx
+git commit -m "feat(cosella): add F6 ghost prospect simulator"
 ```
 
 ---
@@ -3886,25 +3886,25 @@ git commit -m "feat(closer-os): add F6 ghost prospect simulator"
 ## Task 21: `LiveRescueBoard.tsx` — F7 live deal rescue board
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/LiveRescueBoard.tsx`
-- Test: `src/pages/closerOS/dashboard/LiveRescueBoard.test.tsx`
+- Create: `src/pages/cosella/dashboard/LiveRescueBoard.tsx`
+- Test: `src/pages/cosella/dashboard/LiveRescueBoard.test.tsx`
 
 **Interfaces:**
-- Consumes: `CloserDashboardContext` from Task 13; `addLiveCallRiskEntry`, `resolveRescue` from Task 1.
-- Produces: default export `LiveRescueBoard`, registered at `/closer-os/dashboard/rescue-board` in Task 23. Since this prototype has no real concurrent call engine, a "Simulate a live call" button seeds a new unresolved risk entry so the board can be demoed as a standalone page (in addition to the entries Task 12 writes from real completed calls).
+- Consumes: `CosellaDashboardContext` from Task 13; `addLiveCallRiskEntry`, `resolveRescue` from Task 1.
+- Produces: default export `LiveRescueBoard`, registered at `/cosella/dashboard/rescue-board` in Task 23. Since this prototype has no real concurrent call engine, a "Simulate a live call" button seeds a new unresolved risk entry so the board can be demoed as a standalone page (in addition to the entries Task 12 writes from real completed calls).
 
 - [ ] **Step 1: Write the failing test**
 
 ```tsx
-// src/pages/closerOS/dashboard/LiveRescueBoard.test.tsx
+// src/pages/cosella/dashboard/LiveRescueBoard.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import LiveRescueBoard from './LiveRescueBoard'
-import { demoSeedCloserOrg, getOrgByAdminEmail, createOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg, getOrgByAdminEmail, createOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(context: CloserDashboardContext) {
+function renderWithContext(context: CosellaDashboardContext) {
   return render(
     <MemoryRouter>
       <Routes>
@@ -3918,21 +3918,21 @@ function renderWithContext(context: CloserDashboardContext) {
 
 describe('LiveRescueBoard', () => {
   it('shows unresolved risk entries as red/yellow cards with rescue actions', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     expect(screen.getByText('Riley Chen')).toBeInTheDocument() // unresolved red entry
     expect(screen.getAllByRole('button', { name: /whisper/i }).length).toBeGreaterThan(0)
   })
 
   it('does not show an action row for an already-resolved entry', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
     const avery = screen.getByText('Avery Stone').closest('div.lf-panel')!
     expect(avery).toHaveTextContent(/saved/i) // resolved in the seed data
   })
 
   it('resolving a rescue writes the outcome to the store', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
 
@@ -3945,7 +3945,7 @@ describe('LiveRescueBoard', () => {
   })
 
   it('simulates a new live call and adds it to the board', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     const before = org.liveCallRiskEntries.length
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
@@ -3957,18 +3957,18 @@ describe('LiveRescueBoard', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/LiveRescueBoard.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/LiveRescueBoard.test.tsx`
 Expected: FAIL — `Cannot find module './LiveRescueBoard'`
 
 - [ ] **Step 3: Write the implementation**
 
 ```tsx
-// src/pages/closerOS/dashboard/LiveRescueBoard.tsx
+// src/pages/cosella/dashboard/LiveRescueBoard.tsx
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { cn } from '@/lib/utils'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
-import { addLiveCallRiskEntry, resolveRescue, type LiveCallRiskEntry } from '../closerOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
+import { addLiveCallRiskEntry, resolveRescue, type LiveCallRiskEntry } from '../cosellaOrgStore'
 
 const RISK_BORDER: Record<LiveCallRiskEntry['riskLevel'], string> = {
   green: 'border-emerald-200', yellow: 'border-amber-300', red: 'border-red-300',
@@ -3978,7 +3978,7 @@ const SIMULATED_PROSPECTS = ['Harper Lin', 'Quinn Alvarez', 'Reese Donovan']
 const SIMULATED_SIGNALS = ['Prospect talking less', 'Long silence after price was mentioned', "Two failed close attempts"]
 
 export default function LiveRescueBoard() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
   const [resolving, setResolving] = useState<{ entry: LiveCallRiskEntry; mode: 'listen' | 'whisper' | 'warm-join' } | null>(null)
 
   function handleResolve(outcome: 'saved' | 'lost') {
@@ -4060,14 +4060,14 @@ export default function LiveRescueBoard() {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/LiveRescueBoard.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/LiveRescueBoard.test.tsx`
 Expected: PASS (4 tests)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/LiveRescueBoard.tsx src/pages/closerOS/dashboard/LiveRescueBoard.test.tsx
-git commit -m "feat(closer-os): add F7 live deal rescue board"
+git add src/pages/cosella/dashboard/LiveRescueBoard.tsx src/pages/cosella/dashboard/LiveRescueBoard.test.tsx
+git commit -m "feat(cosella): add F7 live deal rescue board"
 ```
 
 ---
@@ -4075,28 +4075,28 @@ git commit -m "feat(closer-os): add F7 live deal rescue board"
 ## Task 22: `Team.tsx`, `CallHistory.tsx`, `Billing.tsx`, `Integrations.tsx`, `Settings.tsx` — duplicated dashboard pages
 
 **Files:**
-- Create: `src/pages/closerOS/dashboard/Team.tsx` + `Team.test.tsx`
-- Create: `src/pages/closerOS/dashboard/CallHistory.tsx` + `CallHistory.test.tsx`
-- Create: `src/pages/closerOS/dashboard/Billing.tsx` + `Billing.test.tsx`
-- Create: `src/pages/closerOS/dashboard/Integrations.tsx` + `Integrations.test.tsx`
-- Create: `src/pages/closerOS/dashboard/Settings.tsx` + `Settings.test.tsx`
+- Create: `src/pages/cosella/dashboard/Team.tsx` + `Team.test.tsx`
+- Create: `src/pages/cosella/dashboard/CallHistory.tsx` + `CallHistory.test.tsx`
+- Create: `src/pages/cosella/dashboard/Billing.tsx` + `Billing.test.tsx`
+- Create: `src/pages/cosella/dashboard/Integrations.tsx` + `Integrations.test.tsx`
+- Create: `src/pages/cosella/dashboard/Settings.tsx` + `Settings.test.tsx`
 
 **Interfaces:**
-- Consumes: `CloserDashboardContext` from Task 13; `addMember`, `markMemberSeatPaid`, `emailDomain`, `addGhostPersonaFromCall`, `toggleIntegration`, `updateOrg` from Task 1; `CLOSER_OS_SEAT_PRICE`, `CLOSER_OS_SETUP_FEE` from Task 3.
-- Produces: five default exports (`Team`, `CallHistory`, `Billing`, `Integrations`, `Settings`), registered at `/closer-os/dashboard/team`, `/calls`, `/billing`, `/integrations`, `/settings` in Task 23. These are mechanical adaptations of `src/pages/sales/*` equivalents onto `closerOrgStore` — bundled into one task since each is a small, structurally-identical duplication, not independent design work. `CallHistory` is the one with genuinely new behavior: a "Make a Ghost" button on lost calls (F6's entry point).
+- Consumes: `CosellaDashboardContext` from Task 13; `addMember`, `markMemberSeatPaid`, `emailDomain`, `addGhostPersonaFromCall`, `toggleIntegration`, `updateOrg` from Task 1; `COSELLA_SEAT_PRICE`, `COSELLA_SETUP_FEE` from Task 3.
+- Produces: five default exports (`Team`, `CallHistory`, `Billing`, `Integrations`, `Settings`), registered at `/cosella/dashboard/team`, `/calls`, `/billing`, `/integrations`, `/settings` in Task 23. These are mechanical adaptations of `src/pages/sales/*` equivalents onto `cosellaOrgStore` — bundled into one task since each is a small, structurally-identical duplication, not independent design work. `CallHistory` is the one with genuinely new behavior: a "Make a Ghost" button on lost calls (F6's entry point).
 
 - [ ] **Step 1: Write the failing tests**
 
 ```tsx
-// src/pages/closerOS/dashboard/Team.test.tsx
+// src/pages/cosella/dashboard/Team.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import Team from './Team'
-import { demoSeedCloserOrg, getOrgByAdminEmail, createOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg, getOrgByAdminEmail, createOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(context: CloserDashboardContext) {
+function renderWithContext(context: CosellaDashboardContext) {
   return render(
     <MemoryRouter>
       <Routes>
@@ -4110,7 +4110,7 @@ function renderWithContext(context: CloserDashboardContext) {
 
 describe('Team', () => {
   it('lists members and adds a new one with a matching-domain email', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
 
@@ -4126,15 +4126,15 @@ describe('Team', () => {
 ```
 
 ```tsx
-// src/pages/closerOS/dashboard/CallHistory.test.tsx
+// src/pages/cosella/dashboard/CallHistory.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import CallHistory from './CallHistory'
-import { demoSeedCloserOrg, getOrgByAdminEmail, createOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg, getOrgByAdminEmail, createOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
-function renderWithContext(context: CloserDashboardContext) {
+function renderWithContext(context: CosellaDashboardContext) {
   return render(
     <MemoryRouter>
       <Routes>
@@ -4148,7 +4148,7 @@ function renderWithContext(context: CloserDashboardContext) {
 
 describe('CallHistory', () => {
   it('lists calls and shows a Make a Ghost button only on lost calls', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
 
@@ -4157,7 +4157,7 @@ describe('CallHistory', () => {
   })
 
   it('creates a ghost persona from a lost call', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     const before = org.ghostPersonas.length
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
@@ -4170,21 +4170,21 @@ describe('CallHistory', () => {
 ```
 
 ```tsx
-// src/pages/closerOS/dashboard/Billing.test.tsx
+// src/pages/cosella/dashboard/Billing.test.tsx
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import Billing from './Billing'
-import { demoSeedCloserOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
 describe('Billing', () => {
   it('shows the setup fee and computed monthly total from active seats', () => {
-    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    const org = demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
     render(
       <MemoryRouter>
         <Routes>
-          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh: () => {} } satisfies CloserDashboardContext} />}>
+          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh: () => {} } satisfies CosellaDashboardContext} />}>
             <Route index element={<Billing />} />
           </Route>
         </Routes>
@@ -4198,22 +4198,22 @@ describe('Billing', () => {
 ```
 
 ```tsx
-// src/pages/closerOS/dashboard/Integrations.test.tsx
+// src/pages/cosella/dashboard/Integrations.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import Integrations from './Integrations'
-import { demoSeedCloserOrg, getOrgByAdminEmail, createOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg, getOrgByAdminEmail, createOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
 describe('Integrations', () => {
   it('toggles a connection', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     render(
       <MemoryRouter>
         <Routes>
-          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh: () => {} } satisfies CloserDashboardContext} />}>
+          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh: () => {} } satisfies CosellaDashboardContext} />}>
             <Route index element={<Integrations />} />
           </Route>
         </Routes>
@@ -4228,22 +4228,22 @@ describe('Integrations', () => {
 ```
 
 ```tsx
-// src/pages/closerOS/dashboard/Settings.test.tsx
+// src/pages/cosella/dashboard/Settings.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import Settings from './Settings'
-import { demoSeedCloserOrg, getOrgByAdminEmail, createOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { demoSeedCosellaOrg, getOrgByAdminEmail, createOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
 describe('Settings', () => {
   it('saves the org name and admin name', () => {
-    createOrg('ada@acme.com', demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
     const org = getOrgByAdminEmail('ada@acme.com')!
     render(
       <MemoryRouter>
         <Routes>
-          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh: () => {} } satisfies CloserDashboardContext} />}>
+          <Route path="/" element={<Outlet context={{ adminEmail: 'ada@acme.com', org, refresh: () => {} } satisfies CosellaDashboardContext} />}>
             <Route index element={<Settings />} />
           </Route>
         </Routes>
@@ -4258,23 +4258,23 @@ describe('Settings', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/Team.test.tsx src/pages/closerOS/dashboard/CallHistory.test.tsx src/pages/closerOS/dashboard/Billing.test.tsx src/pages/closerOS/dashboard/Integrations.test.tsx src/pages/closerOS/dashboard/Settings.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/Team.test.tsx src/pages/cosella/dashboard/CallHistory.test.tsx src/pages/cosella/dashboard/Billing.test.tsx src/pages/cosella/dashboard/Integrations.test.tsx src/pages/cosella/dashboard/Settings.test.tsx`
 Expected: FAIL — cannot find modules
 
 - [ ] **Step 3: Write the implementations**
 
 ```tsx
-// src/pages/closerOS/dashboard/Team.tsx
+// src/pages/cosella/dashboard/Team.tsx
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { Check, Copy, UserPlus } from 'lucide-react'
-import { addMember, emailDomain, markMemberSeatPaid } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { addMember, emailDomain, markMemberSeatPaid } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
 const SEAT_PRICE = 149
 
 export default function Team() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
   const [showAddForm, setShowAddForm] = useState(false)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -4363,13 +4363,13 @@ export default function Team() {
 ```
 
 ```tsx
-// src/pages/closerOS/dashboard/CallHistory.tsx
+// src/pages/cosella/dashboard/CallHistory.tsx
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft, Ghost, Phone } from 'lucide-react'
-import { addGhostPersonaFromCall, type CallRecord } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { addGhostPersonaFromCall, type CallRecord } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -4382,7 +4382,7 @@ function formatDate(iso: string): string {
 }
 
 export default function CallHistory() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
   const [selected, setSelected] = useState<CallRecord | null>(null)
 
   if (selected) {
@@ -4455,16 +4455,16 @@ export default function CallHistory() {
 ```
 
 ```tsx
-// src/pages/closerOS/dashboard/Billing.tsx
+// src/pages/cosella/dashboard/Billing.tsx
 import { useOutletContext } from 'react-router-dom'
 import { Check, CreditCard } from 'lucide-react'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
-import { CLOSER_OS_SETUP_FEE, CLOSER_OS_SEAT_PRICE } from '../marketing/CloserOSLanding'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
+import { COSELLA_SETUP_FEE, COSELLA_SEAT_PRICE } from '../marketing/CosellaLanding'
 
 export default function Billing() {
-  const { org } = useOutletContext<CloserDashboardContext>()
+  const { org } = useOutletContext<CosellaDashboardContext>()
   const paidSeats = org.members.filter(m => m.seatPaid)
-  const monthlyTotal = paidSeats.length * CLOSER_OS_SEAT_PRICE
+  const monthlyTotal = paidSeats.length * COSELLA_SEAT_PRICE
 
   return (
     <div className="mx-auto max-w-4xl px-10 py-12">
@@ -4474,13 +4474,13 @@ export default function Billing() {
       <div className="mt-8 grid gap-5 sm:grid-cols-2">
         <div className="lf-panel p-6">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-500"><Check className="h-4 w-4 text-emerald-500" /> Setup fee</div>
-          <p className="mt-3 text-2xl font-black text-slate-900">{org.setupFeePaid ? `$${CLOSER_OS_SETUP_FEE.toLocaleString()}` : 'Unpaid'}</p>
+          <p className="mt-3 text-2xl font-black text-slate-900">{org.setupFeePaid ? `$${COSELLA_SETUP_FEE.toLocaleString()}` : 'Unpaid'}</p>
           <p className="mt-1 text-sm text-slate-500">One-time, already settled.</p>
         </div>
         <div className="lf-panel p-6">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-500"><CreditCard className="h-4 w-4 text-primary" /> Monthly subscription</div>
           <p className="mt-3 text-2xl font-black text-slate-900">${monthlyTotal.toFixed(2)} <span className="text-base font-medium text-slate-500">/ month</span></p>
-          <p className="mt-1 text-sm text-slate-500">{paidSeats.length} active seat{paidSeats.length === 1 ? '' : 's'} at ${CLOSER_OS_SEAT_PRICE}/mo each.</p>
+          <p className="mt-1 text-sm text-slate-500">{paidSeats.length} active seat{paidSeats.length === 1 ? '' : 's'} at ${COSELLA_SEAT_PRICE}/mo each.</p>
         </div>
       </div>
 
@@ -4493,7 +4493,7 @@ export default function Billing() {
               <tr key={member.id} className="lf-table-row">
                 <td className="lf-table-cell font-medium text-slate-900">{member.name}</td>
                 <td className="lf-table-cell">{member.seatPaid ? <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600"><Check className="h-3 w-3" /> Active</span> : <span className="text-xs text-slate-400">Not active</span>}</td>
-                <td className="lf-table-cell text-right text-slate-600">{member.seatPaid ? `$${CLOSER_OS_SEAT_PRICE}/mo` : '—'}</td>
+                <td className="lf-table-cell text-right text-slate-600">{member.seatPaid ? `$${COSELLA_SEAT_PRICE}/mo` : '—'}</td>
               </tr>
             ))}
           </tbody>
@@ -4505,10 +4505,10 @@ export default function Billing() {
 ```
 
 ```tsx
-// src/pages/closerOS/dashboard/Integrations.tsx
+// src/pages/cosella/dashboard/Integrations.tsx
 import { useOutletContext } from 'react-router-dom'
-import { toggleIntegration } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { toggleIntegration } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
 const INTEGRATIONS = [
   { id: 'stripe', name: 'Stripe', category: 'Payments', description: 'Hosted checkout links for the Payment Moment Engine.', color: '#635bff', initial: 'S' },
@@ -4519,12 +4519,12 @@ const INTEGRATIONS = [
 ]
 
 export default function Integrations() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
 
   return (
     <div className="mx-auto max-w-4xl px-10 py-12">
       <h1 className="text-2xl font-bold text-slate-900">Integrations</h1>
-      <p className="mt-1 text-sm text-slate-500">Connect the tools Closer OS simulates on your behalf — this is a preview, nothing here makes a real connection yet.</p>
+      <p className="mt-1 text-sm text-slate-500">Connect the tools Cosella simulates on your behalf — this is a preview, nothing here makes a real connection yet.</p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {INTEGRATIONS.map(integration => {
@@ -4552,15 +4552,15 @@ export default function Integrations() {
 ```
 
 ```tsx
-// src/pages/closerOS/dashboard/Settings.tsx
+// src/pages/cosella/dashboard/Settings.tsx
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
-import { updateOrg } from '../closerOrgStore'
-import type { CloserDashboardContext } from './CloserOSAdminLayout'
+import { updateOrg } from '../cosellaOrgStore'
+import type { CosellaDashboardContext } from './CosellaAdminLayout'
 
 export default function Settings() {
-  const { adminEmail, org, refresh } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org, refresh } = useOutletContext<CosellaDashboardContext>()
   const [orgName, setOrgName] = useState(org.orgName)
   const [adminName, setAdminName] = useState(org.admin.name)
 
@@ -4600,30 +4600,30 @@ export default function Settings() {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `npx vitest run src/pages/closerOS/dashboard/Team.test.tsx src/pages/closerOS/dashboard/CallHistory.test.tsx src/pages/closerOS/dashboard/Billing.test.tsx src/pages/closerOS/dashboard/Integrations.test.tsx src/pages/closerOS/dashboard/Settings.test.tsx`
+Run: `npx vitest run src/pages/cosella/dashboard/Team.test.tsx src/pages/cosella/dashboard/CallHistory.test.tsx src/pages/cosella/dashboard/Billing.test.tsx src/pages/cosella/dashboard/Integrations.test.tsx src/pages/cosella/dashboard/Settings.test.tsx`
 Expected: PASS (all 6 tests across the 5 files)
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/pages/closerOS/dashboard/Team.tsx src/pages/closerOS/dashboard/Team.test.tsx \
-        src/pages/closerOS/dashboard/CallHistory.tsx src/pages/closerOS/dashboard/CallHistory.test.tsx \
-        src/pages/closerOS/dashboard/Billing.tsx src/pages/closerOS/dashboard/Billing.test.tsx \
-        src/pages/closerOS/dashboard/Integrations.tsx src/pages/closerOS/dashboard/Integrations.test.tsx \
-        src/pages/closerOS/dashboard/Settings.tsx src/pages/closerOS/dashboard/Settings.test.tsx
-git commit -m "feat(closer-os): add Team, Call History, Billing, Integrations, Settings pages"
+git add src/pages/cosella/dashboard/Team.tsx src/pages/cosella/dashboard/Team.test.tsx \
+        src/pages/cosella/dashboard/CallHistory.tsx src/pages/cosella/dashboard/CallHistory.test.tsx \
+        src/pages/cosella/dashboard/Billing.tsx src/pages/cosella/dashboard/Billing.test.tsx \
+        src/pages/cosella/dashboard/Integrations.tsx src/pages/cosella/dashboard/Integrations.test.tsx \
+        src/pages/cosella/dashboard/Settings.tsx src/pages/cosella/dashboard/Settings.test.tsx
+git commit -m "feat(cosella): add Team, Call History, Billing, Integrations, Settings pages"
 ```
 
 ---
 
-## Task 23: Wire all Closer OS routes into `src/App.tsx`
+## Task 23: Wire all Cosella routes into `src/App.tsx`
 
 **Files:**
 - Modify: `src/App.tsx`
 
 **Interfaces:**
 - Consumes: default exports from every prior task (Tasks 3, 4, 5, 6, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22).
-- Produces: 13 new routes under `/closer-os/*`, all lazy-loaded and public (no `ProtectedRoute`/`AppLayout` wrapper — matches how `/sales/*` and `/copilot/*` are already registered, since these are separate mock-auth product surfaces, not the main authenticated app).
+- Produces: 13 new routes under `/cosella/*`, all lazy-loaded and public (no `ProtectedRoute`/`AppLayout` wrapper — matches how `/sales/*` and `/copilot/*` are already registered, since these are separate mock-auth product surfaces, not the main authenticated app).
 
 - [ ] **Step 1: Add the lazy imports**
 
@@ -4636,25 +4636,25 @@ const SalesSettings = lazy(() => import('@/pages/sales/Settings'))
 Add the following block immediately after it:
 
 ```tsx
-const CloserOSLanding = lazy(() => import('@/pages/closerOS/marketing/CloserOSLanding'))
-const CloserOSCheckoutPage = lazy(() => import('@/pages/closerOS/marketing/CloserOSCheckoutPage'))
-const CloserOSDownloadPage = lazy(() => import('@/pages/closerOS/marketing/CloserOSDownloadPage'))
-const CloserOSSignIn = lazy(() => import('@/pages/closerOS/CloserOSSignIn'))
-const CloserOSDesktopApp = lazy(() => import('@/pages/closerOS/app/CloserOSDesktopApp'))
-const CloserOSAdminLayout = lazy(() => import('@/pages/closerOS/dashboard/CloserOSAdminLayout'))
-const CloserOSOverview = lazy(() => import('@/pages/closerOS/dashboard/Overview'))
-const CloserOSPaymentSettings = lazy(() => import('@/pages/closerOS/dashboard/PaymentSettings'))
-const CloserOSPlanTracker = lazy(() => import('@/pages/closerOS/dashboard/PlanTracker'))
-const CloserOSLedger = lazy(() => import('@/pages/closerOS/dashboard/Ledger'))
-const CloserOSSlackReport = lazy(() => import('@/pages/closerOS/dashboard/SlackReport'))
-const CloserOSProspectIntel = lazy(() => import('@/pages/closerOS/dashboard/ProspectIntel'))
-const CloserOSGhostSimulator = lazy(() => import('@/pages/closerOS/dashboard/GhostSimulator'))
-const CloserOSLiveRescueBoard = lazy(() => import('@/pages/closerOS/dashboard/LiveRescueBoard'))
-const CloserOSTeam = lazy(() => import('@/pages/closerOS/dashboard/Team'))
-const CloserOSCallHistory = lazy(() => import('@/pages/closerOS/dashboard/CallHistory'))
-const CloserOSBilling = lazy(() => import('@/pages/closerOS/dashboard/Billing'))
-const CloserOSIntegrations = lazy(() => import('@/pages/closerOS/dashboard/Integrations'))
-const CloserOSSettings = lazy(() => import('@/pages/closerOS/dashboard/Settings'))
+const CosellaLanding = lazy(() => import('@/pages/cosella/marketing/CosellaLanding'))
+const CosellaCheckoutPage = lazy(() => import('@/pages/cosella/marketing/CosellaCheckoutPage'))
+const CosellaDownloadPage = lazy(() => import('@/pages/cosella/marketing/CosellaDownloadPage'))
+const CosellaSignIn = lazy(() => import('@/pages/cosella/CosellaSignIn'))
+const CosellaDesktopApp = lazy(() => import('@/pages/cosella/app/CosellaDesktopApp'))
+const CosellaAdminLayout = lazy(() => import('@/pages/cosella/dashboard/CosellaAdminLayout'))
+const CosellaOverview = lazy(() => import('@/pages/cosella/dashboard/Overview'))
+const CosellaPaymentSettings = lazy(() => import('@/pages/cosella/dashboard/PaymentSettings'))
+const CosellaPlanTracker = lazy(() => import('@/pages/cosella/dashboard/PlanTracker'))
+const CosellaLedger = lazy(() => import('@/pages/cosella/dashboard/Ledger'))
+const CosellaSlackReport = lazy(() => import('@/pages/cosella/dashboard/SlackReport'))
+const CosellaProspectIntel = lazy(() => import('@/pages/cosella/dashboard/ProspectIntel'))
+const CosellaGhostSimulator = lazy(() => import('@/pages/cosella/dashboard/GhostSimulator'))
+const CosellaLiveRescueBoard = lazy(() => import('@/pages/cosella/dashboard/LiveRescueBoard'))
+const CosellaTeam = lazy(() => import('@/pages/cosella/dashboard/Team'))
+const CosellaCallHistory = lazy(() => import('@/pages/cosella/dashboard/CallHistory'))
+const CosellaBilling = lazy(() => import('@/pages/cosella/dashboard/Billing'))
+const CosellaIntegrations = lazy(() => import('@/pages/cosella/dashboard/Integrations'))
+const CosellaSettings = lazy(() => import('@/pages/cosella/dashboard/Settings'))
 ```
 
 - [ ] **Step 2: Add the routes**
@@ -4668,25 +4668,25 @@ In the same file, the existing sales routes include this line (confirmed present
 Insert the following block immediately **before** that line (same indentation level, inside `<Routes>`):
 
 ```tsx
-            <Route path="/closer-os" element={<Suspense fallback={null}><CloserOSLanding /></Suspense>} />
-            <Route path="/closer-os/checkout" element={<Suspense fallback={null}><CloserOSCheckoutPage /></Suspense>} />
-            <Route path="/closer-os/download" element={<Suspense fallback={null}><CloserOSDownloadPage /></Suspense>} />
-            <Route path="/closer-os/sign-in" element={<Suspense fallback={null}><CloserOSSignIn /></Suspense>} />
-            <Route path="/closer-os/app" element={<Suspense fallback={null}><CloserOSDesktopApp /></Suspense>} />
-            <Route path="/closer-os/dashboard" element={<Suspense fallback={null}><CloserOSAdminLayout /></Suspense>}>
-              <Route index element={<Suspense fallback={null}><CloserOSOverview /></Suspense>} />
-              <Route path="payment-settings" element={<Suspense fallback={null}><CloserOSPaymentSettings /></Suspense>} />
-              <Route path="plan-tracker" element={<Suspense fallback={null}><CloserOSPlanTracker /></Suspense>} />
-              <Route path="ledger" element={<Suspense fallback={null}><CloserOSLedger /></Suspense>} />
-              <Route path="slack-report" element={<Suspense fallback={null}><CloserOSSlackReport /></Suspense>} />
-              <Route path="prospect-intel" element={<Suspense fallback={null}><CloserOSProspectIntel /></Suspense>} />
-              <Route path="ghost-simulator" element={<Suspense fallback={null}><CloserOSGhostSimulator /></Suspense>} />
-              <Route path="rescue-board" element={<Suspense fallback={null}><CloserOSLiveRescueBoard /></Suspense>} />
-              <Route path="team" element={<Suspense fallback={null}><CloserOSTeam /></Suspense>} />
-              <Route path="calls" element={<Suspense fallback={null}><CloserOSCallHistory /></Suspense>} />
-              <Route path="billing" element={<Suspense fallback={null}><CloserOSBilling /></Suspense>} />
-              <Route path="integrations" element={<Suspense fallback={null}><CloserOSIntegrations /></Suspense>} />
-              <Route path="settings" element={<Suspense fallback={null}><CloserOSSettings /></Suspense>} />
+            <Route path="/cosella" element={<Suspense fallback={null}><CosellaLanding /></Suspense>} />
+            <Route path="/cosella/checkout" element={<Suspense fallback={null}><CosellaCheckoutPage /></Suspense>} />
+            <Route path="/cosella/download" element={<Suspense fallback={null}><CosellaDownloadPage /></Suspense>} />
+            <Route path="/cosella/sign-in" element={<Suspense fallback={null}><CosellaSignIn /></Suspense>} />
+            <Route path="/cosella/app" element={<Suspense fallback={null}><CosellaDesktopApp /></Suspense>} />
+            <Route path="/cosella/dashboard" element={<Suspense fallback={null}><CosellaAdminLayout /></Suspense>}>
+              <Route index element={<Suspense fallback={null}><CosellaOverview /></Suspense>} />
+              <Route path="payment-settings" element={<Suspense fallback={null}><CosellaPaymentSettings /></Suspense>} />
+              <Route path="plan-tracker" element={<Suspense fallback={null}><CosellaPlanTracker /></Suspense>} />
+              <Route path="ledger" element={<Suspense fallback={null}><CosellaLedger /></Suspense>} />
+              <Route path="slack-report" element={<Suspense fallback={null}><CosellaSlackReport /></Suspense>} />
+              <Route path="prospect-intel" element={<Suspense fallback={null}><CosellaProspectIntel /></Suspense>} />
+              <Route path="ghost-simulator" element={<Suspense fallback={null}><CosellaGhostSimulator /></Suspense>} />
+              <Route path="rescue-board" element={<Suspense fallback={null}><CosellaLiveRescueBoard /></Suspense>} />
+              <Route path="team" element={<Suspense fallback={null}><CosellaTeam /></Suspense>} />
+              <Route path="calls" element={<Suspense fallback={null}><CosellaCallHistory /></Suspense>} />
+              <Route path="billing" element={<Suspense fallback={null}><CosellaBilling /></Suspense>} />
+              <Route path="integrations" element={<Suspense fallback={null}><CosellaIntegrations /></Suspense>} />
+              <Route path="settings" element={<Suspense fallback={null}><CosellaSettings /></Suspense>} />
             </Route>
 ```
 
@@ -4701,16 +4701,16 @@ Expected: build succeeds (new routes are code-split via `lazy()`, so bundle size
 - [ ] **Step 4: Manual smoke check**
 
 Run: `npm run dev`, then visit these in a browser to confirm each resolves without a blank page or console error:
-- `/closer-os` — landing page renders with 7 feature cards
-- `/closer-os/checkout` — 2-step checkout form renders
-- After completing checkout, confirm redirect to `/closer-os/download?email=...` then `/closer-os/sign-in?email=...`
-- Sign in as the new admin → lands on `/closer-os/dashboard` with all 13 nav items
-- From Team, add a member, activate their seat, copy the invite code; open `/closer-os/sign-in`, use "I have an invite code" to activate that seat, confirm it lands on `/closer-os/app`
+- `/cosella` — landing page renders with 7 feature cards
+- `/cosella/checkout` — 2-step checkout form renders
+- After completing checkout, confirm redirect to `/cosella/download?email=...` then `/cosella/sign-in?email=...`
+- Sign in as the new admin → lands on `/cosella/dashboard` with all 13 nav items
+- From Team, add a member, activate their seat, copy the invite code; open `/cosella/sign-in`, use "I have an invite code" to activate that seat, confirm it lands on `/cosella/app`
 - In the app, walk through Setup → Prospect Card → a full call (use the "Simulate decline" checkbox at least once to see the yellow rescue panel) → End Call, confirm the resulting Deal/Ledger/Call entry shows up back in the dashboard's Ledger and Call History pages
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add src/App.tsx
-git commit -m "feat(closer-os): wire all Closer OS routes into the app"
+git commit -m "feat(cosella): wire all Cosella routes into the app"
 ```
