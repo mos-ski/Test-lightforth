@@ -56,6 +56,16 @@ export interface LedgerEntry {
   date: string
 }
 
+export interface Contact {
+  id: string
+  name: string
+  phone: string
+  email: string
+  source: 'waitlist' | 'webinar' | 'interest-form' | 'imported' | 'manual'
+  assignedTo: string | null
+  createdAt: string
+}
+
 export interface ProspectCard {
   id: string
   callId: string
@@ -142,6 +152,7 @@ export interface CosellaOrg {
   paymentPlans: PaymentPlan[]
   ledgerEntries: LedgerEntry[]
   prospectCards: ProspectCard[]
+  contacts: Contact[]
   ghostPersonas: GhostPersona[]
   ghostSessions: GhostSession[]
   liveCallRiskEntries: LiveCallRiskEntry[]
@@ -295,6 +306,20 @@ export function addProspectCard(adminEmail: string, card: Omit<ProspectCard, 'id
   const item: ProspectCard = { id: crypto.randomUUID(), ...card }
   updateOrg(adminEmail, org => ({ ...org, prospectCards: [item, ...org.prospectCards] }))
   return item
+}
+
+export function addContact(adminEmail: string, contact: Omit<Contact, 'id' | 'createdAt'>): Contact {
+  const item: Contact = { id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...contact }
+  updateOrg(adminEmail, org => appendAudit({ ...org, contacts: [item, ...org.contacts] }, 'contact-added', adminEmail, `${contact.name} (${contact.source})`))
+  return item
+}
+
+export function assignContact(adminEmail: string, contactId: string, memberEmail: string | null): void {
+  updateOrg(adminEmail, org => ({ ...org, contacts: org.contacts.map(c => (c.id === contactId ? { ...c, assignedTo: memberEmail } : c)) }))
+}
+
+export function removeContact(adminEmail: string, contactId: string): void {
+  updateOrg(adminEmail, org => ({ ...org, contacts: org.contacts.filter(c => c.id !== contactId) }))
 }
 
 export function addGhostPersonaFromCall(adminEmail: string, call: CallRecord): GhostPersona {
@@ -464,6 +489,14 @@ export function demoSeedCosellaOrg(adminEmail: string, adminName: string, orgNam
     { id: crypto.randomUUID(), callId: 'seed-call-5', prospectName: 'Avery Stone', vslWatchPct: 24, rewatchedParts: [], applicationAnswers: [], emailOpens: 0, heatSignal: 'COLD', openingLines: ['Thanks for booking — what made you take a look at us today?'] },
   ]
 
+  const contacts: Contact[] = [
+    { id: crypto.randomUUID(), name: 'Harper Lin', phone: '+1 (415) 555-0142', email: 'harper.lin@example.com', source: 'waitlist', assignedTo: `taylor@${domain}`, createdAt: daysAgo(2) },
+    { id: crypto.randomUUID(), name: 'Quinn Alvarez', phone: '+1 (312) 555-0198', email: 'quinn.alvarez@example.com', source: 'webinar', assignedTo: `taylor@${domain}`, createdAt: daysAgo(4) },
+    { id: crypto.randomUUID(), name: 'Reese Donovan', phone: '+1 (646) 555-0173', email: 'reese.donovan@example.com', source: 'interest-form', assignedTo: `jordan@${domain}`, createdAt: daysAgo(1) },
+    { id: crypto.randomUUID(), name: 'Skylar Voss', phone: '+1 (206) 555-0114', email: 'skylar.voss@example.com', source: 'imported', assignedTo: `sam@${domain}`, createdAt: daysAgo(6) },
+    { id: crypto.randomUUID(), name: 'Emerson Blake', phone: '+1 (512) 555-0187', email: '', source: 'manual', assignedTo: null, createdAt: daysAgo(0) },
+  ]
+
   const calls: CallRecord[] = [
     { id: 'seed-call-1', closerName: 'Jordan Lee', closerEmail: `jordan@${domain}`, date: daysAgo(1), durationSeconds: 640, transcript: [{ speaker: 'Jamie Whitfield', text: 'The price is a stretch this quarter.' }, { speaker: 'Jordan Lee', text: 'Totally hear you — let\'s look at the ROI versus staying stuck.' }], outcome: 'won', leakReason: null },
     { id: 'seed-call-2', closerName: 'Sam Patel', closerEmail: `sam@${domain}`, date: daysAgo(3), durationSeconds: 820, transcript: [{ speaker: 'Morgan Reyes', text: 'I need to check with my business partner first.' }, { speaker: 'Sam Patel', text: 'Makes sense — want to loop them in on a quick call this week?' }], outcome: 'won', leakReason: null },
@@ -497,6 +530,7 @@ export function demoSeedCosellaOrg(adminEmail: string, adminName: string, orgNam
     paymentPlans,
     ledgerEntries,
     prospectCards,
+    contacts,
     ghostPersonas,
     ghostSessions,
     liveCallRiskEntries,

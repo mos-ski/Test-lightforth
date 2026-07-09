@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, CreditCard, RefreshCw, BookOpen, MessageSquare, Radar, Ghost, Radio,
-  Users, Phone, CircleDollarSign, Plug, Settings as SettingsIcon, LogOut,
+  Users, Phone, Contact as ContactIcon, CircleDollarSign, Plug, Settings as SettingsIcon, LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getActiveAdminEmail, getOrgByAdminEmail, type CosellaOrg } from '../cosellaOrgStore'
 
 const NAV = [
   { to: '/cosella/dashboard', label: 'Overview', icon: LayoutDashboard, end: true },
+  { to: '/cosella/dashboard/contacts', label: 'Contacts', icon: ContactIcon, end: false },
   { to: '/cosella/dashboard/payment-settings', label: 'Payment Settings', icon: CreditCard, end: false },
   { to: '/cosella/dashboard/plan-tracker', label: 'Plan Tracker', icon: RefreshCw, end: false },
   { to: '/cosella/dashboard/ledger', label: 'Ledger', icon: BookOpen, end: false },

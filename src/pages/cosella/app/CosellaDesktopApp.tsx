@@ -7,10 +7,11 @@ import { getActiveMemberEmail, getCosellaAccount, setCosellaAccount, setActiveMe
 import {
   findMemberByEmail, recordDeal, addPaymentPlan, addLedgerEntry, recordCall,
   addLiveCallRiskEntry, resolveRescue, setActiveAdminEmail,
-  type CosellaOrg, type CosellaMember, type ProspectCard, type PriceOption,
+  type CosellaOrg, type CosellaMember, type ProspectCard, type PriceOption, type Contact,
 } from '../cosellaOrgStore'
 
-type View = 'loading' | 'sign-in' | 'setup' | 'prospect-card' | 'live' | 'summary'
+type View = 'loading' | 'sign-in' | 'setup' | 'prospect-card' | 'dialing' | 'live' | 'summary'
+type CallType = 'meet' | 'phone'
 
 function planDueDates(): string[] {
   const now = Date.now()
@@ -27,6 +28,8 @@ export default function CosellaDesktopApp() {
   const [selectedPrice, setSelectedPrice] = useState<PriceOption | null>(null)
   const [lastResult, setLastResult] = useState<LiveCallResult | null>(null)
   const [transparency, setTransparency] = useState(40)
+  const [callType, setCallType] = useState<CallType>('meet')
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
 
   const [signInMode, setSignInMode] = useState<'sign-in' | 'invite-code'>('sign-in')
   const [signInEmail, setSignInEmail] = useState(searchParams.get('email') ?? '')
@@ -86,16 +89,31 @@ export default function CosellaDesktopApp() {
     enterAsMember(found, signInEmail)
   }
 
+  // Simulates the ring while a phone-call is connecting, then drops straight into the same
+  // live-coaching canvas used for a meet call — the coaching content doesn't change based on
+  // how the call was placed, only how the rep got there.
+  useEffect(() => {
+    if (view !== 'dialing') return
+    const id = setTimeout(() => setView('live'), 2500)
+    return () => clearTimeout(id)
+  }, [view])
+
   if (view === 'loading') return null
 
   function handleSetupContinue() {
-    if (!selectedProspect || !selectedPrice) return
-    setView('prospect-card')
+    if (!selectedPrice) return
+    if (callType === 'meet') {
+      if (!selectedProspect) return
+      setView('prospect-card')
+    } else {
+      if (!selectedContact) return
+      setView('dialing')
+    }
   }
 
   function handleCallEnd(result: LiveCallResult) {
     const { adminEmail, org, member } = context!
-    const prospectName = selectedProspect!.prospectName
+    const prospectName = callType === 'phone' ? selectedContact!.name : selectedProspect!.prospectName
     const priceOption = selectedPrice!
 
     const call = recordCall(adminEmail, {
@@ -198,19 +216,55 @@ export default function CosellaDesktopApp() {
       {view === 'setup' && context && (
         <div className="flex min-h-[580px] flex-col items-center justify-center gap-5 px-10 text-white">
           <h1 className="text-2xl font-bold">Start a Sales Call</h1>
+
+          <div className="flex rounded-lg bg-white/5 p-1">
+            <button
+              onClick={() => setCallType('meet')}
+              className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${callType === 'meet' ? 'bg-rose-500 text-white' : 'text-white/60 hover:text-white'}`}
+            >
+              Meet Call
+            </button>
+            <button
+              onClick={() => setCallType('phone')}
+              className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${callType === 'phone' ? 'bg-rose-500 text-white' : 'text-white/60 hover:text-white'}`}
+            >
+              Phone Call
+            </button>
+          </div>
+
           <div className="w-full max-w-sm space-y-4">
-            <div>
-              <label htmlFor="prospect-select" className="mb-1.5 block text-sm font-medium">Prospect</label>
-              <select
-                id="prospect-select"
-                className="lf-input"
-                value={selectedProspect?.prospectName ?? ''}
-                onChange={e => setSelectedProspect(context.org.prospectCards.find(p => p.prospectName === e.target.value) ?? null)}
-              >
-                <option value="">Choose a prospect...</option>
-                {context.org.prospectCards.map(p => <option key={p.id} value={p.prospectName}>{p.prospectName} ({p.heatSignal})</option>)}
-              </select>
-            </div>
+            {callType === 'meet' ? (
+              <div>
+                <label htmlFor="prospect-select" className="mb-1.5 block text-sm font-medium">Prospect</label>
+                <select
+                  id="prospect-select"
+                  className="lf-input"
+                  value={selectedProspect?.prospectName ?? ''}
+                  onChange={e => setSelectedProspect(context.org.prospectCards.find(p => p.prospectName === e.target.value) ?? null)}
+                >
+                  <option value="">Choose a prospect...</option>
+                  {context.org.prospectCards.map(p => <option key={p.id} value={p.prospectName}>{p.prospectName} ({p.heatSignal})</option>)}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label htmlFor="contact-select" className="mb-1.5 block text-sm font-medium">Contact</label>
+                <select
+                  id="contact-select"
+                  className="lf-input"
+                  value={selectedContact?.name ?? ''}
+                  onChange={e => setSelectedContact(context.org.contacts.find(c => c.name === e.target.value) ?? null)}
+                >
+                  <option value="">Choose a contact...</option>
+                  {context.org.contacts.filter(c => c.assignedTo === context.member.email).map(c => (
+                    <option key={c.id} value={c.name}>{c.name} — {c.phone}</option>
+                  ))}
+                </select>
+                {context.org.contacts.filter(c => c.assignedTo === context.member.email).length === 0 && (
+                  <p className="mt-1.5 text-xs text-white/40">No contacts assigned to you yet — ask your admin to assign some from the Contacts page.</p>
+                )}
+              </div>
+            )}
             <div>
               <label htmlFor="deal-type-select" className="mb-1.5 block text-sm font-medium">Deal type</label>
               <select
@@ -224,8 +278,12 @@ export default function CosellaDesktopApp() {
               </select>
             </div>
           </div>
-          <button disabled={!selectedProspect || !selectedPrice} onClick={handleSetupContinue} className="h-11 rounded-xl bg-rose-500 px-8 text-sm font-semibold text-white disabled:opacity-40">
-            Continue
+          <button
+            disabled={callType === 'meet' ? (!selectedProspect || !selectedPrice) : (!selectedContact || !selectedPrice)}
+            onClick={handleSetupContinue}
+            className="h-11 rounded-xl bg-rose-500 px-8 text-sm font-semibold text-white disabled:opacity-40"
+          >
+            {callType === 'phone' ? 'Call' : 'Continue'}
           </button>
         </div>
       )}
@@ -234,10 +292,23 @@ export default function CosellaDesktopApp() {
         <ProspectCardScreen card={selectedProspect} onContinue={() => setView('live')} />
       )}
 
-      {view === 'live' && selectedProspect && selectedPrice && (
+      {view === 'dialing' && selectedContact && (
+        <div className="flex min-h-[580px] flex-col items-center justify-center gap-3 px-10 text-center text-white">
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-full" style={{ background: 'rgba(244,63,94,0.15)' }}>
+            <div className="absolute inset-0 animate-ping rounded-full" style={{ background: 'rgba(244,63,94,0.25)' }} />
+            <span className="relative text-2xl">📞</span>
+          </div>
+          <h1 className="text-xl font-bold">Calling {selectedContact.name}...</h1>
+          <p className="font-mono text-sm text-white/50">{selectedContact.phone}</p>
+          <p className="mt-2 text-xs italic text-white/40">Ringing their phone — you'll talk through your computer's mic once they pick up.</p>
+        </div>
+      )}
+
+      {view === 'live' && selectedPrice && (callType === 'meet' ? selectedProspect : selectedContact) && (
         <CosellaLiveCanvas
-          prospectName={selectedProspect.prospectName}
+          prospectName={callType === 'phone' ? selectedContact!.name : selectedProspect!.prospectName}
           priceOption={selectedPrice}
+          callType={callType}
           onEnd={handleCallEnd}
           transparency={transparency}
           onTransparencyChange={setTransparency}
@@ -248,7 +319,10 @@ export default function CosellaDesktopApp() {
         <div className="flex min-h-[580px] flex-col items-center justify-center gap-4 px-10 text-center text-white">
           <h1 className="text-2xl font-bold">{lastResult.outcome === 'won' ? '🎉 Deal closed!' : 'Call complete'}</h1>
           <p className="text-sm text-white/60">Your call notes and payment status have been saved.</p>
-          <button onClick={() => { setSelectedProspect(null); setSelectedPrice(null); setLastResult(null); setView('setup') }} className="mt-4 h-11 rounded-xl bg-rose-500 px-8 text-sm font-semibold text-white">
+          <button
+            onClick={() => { setSelectedProspect(null); setSelectedContact(null); setSelectedPrice(null); setLastResult(null); setView('setup') }}
+            className="mt-4 h-11 rounded-xl bg-rose-500 px-8 text-sm font-semibold text-white"
+          >
             Start another call
           </button>
         </div>

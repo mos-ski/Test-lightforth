@@ -151,4 +151,34 @@ describe('CosellaDesktopApp', () => {
     const riskEntry = org.liveCallRiskEntries.find(e => e.prospectName === 'Casey Nguyen')
     expect(riskEntry?.rescueLog?.outcome).toBe('lost')
   })
+
+  it('walks a closer through the Phone Call tab: pick an assigned contact, ring, then land on the live phone canvas', () => {
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    const member = addMember('ada@acme.com', { name: 'Jordan Lee', email: 'jordan@acme.com' })!
+    setActiveMemberEmail(member.email)
+
+    renderApp()
+    fireEvent.click(screen.getByRole('button', { name: /^phone call$/i }))
+
+    // Only contacts assigned to this rep show up — the seed assigns "Reese Donovan" to Jordan Lee.
+    fireEvent.change(screen.getByLabelText(/contact/i), { target: { value: 'Reese Donovan' } })
+    fireEvent.change(screen.getByLabelText(/deal type/i), { target: { value: 'Core Program' } })
+    fireEvent.click(screen.getByRole('button', { name: /^call$/i }))
+
+    expect(screen.getByText(/calling reese donovan/i)).toBeInTheDocument()
+    act(() => { vi.advanceTimersByTime(2500) })
+
+    expect(screen.getAllByText(/live phone call/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Reese Donovan/)).toBeInTheDocument()
+
+    for (let i = 0; i < 4; i++) advanceOneTurn()
+    act(() => { vi.advanceTimersByTime(3000) })
+    fireEvent.click(screen.getByRole('button', { name: /send pif link/i }))
+    act(() => { vi.advanceTimersByTime(4000) })
+    fireEvent.click(screen.getByRole('button', { name: /end call/i }))
+
+    const org = getOrgByAdminEmail('ada@acme.com')!
+    const deal = org.deals.find(d => d.prospectName === 'Reese Donovan' && d.closerName === 'Jordan Lee')
+    expect(deal?.status).toBe('paid')
+  })
 })

@@ -50,14 +50,16 @@ export interface LiveCallResult {
 }
 
 export default function CosellaLiveCanvas({
-  prospectName, priceOption, onEnd, transparency = 40, onTransparencyChange = () => {},
+  prospectName, priceOption, onEnd, callType = 'meet', transparency = 40, onTransparencyChange = () => {},
 }: {
   prospectName: string
   priceOption: PriceOption
   onEnd: (result: LiveCallResult) => void
+  callType?: 'meet' | 'phone'
   transparency?: number
   onTransparencyChange?: (v: number) => void
 }) {
+  const headerLabel = callType === 'phone' ? 'Live Phone Call' : 'Live Sales Call'
   const [turnIndex, setTurnIndex] = useState(0)
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
   const [displayed, setDisplayed] = useState('')
@@ -318,7 +320,7 @@ export default function CosellaLiveCanvas({
           <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: 'rgba(20,34,62,0.4)', backdropFilter: 'blur(10px)' }}>
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'rgba(239,68,68,0.85)', boxShadow: '0 0 6px rgba(239,68,68,0.6)' }} />
-              <span className="text-xs font-medium text-white">Live Sales Call &mdash; {prospectName}</span>
+              <span className="text-xs font-medium text-white">{headerLabel} &mdash; {prospectName}</span>
             </div>
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-1.5 text-[10.5px] text-[#a6acb8]">
@@ -354,7 +356,7 @@ export default function CosellaLiveCanvas({
           <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: 'rgba(16,29,43,0.2)', backdropFilter: 'blur(10px)' }}>
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'rgba(239,68,68,0.85)', boxShadow: '0 0 6px rgba(239,68,68,0.6)' }} />
-              <span className="text-xs font-medium text-white">Live Sales Call</span>
+              <span className="text-xs font-medium text-white">{headerLabel}</span>
             </div>
             <button onClick={() => setShowSettings(true)} aria-label="Open settings">
               <Settings className="h-3.5 w-3.5 text-[#a6acb8] hover:text-white" />

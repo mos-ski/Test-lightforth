@@ -49,6 +49,7 @@ const CosellaSignIn = lazy(() => import('@/pages/cosella/CosellaSignIn'))
 const CosellaDesktopApp = lazy(() => import('@/pages/cosella/app/CosellaDesktopApp'))
 const CosellaAdminLayout = lazy(() => import('@/pages/cosella/dashboard/CosellaAdminLayout'))
 const CosellaOverview = lazy(() => import('@/pages/cosella/dashboard/Overview'))
+const CosellaContacts = lazy(() => import('@/pages/cosella/dashboard/Contacts'))
 const CosellaPaymentSettings = lazy(() => import('@/pages/cosella/dashboard/PaymentSettings'))
 const CosellaPlanTracker = lazy(() => import('@/pages/cosella/dashboard/PlanTracker'))
 const CosellaLedger = lazy(() => import('@/pages/cosella/dashboard/Ledger'))
@@ -161,6 +162,7 @@ export default function App() {
             <Route path="/cosella/app" element={<Suspense fallback={null}><CosellaDesktopApp /></Suspense>} />
             <Route path="/cosella/dashboard" element={<Suspense fallback={null}><CosellaAdminLayout /></Suspense>}>
               <Route index element={<Suspense fallback={null}><CosellaOverview /></Suspense>} />
+              <Route path="contacts" element={<Suspense fallback={null}><CosellaContacts /></Suspense>} />
               <Route path="payment-settings" element={<Suspense fallback={null}><CosellaPaymentSettings /></Suspense>} />
               <Route path="plan-tracker" element={<Suspense fallback={null}><CosellaPlanTracker /></Suspense>} />
               <Route path="ledger" element={<Suspense fallback={null}><CosellaLedger /></Suspense>} />
