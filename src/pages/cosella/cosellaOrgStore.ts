@@ -165,10 +165,30 @@ export interface CosellaOrg {
 const ORGS_KEY = 'cosella-orgs'
 const ACTIVE_ADMIN_KEY = 'cosella-active-admin'
 
-// Orgs saved before the Contacts feature shipped won't have a `contacts` array in localStorage —
-// every read runs through here so old data self-heals instead of crashing on `org.contacts.map(...)`.
+// Orgs saved before the Contacts feature shipped have no `contacts` array in localStorage at all.
+// Backfill those (and only those — a deliberately emptied `[]` is left alone) with the same demo
+// contacts a freshly created org gets, split across real members, so the page and the desktop app's
+// Phone Call picker show something instead of a permanent empty state.
+function backfillContacts(org: CosellaOrg): Contact[] {
+  const reps = org.members.filter(m => m.role === 'member')
+  const demo: Array<Pick<Contact, 'name' | 'phone' | 'email' | 'source'>> = [
+    { name: 'Harper Lin', phone: '+1 (415) 555-0142', email: 'harper.lin@example.com', source: 'waitlist' },
+    { name: 'Quinn Alvarez', phone: '+1 (312) 555-0198', email: 'quinn.alvarez@example.com', source: 'webinar' },
+    { name: 'Reese Donovan', phone: '+1 (646) 555-0173', email: 'reese.donovan@example.com', source: 'interest-form' },
+    { name: 'Micah Torres', phone: '+1 (773) 555-0129', email: 'micah.torres@example.com', source: 'waitlist' },
+    { name: 'Skylar Voss', phone: '+1 (206) 555-0114', email: 'skylar.voss@example.com', source: 'imported' },
+    { name: 'Nadia Fischer', phone: '+1 (720) 555-0156', email: 'nadia.fischer@example.com', source: 'webinar' },
+  ]
+  return demo.map((c, i) => ({
+    ...c,
+    id: crypto.randomUUID(),
+    createdAt: daysAgo(i + 1),
+    assignedTo: reps.length > 0 ? reps[i % reps.length].email : null,
+  }))
+}
+
 function normalizeOrg(org: CosellaOrg): CosellaOrg {
-  return { ...org, contacts: org.contacts ?? [] }
+  return { ...org, contacts: org.contacts ?? backfillContacts(org) }
 }
 
 function readStore(): Record<string, CosellaOrg> {

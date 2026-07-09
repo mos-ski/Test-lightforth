@@ -49,11 +49,19 @@ describe('cosellaOrgStore', () => {
     expect(getOrgByAdminEmail('admin@acme.com')?.members.find(m => m.id === member!.id)?.seatPaid).toBe(true)
   })
 
-  it('backfills a missing contacts array on read, for orgs saved before the Contacts feature existed', () => {
+  it('backfills a missing contacts array on read with real demo contacts, for orgs saved before the Contacts feature existed', () => {
     const org = demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers')
     const { contacts, ...orgWithoutContacts } = org
     localStorage.setItem('cosella-orgs', JSON.stringify({ 'admin@acme.com': orgWithoutContacts }))
 
+    const backfilled = getOrgByAdminEmail('admin@acme.com')?.contacts
+    expect(backfilled?.length).toBeGreaterThan(0)
+    expect(backfilled?.some(c => c.assignedTo !== null)).toBe(true)
+  })
+
+  it('does not re-seed contacts once an org has an explicit (even empty) contacts array', () => {
+    createOrg('admin@acme.com', demoSeedCosellaOrg('admin@acme.com', 'Ada Admin', 'Acme Closers'))
+    updateOrg('admin@acme.com', org => ({ ...org, contacts: [] }))
     expect(getOrgByAdminEmail('admin@acme.com')?.contacts).toEqual([])
   })
 
