@@ -9,7 +9,7 @@ vi.mock('sonner', () => ({ toast: { success: vi.fn(), info: vi.fn(), error: vi.f
 const PRICE_OPTION: PriceOption = { label: 'Core Program', pif: 12599, planInstallments: [1599, 3000, 4000, 4000] }
 
 function advanceOneTurn() {
-  act(() => { vi.advanceTimersByTime(3000) }) // finish typing the current turn
+  act(() => { vi.advanceTimersByTime(3500) }) // finish typing the question, the processing pause, and the response
   fireEvent.keyDown(window, { code: 'Space' })
 }
 
@@ -51,19 +51,28 @@ describe('CloserOSLiveCanvas', () => {
     expect(onEnd).toHaveBeenCalledWith(expect.objectContaining({ outcome: 'won', paymentChoice: 'pif' }))
   })
 
-  it('shows a suggested response under every turn, and only allows advancing once it finishes typing', () => {
+  it('shows Listening -> Processing -> Answering for every turn, and only allows advancing once the response finishes', () => {
     render(<CloserOSLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
-    act(() => { vi.advanceTimersByTime(1300) }) // turn 0's question finishes typing; response typing begins
+    expect(screen.getByText('Listening to prospect...')).toBeInTheDocument()
+
+    act(() => { vi.advanceTimersByTime(1300) }) // turn 0's question (58 chars * 22ms = 1276ms) finishes typing
+    expect(screen.getByText('Preparing suggested response...')).toBeInTheDocument()
+    expect(screen.queryByText('Suggested Response')).not.toBeInTheDocument() // still "thinking" — not answering yet
+
+    // Space shouldn't advance the turn during the processing pause either.
+    fireEvent.keyDown(window, { code: 'Space' })
+    act(() => { vi.advanceTimersByTime(950) }) // the 900ms processing pause elapses; answering begins
+    expect(screen.getByText('Coaching...')).toBeInTheDocument()
     expect(screen.getByText('Suggested Response')).toBeInTheDocument()
 
-    // Space shouldn't advance the turn yet — the suggested response hasn't finished typing.
+    // Space still shouldn't advance — the response is still typing.
     fireEvent.keyDown(window, { code: 'Space' })
     act(() => { vi.advanceTimersByTime(200) })
     expect(screen.queryByText('Honestly the price is more than I budgeted for this quarter.')).not.toBeInTheDocument()
 
     act(() => { vi.advanceTimersByTime(2000) }) // response finishes typing
     fireEvent.keyDown(window, { code: 'Space' })
-    act(() => { vi.advanceTimersByTime(2000) }) // turn 1's question + its own suggested response type out
+    act(() => { vi.advanceTimersByTime(3000) }) // turn 1's question, processing pause, and response all play out
     expect(screen.getByText('Honestly the price is more than I budgeted for this quarter.')).toBeInTheDocument()
     // Turn 1 has no distinct `response` field, so its suggested response is its objection counter —
     // the same text also lands in the Objections sidebar, so this appears twice.

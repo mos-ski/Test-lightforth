@@ -17,7 +17,7 @@ function renderApp(initialEntry = '/closer-os/app') {
 }
 
 function advanceOneTurn() {
-  act(() => { vi.advanceTimersByTime(3000) })
+  act(() => { vi.advanceTimersByTime(3500) }) // finish typing the question, the processing pause, and the response
   fireEvent.keyDown(window, { code: 'Space' })
 }
 

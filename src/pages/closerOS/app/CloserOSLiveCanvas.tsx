@@ -24,6 +24,14 @@ function responseTextFor(turn: CloserTurn): string {
   return turn.response ?? turn.counter ?? ''
 }
 
+type CopilotStatus = 'listening' | 'processing' | 'answering'
+
+const STATUS_TEXT: Record<CopilotStatus, string> = {
+  listening: 'Listening to prospect...',
+  processing: 'Preparing suggested response...',
+  answering: 'Coaching...',
+}
+
 const CLOSER_QA: CloserTurn[] = [
   { speaker: 'Prospect', text: "Thanks for hopping on — I've been looking forward to this.", response: "Mirror their energy and set the agenda: \"Great to have you here — let's cover where you're at today, what's been holding you back, and see if this is the right fit.\"" },
   { speaker: 'Prospect', text: 'Honestly the price is more than I budgeted for this quarter.', objection: 'Price is too high', counter: 'Re-anchor on ROI and time saved — offer a phased start if it helps.' },
@@ -49,8 +57,8 @@ export default function CloserOSLiveCanvas({
   onEnd: (result: LiveCallResult) => void
 }) {
   const [turnIndex, setTurnIndex] = useState(0)
+  const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
   const [displayed, setDisplayed] = useState('')
-  const [typingDone, setTypingDone] = useState(false)
   const [responseDisplayed, setResponseDisplayed] = useState('')
   const [responseDone, setResponseDone] = useState(false)
   const [history, setHistory] = useState<CloserTurn[]>([])
@@ -82,19 +90,23 @@ export default function CloserOSLiveCanvas({
   // Holds the suggested-response interval so a turn change (or unmount) can cancel a still-running
   // one before starting the next.
   const responseIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Holds the "processing" thinking-pause timeout for the same reason.
+  const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
 
-  // Typing effect for the current turn: the prospect's line, then — chained directly inside that
-  // same interval's completion callback, not a separate effect reacting to `typingDone` — the
-  // copilot's suggested response. Chaining it here (rather than a second useEffect keyed on
-  // `typingDone`) matters under fake timers, for the same reason the payment cascade below is
-  // nested: a separate effect only gets a chance to register its interval once React commits a
-  // render for the state change that would trigger it, which doesn't happen mid-sweep inside one
-  // `act(() => vi.advanceTimersByTime(...))` call.
+  // Typing effect for the current turn: listening (the prospect's line types out), then —
+  // chained directly inside that same interval's completion callback, not a separate effect
+  // reacting to state — a brief "processing" pause (matching the Listening/Processing/Answering
+  // pattern from the original Copilot), then the copilot's suggested response types out during
+  // "answering". Chaining everything here, rather than separate effects reacting to `copilotStatus`,
+  // matters under fake timers: a separate effect only gets a chance to register
+  // its own timer once React commits a render for the state change that would trigger it, which
+  // doesn't happen mid-sweep inside one `act(() => vi.advanceTimersByTime(...))` call — the same
+  // reason the payment cascade below is nested rather than reactive.
   useEffect(() => {
+    setCopilotStatus('listening')
     setDisplayed('')
-    setTypingDone(false)
     setResponseDisplayed('')
     setResponseDone(false)
     const turn = CLOSER_QA[turnIndex]
@@ -104,7 +116,7 @@ export default function CloserOSLiveCanvas({
       setDisplayed(turn.text.slice(0, i))
       if (i >= turn.text.length) {
         clearInterval(questionId)
-        setTypingDone(true)
+        setCopilotStatus('processing')
         if (turn.objection && turn.counter) {
           setShownObjections(prev => [...prev, { objection: turn.objection!, counter: turn.counter!, used: false }])
         }
@@ -118,21 +130,26 @@ export default function CloserOSLiveCanvas({
           setPaymentStatus('offered')
         }
 
-        const responseText = responseTextFor(turn)
-        let j = 0
-        responseIntervalRef.current = setInterval(() => {
-          j += 2
-          setResponseDisplayed(responseText.slice(0, j))
-          if (j >= responseText.length) {
-            if (responseIntervalRef.current) clearInterval(responseIntervalRef.current)
-            responseIntervalRef.current = null
-            setResponseDone(true)
-          }
-        }, 12)
+        processingTimeoutRef.current = setTimeout(() => {
+          processingTimeoutRef.current = null
+          setCopilotStatus('answering')
+          const responseText = responseTextFor(turn)
+          let j = 0
+          responseIntervalRef.current = setInterval(() => {
+            j += 2
+            setResponseDisplayed(responseText.slice(0, j))
+            if (j >= responseText.length) {
+              if (responseIntervalRef.current) clearInterval(responseIntervalRef.current)
+              responseIntervalRef.current = null
+              setResponseDone(true)
+            }
+          }, 12)
+        }, 900)
       }
     }, 22)
     return () => {
       clearInterval(questionId)
+      if (processingTimeoutRef.current) { clearTimeout(processingTimeoutRef.current); processingTimeoutRef.current = null }
       if (responseIntervalRef.current) { clearInterval(responseIntervalRef.current); responseIntervalRef.current = null }
     }
   }, [turnIndex])
@@ -244,7 +261,8 @@ export default function CloserOSLiveCanvas({
 
       <div className="flex flex-1 min-h-0 gap-2 overflow-hidden p-2">
         <div className="flex flex-1 min-h-0 flex-col overflow-y-auto rounded-xl p-5" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-          <style>{'@keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: 0 } }'}</style>
+          <style>{'@keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: 0 } } @keyframes processingDot { 0%,100% { transform: translateY(0); opacity: .35 } 50% { transform: translateY(-5px); opacity: 1 } }'}</style>
+          <p className="mb-4 text-xs italic text-slate-500">{STATUS_TEXT[copilotStatus]}</p>
           {history.map((turn, i) => {
             const responseText = responseTextFor(turn)
             return (
@@ -261,7 +279,14 @@ export default function CloserOSLiveCanvas({
           })}
           <div>
             <p className="text-sm text-white"><span className="font-semibold text-emerald-400">{CLOSER_QA[turnIndex].speaker}: </span>{displayed}</p>
-            {typingDone && (
+            {copilotStatus === 'processing' && (
+              <div className="mt-2 flex items-center gap-1.5">
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="h-1.5 w-1.5 rounded-full bg-emerald-400" style={{ animation: 'processingDot 0.9s ease-in-out infinite', animationDelay: `${i * 0.18}s` }} />
+                ))}
+              </div>
+            )}
+            {copilotStatus === 'answering' && (
               <div className="mt-1.5 ml-2 border-l-2 pl-3" style={{ borderColor: 'rgba(16,185,129,0.4)' }}>
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-400">Suggested Response</p>
                 <p className="text-sm leading-relaxed text-slate-200">
