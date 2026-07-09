@@ -15,22 +15,22 @@ function renderLanding() {
 }
 
 describe('CosellaLanding', () => {
-  it('renders the hero headline and all 7 feature names', () => {
+  it('renders the Figma landing page sections', () => {
     renderLanding()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Cosella helps you get paid')
-    expect(screen.getByText('Payment Moment Engine')).toBeInTheDocument()
-    expect(screen.getByText('Installment Recovery Copilot')).toBeInTheDocument()
-    expect(screen.getByText('Funnel-to-Call Intelligence')).toBeInTheDocument()
-    expect(screen.getByText('The Money Slack Report')).toBeInTheDocument()
-    expect(screen.getByText('Revenue Attribution Ledger')).toBeInTheDocument()
-    expect(screen.getByText('Ghost Prospect Simulator')).toBeInTheDocument()
-    expect(screen.getByText('Second Voice')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Stop losing deals to reps who freeze on objections')
+    expect(screen.getByRole('heading', { level: 2, name: /one copilot, every stage of the deal/i })).toBeInTheDocument()
+    expect(screen.getByText('Cosella answers the objection while the rep is still on the line.')).toBeInTheDocument()
+    expect(screen.getByText('Brief your team')).toBeInTheDocument()
+    expect(screen.getByText('Get paid without leaving the call')).toBeInTheDocument()
+    expect(screen.getByText('Track every dollar')).toBeInTheDocument()
+    expect(screen.getByText("Rescue calls before they're lost")).toBeInTheDocument()
+    expect(screen.getByText('Reserve a seat.')).toBeInTheDocument()
   })
 
-  it('navigates to the checkout route from either Get Started button (hero + pricing)', () => {
+  it('navigates to the checkout route from the waitlist CTA', () => {
     renderLanding()
-    const ctas = screen.getAllByRole('button', { name: /get started/i })
-    expect(ctas).toHaveLength(2)
+    const ctas = screen.getAllByRole('button', { name: /join waitlist/i })
+    expect(ctas.length).toBeGreaterThanOrEqual(2)
     fireEvent.click(ctas[0])
     expect(screen.getByText('Checkout landed')).toBeInTheDocument()
   })
