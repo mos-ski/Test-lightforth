@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { ArrowLeft, BarChart2, Settings } from 'lucide-react'
-import { CARD, BORDER, formatTime } from './shared'
+import { ArrowLeft, BarChart2, Settings, X } from 'lucide-react'
+import { CARD, BORDER, Toggle, formatTime } from './shared'
 import PaymentMomentPanel, { type PaymentStatus } from './PaymentMomentPanel'
 import DangerWhisper, { type DangerState } from './DangerWhisper'
 import type { PriceOption } from '../cosellaOrgStore'
@@ -50,11 +50,13 @@ export interface LiveCallResult {
 }
 
 export default function CosellaLiveCanvas({
-  prospectName, priceOption, onEnd,
+  prospectName, priceOption, onEnd, transparency = 40, onTransparencyChange = () => {},
 }: {
   prospectName: string
   priceOption: PriceOption
   onEnd: (result: LiveCallResult) => void
+  transparency?: number
+  onTransparencyChange?: (v: number) => void
 }) {
   const [turnIndex, setTurnIndex] = useState(0)
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
@@ -71,6 +73,14 @@ export default function CosellaLiveCanvas({
   const [dangerReason, setDangerReason] = useState('')
   const [dangerWhisperLine, setDangerWhisperLine] = useState('')
   const [dangerResolution, setDangerResolution] = useState<{ outcome: 'saved' | 'lost'; reason: string } | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [stealthMode, setStealthMode] = useState(true)
+  const [alwaysOnTop, setAlwaysOnTop] = useState(false)
+  const [fontSize, setFontSize] = useState(12)
+  const [autoScroll, setAutoScroll] = useState(1)
+
+  const panelRef = useRef<HTMLDivElement>(null)
+  const stickToBottomRef = useRef(true)
 
   const turnIndexRef = useRef(turnIndex)
   useEffect(() => { turnIndexRef.current = turnIndex }, [turnIndex])
@@ -94,6 +104,23 @@ export default function CosellaLiveCanvas({
   const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
+
+  // Only auto-scroll to the newest line if the user hasn't scrolled up to read earlier
+  // transcript — otherwise this would fight every manual scroll attempt.
+  useEffect(() => {
+    const el = panelRef.current
+    if (!el) return
+    const handleScroll = () => {
+      stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+    }
+    el.addEventListener('scroll', handleScroll)
+    return () => el.removeEventListener('scroll', handleScroll)
+  }, [])
+  useEffect(() => {
+    if (panelRef.current && stickToBottomRef.current && 'scrollTo' in panelRef.current) {
+      panelRef.current.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' })
+    }
+  }, [displayed, responseDisplayed, copilotStatus, turnIndex])
 
   // Typing effect for the current turn: listening (the prospect's line types out), then —
   // chained directly inside that same interval's completion callback, not a separate effect
@@ -245,6 +272,45 @@ export default function CosellaLiveCanvas({
 
   return (
     <div className="flex flex-1 min-h-0 flex-col">
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+            <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: '#1E2D45' }}>
+              <p className="text-sm font-semibold text-white">Settings</p>
+              <button onClick={() => setShowSettings(false)} aria-label="Close settings"><X className="h-4 w-4 text-slate-400 hover:text-white" /></button>
+            </div>
+            <div className="space-y-6 p-5">
+              <div>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Session</p>
+                <div className="space-y-2 rounded-lg p-3 text-xs" style={{ background: '#0A1628' }}>
+                  <div className="flex justify-between"><span className="text-slate-500">Prospect</span><span className="max-w-[140px] truncate font-medium text-slate-200">{prospectName}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Deal type</span><span className="max-w-[140px] truncate font-medium text-slate-200">{priceOption.label}</span></div>
+                </div>
+              </div>
+              <div className="border-t" style={{ borderColor: '#1E2D45' }} />
+              <div>
+                <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Window Settings</p>
+                <div className="space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div><p className="text-sm font-medium text-slate-200">Stealth Mode</p><p className="mt-0.5 text-xs text-slate-500">Hides Cosella from screen share</p></div>
+                    <Toggle on={stealthMode} onToggle={() => setStealthMode(s => !s)} />
+                  </div>
+                  <div>
+                    <div className="mb-2 flex justify-between"><p className="text-sm font-medium text-slate-200">Transparent Background</p><span className="text-xs text-slate-400">{transparency}%</span></div>
+                    <input aria-label="Transparent Background" type="range" min={0} max={100} value={transparency} onChange={e => onTransparencyChange(Number(e.target.value))} className="w-full accent-rose-500" />
+                    <p className="mt-1.5 text-xs text-slate-500">Adjust window transparency over other apps</p>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div><p className="text-sm font-medium text-slate-200">Always on Top</p><p className="mt-0.5 text-xs text-slate-500">Keeps Cosella above all other windows</p></div>
+                    <Toggle on={alwaysOnTop} onToggle={() => setAlwaysOnTop(s => !s)} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-1 min-h-0 gap-2 overflow-hidden p-2">
         <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl border border-white/10" style={{ background: 'rgba(12,26,47,0.3)', backdropFilter: 'blur(6px)' }}>
           <style>{'@keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: 0 } } @keyframes processingDot { 0%,100% { transform: translateY(0); opacity: .35 } 50% { transform: translateY(-5px); opacity: 1 } }'}</style>
@@ -272,20 +338,16 @@ export default function CosellaLiveCanvas({
               <span className="text-[10.5px] text-[#a6acb8]">{STATUS_TEXT[copilotStatus]}</span>
             </div>
             <div className="hidden items-center gap-6 sm:flex">
-              <div className="flex items-center gap-1.5 text-[10.5px] text-[#a6acb8]">
+              <label className="flex items-center gap-1.5 text-[10.5px] text-[#a6acb8]">
                 <span>Auto scroll</span>
-                <span className="relative h-[3px] w-[58px] rounded-full bg-white/10">
-                  <span className="absolute -top-[3.5px] left-0 h-2.5 w-2.5 rounded-full bg-[#4a9eff]" />
-                </span>
-                <span>1</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[10.5px] text-[#a6acb8]">
+                <input aria-label="Auto scroll" type="range" min={1} max={5} value={autoScroll} onChange={e => setAutoScroll(Number(e.target.value))} className="h-1 w-[58px] accent-[#4a9eff]" />
+                <span className="w-3">{autoScroll}</span>
+              </label>
+              <label className="flex items-center gap-1.5 text-[10.5px] text-[#a6acb8]">
                 <span>Font size</span>
-                <span className="relative h-[3px] w-[58px] rounded-full bg-white/10">
-                  <span className="absolute -top-[3.5px] left-1/2 h-2.5 w-2.5 rounded-full bg-[#4a9eff]" />
-                </span>
-                <span>12</span>
-              </div>
+                <input aria-label="Font size" type="range" min={12} max={20} value={fontSize} onChange={e => setFontSize(Number(e.target.value))} className="h-1 w-[58px] accent-[#4a9eff]" />
+                <span className="w-4">{fontSize}</span>
+              </label>
             </div>
           </div>
 
@@ -294,22 +356,24 @@ export default function CosellaLiveCanvas({
               <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'rgba(239,68,68,0.85)', boxShadow: '0 0 6px rgba(239,68,68,0.6)' }} />
               <span className="text-xs font-medium text-white">Live Sales Call</span>
             </div>
-            <Settings className="h-3.5 w-3.5 text-[#a6acb8]" />
+            <button onClick={() => setShowSettings(true)} aria-label="Open settings">
+              <Settings className="h-3.5 w-3.5 text-[#a6acb8] hover:text-white" />
+            </button>
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div ref={panelRef} className="flex-1 min-h-0 overflow-y-auto px-5 py-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
             {history.map((turn, i) => {
               const responseText = responseTextFor(turn)
               return (
                 <div key={i} className="mb-3 space-y-3">
                   <div className="rounded-md p-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
                     <p className="font-mono text-[9px] font-bold uppercase tracking-wide text-white/70">{turn.speaker}</p>
-                    <p className="mt-1.5 text-sm leading-relaxed text-white">{turn.text}</p>
+                    <p className="mt-1.5 leading-relaxed text-white" style={{ fontSize }}>{turn.text}</p>
                   </div>
                   {responseText && (
                     <div className="rounded-md p-3" style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.18)' }}>
                       <p className="font-mono text-[9px] font-bold uppercase tracking-wide text-white/70">Suggested Response</p>
-                      <p className="mt-1.5 text-sm leading-relaxed text-white">{responseText}</p>
+                      <p className="mt-1.5 leading-relaxed text-white" style={{ fontSize }}>{responseText}</p>
                     </div>
                   )}
                 </div>
@@ -318,7 +382,7 @@ export default function CosellaLiveCanvas({
             <div className="space-y-3">
               <div className="rounded-md p-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="font-mono text-[9px] font-bold uppercase tracking-wide text-white/70">{CLOSER_QA[turnIndex].speaker}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-white">{displayed}</p>
+                <p className="mt-1.5 leading-relaxed text-white" style={{ fontSize }}>{displayed}</p>
               </div>
               {copilotStatus === 'processing' && (
                 <div className="flex items-center gap-1.5 pl-1">
@@ -330,7 +394,7 @@ export default function CosellaLiveCanvas({
               {copilotStatus === 'answering' && (
                 <div className="rounded-md p-3" style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.18)' }}>
                   <p className="font-mono text-[9px] font-bold uppercase tracking-wide text-white/70">Suggested Response</p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-white">
+                  <p className="mt-1.5 leading-relaxed text-white" style={{ fontSize }}>
                     {responseDisplayed}
                     {!responseDone && <span className="ml-px inline-block w-[2px] bg-[#4a9eff] align-middle" style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }} />}
                   </p>

@@ -26,6 +26,7 @@ export default function CosellaDesktopApp() {
   const [selectedProspect, setSelectedProspect] = useState<ProspectCard | null>(null)
   const [selectedPrice, setSelectedPrice] = useState<PriceOption | null>(null)
   const [lastResult, setLastResult] = useState<LiveCallResult | null>(null)
+  const [transparency, setTransparency] = useState(40)
 
   const [signInMode, setSignInMode] = useState<'sign-in' | 'invite-code'>('sign-in')
   const [signInEmail, setSignInEmail] = useState(searchParams.get('email') ?? '')
@@ -146,7 +147,7 @@ export default function CosellaDesktopApp() {
   const activateValid = signInEmail.trim().length > 0 && signInInviteCode.trim().length > 0 && signInPassword.length > 0
 
   return (
-    <CosellaMacWindow transparency={view === 'live' ? 40 : 0}>
+    <CosellaMacWindow transparency={view === 'live' ? transparency : 0}>
       {view === 'sign-in' && (
         <div className="flex min-h-[580px] flex-col items-center justify-center px-10 text-white">
           <div className="w-full max-w-sm rounded-2xl p-8" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
@@ -234,7 +235,13 @@ export default function CosellaDesktopApp() {
       )}
 
       {view === 'live' && selectedProspect && selectedPrice && (
-        <CosellaLiveCanvas prospectName={selectedProspect.prospectName} priceOption={selectedPrice} onEnd={handleCallEnd} />
+        <CosellaLiveCanvas
+          prospectName={selectedProspect.prospectName}
+          priceOption={selectedPrice}
+          onEnd={handleCallEnd}
+          transparency={transparency}
+          onTransparencyChange={setTransparency}
+        />
       )}
 
       {view === 'summary' && lastResult && (

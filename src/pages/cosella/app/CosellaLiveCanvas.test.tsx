@@ -102,4 +102,31 @@ describe('CosellaLiveCanvas', () => {
     expect(toast.success).not.toHaveBeenCalled()
     expect(onEnd).toHaveBeenCalledTimes(1)
   })
+
+  it('opens the Settings panel from the gear icon, and adjusting Transparent Background calls the callback', () => {
+    const onTransparencyChange = vi.fn()
+    render(<CosellaLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} transparency={40} onTransparencyChange={onTransparencyChange} />)
+    expect(screen.queryByText('Window Settings')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /open settings/i }))
+    expect(screen.getByText('Window Settings')).toBeInTheDocument()
+    expect(screen.getByText('40%')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('slider', { name: 'Transparent Background' }), { target: { value: '70' } })
+    expect(onTransparencyChange).toHaveBeenCalledWith(70)
+
+    fireEvent.click(screen.getByRole('button', { name: /close settings/i }))
+    expect(screen.queryByText('Window Settings')).not.toBeInTheDocument()
+  })
+
+  it('font size and auto scroll sliders start at their default values and update on change', () => {
+    render(<CosellaLiveCanvas prospectName="Casey Nguyen" priceOption={PRICE_OPTION} onEnd={() => {}} />)
+    const fontSizeSlider = screen.getByRole('slider', { name: 'Font size' })
+    const autoScrollSlider = screen.getByRole('slider', { name: 'Auto scroll' })
+    expect(fontSizeSlider).toHaveValue('12')
+    expect(autoScrollSlider).toHaveValue('1')
+
+    fireEvent.change(fontSizeSlider, { target: { value: '18' } })
+    expect(fontSizeSlider).toHaveValue('18')
+  })
 })
