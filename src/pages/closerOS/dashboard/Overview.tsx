@@ -1,11 +1,22 @@
-import { useOutletContext } from 'react-router-dom'
-import { DollarSign, Flame, ShieldCheck, TrendingDown, Trophy } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
+import { Check, Copy, DollarSign, ExternalLink, Flame, ShieldCheck, TrendingDown, Trophy } from 'lucide-react'
 import type { CloserDashboardContext } from './CloserOSAdminLayout'
 
 const GUARANTEE_TARGET = 20000
 
 export default function Overview() {
-  const { org } = useOutletContext<CloserDashboardContext>()
+  const { adminEmail, org } = useOutletContext<CloserDashboardContext>()
+  const navigate = useNavigate()
+  const [copied, setCopied] = useState(false)
+
+  function copyLink() {
+    const url = `${window.location.origin}/closer-os`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   const cashCollected = org.ledgerEntries.reduce((sum, e) => sum + e.dollarValue, 0)
   const dealsSaved = org.ledgerEntries.filter(e => e.tag === 'saved')
@@ -33,6 +44,30 @@ export default function Overview() {
     <div className="mx-auto max-w-4xl px-10 py-12">
       <h1 className="text-2xl font-bold text-slate-900">Welcome back, {org.orgName}</h1>
       <p className="mt-1 text-sm text-slate-500">Here's your money report — the same numbers the Slack digest sends.</p>
+
+      <div className="mt-6 flex items-center justify-between rounded-2xl bg-gradient-to-r from-[#052e1f] to-[#0a4d33] px-6 py-5">
+        <div>
+          <p className="text-sm font-semibold text-emerald-300 uppercase tracking-wide">Closer OS App</p>
+          <p className="mt-0.5 text-base font-bold text-white">Download &amp; share Closer OS</p>
+          <p className="mt-1 text-sm text-white/60">Share the link with your closers so they can download and activate Closer OS.</p>
+        </div>
+        <div className="ml-6 flex flex-shrink-0 gap-3">
+          <button
+            onClick={copyLink}
+            className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/20"
+          >
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copied ? 'Copied!' : 'Copy link'}
+          </button>
+          <button
+            onClick={() => navigate(`/closer-os/sign-in?email=${encodeURIComponent(adminEmail)}`)}
+            className="flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-[#052e1f] transition-colors hover:bg-emerald-300"
+          >
+            <ExternalLink className="h-4 w-4" />
+            Open Closer OS
+          </button>
+        </div>
+      </div>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-3">
         <div className="lf-panel p-6">

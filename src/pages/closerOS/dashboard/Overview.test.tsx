@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import Overview from './Overview'
@@ -12,6 +12,7 @@ function renderWithContext(context: CloserDashboardContext) {
         <Route path="/" element={<Outlet context={context} />}>
           <Route index element={<Overview />} />
         </Route>
+        <Route path="/closer-os/sign-in" element={<p>Sign-in landed</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -37,5 +38,14 @@ describe('Overview', () => {
     const moneyLeakedPanel = screen.getByText('Money leaked').closest('.lf-panel')
     expect(moneyLeakedPanel).toHaveTextContent('$12,599')
     expect(moneyLeakedPanel).not.toHaveTextContent('$0')
+  })
+
+  it('shows the Closer OS app banner and opens the sign-in page with the admin email prefilled', () => {
+    const org = demoSeedCloserOrg('ada@acme.com', 'Ada Admin', 'Acme Closers')
+    renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
+
+    expect(screen.getByText('Download & share Closer OS')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /open closer os/i }))
+    expect(screen.getByText('Sign-in landed')).toBeInTheDocument()
   })
 })
