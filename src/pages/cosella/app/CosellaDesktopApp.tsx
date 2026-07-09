@@ -146,7 +146,7 @@ export default function CosellaDesktopApp() {
   const activateValid = signInEmail.trim().length > 0 && signInInviteCode.trim().length > 0 && signInPassword.length > 0
 
   return (
-    <CosellaMacWindow>
+    <CosellaMacWindow transparency={view === 'live' ? 40 : 0}>
       {view === 'sign-in' && (
         <div className="flex min-h-[580px] flex-col items-center justify-center px-10 text-white">
           <div className="w-full max-w-sm rounded-2xl p-8" style={{ background: CARD, border: `1px solid ${BORDER}` }}>

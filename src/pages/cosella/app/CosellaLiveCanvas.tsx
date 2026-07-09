@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { ArrowLeft, BarChart2, Settings } from 'lucide-react'
-import { BG, CARD, BORDER, formatTime } from './shared'
+import { CARD, BORDER, formatTime } from './shared'
 import PaymentMomentPanel, { type PaymentStatus } from './PaymentMomentPanel'
 import DangerWhisper, { type DangerState } from './DangerWhisper'
 import type { PriceOption } from '../cosellaOrgStore'
@@ -244,18 +244,18 @@ export default function CosellaLiveCanvas({
   }
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col" style={{ background: BG }}>
+    <div className="flex flex-1 min-h-0 flex-col">
       <div className="flex flex-1 min-h-0 gap-2 overflow-hidden p-2">
-        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl border-2 border-[#303030]" style={{ background: '#0c1a2f' }}>
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl border border-white/10" style={{ background: 'rgba(12,26,47,0.3)', backdropFilter: 'blur(6px)' }}>
           <style>{'@keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: 0 } } @keyframes processingDot { 0%,100% { transform: translateY(0); opacity: .35 } 50% { transform: translateY(-5px); opacity: 1 } }'}</style>
 
-          <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: '#14223e' }}>
+          <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: 'rgba(20,34,62,0.4)', backdropFilter: 'blur(10px)' }}>
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
               <span className="text-xs font-medium text-white">Live Sales Call &mdash; {prospectName}</span>
             </div>
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-1.5 text-[10.5px] text-[#6d727c]">
+              <label className="flex items-center gap-1.5 text-[10.5px] text-[#a6acb8]">
                 <input type="checkbox" checked={simulateDecline} onChange={e => setSimulateDecline(e.target.checked)} /> Simulate decline
               </label>
               <span className="font-mono text-[10.5px] text-white">{formatTime(elapsed)}</span>
@@ -263,23 +263,23 @@ export default function CosellaLiveCanvas({
             </div>
           </div>
 
-          <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: '#101d2b', boxShadow: 'inset 0px -1px 4px 0px rgba(79,145,100,0.38)' }}>
+          <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: 'rgba(16,29,43,0.4)', backdropFilter: 'blur(10px)', boxShadow: 'inset 0px -1px 4px 0px rgba(79,145,100,0.38)' }}>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5">
                 <BarChart2 className="h-3 w-3 text-[#76d988]" />
                 <span className="text-xs font-medium text-[#76d988]">Strong</span>
               </div>
-              <span className="text-[10.5px] text-[#6d727c]">{STATUS_TEXT[copilotStatus]}</span>
+              <span className="text-[10.5px] text-[#a6acb8]">{STATUS_TEXT[copilotStatus]}</span>
             </div>
             <div className="hidden items-center gap-6 sm:flex">
-              <div className="flex items-center gap-1.5 text-[10.5px] text-[#6d727c]">
+              <div className="flex items-center gap-1.5 text-[10.5px] text-[#a6acb8]">
                 <span>Auto scroll</span>
                 <span className="relative h-[3px] w-[58px] rounded-full bg-white/10">
                   <span className="absolute -top-[3.5px] left-0 h-2.5 w-2.5 rounded-full bg-[#4a9eff]" />
                 </span>
                 <span>1</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[10.5px] text-[#6d727c]">
+              <div className="flex items-center gap-1.5 text-[10.5px] text-[#a6acb8]">
                 <span>Font size</span>
                 <span className="relative h-[3px] w-[58px] rounded-full bg-white/10">
                   <span className="absolute -top-[3.5px] left-1/2 h-2.5 w-2.5 rounded-full bg-[#4a9eff]" />
@@ -289,12 +289,12 @@ export default function CosellaLiveCanvas({
             </div>
           </div>
 
-          <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: '#101d2b' }}>
+          <div className="flex flex-shrink-0 items-center justify-between px-4 py-2.5" style={{ background: 'rgba(16,29,43,0.2)', backdropFilter: 'blur(10px)' }}>
             <div className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
               <span className="text-xs font-medium text-white">Live Sales Call</span>
             </div>
-            <Settings className="h-3.5 w-3.5 text-[#6d727c]" />
+            <Settings className="h-3.5 w-3.5 text-[#a6acb8]" />
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
@@ -302,12 +302,12 @@ export default function CosellaLiveCanvas({
               const responseText = responseTextFor(turn)
               return (
                 <div key={i} className="mb-3 space-y-3">
-                  <div className="rounded-md p-3" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                  <div className="rounded-md p-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
                     <p className="font-mono text-[9px] font-bold uppercase tracking-wide text-white/70">{turn.speaker}</p>
                     <p className="mt-1.5 text-sm leading-relaxed text-white">{turn.text}</p>
                   </div>
                   {responseText && (
-                    <div className="rounded-md p-3" style={{ background: '#0c1b2b', border: '1px solid #244978' }}>
+                    <div className="rounded-md p-3" style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.18)' }}>
                       <p className="font-mono text-[9px] font-bold uppercase tracking-wide text-white/70">Suggested Response</p>
                       <p className="mt-1.5 text-sm leading-relaxed text-white">{responseText}</p>
                     </div>
@@ -316,7 +316,7 @@ export default function CosellaLiveCanvas({
               )
             })}
             <div className="space-y-3">
-              <div className="rounded-md p-3" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <div className="rounded-md p-3" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <p className="font-mono text-[9px] font-bold uppercase tracking-wide text-white/70">{CLOSER_QA[turnIndex].speaker}</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-white">{displayed}</p>
               </div>
@@ -328,7 +328,7 @@ export default function CosellaLiveCanvas({
                 </div>
               )}
               {copilotStatus === 'answering' && (
-                <div className="rounded-md p-3" style={{ background: '#0c1b2b', border: '1px solid #244978' }}>
+                <div className="rounded-md p-3" style={{ background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.18)' }}>
                   <p className="font-mono text-[9px] font-bold uppercase tracking-wide text-white/70">Suggested Response</p>
                   <p className="mt-1.5 text-sm leading-relaxed text-white">
                     {responseDisplayed}
@@ -336,7 +336,7 @@ export default function CosellaLiveCanvas({
                   </p>
                 </div>
               )}
-              {responseDone && turnIndex < CLOSER_QA.length - 1 && <p className="pl-1 text-xs italic text-[#6d727c]">Press Space to continue...</p>}
+              {responseDone && turnIndex < CLOSER_QA.length - 1 && <p className="pl-1 text-xs italic text-[#a6acb8]">Press Space to continue...</p>}
             </div>
           </div>
         </div>
