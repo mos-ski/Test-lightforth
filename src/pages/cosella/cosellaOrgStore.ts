@@ -500,8 +500,12 @@ export function demoSeedCosellaOrg(adminEmail: string, adminName: string, orgNam
     { id: crypto.randomUUID(), name: 'Harper Lin', phone: '+1 (415) 555-0142', email: 'harper.lin@example.com', source: 'waitlist', assignedTo: `taylor@${domain}`, createdAt: daysAgo(2) },
     { id: crypto.randomUUID(), name: 'Quinn Alvarez', phone: '+1 (312) 555-0198', email: 'quinn.alvarez@example.com', source: 'webinar', assignedTo: `taylor@${domain}`, createdAt: daysAgo(4) },
     { id: crypto.randomUUID(), name: 'Reese Donovan', phone: '+1 (646) 555-0173', email: 'reese.donovan@example.com', source: 'interest-form', assignedTo: `jordan@${domain}`, createdAt: daysAgo(1) },
+    { id: crypto.randomUUID(), name: 'Micah Torres', phone: '+1 (773) 555-0129', email: 'micah.torres@example.com', source: 'waitlist', assignedTo: `jordan@${domain}`, createdAt: daysAgo(5) },
     { id: crypto.randomUUID(), name: 'Skylar Voss', phone: '+1 (206) 555-0114', email: 'skylar.voss@example.com', source: 'imported', assignedTo: `sam@${domain}`, createdAt: daysAgo(6) },
+    { id: crypto.randomUUID(), name: 'Nadia Fischer', phone: '+1 (720) 555-0156', email: 'nadia.fischer@example.com', source: 'webinar', assignedTo: `sam@${domain}`, createdAt: daysAgo(3) },
     { id: crypto.randomUUID(), name: 'Emerson Blake', phone: '+1 (512) 555-0187', email: '', source: 'manual', assignedTo: null, createdAt: daysAgo(0) },
+    { id: crypto.randomUUID(), name: 'Priya Nair', phone: '+1 (917) 555-0163', email: 'priya.nair@example.com', source: 'interest-form', assignedTo: null, createdAt: daysAgo(1) },
+    { id: crypto.randomUUID(), name: 'Owen Castellano', phone: '+1 (305) 555-0141', email: 'owen.castellano@example.com', source: 'imported', assignedTo: null, createdAt: daysAgo(7) },
   ]
 
   const calls: CallRecord[] = [

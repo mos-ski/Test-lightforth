@@ -24,7 +24,7 @@ describe('Contacts', () => {
     renderWithContext({ adminEmail: 'ada@acme.com', org, refresh: () => {} })
 
     expect(screen.getByText('Harper Lin')).toBeInTheDocument()
-    expect(screen.getByText('Waitlist')).toBeInTheDocument()
+    expect(screen.getAllByText('Waitlist').length).toBeGreaterThan(0)
 
     fireEvent.click(screen.getByRole('button', { name: /add contact/i }))
     fireEvent.change(screen.getByPlaceholderText('Harper Lin'), { target: { value: 'Jamie Cole' } })

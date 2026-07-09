@@ -6,7 +6,7 @@ import CosellaLiveCanvas, { type LiveCallResult } from './CosellaLiveCanvas'
 import { getActiveMemberEmail, getCosellaAccount, setCosellaAccount, setActiveMemberEmail } from '../cosellaAccounts'
 import {
   findMemberByEmail, recordDeal, addPaymentPlan, addLedgerEntry, recordCall,
-  addLiveCallRiskEntry, resolveRescue, setActiveAdminEmail,
+  addLiveCallRiskEntry, resolveRescue, setActiveAdminEmail, assignContact,
   type CosellaOrg, type CosellaMember, type ProspectCard, type PriceOption, type Contact,
 } from '../cosellaOrgStore'
 
@@ -107,6 +107,9 @@ export default function CosellaDesktopApp() {
       setView('prospect-card')
     } else {
       if (!selectedContact) return
+      // Calling an unclaimed contact claims it, so it stops showing up as up-for-grabs for
+      // every other rep once someone's actually working it.
+      if (selectedContact.assignedTo === null) assignContact(context!.adminEmail, selectedContact.id, context!.member.email)
       setView('dialing')
     }
   }
@@ -256,12 +259,27 @@ export default function CosellaDesktopApp() {
                   onChange={e => setSelectedContact(context.org.contacts.find(c => c.name === e.target.value) ?? null)}
                 >
                   <option value="">Choose a contact...</option>
-                  {context.org.contacts.filter(c => c.assignedTo === context.member.email).map(c => (
-                    <option key={c.id} value={c.name}>{c.name} — {c.phone}</option>
-                  ))}
+                  {(() => {
+                    const mine = context.org.contacts.filter(c => c.assignedTo === context.member.email)
+                    const unclaimed = context.org.contacts.filter(c => c.assignedTo === null)
+                    return (
+                      <>
+                        {mine.length > 0 && (
+                          <optgroup label="Assigned to you">
+                            {mine.map(c => <option key={c.id} value={c.name}>{c.name} — {c.phone}</option>)}
+                          </optgroup>
+                        )}
+                        {unclaimed.length > 0 && (
+                          <optgroup label="Unclaimed">
+                            {unclaimed.map(c => <option key={c.id} value={c.name}>{c.name} — {c.phone}</option>)}
+                          </optgroup>
+                        )}
+                      </>
+                    )
+                  })()}
                 </select>
-                {context.org.contacts.filter(c => c.assignedTo === context.member.email).length === 0 && (
-                  <p className="mt-1.5 text-xs text-white/40">No contacts assigned to you yet — ask your admin to assign some from the Contacts page.</p>
+                {context.org.contacts.filter(c => c.assignedTo === context.member.email || c.assignedTo === null).length === 0 && (
+                  <p className="mt-1.5 text-xs text-white/40">No contacts to call yet — add some from the Contacts page.</p>
                 )}
               </div>
             )}

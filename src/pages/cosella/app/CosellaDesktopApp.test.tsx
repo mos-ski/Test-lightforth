@@ -181,4 +181,24 @@ describe('CosellaDesktopApp', () => {
     const deal = org.deals.find(d => d.prospectName === 'Reese Donovan' && d.closerName === 'Jordan Lee')
     expect(deal?.status).toBe('paid')
   })
+
+  it('a rep with no contacts assigned to them can still call an unclaimed one, which then gets assigned to them', () => {
+    createOrg('ada@acme.com', demoSeedCosellaOrg('ada@acme.com', 'Ada Admin', 'Acme Closers'))
+    const member = addMember('ada@acme.com', { name: 'Riley Chen', email: 'riley@acme.com' })!
+    setActiveMemberEmail(member.email)
+
+    renderApp()
+    fireEvent.click(screen.getByRole('button', { name: /^phone call$/i }))
+
+    // Riley has no personal assignments, but the seed leaves a few contacts unclaimed.
+    expect(screen.queryByText(/no contacts to call yet/i)).not.toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/contact/i), { target: { value: 'Emerson Blake' } })
+    fireEvent.change(screen.getByLabelText(/deal type/i), { target: { value: 'Core Program' } })
+    fireEvent.click(screen.getByRole('button', { name: /^call$/i }))
+
+    expect(screen.getByText(/calling emerson blake/i)).toBeInTheDocument()
+
+    const org = getOrgByAdminEmail('ada@acme.com')!
+    expect(org.contacts.find(c => c.name === 'Emerson Blake')?.assignedTo).toBe('riley@acme.com')
+  })
 })
