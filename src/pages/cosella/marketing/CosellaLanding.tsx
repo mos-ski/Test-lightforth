@@ -98,7 +98,7 @@ export default function CosellaLanding() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-white font-sans text-slate-950">
-      <section className="relative bg-[#03073d] text-white">
+      <section className="relative overflow-hidden bg-[#0c0e0e] text-white">
         <header className="mx-auto flex h-16 max-w-[1544px] items-center justify-between px-6 sm:px-12">
           <LightforthLogo to="/cosella" className="h-7 brightness-0 invert" />
           <nav className="hidden items-center gap-7 text-xs font-semibold text-white/80 lg:flex">
@@ -110,12 +110,12 @@ export default function CosellaLanding() {
             ))}
             <a href="#pricing" className="hover:text-white">Pricing</a>
           </nav>
-          <button onClick={() => navigate('/cosella/checkout')} className="hidden h-9 shrink-0 items-center justify-center rounded-md bg-[#2294ff] px-4 text-xs font-bold text-white hover:bg-[#1b7ee0] sm:inline-flex">
+          <button onClick={() => navigate('/cosella/checkout')} className="hidden h-9 shrink-0 items-center justify-center rounded-md bg-[#1f8bff] px-4 text-xs font-bold text-white hover:bg-[#1b7ee0] sm:inline-flex">
             Join waitlist
           </button>
         </header>
 
-        <div className="mx-auto flex min-h-[820px] max-w-[890px] flex-col items-center px-6 pb-20 pt-20 text-center sm:pt-24">
+        <div className="mx-auto flex max-w-[890px] flex-col items-center px-6 pt-20 text-center sm:pt-24">
           <p className="flex h-8 items-center rounded-full bg-white/5 px-4 text-xs font-medium uppercase tracking-normal text-white/65">
             For B2B sales teams
           </p>
@@ -133,25 +133,28 @@ export default function CosellaLanding() {
               Join Waitlist
             </button>
           </form>
+        </div>
 
-          <div className="relative mt-20 w-full max-w-[270px] sm:max-w-[566px]">
-            <img
-              src="/hero-glow.png"
-              alt=""
-              aria-hidden="true"
-              className="absolute left-1/2 top-[77%] hidden h-[24%] w-[200%] -translate-x-1/2 object-cover opacity-70 blur-2xl sm:block"
-            />
+        <div className="relative mx-auto mt-16 max-w-[1152px] px-6 pb-24 sm:mt-20 sm:pb-32">
+          <div className="absolute inset-x-[10%] bottom-0 top-1/2 -z-10 rounded-full bg-[#1f8bff]/25 blur-[120px]" aria-hidden="true" />
+          <div className="relative overflow-hidden rounded-xl border border-white/10 bg-[#111315] shadow-2xl shadow-black/60">
+            <div className="flex h-9 items-center gap-1.5 border-b border-white/5 bg-white/[0.03] px-4">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+            </div>
             <video
               aria-label="Cosella live call assistant preview"
-              className="relative aspect-video w-full rounded-md object-cover shadow-2xl shadow-black/30"
+              className="aspect-video w-full object-cover"
               autoPlay
               muted
               loop
               playsInline
             >
-              <source src="/call.mp4" type="video/mp4" />
+              <source src="/Sales Copilot.mp4" type="video/mp4" />
             </video>
           </div>
+          <div className="pointer-events-none absolute inset-x-0 -bottom-1 h-32 bg-gradient-to-b from-transparent to-[#0c0e0e]" aria-hidden="true" />
         </div>
       </section>
 
@@ -265,7 +268,7 @@ export default function CosellaLanding() {
           <img src="/Image.png" alt="" className="h-full max-h-[768px] min-h-[420px] w-full rounded-sm object-cover" />
           <div className="max-w-[576px]">
             <h2 className="text-[34px] font-semibold leading-tight tracking-normal text-slate-950 sm:text-[44px]">Reserve a seat.</h2>
-            <p className="mt-4 text-lg leading-8 text-slate-600">Our friendly team would love to hear from you.</p>
+            <p className="mt-4 text-lg leading-8 text-slate-600">Tell us about your team and we will reach out when your spot is ready.</p>
             <form onSubmit={handleSubmit} className="mt-10 space-y-6">
               <div className="grid gap-6 sm:grid-cols-2">
                 <label className="text-sm font-semibold text-slate-700">
@@ -278,16 +281,22 @@ export default function CosellaLanding() {
                 </label>
               </div>
               <label className="block text-sm font-semibold text-slate-700">
-                Email *
+                Work email *
                 <input type="email" className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 outline-none focus:border-[#2294ff] focus:ring-2 focus:ring-[#2294ff]/20" placeholder="you@company.com" />
               </label>
               <label className="block text-sm font-semibold text-slate-700">
-                Phone number
-                <input className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 outline-none focus:border-[#2294ff] focus:ring-2 focus:ring-[#2294ff]/20" placeholder="US +1 (555) 000-0000" />
+                Company name *
+                <input className="mt-2 h-11 w-full rounded-md border border-slate-300 px-3 outline-none focus:border-[#2294ff] focus:ring-2 focus:ring-[#2294ff]/20" placeholder="Acme Inc." />
               </label>
               <label className="block text-sm font-semibold text-slate-700">
-                Message *
-                <textarea className="mt-2 min-h-[128px] w-full rounded-md border border-slate-300 px-3 py-3 outline-none focus:border-[#2294ff] focus:ring-2 focus:ring-[#2294ff]/20" placeholder="Leave us a message..." />
+                Sales team size *
+                <select defaultValue="" className="mt-2 h-11 w-full rounded-md border border-slate-300 bg-white px-3 text-slate-900 outline-none focus:border-[#2294ff] focus:ring-2 focus:ring-[#2294ff]/20">
+                  <option value="" disabled>Select team size</option>
+                  <option value="1-4">1&ndash;4 reps</option>
+                  <option value="5-9">5&ndash;9 reps</option>
+                  <option value="10-24">10&ndash;24 reps</option>
+                  <option value="25+">25+ reps</option>
+                </select>
               </label>
               <label className="flex items-start gap-3 text-sm text-slate-600">
                 <input type="checkbox" className="mt-1 h-4 w-4 rounded border-slate-300 text-[#2294ff]" />
