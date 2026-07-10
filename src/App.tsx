@@ -42,26 +42,6 @@ const SalesCallHistory = lazy(() => import('@/pages/sales/CallHistory'))
 const SalesBilling = lazy(() => import('@/pages/sales/Billing'))
 const SalesIntegrations = lazy(() => import('@/pages/sales/Integrations'))
 const SalesSettings = lazy(() => import('@/pages/sales/Settings'))
-const CosellaLanding = lazy(() => import('@/pages/cosella/marketing/CosellaLanding'))
-const CosellaCheckoutPage = lazy(() => import('@/pages/cosella/marketing/CosellaCheckoutPage'))
-const CosellaDownloadPage = lazy(() => import('@/pages/cosella/marketing/CosellaDownloadPage'))
-const CosellaSignIn = lazy(() => import('@/pages/cosella/CosellaSignIn'))
-const CosellaDesktopApp = lazy(() => import('@/pages/cosella/app/CosellaDesktopApp'))
-const CosellaAdminLayout = lazy(() => import('@/pages/cosella/dashboard/CosellaAdminLayout'))
-const CosellaOverview = lazy(() => import('@/pages/cosella/dashboard/Overview'))
-const CosellaContacts = lazy(() => import('@/pages/cosella/dashboard/Contacts'))
-const CosellaPaymentSettings = lazy(() => import('@/pages/cosella/dashboard/PaymentSettings'))
-const CosellaPlanTracker = lazy(() => import('@/pages/cosella/dashboard/PlanTracker'))
-const CosellaLedger = lazy(() => import('@/pages/cosella/dashboard/Ledger'))
-const CosellaSlackReport = lazy(() => import('@/pages/cosella/dashboard/SlackReport'))
-const CosellaProspectIntel = lazy(() => import('@/pages/cosella/dashboard/ProspectIntel'))
-const CosellaGhostSimulator = lazy(() => import('@/pages/cosella/dashboard/GhostSimulator'))
-const CosellaLiveRescueBoard = lazy(() => import('@/pages/cosella/dashboard/LiveRescueBoard'))
-const CosellaTeam = lazy(() => import('@/pages/cosella/dashboard/Team'))
-const CosellaCallHistory = lazy(() => import('@/pages/cosella/dashboard/CallHistory'))
-const CosellaBilling = lazy(() => import('@/pages/cosella/dashboard/Billing'))
-const CosellaIntegrations = lazy(() => import('@/pages/cosella/dashboard/Integrations'))
-const CosellaSettings = lazy(() => import('@/pages/cosella/dashboard/Settings'))
 const MobileAppPreview = lazy(() => import('@/pages/MobileAppPreview'))
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
 const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
@@ -155,27 +135,6 @@ export default function App() {
             <Route path="/copilot/enterprise/checkout" element={<Suspense fallback={null}><EnterpriseCheckoutPage /></Suspense>} />
             <Route path="/copilot/individual/checkout" element={<Suspense fallback={null}><IndividualCheckoutPage /></Suspense>} />
             <Route path="/copilot/download" element={<Suspense fallback={null}><DownloadCopilotPage /></Suspense>} />
-            <Route path="/cosella" element={<Suspense fallback={null}><CosellaLanding /></Suspense>} />
-            <Route path="/cosella/checkout" element={<Suspense fallback={null}><CosellaCheckoutPage /></Suspense>} />
-            <Route path="/cosella/download" element={<Suspense fallback={null}><CosellaDownloadPage /></Suspense>} />
-            <Route path="/cosella/sign-in" element={<Suspense fallback={null}><CosellaSignIn /></Suspense>} />
-            <Route path="/cosella/app" element={<Suspense fallback={null}><CosellaDesktopApp /></Suspense>} />
-            <Route path="/cosella/dashboard" element={<Suspense fallback={null}><CosellaAdminLayout /></Suspense>}>
-              <Route index element={<Suspense fallback={null}><CosellaOverview /></Suspense>} />
-              <Route path="contacts" element={<Suspense fallback={null}><CosellaContacts /></Suspense>} />
-              <Route path="payment-settings" element={<Suspense fallback={null}><CosellaPaymentSettings /></Suspense>} />
-              <Route path="plan-tracker" element={<Suspense fallback={null}><CosellaPlanTracker /></Suspense>} />
-              <Route path="ledger" element={<Suspense fallback={null}><CosellaLedger /></Suspense>} />
-              <Route path="slack-report" element={<Suspense fallback={null}><CosellaSlackReport /></Suspense>} />
-              <Route path="prospect-intel" element={<Suspense fallback={null}><CosellaProspectIntel /></Suspense>} />
-              <Route path="ghost-simulator" element={<Suspense fallback={null}><CosellaGhostSimulator /></Suspense>} />
-              <Route path="rescue-board" element={<Suspense fallback={null}><CosellaLiveRescueBoard /></Suspense>} />
-              <Route path="team" element={<Suspense fallback={null}><CosellaTeam /></Suspense>} />
-              <Route path="calls" element={<Suspense fallback={null}><CosellaCallHistory /></Suspense>} />
-              <Route path="billing" element={<Suspense fallback={null}><CosellaBilling /></Suspense>} />
-              <Route path="integrations" element={<Suspense fallback={null}><CosellaIntegrations /></Suspense>} />
-              <Route path="settings" element={<Suspense fallback={null}><CosellaSettings /></Suspense>} />
-            </Route>
             <Route path="/sales/sign-in" element={<Suspense fallback={null}><SalesSignIn /></Suspense>} />
             <Route path="/sales/dashboard" element={<Suspense fallback={null}><SalesAdminLayout /></Suspense>}>
               <Route index element={<Suspense fallback={null}><SalesOverview /></Suspense>} />
