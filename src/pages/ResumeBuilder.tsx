@@ -3574,7 +3574,7 @@ function PreviewScreen({
           )}
         </main>
         <div className="sticky bottom-0 grid grid-cols-2 gap-3 border-t border-slate-200 bg-white px-4 py-4">
-          <button onClick={() => accepted ? navigate('/') : setScreen('canvas')} className="h-12 rounded-lg border border-slate-200 text-base font-bold text-slate-700">
+          <button onClick={() => accepted ? navigate('/app') : setScreen('canvas')} className="h-12 rounded-lg border border-slate-200 text-base font-bold text-slate-700">
             {accepted ? 'Dashboard' : 'Back'}
           </button>
           {accepted ? (
@@ -3599,7 +3599,7 @@ function PreviewScreen({
 
       <div className="hidden h-screen flex-col overflow-hidden bg-[#f3f3f4] font-sans lg:flex">
         <header className="flex h-20 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-8">
-          <LightforthLogo className="h-8" />
+          <LightforthLogo to="/app" className="h-8" />
           <div className="flex items-center gap-3">
             <button onClick={() => { setAccepted(false); setAcceptedWebSections([]) }} className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-white px-5 text-sm font-bold text-[#149cf2] shadow-sm transition hover:bg-slate-50">
               Regenerate <RotateCcw className="h-4 w-4" />

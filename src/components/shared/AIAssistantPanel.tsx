@@ -15,7 +15,7 @@ interface ChatMessage {
 // Pre-text prompts
 // ---------------------------------------------------------------------------
 
-type PanelVariant = 'default' | 'sales'
+type PanelVariant = 'default'
 
 const PROMPTS: Record<PanelVariant, string[]> = {
   default: [
@@ -26,46 +26,15 @@ const PROMPTS: Record<PanelVariant, string[]> = {
     'Key action items from this conversation',
     'What topics haven\'t been covered yet?',
   ],
-  sales: [
-    'How should I handle this objection?',
-    'Summarize the key buying signals',
-    'Suggest next steps to close',
-    'What competitor concerns were raised?',
-    'Draft a follow-up email',
-    'What objections are still unresolved?',
-  ],
 }
 
 // ---------------------------------------------------------------------------
 // Mock AI responses (will be replaced with real API calls)
 // ---------------------------------------------------------------------------
 
-function getMockResponse(prompt: string, variant: PanelVariant): string {
+function getMockResponse(prompt: string): string {
   const lower = prompt.toLowerCase()
 
-  if (variant === 'sales') {
-    if (lower.includes('objection') || lower.includes('handle')) {
-      return 'The customer raised a budget concern. Acknowledge it directly, then re-anchor on value: "I hear you on budget — a lot of our customers felt the same before they saw the time saved. What if we started with the core tier and revisited expansion next quarter?" Offer a phased approach to reduce upfront commitment.'
-    }
-    if (lower.includes('buying signal') || lower.includes('signal')) {
-      return 'Key buying signals detected:\n\n• Customer asked about pricing — indicates genuine interest\n• Requested a proposal by end of week — strong intent to move forward\n• Mentioned internal stakeholders — they\'re already socialising the idea\n\nRecommendation: Create urgency with a time-limited offer and schedule a follow-up to close.'
-    }
-    if (lower.includes('next step') || lower.includes('close')) {
-      return 'Suggested next steps:\n\n1. Send proposal by Thursday as promised\n2. Include ROI calculator and case study\n3. Offer a 30-minute follow-up call Friday\n4. Prepare a limited-time discount or phased pricing option\n5. Send SOC 2 docs proactively to remove procurement friction'
-    }
-    if (lower.includes('competitor')) {
-      return 'Competitor concerns mentioned:\n\n• Customer asked "what makes you different" — they\'re evaluating alternatives\n• Procurement mentioned needing SOC 2 compliance docs\n\nRecommended response: Lead with native integration (zero migration), faster onboarding (60% time saved), and have compliance docs ready to send immediately.'
-    }
-    if (lower.includes('follow-up') || lower.includes('email')) {
-      return 'Draft follow-up email:\n\nSubject: Proposal for [Company] — Quick Recap\n\nHi [Name],\n\nGreat connecting today. As discussed, I\'ll have the proposal in your inbox by Thursday. I\'ve included our ROI analysis and SOC 2 documentation.\n\nLet\'s schedule 30 minutes Friday to walk through it together. Would 2pm or 4pm work better?\n\nLooking forward to it.\n[Your name]'
-    }
-    if (lower.includes('unresolved') || lower.includes('outstanding')) {
-      return 'Outstanding objections:\n\n1. **Budget** — Not fully resolved. Propose phased pricing or core tier starter\n2. **Procurement** — SOC 2 docs requested but not yet sent. Send proactively\n3. **Decision timeline** — No clear deadline established. Ask: "What\'s driving the timing on your end?"'
-    }
-    return `Based on the conversation, here's my analysis:\n\n"${prompt}"\n\nIn a sales context, focus on listening actively, acknowledging concerns before countering, and always anchoring back to the value proposition. Keep responses concise and end with a clear next step.`
-  }
-
-  // Default (interview/meeting) responses
   if (lower.includes('summarize') || lower.includes('summary')) {
     return 'The discussion has covered several key topics including project timelines, resource allocation, and team responsibilities. The main decisions so far align on prioritising the Q3 launch, with additional QA resources approved. Open items include final budget sign-off and the marketing rollout plan.'
   }
@@ -98,17 +67,15 @@ interface AIAssistantPanelProps {
   compact?: boolean
   /** Callback to close the panel (shows close button) */
   onClose?: () => void
-  /** Panel variant — changes prompts and responses */
-  variant?: PanelVariant
 }
 
-export default function AIAssistantPanel({ context, compact, onClose, variant = 'default' }: AIAssistantPanelProps) {
+export default function AIAssistantPanel({ context, compact, onClose }: AIAssistantPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const prompts = PROMPTS[variant]
+  const prompts = PROMPTS.default
 
   // Auto-scroll to bottom on new messages (scrollTo is absent in jsdom, hence the optional call)
   useEffect(() => {
@@ -126,7 +93,7 @@ export default function AIAssistantPanel({ context, compact, onClose, variant = 
 
     // Simulate AI thinking delay
     setTimeout(() => {
-      const response = getMockResponse(query, variant)
+      const response = getMockResponse(query)
       setMessages(prev => [...prev, { role: 'assistant', text: response }])
       setIsTyping(false)
     }, 800 + Math.random() * 700)

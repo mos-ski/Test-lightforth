@@ -15,7 +15,8 @@ import { FaqSection } from './copilot/FaqSection'
 import { FinalCtaSection } from './copilot/FinalCtaSection'
 
 const PLAN_BULLETS: Record<PlanId, string[]> = {
-  pro: ['Interview & Coding Copilot', '50 credits / month', 'Real-time answers, every session'],
+  starter: ['Resume builder', 'Cover letter features', '15 credits / month'],
+  pro: ['Everything in Starter', 'Auto-Apply & AI Interview prep', 'Interview & Coding Copilot', '50 credits / month'],
   premium: ['Everything in Pro, plus Meeting Copilot', '100 credits / month', 'Priority response speed', 'Best for daily interview prep'],
 }
 
@@ -31,7 +32,7 @@ export default function CopilotLanding() {
 
   return (
     <div className="bg-white">
-      <MarketingNav active="individuals" />
+      <MarketingNav />
 
       <HeroSection isWaitlist={isWaitlist} onPrimaryCta={onPrimaryCta} />
 
@@ -59,7 +60,7 @@ export default function CopilotLanding() {
               </button>
             </div>
 
-            <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            <div className="mt-8 grid gap-6 sm:grid-cols-3">
               {PLANS.map(plan => (
                 <article
                   key={plan.id}
@@ -84,7 +85,7 @@ export default function CopilotLanding() {
                     ))}
                   </ul>
                   <p className="mt-6 text-sm italic text-slate-500">{plan.bestForNote}</p>
-                  <Button size="lg" variant={plan.popular ? 'default' : 'outline'} className="mt-6" onClick={() => navigate(`/copilot/checkout/${plan.id}`)}>
+                  <Button size="lg" variant={plan.popular ? 'default' : 'outline'} className="mt-6" onClick={() => navigate(`/checkout/${plan.id}`)}>
                     Get {plan.label}
                   </Button>
                 </article>
@@ -100,7 +101,7 @@ export default function CopilotLanding() {
       <FinalCtaSection isWaitlist={isWaitlist} onPrimaryCta={onPrimaryCta} />
 
       {isWaitlist && <WaitlistBlock product="Lightforth Copilot" accent="#061a3a" accentFg="#fff" />}
-      {!isWaitlist && <MarketingFooter active="individuals" />}
+      {!isWaitlist && <MarketingFooter />}
     </div>
   )
 }

@@ -2,12 +2,11 @@
 // Mock, localStorage-backed account registry so the desktop Copilot prototype
 // can demo "returning user" login routing without a real backend.
 
-export type AccountType = 'regular' | 'exam' | 'sales-individual' | 'enterprise-admin' | 'enterprise-member'
+export type AccountType = 'regular'
 
 export interface MockAccountRecord {
   accountType: AccountType
-  planId?: 'pro' | 'premium'
-  orgName?: string
+  planId?: 'starter' | 'pro' | 'premium'
 }
 
 const STORAGE_KEY = 'lightforth-desktop-mock-accounts'

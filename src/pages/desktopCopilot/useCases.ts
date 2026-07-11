@@ -1,12 +1,12 @@
-import { Video, Phone, Users, GraduationCap, Code2, type LucideIcon } from 'lucide-react'
+import { Video, Users, Code2, type LucideIcon } from 'lucide-react'
 
-export type UseCaseId = 'interview' | 'sales-call' | 'meeting' | 'exam' | 'coding'
+export type UseCaseId = 'interview' | 'meeting' | 'coding'
 export type CanvasPattern = 'conversational' | 'screenshot-qa'
 export type SetupFieldId =
   | 'position' | 'resume' | 'job-description'
-  | 'customer-name' | 'deal-stage' | 'talk-track' | 'context'
+  | 'context'
   | 'meeting-title' | 'agenda' | 'screen-share-note'
-  | 'subject' | 'language'
+  | 'language'
   | 'audio-device'
 
 export interface UseCaseConfig {
@@ -34,17 +34,6 @@ export const USE_CASES: UseCaseConfig[] = [
     completeBody: 'Thank you for completing your AI interview with Your Favorite Company.',
   },
   {
-    id: 'sales-call',
-    label: 'Sales Call',
-    description: 'Live coaching while you close a deal',
-    icon: Phone,
-    canvasPattern: 'conversational',
-    hasAnswerLength: true,
-    setupFields: ['customer-name', 'deal-stage', 'talk-track', 'context', 'audio-device'],
-    completeHeading: '🤝 Your Sales Call is complete!',
-    completeBody: 'Nice work. Your call notes have been saved for follow-up.',
-  },
-  {
     id: 'meeting',
     label: 'Meeting',
     description: 'Live talking points, tracked by speaker',
@@ -54,17 +43,6 @@ export const USE_CASES: UseCaseConfig[] = [
     setupFields: ['meeting-title', 'agenda', 'screen-share-note', 'audio-device'],
     completeHeading: '📝 Your Meeting is complete!',
     completeBody: 'Your meeting notes have been saved.',
-  },
-  {
-    id: 'exam',
-    label: 'Exam',
-    description: 'Instant answers from a screenshot of your exam',
-    icon: GraduationCap,
-    canvasPattern: 'screenshot-qa',
-    hasAnswerLength: false,
-    setupFields: ['subject'],
-    completeHeading: '🎓 Your Exam session is complete!',
-    completeBody: 'Good luck with your results.',
   },
   {
     id: 'coding',

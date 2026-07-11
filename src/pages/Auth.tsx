@@ -115,7 +115,7 @@ export default function Auth() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/'
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/app'
   const routeMode = location.pathname.includes('forgot-password') ? 'forgot' : null
   const initialMode = useMemo<AuthMode>(() => routeMode ?? 'choice', [routeMode])
 

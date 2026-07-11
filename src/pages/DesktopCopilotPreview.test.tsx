@@ -3,56 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { act } from 'react'
 import { vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { SetupScreen, RegularSetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas, SalesLiveCanvas, CompleteScreen } from './DesktopCopilotPreview'
-import { createOrg, emptyKnowledgeBase, generateInviteCode } from './sales/mockOrg'
+import { RegularSetupScreen, PreferenceModal, ScreenshotCanvas, LiveCanvas, CompleteScreen } from './DesktopCopilotPreview'
 import { setAccount } from './desktopCopilot/mockAccounts'
-
-describe('SetupScreen', () => {
-  it('renders Position, Resume, and Job description fields for interview', () => {
-    render(<SetupScreen useCaseId="interview" onContinue={() => {}} />)
-    expect(screen.getByText('Position')).toBeInTheDocument()
-    expect(screen.getByText('Choose Resume')).toBeInTheDocument()
-    expect(screen.getByText(/Job description/)).toBeInTheDocument()
-    expect(screen.queryByText('Customer / Company name')).not.toBeInTheDocument()
-  })
-
-  it('renders Customer name and Deal stage fields for sales-call, not Position', () => {
-    render(<SetupScreen useCaseId="sales-call" onContinue={() => {}} />)
-    expect(screen.getByText('Customer / Company name')).toBeInTheDocument()
-    expect(screen.getByText('Deal stage')).toBeInTheDocument()
-    expect(screen.queryByText('Position')).not.toBeInTheDocument()
-  })
-
-  it('renders only Subject for exam, with no audio field', () => {
-    render(<SetupScreen useCaseId="exam" onContinue={() => {}} />)
-    expect(screen.getByText('Subject')).toBeInTheDocument()
-    expect(screen.queryByText('Select Audio')).not.toBeInTheDocument()
-  })
-
-  it('opens the Preference modal on Continue once a required field is filled', () => {
-    render(<SetupScreen useCaseId="exam" onContinue={() => {}} />)
-    fireEvent.change(screen.getByPlaceholderText('e.g. Calculus II'), { target: { value: 'Calculus II' } })
-    fireEvent.click(screen.getByText('Continue'))
-    expect(screen.getByText('Preference')).toBeInTheDocument()
-  })
-
-  it('renders a Context picker for sales-call, sourced from the org Knowledge Base for an enterprise account', () => {
-    createOrg('admin@acme.com', {
-      orgName: 'Acme Inc',
-      planTier: 'enterprise',
-      setupFeePaid: true,
-      knowledgeBase: { ...emptyKnowledgeBase(), documents: [{ id: 'd1', name: 'Battlecard.pdf', enabled: true }] },
-      calls: [],
-      connectedIntegrations: [],
-      members: [{ id: '1', name: 'Admin', email: 'admin@acme.com', role: 'admin', inviteCode: generateInviteCode(), seatPaid: true }],
-    })
-    setAccount('admin@acme.com', { accountType: 'enterprise-admin', orgName: 'Acme Inc' })
-    render(<SetupScreen useCaseId="sales-call" email="admin@acme.com" onContinue={() => {}} />)
-    expect(screen.getByText(/Add context from your documents/)).toBeInTheDocument()
-    fireEvent.click(screen.getByText(/Add context from your documents/))
-    expect(screen.getByText('Battlecard.pdf')).toBeInTheDocument()
-  })
-})
 
 describe('RegularSetupScreen', () => {
   it('defaults to the Interview tab and swaps fields when Coding or Meeting is clicked', () => {
@@ -125,12 +77,12 @@ describe('ScreenshotCanvas', () => {
   afterEach(() => vi.useRealTimers())
 
   it('watches the screen automatically by default (Auto Respond is on)', () => {
-    render(<ScreenshotCanvas useCaseId="exam" primaryLabel="Calculus II" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    render(<ScreenshotCanvas useCaseId="coding" primaryLabel="" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     expect(screen.getByText(/Watching your screen/)).toBeInTheDocument()
   })
 
   it('captures, analyzes, and shows an answer on consecutive Space presses', () => {
-    render(<ScreenshotCanvas useCaseId="exam" primaryLabel="Calculus II" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    render(<ScreenshotCanvas useCaseId="coding" primaryLabel="" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     fireEvent.keyDown(window, { code: 'Space' })
     act(() => { vi.advanceTimersByTime(600) })
     expect(screen.getByText('Analyzing...')).toBeInTheDocument()
@@ -139,13 +91,13 @@ describe('ScreenshotCanvas', () => {
   })
 
   it('Ctrl+Enter also forces an immediate capture', () => {
-    render(<ScreenshotCanvas useCaseId="exam" primaryLabel="Calculus II" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    render(<ScreenshotCanvas useCaseId="coding" primaryLabel="" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     fireEvent.keyDown(window, { code: 'Enter', ctrlKey: true })
     expect(screen.getByText('Capturing screen...')).toBeInTheDocument()
   })
 
-  it('renders the answer as a code block with a Copy button for coding', () => {
-    render(<ScreenshotCanvas useCaseId="coding" primaryLabel="" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+  it('renders the answer as a code block with a Copy button', () => {
+    render(<ScreenshotCanvas useCaseId="coding" primaryLabel="" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     fireEvent.keyDown(window, { code: 'Space' })
     act(() => { vi.advanceTimersByTime(600) }) // capturing
     act(() => { vi.advanceTimersByTime(900) }) // analyzing to answered
@@ -153,7 +105,7 @@ describe('ScreenshotCanvas', () => {
   })
 
   it('auto-advances through capturing/analyzing without any key press', () => {
-    render(<ScreenshotCanvas useCaseId="exam" primaryLabel="Calculus II" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    render(<ScreenshotCanvas useCaseId="coding" primaryLabel="" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     act(() => { vi.advanceTimersByTime(2000) }) // idle -> capturing, automatically
     expect(screen.getByText('Capturing screen...')).toBeInTheDocument()
     act(() => { vi.advanceTimersByTime(600) })
@@ -161,7 +113,7 @@ describe('ScreenshotCanvas', () => {
   })
 
   it('can be switched to manual-only capture via Settings', () => {
-    render(<ScreenshotCanvas useCaseId="exam" primaryLabel="Calculus II" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    render(<ScreenshotCanvas useCaseId="coding" primaryLabel="" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     fireEvent.click(screen.getByTestId('open-settings'))
     const autoRespondToggle = screen.getByText('Auto Respond').closest('div')!.parentElement!.querySelector('button')!
     fireEvent.click(autoRespondToggle)
@@ -180,28 +132,21 @@ describe('LiveCanvas', () => {
   afterEach(() => vi.useRealTimers())
 
   it('labels the first interviewer "Interviewer 1" and titles the bar "Interview for {label}"', () => {
-    render(<LiveCanvas useCaseId="interview" primaryLabel="Product Manager" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    render(<LiveCanvas useCaseId="interview" primaryLabel="Product Manager" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     expect(screen.getByText('Interview for Product Manager')).toBeInTheDocument()
     fireEvent.keyDown(window, { code: 'Space' })
     expect(screen.getAllByText('Interviewer 1').length).toBeGreaterThan(0)
   })
 
-  it('labels the speaker "Customer" and titles the bar "Sales Call with {label}"', () => {
-    render(<SalesLiveCanvas primaryLabel="Acme Corp" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
-    expect(screen.getByText('Sales Call with Acme Corp')).toBeInTheDocument()
-    fireEvent.keyDown(window, { code: 'Space' })
-    expect(screen.getAllByText('Customer').length).toBeGreaterThan(0)
-  })
-
   it('labels speakers "Speaker 1" etc. and titles the bar "Meeting: {label}"', () => {
-    render(<LiveCanvas useCaseId="meeting" primaryLabel="Q3 Roadmap Review" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    render(<LiveCanvas useCaseId="meeting" primaryLabel="Q3 Roadmap Review" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     expect(screen.getByText('Meeting: Q3 Roadmap Review')).toBeInTheDocument()
     fireEvent.keyDown(window, { code: 'Space' })
     expect(screen.getAllByText('Speaker 1').length).toBeGreaterThan(0)
   })
 
   it('auto-advances through listening/processing/answering when Auto Respond is on', () => {
-    render(<LiveCanvas useCaseId="interview" primaryLabel="Product Manager" onEnd={() => {}} transparency={0} onTransparencyChange={() => {}} />)
+    render(<LiveCanvas useCaseId="interview" primaryLabel="Product Manager" onEnd={() => {}} onBack={() => {}} transparency={0} onTransparencyChange={() => {}} />)
     fireEvent.click(screen.getByTestId('open-settings'))
     fireEvent.click(screen.getByText('Auto Respond').closest('div')!.parentElement!.querySelector('button')!)
     act(() => { vi.advanceTimersByTime(1800) })
@@ -217,9 +162,9 @@ describe('CompleteScreen', () => {
     expect(screen.getByText('👏 Your Interview is complete!')).toBeInTheDocument()
   })
 
-  it('shows the Sales Call-specific heading', () => {
-    render(<CompleteScreen useCaseId="sales-call" onBack={() => {}} onGoHome={() => {}} />)
-    expect(screen.getByText('🤝 Your Sales Call is complete!')).toBeInTheDocument()
+  it('shows the Meeting-specific heading', () => {
+    render(<CompleteScreen useCaseId="meeting" onBack={() => {}} onGoHome={() => {}} />)
+    expect(screen.getByText('📝 Your Meeting is complete!')).toBeInTheDocument()
   })
 })
 
@@ -296,35 +241,5 @@ describe('DesktopCopilotPreview end to end', () => {
     expect(screen.getByText('👋 Hola, Welcome to Interview Co-Pilot')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Coding' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Meeting' })).not.toBeInTheDocument()
-  })
-
-  it('an invite code at sign-in is no longer validated against the org — a mismatched code still activates the seat and skips Pricing', async () => {
-    const inviteCode = generateInviteCode()
-    createOrg('admin@acme.com', {
-      orgName: 'Acme Inc',
-      planTier: 'enterprise',
-      setupFeePaid: true,
-      knowledgeBase: emptyKnowledgeBase(),
-      calls: [],
-      connectedIntegrations: [],
-      members: [
-        { id: '1', name: 'Admin', email: 'admin@acme.com', role: 'admin', inviteCode: generateInviteCode(), seatPaid: true },
-        { id: '2', name: 'Rep One', email: 'rep@acme.com', role: 'member', inviteCode, seatPaid: true },
-      ],
-    })
-
-    renderApp()
-    await act(async () => { vi.advanceTimersByTime(2300) })
-    fireEvent.click(screen.getByText('Continue'))
-    fireEvent.click(screen.getByText('I have an invite code'))
-
-    fireEvent.change(screen.getByPlaceholderText('Enter your invite code'), { target: { value: 'WRONGCODE' } })
-    fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'rep@acme.com' } })
-    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
-    fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
-    fireEvent.click(screen.getByText('Activate & sign in'))
-
-    expect(screen.queryByText('Choose your plan')).not.toBeInTheDocument()
-    expect(screen.getByText('Customer / Company name')).toBeInTheDocument()
   })
 })

@@ -16,10 +16,12 @@ import {
   ShieldCheck,
   BookOpen,
   Layers,
+  Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import UpgradeCard from '@/components/shared/UpgradeCard'
 import LightforthLogo from '@/components/shared/LightforthLogo'
+import { useAuth } from '@/hooks/useAuth'
 
 const DOCS_SUB_NAV = [
   { to: '/documents', icon: BookOpen, label: 'Resumes', end: true },
@@ -27,9 +29,9 @@ const DOCS_SUB_NAV = [
 ]
 
 const PRIMARY_NAV = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/auto-apply', icon: Briefcase, label: 'Auto-Apply' },
-  { to: '/interview-prep', icon: Target, label: 'Interview Prep' },
+  { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/auto-apply', icon: Briefcase, label: 'Auto-Apply', requiresPlan: true },
+  { to: '/interview-prep', icon: Target, label: 'Interview Prep', requiresPlan: true },
   { to: '/interview-copilot', icon: Headphones, label: 'Interview Co-Pilot' },
 ]
 
@@ -49,12 +51,28 @@ function NavItem({
   icon: Icon,
   label,
   end,
+  locked,
 }: {
   to: string
   icon: React.ElementType
   label: string
   end?: boolean
+  locked?: boolean
 }) {
+  if (locked) {
+    return (
+      <NavLink
+        to="/billing"
+        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/60 hover:bg-muted"
+        title={`Upgrade to Pro or Premium to unlock ${label}`}
+      >
+        <Icon className="h-4 w-4 flex-shrink-0 text-muted-foreground/50" />
+        <span className="flex-1 truncate">{label}</span>
+        <Lock className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/50" />
+      </NavLink>
+    )
+  }
+
   return (
     <NavLink
       to={to}
@@ -136,6 +154,9 @@ function DocsNavGroup() {
 const NAV_ITEMS = [...PRIMARY_NAV, ...SECONDARY_NAV]
 
 function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { user } = useAuth()
+  const hasCopilotAppAccess = user?.plan === 'pro' || user?.plan === 'premium'
+
   return (
     <>
       {open && (
@@ -151,7 +172,7 @@ function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }
         )}
       >
         <div className="flex h-14 items-center justify-between px-4">
-          <LightforthLogo className="h-7" />
+          <LightforthLogo to="/app" className="h-7" />
           <button onClick={onClose} className="rounded-md p-1.5 hover:bg-muted" aria-label="Close menu">
             <X className="h-5 w-5" />
           </button>
@@ -161,7 +182,7 @@ function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }
           <NavItem {...PRIMARY_NAV[0]} />
           <DocsNavGroup />
           {PRIMARY_NAV.slice(1).map((item) => (
-            <NavItem key={item.to} {...item} />
+            <NavItem key={item.to} {...item} locked={item.requiresPlan && !hasCopilotAppAccess} />
           ))}
 
           <div className="my-2 border-t border-border" />
@@ -205,17 +226,20 @@ function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }
 export { NAV_ITEMS, MobileSidebar }
 
 export default function Sidebar() {
+  const { user } = useAuth()
+  const hasCopilotAppAccess = user?.plan === 'pro' || user?.plan === 'premium'
+
   return (
     <aside className="hidden h-screen w-56 flex-shrink-0 flex-col border-r border-border bg-white md:flex">
       <div className="flex h-14 items-center gap-2 px-4">
-        <LightforthLogo className="h-7" />
+        <LightforthLogo to="/app" className="h-7" />
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-2">
         <NavItem {...PRIMARY_NAV[0]} />
         <DocsNavGroup />
         {PRIMARY_NAV.slice(1).map((item) => (
-          <NavItem key={item.to} {...item} />
+          <NavItem key={item.to} {...item} locked={item.requiresPlan && !hasCopilotAppAccess} />
         ))}
 
         <div className="my-2 border-t border-border" />

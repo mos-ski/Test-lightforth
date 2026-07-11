@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import {
-  ArrowLeft, X, Settings, Upload, FileText, Mic, Sparkles,
+  ArrowLeft, X, Settings, Upload, FileText, Mic, Sparkles, Lock,
   ChevronDown, Search, Play, Monitor, Video, Phone, MoreVertical, MessageSquare, Users, Plus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import DocumentPickerModal from '@/components/shared/DocumentPickerModal'
 import AIAssistantPanel from '@/components/shared/AIAssistantPanel'
+import { useAuth } from '@/hooks/useAuth'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -196,11 +198,15 @@ function PreferenceModal({
 function LandingContent({
   onStart,
   onSelectHistory,
-  onDownload,
+  onInstallDesktop,
+  onInstallMobile,
+  hasCopilotAccess,
 }: {
   onStart: () => void
   onSelectHistory: (id: string) => void
-  onDownload: () => void
+  onInstallDesktop: () => void
+  onInstallMobile: () => void
+  hasCopilotAccess: boolean
 }) {
   return (
     <div className="lf-page-shell">
@@ -213,12 +219,14 @@ function LandingContent({
 
       {/* Amber banner */}
       <div className="mb-6 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-amber-800 font-medium">For coding interviews and stealth version.</p>
+        <p className="text-sm text-amber-800 font-medium">
+          {hasCopilotAccess ? 'For coding interviews and stealth version.' : 'Upgrade to Pro or Premium to install the Copilot desktop app.'}
+        </p>
         <div className="flex flex-wrap gap-2">
-          <button onClick={onDownload} className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-gray-800">
-            <Monitor className="h-3 w-3" /> Install Desktop
+          <button onClick={onInstallDesktop} className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-gray-800">
+            {hasCopilotAccess ? <Monitor className="h-3 w-3" /> : <Lock className="h-3 w-3" />} Install Desktop
           </button>
-          <button onClick={onDownload} className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-gray-800">
+          <button onClick={onInstallMobile} className="flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-gray-800">
             <Monitor className="h-3 w-3" /> Install Mobile
           </button>
         </div>
@@ -1166,6 +1174,8 @@ const PREFS_KEY = 'lf_copilot_prefs'
 
 export default function InterviewCopilot() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const hasCopilotAccess = user?.plan === 'pro' || user?.plan === 'premium'
   const [view, setView] = useState<CopilotView>('landing')
   const [showPreference, setShowPreference] = useState(false)
   const [responseType, setResponseType] = useState<ResponseType>('default')
@@ -1235,13 +1245,24 @@ export default function InterviewCopilot() {
     setView('report')
   }
 
+  function handleInstallDesktop() {
+    if (!hasCopilotAccess) {
+      toast.info('Upgrade to Pro or Premium to unlock the Copilot desktop app.')
+      navigate('/billing')
+      return
+    }
+    navigate(`/desktop-copilot-preview${user?.email ? `?email=${encodeURIComponent(user.email)}` : ''}`)
+  }
+
   return (
     <>
       {/* Landing content (within AppLayout) */}
       <LandingContent
         onStart={handleStartInterview}
         onSelectHistory={handleSelectHistory}
-        onDownload={() => navigate('/downloads')}
+        onInstallDesktop={handleInstallDesktop}
+        onInstallMobile={() => navigate('/downloads')}
+        hasCopilotAccess={hasCopilotAccess}
       />
 
       {/* Setup overlay */}

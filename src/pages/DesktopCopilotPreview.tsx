@@ -1,14 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Bell, Check, ChevronDown, CornerDownRight, ExternalLink, FileText, HelpCircle, Mic, Phone, Play, Settings, Sparkles, Upload, X } from 'lucide-react'
+import { ArrowLeft, Bell, Check, ChevronDown, CornerDownRight, ExternalLink, HelpCircle, Mic, Play, Settings, Sparkles, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getUseCase, type UseCaseId } from './desktopCopilot/useCases'
 import { BG, CARD, BORDER, INPUT_BG, INPUT_BD, BLUE, formatTime, LightningLogo, MacWindow, Toggle } from './desktopCopilot/shared'
 import { getPlan, type PlanId } from './desktopCopilot/plans'
 import { SignInScreen } from './desktopCopilot/SignInScreen'
-import { ExamCheckoutScreen, ExamCheckoutSuccessScreen } from './desktopCopilot/ExamCheckoutScreen'
-import { setAccount } from './desktopCopilot/mockAccounts'
-import { findMemberByEmail, recordCall } from '@/pages/sales/mockOrg'
 import AIAssistantPanel from '@/components/shared/AIAssistantPanel'
 import { ContextPickerField } from './desktopCopilot/ContextPickerField'
 import { resolveContextDocs, type ContextDoc } from './desktopCopilot/resolveContextDocs'
@@ -29,13 +26,7 @@ const MOCK_QA = [
   { speaker: 'Interviewer 3', q: "Do you have any questions for us about the role or the team?", a: "Yes, a few. First — what does success look like for this role in the first 90 days? Second — how does the product team collaborate with engineering and design today, and where do you see room to improve that? And third — what's the biggest unsolved problem the product team is wrestling with right now? That last one tells me a lot about where I'd be spending my energy." },
 ]
 
-const MOCK_RESUMES = [
-  { name: 'Darnell Smith', role: 'Product Manager', date: '1st Jun, 2026' },
-  { name: 'Darnell Smith', role: 'UI/UX Designer', date: '15th Apr, 2026' },
-  { name: 'Darnell Smith', role: 'Software Engineer', date: '3rd Jan, 2026' },
-]
-
-type DesktopView = 'splash' | 'onboarding' | 'sign-in' | 'exam-checkout' | 'exam-checkout-success' | 'regular-setup' | 'setup' | 'live' | 'complete'
+type DesktopView = 'splash' | 'onboarding' | 'sign-in' | 'regular-setup' | 'live' | 'complete'
 type CopilotStatus = 'listening' | 'processing' | 'answering'
 
 // ---------------------------------------------------------------------------
@@ -116,57 +107,6 @@ function OnboardingScreen({ onContinue }: { onContinue: () => void }) {
             Continue
           </button>
         </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Resume Import Modal
-// ---------------------------------------------------------------------------
-function ResumeModal({ onClose, onSelect }: { onClose: () => void; onSelect: (name: string) => void }) {
-  const [selected, setSelected] = useState(0)
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-2xl p-8 shadow-2xl" style={{ background: '#0e2155', border: `1px solid ${BORDER}` }}>
-        <div className="mb-6 flex items-start justify-between">
-          <h2 className="text-xl font-bold text-white">Select resume to import</h2>
-          <button onClick={onClose}><X className="h-5 w-5 text-white/50 hover:text-white" /></button>
-        </div>
-
-        <div className="mb-6 space-y-3">
-          {MOCK_RESUMES.map((r, i) => (
-            <button
-              key={i}
-              onClick={() => setSelected(i)}
-              className="flex w-full items-center gap-4 rounded-xl p-4 text-left transition-colors"
-              style={{
-                background: selected === i ? 'rgba(26,122,255,0.15)' : CARD,
-                border: `1px solid ${selected === i ? BLUE : BORDER}`,
-              }}
-            >
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: 'rgba(26,122,255,0.2)' }}>
-                <FileText className="h-5 w-5 text-blue-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white">{r.name}</p>
-                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{r.role} · {r.date}</p>
-              </div>
-              <div className={cn('h-5 w-5 rounded-full border-2 flex items-center justify-center', selected === i ? 'border-blue-400' : 'border-white/30')}>
-                {selected === i && <div className="h-2.5 w-2.5 rounded-full bg-blue-400" />}
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <button
-          onClick={() => onSelect(MOCK_RESUMES[selected].name)}
-          className="h-12 w-full rounded-xl text-sm font-bold text-white hover:opacity-90"
-          style={{ background: BLUE }}
-        >
-          Next
-        </button>
       </div>
     </div>
   )
@@ -258,296 +198,6 @@ export function PreferenceModal({ hasAnswerLength, onClose, onNext }: { hasAnswe
           Confirm
         </button>
       </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Screen 2: Setup
-// ---------------------------------------------------------------------------
-type DealStage = 'Discovery' | 'Demo' | 'Negotiation' | 'Closing'
-const DEAL_STAGES: DealStage[] = ['Discovery', 'Demo', 'Negotiation', 'Closing']
-
-export function SetupScreen({ useCaseId, email, onBack, onContinue }: { useCaseId: UseCaseId; email?: string; onBack: () => void; onContinue: (primaryLabel: string) => void }) {
-  const config = getUseCase(useCaseId)
-  const fields = new Set(config.setupFields)
-  const contextDocs = resolveContextDocs(email ?? '')
-
-  const [jobTitle, setJobTitle] = useState('')
-  const [selectedResume, setSelectedResume] = useState<string | null>('adewale_damola_PM_resume.pdf')
-  const [jobDesc, setJobDesc] = useState('')
-  const [customerName, setCustomerName] = useState('')
-  const [dealStage, setDealStage] = useState<DealStage>('Discovery')
-  const [talkTrack, setTalkTrack] = useState('')
-  const [context, setContext] = useState<ContextDoc[]>([])
-  const [meetingTitle, setMeetingTitle] = useState('')
-  const [agenda, setAgenda] = useState('')
-  const [subject, setSubject] = useState('')
-  const [language, setLanguage] = useState('')
-  const [audioConnected, setAudioConnected] = useState(true)
-  const [dontAskAgain, setDontAskAgain] = useState(true)
-  const [showResumeModal, setShowResumeModal] = useState(false)
-  const [showPreference, setShowPreference] = useState(false)
-
-  const inputStyle = { background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none' } as const
-
-  const primaryLabel =
-    useCaseId === 'interview' ? jobTitle :
-    useCaseId === 'sales-call' ? customerName :
-    useCaseId === 'meeting' ? meetingTitle :
-    useCaseId === 'exam' ? subject :
-    language
-
-  const requiresLabel = useCaseId !== 'coding'
-  const canContinue = requiresLabel ? primaryLabel.trim().length > 0 : true
-
-  return (
-    <div className="flex flex-1 flex-col min-h-0" style={{ background: BG }}>
-      <div className="flex h-14 items-center justify-between border-b px-6" style={{ borderColor: BORDER }}>
-        <div className="flex items-center gap-2">
-          <button onClick={onBack} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Back to use case selection">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <LightningLogo size={24} />
-          <span className="text-base font-bold text-white">Lightforth</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10" style={{ borderColor: BORDER }}>
-            <LightningLogo size={12} /> Upgrade
-          </button>
-          <button className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/10">
-            <Bell className="h-4 w-4 text-white/60" />
-          </button>
-          <button className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white/10">
-            <HelpCircle className="h-4 w-4 text-white/60" />
-          </button>
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-pink-500" />
-        </div>
-      </div>
-
-      <div className="min-h-0 flex-1 overflow-y-auto px-10 py-6">
-        <div className="mx-auto max-w-[520px]">
-          <h1 className="mb-6 text-center text-xl font-bold text-white">👋 Hola, Welcome to {config.label} Co-Pilot</h1>
-
-          <div className="space-y-4">
-            {fields.has('position') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Position</p>
-                <input
-                  value={jobTitle}
-                  onChange={e => setJobTitle(e.target.value)}
-                  placeholder="Enter job role"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                  style={inputStyle}
-                />
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>Suggestions:</span>
-                  {['Product Designer', 'Product Manager'].map(s => (
-                    <button key={s} onClick={() => setJobTitle(s)} className="font-semibold text-blue-400 hover:underline">{s}</button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {fields.has('resume') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Choose Resume</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button className="flex h-10 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white/70 hover:bg-white/10 transition-colors" style={{ border: `1px solid ${BORDER}` }}>
-                    <Upload className="h-4 w-4" /> Upload a Resume
-                  </button>
-                  <button onClick={() => setShowResumeModal(true)} className="relative flex h-10 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-colors" style={{ background: 'rgba(26,122,255,0.15)', border: `1px solid ${BLUE}`, color: '#60a5fa' }}>
-                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full px-2 py-0.5 text-[9px] font-bold text-blue-400" style={{ background: '#0c1d48', border: `1px solid ${BLUE}` }}>RECOMMENDED</span>
-                    <LightningLogo size={14} /> Use Lightforth Resume
-                  </button>
-                </div>
-                {selectedResume && (
-                  <div className="mt-2 flex items-center gap-2 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                    <FileText className="h-4 w-4 fill-red-400 text-red-400" />
-                    <span>{selectedResume}</span>
-                    <button onClick={() => setSelectedResume(null)}><X className="h-3.5 w-3.5 hover:text-white" /></button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {fields.has('job-description') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Job description <span className="font-normal text-white/40">(optional)</span></p>
-                <div className="relative">
-                  <textarea
-                    value={jobDesc}
-                    onChange={e => setJobDesc(e.target.value)}
-                    placeholder="Write or paste here..."
-                    className="w-full resize-none rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                    style={{ ...inputStyle, height: 72 }}
-                  />
-                  <button onClick={() => setJobDesc("We're looking for a talented individual to join our growing team. You'll collaborate cross-functionally to deliver innovative solutions.")} className="absolute bottom-2.5 right-3 flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-white/70 hover:text-white" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                    <Sparkles className="h-3 w-3" /> Suggest for me
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {fields.has('customer-name') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Customer / Company name</p>
-                <input
-                  value={customerName}
-                  onChange={e => setCustomerName(e.target.value)}
-                  placeholder="e.g. Acme Corp"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                  style={inputStyle}
-                />
-              </div>
-            )}
-
-            {fields.has('deal-stage') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Deal stage</p>
-                <div className="flex flex-wrap gap-2">
-                  {DEAL_STAGES.map(stage => (
-                    <button
-                      key={stage}
-                      onClick={() => setDealStage(stage)}
-                      className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
-                      style={{
-                        background: dealStage === stage ? 'rgba(26,122,255,0.2)' : 'transparent',
-                        border: `1px solid ${dealStage === stage ? BLUE : INPUT_BD}`,
-                        color: dealStage === stage ? '#60a5fa' : 'rgba(255,255,255,0.6)',
-                      }}
-                    >
-                      {stage}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {fields.has('talk-track') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Talk track notes <span className="font-normal text-white/40">(optional)</span></p>
-                <textarea
-                  value={talkTrack}
-                  onChange={e => setTalkTrack(e.target.value)}
-                  placeholder="Key points, objection handling, pricing notes..."
-                  className="w-full resize-none rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                  style={{ ...inputStyle, height: 72 }}
-                />
-              </div>
-            )}
-
-            {fields.has('context') && (
-              <ContextPickerField docs={contextDocs} selected={context} onChange={setContext} />
-            )}
-
-            {fields.has('meeting-title') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Meeting title</p>
-                <input
-                  value={meetingTitle}
-                  onChange={e => setMeetingTitle(e.target.value)}
-                  placeholder="e.g. Q3 Roadmap Review"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                  style={inputStyle}
-                />
-              </div>
-            )}
-
-            {fields.has('agenda') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Agenda <span className="font-normal text-white/40">(optional)</span></p>
-                <textarea
-                  value={agenda}
-                  onChange={e => setAgenda(e.target.value)}
-                  placeholder="What's on the agenda..."
-                  className="w-full resize-none rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                  style={{ ...inputStyle, height: 72 }}
-                />
-              </div>
-            )}
-
-            {fields.has('screen-share-note') && (
-              <div className="rounded-2xl p-4" style={{ background: 'rgba(96,165,250,0.08)', border: `1px solid ${BORDER}` }}>
-                <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                  Meetings work best when you share your screen — Copilot uses it to tell speakers apart.
-                </p>
-              </div>
-            )}
-
-            {fields.has('subject') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Subject</p>
-                <input
-                  value={subject}
-                  onChange={e => setSubject(e.target.value)}
-                  placeholder="e.g. Calculus II"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                  style={inputStyle}
-                />
-              </div>
-            )}
-
-            {fields.has('language') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <p className="mb-2 text-sm font-semibold text-white">Language / stack <span className="font-normal text-white/40">(optional)</span></p>
-                <input
-                  value={language}
-                  onChange={e => setLanguage(e.target.value)}
-                  placeholder="Leave blank to auto-detect"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                  style={inputStyle}
-                />
-              </div>
-            )}
-
-            {fields.has('audio-device') && (
-              <div className="rounded-2xl p-4" style={{ background: CARD, border: `1px solid ${BORDER}` }}>
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-white">Select Audio</p>
-                  {audioConnected && <span className="text-xs font-semibold text-green-400">Connected</span>}
-                </div>
-                <button onClick={() => setAudioConnected(true)} className="flex h-10 w-full items-center justify-between rounded-xl px-4 text-sm text-white/80 hover:bg-white/10 transition-colors" style={{ border: `1px solid ${INPUT_BD}`, background: INPUT_BG }}>
-                  <span className="flex items-center gap-2"><Mic className="h-4 w-4 text-white/50" />{audioConnected ? "Default - Adewale' Airpod Pro" : 'No audio device selected'}</span>
-                  <ChevronDown className="h-4 w-4 text-white/50" />
-                </button>
-                <button onClick={() => setAudioConnected(true)} className="mt-2 h-9 w-full rounded-xl text-sm font-semibold text-white hover:opacity-90" style={{ background: 'rgba(26,122,255,0.35)' }}>
-                  Enable Microphone Access
-                </button>
-              </div>
-            )}
-
-            <label className="flex cursor-pointer select-none items-center gap-3 px-1">
-              <div className={cn('h-5 w-5 flex-shrink-0 rounded flex items-center justify-center', dontAskAgain ? 'bg-blue-500' : 'border border-white/30')} onClick={() => setDontAskAgain(a => !a)}>
-                {dontAskAgain && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
-              </div>
-              <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Don't ask again</span>
-            </label>
-
-            <button
-              onClick={() => { if (canContinue) setShowPreference(true) }}
-              className="h-11 w-full rounded-xl text-sm font-bold text-white transition-opacity"
-              style={{ background: BLUE, opacity: canContinue ? 1 : 0.45 }}
-            >
-              Continue
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {showResumeModal && (
-        <ResumeModal
-          onClose={() => setShowResumeModal(false)}
-          onSelect={(name) => { setSelectedResume(`${name.toLowerCase().replace(' ', '_')}_resume.pdf`); setShowResumeModal(false) }}
-        />
-      )}
-      {showPreference && (
-        <PreferenceModal
-          hasAnswerLength={config.hasAnswerLength}
-          onClose={() => setShowPreference(false)}
-          onNext={() => onContinue(primaryLabel || config.label)}
-        />
-      )}
     </div>
   )
 }
@@ -798,15 +448,9 @@ export function RegularSetupScreen({ email, onBack, onContinue, unlockedUseCases
 }
 
 // ---------------------------------------------------------------------------
-// Screen 3a: Conversational Canvas (Interview / Sales Call / Meeting)
+// Screen 3a: Conversational Canvas (Interview / Meeting)
 // ---------------------------------------------------------------------------
 type ConversationalUseCase = 'interview' | 'meeting'
-
-const MOCK_SALES_QA = [
-  { speaker: 'Customer', q: "Look, I like the product, but the price point is a stretch for us this quarter.", a: "Acknowledge the budget concern, then re-anchor on value: \"I hear you on budget — a lot of our customers felt the same before they saw the time saved. What if we started with the core tier and revisited expansion next quarter?\"" },
-  { speaker: 'Customer', q: "What makes you different from your competitors, and how does that hold up once we factor in our procurement process?", a: "Lead with your strongest differentiator backed by proof: \"We integrate natively with your existing stack — no migration needed. A similar customer cut onboarding time by 60% switching to us.\"", interjection: { speaker: 'Procurement Lead', text: "Quick add — we'll also need SOC 2 docs before this goes further." } },
-  { speaker: 'Customer', q: "Can you send over a proposal by end of week?", a: "Confirm and create urgency: \"Absolutely, I'll have it in your inbox by Thursday. Should we put 30 minutes on the calendar Friday to walk through it together?\"" },
-]
 
 const MOCK_MEETING_TRANSCRIPT = [
   { speaker: 'Speaker 1', q: "I think we should push the launch date by two weeks to finish QA.", a: "Support the rationale, propose a checkpoint: \"That tracks with the bug count we're seeing. Can we set a go/no-go review next Wednesday so we don't lose more time than necessary?\"" },
@@ -838,17 +482,6 @@ function truncateAtWord(text: string, ratio: number): string {
 
 function questionTextFor(turn: ConversationalTurn): string {
   return turn.interjection ? truncateAtWord(turn.q, 0.55) : turn.q
-}
-
-/** Flattens a completed sales-call session's Q&A history into a flat transcript for Call History. */
-function flattenTranscript(history: ConversationalTurn[], repName: string): { speaker: string; text: string }[] {
-  const lines: { speaker: string; text: string }[] = []
-  for (const turn of history) {
-    lines.push({ speaker: turn.speaker, text: turn.q })
-    if (turn.interjection) lines.push({ speaker: turn.interjection.speaker, text: turn.interjection.text })
-    lines.push({ speaker: repName, text: turn.a })
-  }
-  return lines
 }
 
 const CONVERSATIONAL_BANKS: Record<ConversationalUseCase, ConversationalTurn[]> = {
@@ -1142,440 +775,18 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
 }
 
 // ---------------------------------------------------------------------------
-// Screen 3a-b: Sales Live Canvas (Sales-specific interface)
-// ---------------------------------------------------------------------------
-
-const SALES_MOCK_TALK_TRACK = [
-  'Lead with ROI — 60% faster onboarding',
-  'No migration needed — native integration',
-  'Start with core tier, expand next quarter',
-  'SOC 2 docs ready to send',
-]
-
-const SALES_MOCK_OBJECTIONS = [
-  { objection: 'Price is too high', tip: 'Re-anchor on value: mention time saved and ROI. Offer a phased approach.' },
-  { objection: 'We have an existing solution', tip: 'Highlight native integration and zero migration cost. Reference similar customer wins.' },
-  { objection: 'Need to check with procurement', tip: 'Offer to send SOC 2 docs proactively. Suggest a brief call with their procurement lead.' },
-]
-
-export function SalesLiveCanvas({ primaryLabel, onEnd, onBack, transparency, onTransparencyChange }: { primaryLabel: string; onEnd: (elapsed: number, history: ConversationalTurn[]) => void; onBack: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
-  const bank = MOCK_SALES_QA
-  const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
-  const [questionIndex, setQuestionIndex] = useState(0)
-  const [qDisplayed, setQDisplayed] = useState('')
-  const [interjectionDisplayed, setInterjectionDisplayed] = useState('')
-  const [aDisplayed, setADisplayed] = useState('')
-  const [history, setHistory] = useState<ConversationalTurn[]>([])
-  const [elapsed, setElapsed] = useState(0)
-  const [showSettings, setShowSettings] = useState(false)
-  const [stealthMode, setStealthMode] = useState(true)
-  const [alwaysOnTop, setAlwaysOnTop] = useState(false)
-  const [fontSize, setFontSize] = useState(14)
-  const [autoRespond, setAutoRespond] = useState(false)
-  const [showAI, setShowAI] = useState(true)
-  const [dealStage, setDealStage] = useState<DealStage>('Discovery')
-  const [activeRightTab, setActiveRightTab] = useState<'deal' | 'track' | 'objections'>('deal')
-
-  const statusRef = useRef(copilotStatus)
-  const qIndexRef = useRef(questionIndex)
-  const panelRef = useRef<HTMLDivElement>(null)
-  const stickToBottomRef = useRef(true)
-  useEffect(() => { statusRef.current = copilotStatus }, [copilotStatus])
-  useEffect(() => { qIndexRef.current = questionIndex }, [questionIndex])
-
-  useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
-
-  useEffect(() => {
-    const el = panelRef.current
-    if (!el) return
-    const handleScroll = () => {
-      stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80
-    }
-    el.addEventListener('scroll', handleScroll)
-    return () => el.removeEventListener('scroll', handleScroll)
-  }, [])
-  useEffect(() => {
-    if (panelRef.current && stickToBottomRef.current && 'scrollTo' in panelRef.current) {
-      panelRef.current.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' })
-    }
-  }, [qDisplayed, aDisplayed, copilotStatus])
-
-  const advance = () => {
-    const cur = statusRef.current
-    const qi = qIndexRef.current
-    const turn = bank[qi]
-    if (cur === 'listening') {
-      setQDisplayed(questionTextFor(turn))
-      if (turn.interjection) setInterjectionDisplayed(turn.interjection.text)
-      setCopilotStatus('processing')
-    }
-    else if (cur === 'processing') { setCopilotStatus('answering') }
-    else {
-      setHistory(h => [...h, turn])
-      setQuestionIndex(i => (i + 1) % bank.length)
-      setCopilotStatus('listening')
-      // Auto-advance deal stage based on conversation progress
-      const nextIdx = (questionIndex + 1) % bank.length
-      if (nextIdx === 1) setDealStage('Demo')
-      else if (nextIdx === 2) setDealStage('Negotiation')
-    }
-  }
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' || autoRespond) return
-      e.preventDefault()
-      advance()
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [autoRespond, bank])
-
-  useEffect(() => {
-    if (!autoRespond) return
-    const delay = copilotStatus === 'listening' ? 1800 : copilotStatus === 'processing' ? 1200 : 1800
-    const id = setTimeout(advance, delay)
-    return () => clearTimeout(id)
-  }, [autoRespond, copilotStatus, questionIndex])
-
-  useEffect(() => {
-    if (copilotStatus !== 'listening') return
-    setQDisplayed(''); setADisplayed(''); setInterjectionDisplayed('')
-    const turn = bank[questionIndex]
-    const qText = questionTextFor(turn)
-    let i = 0
-    let interjectionTimeout: ReturnType<typeof setTimeout> | undefined
-    let interjectionInterval: ReturnType<typeof setInterval> | undefined
-    const qInterval = setInterval(() => {
-      i++
-      setQDisplayed(qText.slice(0, i))
-      if (i >= qText.length) {
-        clearInterval(qInterval)
-        if (turn.interjection) {
-          interjectionTimeout = setTimeout(() => {
-            let j = 0
-            const interjectionText = turn.interjection!.text
-            interjectionInterval = setInterval(() => {
-              j++
-              setInterjectionDisplayed(interjectionText.slice(0, j))
-              if (j >= interjectionText.length) clearInterval(interjectionInterval)
-            }, 22)
-          }, 350)
-        }
-      }
-    }, 22)
-    return () => {
-      clearInterval(qInterval)
-      if (interjectionTimeout) clearTimeout(interjectionTimeout)
-      if (interjectionInterval) clearInterval(interjectionInterval)
-    }
-  }, [copilotStatus, questionIndex, bank])
-
-  useEffect(() => {
-    if (copilotStatus !== 'answering') return
-    setADisplayed('')
-    const text = bank[questionIndex].a; let i = 0
-    const id = setInterval(() => { i += 6; setADisplayed(text.slice(0, i)); if (i >= text.length) clearInterval(id) }, 10)
-    return () => clearInterval(id)
-  }, [copilotStatus, questionIndex, bank])
-
-  const statusText: Record<CopilotStatus, string> = { listening: 'Listening to customer...', processing: 'Preparing response...', answering: 'Coaching...' }
-  const speakerLabel = bank[questionIndex].speaker
-  const stageIndex = DEAL_STAGES.indexOf(dealStage)
-
-  return (
-    <div className="flex flex-1 min-h-0 flex-col" style={{ background: '#0A1628' }}>
-      <style>{`
-        @keyframes glowPulse { 0%,100%{box-shadow:0 0 6px rgba(34,197,94,0.3),0 0 14px rgba(34,197,94,0.1)}50%{box-shadow:0 0 12px rgba(34,197,94,0.45),0 0 24px rgba(34,197,94,0.15)} }
-        @keyframes processingDot { 0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-5px);opacity:1} }
-        @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
-        @keyframes salesPulse { 0%,100%{opacity:.6}50%{opacity:1} }
-      `}</style>
-
-      {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
-            <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: '#1E2D45' }}>
-              <p className="text-sm font-semibold text-white">Settings</p>
-              <button onClick={() => setShowSettings(false)}><X className="h-4 w-4 text-slate-400 hover:text-white" /></button>
-            </div>
-            <div className="space-y-6 p-5">
-              <div>
-                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Session Preferences</p>
-                <div className="space-y-2 rounded-lg p-3 text-xs" style={{ background: '#0A1628' }}>
-                  <div className="flex justify-between"><span className="text-slate-500">Customer</span><span className="font-medium text-slate-200 truncate max-w-[140px]">{primaryLabel}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Deal Stage</span><span className="font-medium text-blue-400">{dealStage}</span></div>
-                </div>
-              </div>
-              <div className="border-t" style={{ borderColor: '#1E2D45' }} />
-              <div>
-                <p className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Window Settings</p>
-                <div className="space-y-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div><p className="text-sm font-medium text-slate-200">Stealth Mode</p><p className="mt-0.5 text-xs text-slate-500">Hides Copilot from screen share</p></div>
-                    <Toggle on={stealthMode} onToggle={() => setStealthMode(s => !s)} />
-                  </div>
-                  <div>
-                    <div className="mb-2 flex justify-between"><p className="text-sm font-medium text-slate-200">Transparent Background</p><span className="text-xs text-slate-400">{transparency}%</span></div>
-                    <input type="range" min={0} max={100} value={transparency} onChange={e => onTransparencyChange(Number(e.target.value))} className="w-full accent-primary" />
-                  </div>
-                  <div className="flex items-start justify-between gap-4">
-                    <div><p className="text-sm font-medium text-slate-200">Always on Top</p><p className="mt-0.5 text-xs text-slate-500">Keeps Copilot above all other windows</p></div>
-                    <Toggle on={alwaysOnTop} onToggle={() => setAlwaysOnTop(s => !s)} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: '#0A1628' }}>
-        <div className="flex items-center gap-2 text-sm text-slate-300">
-          <button onClick={onBack} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Back">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-          <span>Sales Call with {primaryLabel}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-sm text-slate-300">{formatTime(elapsed)}</span>
-          <button onClick={() => onEnd(elapsed, history)} className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600">End Call</button>
-        </div>
-      </div>
-
-      {/* Status bar */}
-      <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-2" style={{ background: '#0F2340' }}>
-        <div className="flex items-center gap-5 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="flex items-end gap-[3px]">{[5,8,11,14].map((h,i) => <div key={i} className="w-[3px] rounded-sm bg-green-400" style={{height:h}} />)}</div>
-            <span className="text-green-400">Strong</span>
-          </div>
-          <span className="italic text-slate-400">{statusText[copilotStatus]}</span>
-        </div>
-        <div className="flex items-center gap-4 text-xs text-slate-300">
-          <button
-            onClick={() => setShowAI(a => !a)}
-            className={cn(
-              'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors',
-              showAI ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-white/10',
-            )}
-          >
-            <Sparkles className="h-3 w-3" /> AI Assistant
-          </button>
-          <label className="flex items-center gap-2">
-            Font size
-            <input type="range" min={12} max={20} value={fontSize} onChange={e => setFontSize(Number(e.target.value))} className="w-20 accent-primary" />
-            <span className="w-5 text-slate-500">{fontSize}</span>
-          </label>
-          <button data-testid="open-settings" onClick={() => setShowSettings(true)}><Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" /></button>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="flex flex-1 min-h-0 overflow-hidden p-2 gap-2">
-        {/* Left: Customer Statement + AI Response */}
-        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl" style={{ background: '#0D1929', border: copilotStatus === 'listening' ? '1px solid #22c55e' : '1px solid #1E2D45', ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
-          <div className="flex flex-shrink-0 items-center justify-between border-b px-4 py-3" style={{ borderColor: '#1E2D45' }}>
-            <div className="flex items-center gap-2 text-sm font-medium text-white">
-              <div className="flex items-center gap-1.5">
-                <Phone className="h-3.5 w-3.5 text-green-400" />
-                Live Coaching
-              </div>
-              <div className="h-2 w-2 rounded-full bg-red-500" />
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Deal stage indicator */}
-              <div className="flex items-center gap-1 rounded-lg px-2 py-1" style={{ background: 'rgba(26,122,255,0.15)' }}>
-                {DEAL_STAGES.map((s, i) => (
-                  <div key={s} className="flex items-center gap-1">
-                    <div className={cn(
-                      'h-1.5 w-1.5 rounded-full transition-colors',
-                      i <= stageIndex ? 'bg-blue-400' : 'bg-slate-600',
-                    )} />
-                    {i < DEAL_STAGES.length - 1 && <div className={cn('h-px w-3', i < stageIndex ? 'bg-blue-400' : 'bg-slate-700')} />}
-                  </div>
-                ))}
-                <span className="ml-1 text-[10px] font-semibold text-blue-400">{dealStage}</span>
-              </div>
-            </div>
-          </div>
-
-          <div ref={panelRef} className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
-            {/* History */}
-            {history.map((item, i) => (
-              <div key={i} className="space-y-3">
-                <div>
-                  <p className="mb-1 text-xs font-semibold" style={{ color: speakerColor(item.speaker) }}>{item.speaker}</p>
-                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
-                    <p className="text-sm text-white">{questionTextFor(item)}{item.interjection && '...'}</p>
-                  </div>
-                </div>
-                {item.interjection && (
-                  <div className="ml-4 flex items-start gap-1.5 border-l-2 pl-3" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
-                    <CornerDownRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-slate-500" />
-                    <p className="text-xs leading-relaxed text-slate-300">
-                      <span className="font-semibold" style={{ color: speakerColor(item.interjection.speaker) }}>{item.interjection.speaker}</span>
-                      {' '}{item.interjection.text}
-                    </p>
-                  </div>
-                )}
-                <div className="ml-2 border-l-2 pl-3" style={{ borderColor: 'rgba(59,130,246,0.4)' }}>
-                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-blue-400">Suggested Response</p>
-                  <p className="text-sm leading-relaxed text-slate-200">{item.a}</p>
-                </div>
-              </div>
-            ))}
-
-            {/* Current turn */}
-            <div className="space-y-3">
-              {qDisplayed && (
-                <div>
-                  <p className="mb-1 text-xs font-semibold" style={{ color: speakerColor(speakerLabel) }}>{speakerLabel}</p>
-                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
-                    <p className="text-sm text-white">
-                      {qDisplayed}
-                      {bank[questionIndex].interjection && qDisplayed.length >= questionTextFor(bank[questionIndex]).length && '...'}
-                      {!bank[questionIndex].interjection && copilotStatus === 'listening' && qDisplayed.length < bank[questionIndex].q.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {interjectionDisplayed && bank[questionIndex].interjection && (
-                <div className="ml-4 flex items-start gap-1.5 border-l-2 pl-3" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
-                  <CornerDownRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-slate-500" />
-                  <p className="text-xs leading-relaxed text-slate-300">
-                    <span className="font-semibold" style={{ color: speakerColor(bank[questionIndex].interjection!.speaker) }}>{bank[questionIndex].interjection!.speaker}</span>
-                    {' '}{interjectionDisplayed}
-                    {copilotStatus === 'listening' && interjectionDisplayed.length < bank[questionIndex].interjection!.text.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}
-                  </p>
-                </div>
-              )}
-              {copilotStatus === 'processing' && (
-                <div className="flex items-center gap-2 py-1">
-                  <span className="text-xs text-blue-400 font-medium" style={{ animation: 'salesPulse 1.5s ease-in-out infinite' }}>Preparing coaching tip...</span>
-                  <div className="flex items-center gap-1">{[0,1,2].map(i => <div key={i} className="h-1.5 w-1.5 rounded-full bg-blue-400" style={{ animation: 'processingDot 0.9s ease-in-out infinite', animationDelay: `${i * 0.18}s` }} />)}</div>
-                </div>
-              )}
-              {copilotStatus === 'answering' && aDisplayed && (
-                <div className="ml-2 border-l-2 pl-3" style={{ borderColor: 'rgba(59,130,246,0.4)' }}>
-                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-blue-400">Suggested Response</p>
-                  <p className="leading-relaxed text-slate-200" style={{ fontSize }}>{aDisplayed}{aDisplayed.length < bank[questionIndex].a.length && <span className="ml-px inline-block w-[2px] bg-primary align-middle" style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }} />}</p>
-                </div>
-              )}
-              {!qDisplayed && history.length === 0 && <p className="text-xs italic text-slate-600">{autoRespond ? 'Listening to the call...' : 'Press Space to start the sales simulation...'}</p>}
-            </div>
-          </div>
-        </div>
-
-        {/* Right sidebar: Deal / Talk Track / Objections */}
-        <div className="hidden lg:flex lg:min-w-[260px] lg:max-w-[300px] flex-col gap-2">
-          {/* Tabs */}
-          <div className="flex gap-1 rounded-lg p-1" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
-            {([ { id: 'deal' as const, label: 'Deal' }, { id: 'track' as const, label: 'Talk Track' }, { id: 'objections' as const, label: 'Objections' } ]).map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveRightTab(tab.id)}
-                className={cn(
-                  'flex-1 rounded-md py-1.5 text-[11px] font-semibold transition-colors',
-                  activeRightTab === tab.id ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300',
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Deal Stage Panel */}
-          {activeRightTab === 'deal' && (
-            <div className="flex-1 rounded-xl p-4" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
-              <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Deal Progress</p>
-              <div className="mb-4 space-y-2">
-                {DEAL_STAGES.map((s, i) => (
-                  <div key={s} className="flex items-center gap-3">
-                    <div className={cn(
-                      'flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold',
-                      i < stageIndex ? 'bg-green-500/20 text-green-400' : i === stageIndex ? 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-400/50' : 'bg-white/5 text-slate-600',
-                    )}>
-                      {i < stageIndex ? '✓' : i + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p className={cn('text-xs font-medium', i <= stageIndex ? 'text-white' : 'text-slate-600')}>{s}</p>
-                      {i === stageIndex && <p className="text-[10px] text-blue-400" style={{ animation: 'salesPulse 2s ease-in-out infinite' }}>Current stage</p>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="rounded-lg p-3" style={{ background: 'rgba(26,122,255,0.08)' }}>
-                <p className="text-[10px] font-semibold text-blue-400 mb-1">Customer</p>
-                <p className="text-xs text-white font-medium">{primaryLabel}</p>
-                <p className="text-[10px] text-slate-500 mt-1">Call duration: {formatTime(elapsed)}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Talk Track Panel */}
-          {activeRightTab === 'track' && (
-            <div className="flex-1 rounded-xl p-4" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
-              <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Talk Track</p>
-              <div className="space-y-2">
-                {SALES_MOCK_TALK_TRACK.map((point, i) => (
-                  <div key={i} className="flex items-start gap-2 rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                    <div className="mt-0.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-400" />
-                    <p className="text-xs text-slate-300 leading-relaxed">{point}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Objections Panel */}
-          {activeRightTab === 'objections' && (
-            <div className="flex-1 rounded-xl p-4" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
-              <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Objection Handling</p>
-              <div className="space-y-3">
-                {SALES_MOCK_OBJECTIONS.map((item, i) => (
-                  <div key={i} className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <p className="text-xs font-semibold text-amber-400 mb-1">{item.objection}</p>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">{item.tip}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* AI Assistant Panel */}
-          {showAI && (
-            <div className="flex-1 min-h-0">
-              <AIAssistantPanel context={primaryLabel} onClose={() => setShowAI(false)} compact variant="sales" />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Screen 3b: Screenshot Q&A Canvas (Exam / Coding)
+// Screen 3b: Screenshot Q&A Canvas (Coding)
 // ---------------------------------------------------------------------------
 type ScreenshotStatus = 'idle' | 'capturing' | 'analyzing' | 'answered'
-
-const MOCK_EXAM_QA = [
-  { q: "A particle moves along a line with velocity v(t) = 3t^2 - 12t + 9. Find all times t ≥ 0 when the particle is at rest.", a: "The particle is at rest when v(t) = 0.\n3t^2 - 12t + 9 = 0\nDivide by 3: t^2 - 4t + 3 = 0\nFactor: (t - 1)(t - 3) = 0\nSo t = 1 and t = 3. The particle is at rest at t = 1 second and t = 3 seconds." },
-  { q: "Find the derivative of f(x) = ln(x^2 + 1).", a: "Using the chain rule: f'(x) = (2x) / (x^2 + 1)." },
-  { q: "Evaluate the integral ∫(2x + 3) dx.", a: "∫(2x + 3) dx = x^2 + 3x + C, where C is the constant of integration." },
-]
 
 const MOCK_CODING_QA = [
   { q: "Write a function that returns the nth Fibonacci number using memoization.", a: "function fib(n, memo = {}) {\n  if (n in memo) return memo[n]\n  if (n <= 1) return n\n  memo[n] = fib(n - 1, memo) + fib(n - 2, memo)\n  return memo[n]\n}" },
   { q: "Reverse a singly linked list in place.", a: "function reverseList(head) {\n  let prev = null\n  let curr = head\n  while (curr) {\n    const next = curr.next\n    curr.next = prev\n    prev = curr\n    curr = next\n  }\n  return prev\n}" },
 ]
 
-export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparency, onTransparencyChange }: { useCaseId: 'exam' | 'coding'; primaryLabel: string; onEnd: () => void; onBack: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
+export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparency, onTransparencyChange }: { useCaseId: 'coding'; primaryLabel: string; onEnd: () => void; onBack: () => void; transparency: number; onTransparencyChange: (v: number) => void }) {
   const config = getUseCase(useCaseId)
-  const bank = useCaseId === 'coding' ? MOCK_CODING_QA : MOCK_EXAM_QA
+  const bank = MOCK_CODING_QA
 
   const [status, setStatus] = useState<ScreenshotStatus>('idle')
   const [index, setIndex] = useState(0)
@@ -1717,11 +928,7 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
             {history.map((item, i) => (
               <div key={i} className="space-y-2 border-b border-white/5 pb-4">
                 <p className="text-sm text-white">{item.q}</p>
-                {useCaseId === 'coding' ? (
-                  <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: '#0A1628' }}><code>{item.a}</code></pre>
-                ) : (
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-slate-200" style={{ fontSize }}>{item.a}</p>
-                )}
+                <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: '#0A1628' }}><code>{item.a}</code></pre>
               </div>
             ))}
 
@@ -1734,20 +941,16 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
             {status === 'answered' && (
               <div className="space-y-2">
                 <p className="text-sm text-white">{current.q}</p>
-                {useCaseId === 'coding' ? (
-                  <div className="relative">
-                    <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: '#0A1628' }}><code>{current.a}</code></pre>
-                    <button
-                      onClick={() => { navigator.clipboard?.writeText(current.a); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
-                      className="absolute right-2 top-2 rounded-md px-2 py-1 text-[10px] font-semibold text-white/70 hover:text-white"
-                      style={{ background: 'rgba(255,255,255,0.08)' }}
-                    >
-                      {copied ? 'Copied!' : 'Copy'}
-                    </button>
-                  </div>
-                ) : (
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-slate-200" style={{ fontSize }}>{current.a}</p>
-                )}
+                <div className="relative">
+                  <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: '#0A1628' }}><code>{current.a}</code></pre>
+                  <button
+                    onClick={() => { navigator.clipboard?.writeText(current.a); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
+                    className="absolute right-2 top-2 rounded-md px-2 py-1 text-[10px] font-semibold text-white/70 hover:text-white"
+                    style={{ background: 'rgba(255,255,255,0.08)' }}
+                  >
+                    {copied ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1811,8 +1014,7 @@ export default function DesktopCopilotPreview() {
     <MacWindow
       blendBar={
         view === 'splash' || view === 'onboarding' || view === 'sign-in' ||
-        view === 'exam-checkout' ||
-        view === 'exam-checkout-success' || view === 'regular-setup' || view === 'complete'
+        view === 'regular-setup' || view === 'complete'
       }
       transparency={view === 'live' ? transparency : 0}
     >
@@ -1822,45 +1024,11 @@ export default function DesktopCopilotPreview() {
         <SignInScreen
           prefillEmail={recognizedEmail ?? undefined}
           onBack={() => setView('onboarding')}
-          onSignUp={() => navigate('/copilot')}
-          onContinue={({ email, track, existingAccount }) => {
+          onSignUp={() => navigate('/')}
+          onContinue={({ email, existingAccount }) => {
             setPendingEmail(email)
-            if (track === 'enterprise-invite') {
-              setUseCase('sales-call')
-              setReturnView('sign-in')
-              setView('setup')
-            } else if (existingAccount) {
-              if (existingAccount.accountType === 'exam') {
-                setUseCase('exam')
-                setReturnView('sign-in')
-                setView('setup')
-              } else if (existingAccount.accountType === 'sales-individual' || existingAccount.accountType === 'enterprise-admin' || existingAccount.accountType === 'enterprise-member') {
-                setUseCase('sales-call')
-                setReturnView('sign-in')
-                setView('setup')
-              } else {
-                if (existingAccount.planId) setSelectedPlan(existingAccount.planId)
-                setView('regular-setup')
-              }
-            }
-          }}
-        />
-      )}
-      {view === 'exam-checkout' && (
-        <ExamCheckoutScreen
-          onBack={() => setView('sign-in')}
-          onPaid={() => {
-            if (pendingEmail) setAccount(pendingEmail, { accountType: 'exam' })
-            setView('exam-checkout-success')
-          }}
-        />
-      )}
-      {view === 'exam-checkout-success' && (
-        <ExamCheckoutSuccessScreen
-          onContinue={() => {
-            setUseCase('exam')
-            setReturnView('sign-in')
-            setView('setup')
+            if (existingAccount?.planId) setSelectedPlan(existingAccount.planId)
+            setView('regular-setup')
           }}
         />
       )}
@@ -1872,38 +1040,7 @@ export default function DesktopCopilotPreview() {
           unlockedUseCases={getPlan(selectedPlan).unlockedUseCases as RegularUseCase[]}
         />
       )}
-      {view === 'setup' && (
-        <SetupScreen
-          useCaseId={useCase}
-          email={pendingEmail}
-          onBack={() => setView(returnView)}
-          onContinue={label => { setPrimaryLabel(label); setView('live') }}
-        />
-      )}
-      {view === 'live' && config.canvasPattern === 'conversational' && useCase === 'sales-call' && (
-        <SalesLiveCanvas
-          primaryLabel={primaryLabel}
-          onEnd={(elapsed, history) => {
-            if (pendingEmail) {
-              const found = findMemberByEmail(pendingEmail)
-              if (found) {
-                recordCall(found.adminEmail, {
-                  repEmail: pendingEmail,
-                  repName: found.member.name,
-                  date: new Date().toISOString(),
-                  durationSeconds: elapsed,
-                  transcript: flattenTranscript(history, found.member.name),
-                })
-              }
-            }
-            setView('complete')
-          }}
-          onBack={() => setView(returnView)}
-          transparency={transparency}
-          onTransparencyChange={setTransparency}
-        />
-      )}
-      {view === 'live' && config.canvasPattern === 'conversational' && useCase !== 'sales-call' && (
+      {view === 'live' && config.canvasPattern === 'conversational' && (
         <LiveCanvas
           useCaseId={useCase as 'interview' | 'meeting'}
           primaryLabel={primaryLabel}
@@ -1917,7 +1054,7 @@ export default function DesktopCopilotPreview() {
       )}
       {view === 'live' && config.canvasPattern === 'screenshot-qa' && (
         <ScreenshotCanvas
-          useCaseId={useCase as 'exam' | 'coding'}
+          useCaseId={useCase as 'coding'}
           primaryLabel={primaryLabel}
           onEnd={() => setView('complete')}
           onBack={() => setView(returnView)}

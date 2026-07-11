@@ -3,7 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { vi } from 'vitest'
 import { SignInScreen } from './SignInScreen'
 import { setAccount } from './mockAccounts'
-import { createOrg, emptyKnowledgeBase, generateInviteCode } from '../sales/mockOrg'
 
 describe('SignInScreen', () => {
   beforeEach(() => localStorage.clear())
@@ -67,57 +66,6 @@ describe('SignInScreen', () => {
       track: 'regular-signin',
       existingAccount: { accountType: 'regular', planId: 'premium' },
     })
-  })
-
-  it('switches to enterprise mode when "I have an invite code" is clicked, and still asks to create+confirm a password', () => {
-    render(<SignInScreen onBack={() => {}} onContinue={() => {}} onSignUp={() => {}} />)
-    fireEvent.click(screen.getByText('I have an invite code'))
-    expect(screen.getByText('Activate your seat')).toBeInTheDocument()
-    expect(screen.getByText('Invite code')).toBeInTheDocument()
-    expect(screen.getByText('Confirm password')).toBeInTheDocument()
-  })
-
-  it('activates the seat and calls onContinue even when the invite code does not match the email on record (validation removed — any credentials work)', () => {
-    createOrg('admin@acme.com', {
-      orgName: 'Acme Inc',
-      planTier: 'enterprise',
-      setupFeePaid: true,
-      knowledgeBase: emptyKnowledgeBase(),
-      calls: [],
-      connectedIntegrations: [],
-      members: [{ id: '1', name: 'Rep', email: 'rep@acme.com', role: 'member', inviteCode: generateInviteCode(), seatPaid: true }],
-    })
-    const onContinue = vi.fn()
-    render(<SignInScreen onBack={() => {}} onContinue={onContinue} onSignUp={() => {}} />)
-    fireEvent.click(screen.getByText('I have an invite code'))
-    fireEvent.change(screen.getByPlaceholderText('Enter your invite code'), { target: { value: 'WRONGCODE' } })
-    fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'rep@acme.com' } })
-    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
-    fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
-    fireEvent.click(screen.getByText('Activate & sign in'))
-    expect(onContinue).toHaveBeenCalledWith({ email: 'rep@acme.com', track: 'enterprise-invite' })
-  })
-
-  it('calls onContinue with track "enterprise-invite" once the email, invite code, and seat-paid status all match', () => {
-    const inviteCode = generateInviteCode()
-    createOrg('admin@acme.com', {
-      orgName: 'Acme Inc',
-      planTier: 'enterprise',
-      setupFeePaid: true,
-      knowledgeBase: emptyKnowledgeBase(),
-      calls: [],
-      connectedIntegrations: [],
-      members: [{ id: '1', name: 'Rep', email: 'rep@acme.com', role: 'member', inviteCode, seatPaid: true }],
-    })
-    const onContinue = vi.fn()
-    render(<SignInScreen onBack={() => {}} onContinue={onContinue} onSignUp={() => {}} />)
-    fireEvent.click(screen.getByText('I have an invite code'))
-    fireEvent.change(screen.getByPlaceholderText('Enter your invite code'), { target: { value: inviteCode } })
-    fireEvent.change(screen.getByPlaceholderText('Enter your email'), { target: { value: 'rep@acme.com' } })
-    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'secret123' } })
-    fireEvent.change(screen.getByPlaceholderText('Confirm your password'), { target: { value: 'secret123' } })
-    fireEvent.click(screen.getByText('Activate & sign in'))
-    expect(onContinue).toHaveBeenCalledWith({ email: 'rep@acme.com', track: 'enterprise-invite' })
   })
 
   it('calls onBack when the back button is clicked', () => {

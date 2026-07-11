@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { ArrowLeft, Mail } from 'lucide-react'
 import { BG, INPUT_BG, INPUT_BD, BLUE } from './shared'
-import { getAccount, setAccount } from './mockAccounts'
-import { findMemberByEmail } from '@/pages/sales/mockOrg'
+import { getAccount } from './mockAccounts'
 
-type SignInMode = 'welcome' | 'signin' | 'enterprise'
+type SignInMode = 'welcome' | 'signin'
 
-export type SignInTrack = 'regular-signin' | 'enterprise-invite'
+export type SignInTrack = 'regular-signin'
 
 export interface SignInResult {
   email: string
@@ -31,33 +30,17 @@ export function SignInScreen({
   const [mode, setMode] = useState<SignInMode>(prefillEmail ? 'signin' : 'welcome')
   const [email, setEmail] = useState(prefillEmail ?? '')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [inviteCode, setInviteCode] = useState('')
-  const [error, setError] = useState('')
 
   const inputStyle = { background: INPUT_BG, border: `1px solid ${INPUT_BD}`, color: 'white', outline: 'none' } as const
 
-  const canContinue =
-    mode === 'enterprise' ? inviteCode.trim().length > 0 && email.trim().length > 0 && password.length > 0 && password === confirmPassword :
-    mode === 'signin' ? email.trim().length > 0 && password.length > 0 :
-    false
+  const canContinue = mode === 'signin' ? email.trim().length > 0 && password.length > 0 : false
 
-  const heading =
-    mode === 'enterprise' ? 'Activate your seat' :
-    mode === 'signin' ? 'Welcome back' :
-    'Welcome to Lightforth Copilot'
+  const heading = mode === 'signin' ? 'Welcome back' : 'Welcome to Lightforth Copilot'
 
   function handleContinue() {
     if (!canContinue) return
-    if (mode === 'enterprise') {
-      const found = findMemberByEmail(email)
-      const orgName = found?.org.orgName ?? 'Your Team'
-      setAccount(email, { accountType: 'enterprise-member', orgName })
-      onContinue({ email, track: 'enterprise-invite' })
-    } else {
-      const existingAccount = getAccount(email) ?? { accountType: 'regular' as const }
-      onContinue({ email, track: 'regular-signin', existingAccount })
-    }
+    const existingAccount = getAccount(email) ?? { accountType: 'regular' as const }
+    onContinue({ email, track: 'regular-signin', existingAccount })
   }
 
   return (
@@ -69,9 +52,7 @@ export function SignInScreen({
       </div>
       <h1 className="mb-3 text-center text-3xl font-bold text-white">{heading}</h1>
       <p className="mb-8 max-w-lg text-center text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
-        {mode === 'enterprise'
-          ? "Enter the organizational email and invite code your admin gave you, then create a password. You'll just sign in with email and password after this."
-          : mode === 'signin'
+        {mode === 'signin'
           ? 'Sign in with the email and password you created on lightforth.com.'
           : 'Sign up on the web to get started, or sign in below if you already have an account.'}
       </p>
@@ -109,33 +90,13 @@ export function SignInScreen({
                 Sign in
               </button>
             </p>
-            <p className="text-center text-sm">
-              <button onClick={() => setMode('enterprise')} className="font-semibold text-blue-400 hover:underline">
-                I have an invite code
-              </button>
-            </p>
           </>
         )}
 
-        {mode === 'enterprise' && (
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-white">Invite code</label>
-            <input
-              value={inviteCode}
-              onChange={e => setInviteCode(e.target.value)}
-              placeholder="Enter your invite code"
-              className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-              style={inputStyle}
-            />
-          </div>
-        )}
-
-        {(mode === 'signin' || mode === 'enterprise') && (
+        {mode === 'signin' && (
           <>
             <div>
-              <label className="mb-2 block text-sm font-semibold text-white">
-                {mode === 'enterprise' ? 'Organizational email' : 'Email'}
-              </label>
+              <label className="mb-2 block text-sm font-semibold text-white">Email</label>
               <input
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -146,7 +107,7 @@ export function SignInScreen({
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-white">{mode === 'enterprise' ? 'Create a password' : 'Password'}</label>
+              <label className="mb-2 block text-sm font-semibold text-white">Password</label>
               <input
                 type="password"
                 value={password}
@@ -157,28 +118,12 @@ export function SignInScreen({
               />
             </div>
 
-            {mode === 'enterprise' && (
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-white">Confirm password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your password"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                  style={inputStyle}
-                />
-              </div>
-            )}
-
-            {error && <p className="text-sm text-red-400">{error}</p>}
-
             <button
               onClick={handleContinue}
               className="h-11 w-full rounded-xl text-sm font-bold text-white transition-opacity"
               style={{ background: BLUE, opacity: canContinue ? 1 : 0.45 }}
             >
-              {mode === 'enterprise' ? 'Activate & sign in' : 'Continue'}
+              Continue
             </button>
 
             <p className="text-center text-sm">

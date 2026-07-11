@@ -785,7 +785,7 @@ export default function OnboardingFlow() {
     return (
       <WelcomeModal
         jobFunctions={data.jobFunctions}
-        onConfirm={() => navigate('/')}
+        onConfirm={() => navigate('/app')}
       />
     )
   }
