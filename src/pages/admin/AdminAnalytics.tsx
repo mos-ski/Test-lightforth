@@ -8,7 +8,7 @@ import type { TimePeriod } from '@/components/shared/TimelineFilter'
 import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
-type Period = '7d' | '30d' | '90d' | '12m' | 'all'
+type Period = TimePeriod
 
 // ============================================================
 // Animated number hook
@@ -46,6 +46,7 @@ function getPeriodData(period: Period) {
     '90d': { revenue: 0.55, signups: 0.50, active: 0.75, visitors: 0.42, months: 3 },
     '12m': { revenue: 1.0,  signups: 1.0,  active: 1.0,  visitors: 1.0,  months: 7 },
     'all': { revenue: 1.15, signups: 1.20, active: 1.05, visitors: 1.10, months: 7 },
+    'custom': { revenue: 1.15, signups: 1.20, active: 1.05, visitors: 1.10, months: 7 },
   }
   const f = factors[period]
 
@@ -112,6 +113,7 @@ function getPeriodData(period: Period) {
     '90d': '+14.2%',
     '12m': '+12.4%',
     'all': '+18.7%',
+    'custom': '+18.7%',
   }
 
   return { monthly: trimmed, totalRevenue, totalSignups, latestActive, visitors, featureUsage, topCities, planDist, statusDist, txTypes, funnel, change: changes[period] }
