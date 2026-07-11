@@ -3,6 +3,7 @@ import {
   LayoutDashboard, DollarSign, Users, UserPlus, Building2,
   BarChart2, FileText, Megaphone, Tag, ScrollText, LifeBuoy, Bell, Settings,
   Zap, MessageSquare, BookOpen, FileCheck, Folder,
+  CreditCard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -64,6 +65,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: '/admin/activity-logs', icon: ScrollText, label: 'Activity Logs' },
       { to: '/admin/support', icon: LifeBuoy, label: 'Support' },
       { to: '/admin/notifications', icon: Bell, label: 'Notifications' },
+      { to: '/admin/pricing', icon: CreditCard, label: 'Pricing Config' },
       { to: '/admin/settings', icon: Settings, label: 'Settings' },
     ],
   },

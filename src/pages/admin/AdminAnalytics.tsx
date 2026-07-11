@@ -417,7 +417,7 @@ export default function AdminAnalytics() {
       <div className="lf-panel p-6">
         <p className="lf-card-title mb-1">Geographic Distribution</p>
         <p className="lf-body text-xs mb-4">Top cities by user count — pin size reflects volume</p>
-        <div className="relative w-full overflow-hidden rounded-xl bg-white border border-border" style={{ aspectRatio: '2 / 1' }}>
+        <div className="relative w-full overflow-hidden rounded-xl bg-white border border-border" style={{ aspectRatio: '3 / 1' }}>
           <svg viewBox="0 0 1000 500" className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="dots" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">

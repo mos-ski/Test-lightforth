@@ -38,6 +38,7 @@ const AdminInterviewCopilot = lazy(() => import('@/pages/admin/AdminInterviewCop
 const AdminInterviewPrep = lazy(() => import('@/pages/admin/AdminInterviewPrep'))
 const AdminAtsChecker = lazy(() => import('@/pages/admin/AdminAtsChecker'))
 const AdminFunnels = lazy(() => import('@/pages/admin/AdminFunnels'))
+const AdminPricing = lazy(() => import('@/pages/admin/AdminPricing'))
 const AdminPartners = lazy(() => import('@/pages/admin/AdminPartners'))
 const AdminEnterprises = lazy(() => import('@/pages/admin/AdminEnterprises'))
 const AdminPromotions = lazy(() => import('@/pages/admin/AdminPromotions'))
@@ -161,6 +162,7 @@ export default function App() {
               <Route path="promotions" element={<Suspense fallback={null}><AdminPromotions /></Suspense>} />
               <Route path="broadcast" element={<Suspense fallback={null}><AdminBroadcast /></Suspense>} />
               <Route path="settings" element={<Suspense fallback={null}><AdminSettings /></Suspense>} />
+              <Route path="pricing" element={<Suspense fallback={null}><AdminPricing /></Suspense>} />
               <Route path="notifications" element={<Suspense fallback={null}><AdminNotifications /></Suspense>} />
               <Route path="support" element={<Suspense fallback={null}><AdminSupport /></Suspense>} />
             </Route>
