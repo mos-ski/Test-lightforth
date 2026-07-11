@@ -81,7 +81,7 @@ export default function AdminUserDetail() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6">
         <div className="lf-panel p-6 animate-pulse">
           <div className="h-16 w-16 rounded-full bg-muted mx-auto" />
           <div className="h-5 bg-muted rounded w-32 mx-auto mt-3" />
@@ -93,7 +93,7 @@ export default function AdminUserDetail() {
 
   if (!user) {
     return (
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6">
         <div className="lf-panel p-16 text-center">
           <p className="text-sm text-muted-foreground">User not found</p>
           <Link to="/admin/users" className="text-sm text-primary hover:underline mt-2 inline-block">Back to users</Link>
@@ -119,7 +119,7 @@ export default function AdminUserDetail() {
   const creditPct = user.credits > 0 ? Math.round((user.creditsUsed / user.credits) * 100) : 0
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link to="/admin/users" className="hover:text-foreground transition-colors">Users</Link>

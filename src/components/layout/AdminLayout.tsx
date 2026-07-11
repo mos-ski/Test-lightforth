@@ -3,7 +3,7 @@ import {
   LayoutDashboard, DollarSign, Users, UserPlus, Building2,
   BarChart2, FileText, Megaphone, Tag, ScrollText, LifeBuoy, Bell, Settings,
   Zap, MessageSquare, BookOpen, FileCheck, Folder,
-  CreditCard,
+  CreditCard, Video,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -49,6 +49,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: '/admin/interview-copilot', icon: MessageSquare, label: 'Interview Copilot' },
       { to: '/admin/interview-prep', icon: BookOpen, label: 'Interview Prep' },
       { to: '/admin/ats-checker', icon: FileCheck, label: 'ATS Checker' },
+      { to: '/admin/meeting', icon: Video, label: 'Meeting' },
       { to: '/admin/resume-templates', icon: FileText, label: 'Resume Templates' },
     ],
   },

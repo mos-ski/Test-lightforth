@@ -337,6 +337,124 @@ export const ACTIVE_ALERTS = [
 ]
 
 // ============================================================
+// NG (Nigeria) GEO-SEGMENTED DATA
+// ============================================================
+
+export interface NgUser {
+  id: string
+  name: string
+  email: string
+  plan: PlanTier
+  status: UserStatus
+  credits: number
+  creditsUsed: number
+  city: string
+  totalSpentNgn: number
+  signupDate: string
+  lastActive: string
+}
+
+export interface NgTransaction {
+  id: string
+  userName: string
+  email: string
+  plan: PlanTier
+  amountNgn: number
+  amountUsd: number
+  type: 'subscription' | 'one_time' | 'refund'
+  status: 'completed' | 'pending' | 'failed' | 'refunded'
+  date: string
+}
+
+const ngNames = [
+  { first: 'Chinonso', last: 'Okafor' },
+  { first: 'Adaeze', last: 'Nwosu' },
+  { first: 'Emeka', last: 'Adeyemi' },
+  { first: 'Ngozi', last: 'Okonkwo' },
+  { first: 'Tunde', last: 'Bakare' },
+  { first: 'Amara', last: 'Obi' },
+  { first: 'Chidi', last: 'Eze' },
+  { first: 'Folake', last: 'Adewale' },
+  { first: 'Obinna', last: 'Chukwu' },
+  { first: 'Zainab', last: 'Mohammed' },
+  { first: 'Kayode', last: 'Ogundimu' },
+  { first: 'Chioma', last: 'Igwe' },
+  { first: 'Damilola', last: 'Akinola' },
+  { first: 'Nneka', last: 'Uche' },
+  { first: 'Yemi', last: 'Osagie' },
+  { first: 'Ifeoma', last: 'Agor' },
+  { first: 'Babatunde', last: 'Fashola' },
+  { first: 'Chiamaka', last: 'Udoh' },
+  { first: 'Segun', last: 'Oyebanji' },
+  { first: 'Amaka', last: 'Ezeilo' },
+]
+
+const ngCities = ['Lagos', 'Lagos', 'Lagos', 'Abuja', 'Abuja', 'Ibadan', 'Port Harcourt', 'Kano', 'Enugu', 'Benin City', 'Lagos', 'Lagos', 'Abuja', 'Ibadan', 'Lagos', 'Port Harcourt', 'Abuja', 'Lagos', 'Ibadan', 'Enugu']
+
+export const NG_USERS: NgUser[] = ngNames.map((n, i) => {
+  const plan: PlanTier = i < 2 ? 'premium' : i < 6 ? 'pro' : i < 12 ? 'starter' : 'free'
+  const credits = plan === 'premium' ? 100 : plan === 'pro' ? 50 : plan === 'starter' ? 15 : 5
+  return {
+    id: `ng-${i + 1}`,
+    name: `${n.first} ${n.last}`,
+    email: `${n.first.toLowerCase()}.${n.last.toLowerCase()}@${randomFrom(['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'])}`,
+    plan,
+    status: i < 17 ? 'active' : 'trial',
+    credits,
+    creditsUsed: Math.floor(Math.random() * credits),
+    city: ngCities[i],
+    totalSpentNgn: plan === 'premium' ? 50000 * (Math.floor(Math.random() * 6) + 1) : plan === 'pro' ? 20000 * (Math.floor(Math.random() * 8) + 1) : plan === 'starter' ? 5000 * (Math.floor(Math.random() * 4) + 1) : 0,
+    signupDate: randomDate(new Date('2025-10-01'), new Date('2026-06-30')),
+    lastActive: randomDate(new Date('2026-06-01'), new Date('2026-07-11')),
+  }
+})
+
+export const NG_TRANSACTIONS: NgTransaction[] = Array.from({ length: 30 }, (_, i) => {
+  const user = NG_USERS[i % NG_USERS.length]
+  const type = i < 2 ? 'refund' : 'subscription'
+  const amounts: Record<PlanTier, { ngn: number; usd: number }> = {
+    premium: { ngn: 50000, usd: 79 },
+    pro: { ngn: 20000, usd: 49 },
+    starter: { ngn: 5000, usd: 27 },
+    free: { ngn: 0, usd: 0 },
+  }
+  const amt = amounts[user.plan]
+  return {
+    id: generateId(),
+    userName: user.name,
+    email: user.email,
+    plan: user.plan,
+    amountNgn: type === 'refund' ? -amt.ngn : amt.ngn,
+    amountUsd: type === 'refund' ? -amt.usd : amt.usd,
+    type,
+    status: i < 2 ? 'refunded' : i < 28 ? 'completed' : 'pending',
+    date: randomDate(new Date('2025-10-01'), new Date('2026-07-11')),
+  }
+})
+
+export const NG_REVENUE = {
+  totalNgn: NG_TRANSACTIONS.filter(t => t.status === 'completed').reduce((s, t) => s + t.amountNgn, 0),
+  totalUsd: NG_TRANSACTIONS.filter(t => t.status === 'completed').reduce((s, t) => s + t.amountUsd, 0),
+  thisMonthNgn: NG_TRANSACTIONS.filter(t => {
+    const d = new Date(t.date)
+    const now = new Date()
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && t.status === 'completed'
+  }).reduce((s, t) => s + t.amountNgn, 0),
+  thisMonthUsd: NG_TRANSACTIONS.filter(t => {
+    const d = new Date(t.date)
+    const now = new Date()
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && t.status === 'completed'
+  }).reduce((s, t) => s + t.amountUsd, 0),
+  totalUsers: NG_USERS.length,
+  activeUsers: NG_USERS.filter(u => u.status === 'active').length,
+  premiumUsers: NG_USERS.filter(u => u.plan === 'premium').length,
+  proUsers: NG_USERS.filter(u => u.plan === 'pro').length,
+  starterUsers: NG_USERS.filter(u => u.plan === 'starter').length,
+  conversionRate: 38.2,
+  avgRevenuePerUser: 12400,
+}
+
+// ============================================================
 // HELPER FUNCTIONS
 // ============================================================
 
