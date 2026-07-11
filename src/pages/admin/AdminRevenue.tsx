@@ -68,25 +68,25 @@ function TransactionTable({ rows }: { rows: { id: string; type: string; amount: 
   return (
     <div>
       <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input placeholder="Search transactions..." value={search} onChange={e => setSearch(e.target.value)} className="lf-input pl-9 h-9" />
+            <input placeholder="Search transactions..." value={search} onChange={e => setSearch(e.target.value)} className="lf-input pl-9 h-9 text-sm w-full" />
           </div>
-          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="lf-select h-9 text-sm">
+          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="lf-select h-9 text-sm w-auto shrink-0">
             <option value="all">All Types</option>
             <option value="subscription">Subscription</option>
             <option value="one_time">One-time</option>
             <option value="refund">Refund</option>
           </select>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="lf-select h-9 text-sm">
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="lf-select h-9 text-sm w-auto shrink-0">
             <option value="all">All Status</option>
             <option value="completed">Completed</option>
             <option value="pending">Pending</option>
             <option value="failed">Failed</option>
             <option value="refunded">Refunded</option>
           </select>
-          <button onClick={exportCSV} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={exportCSV} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors shrink-0">
             <Download className="h-3.5 w-3.5" />Export
           </button>
         </div>

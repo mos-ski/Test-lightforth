@@ -282,19 +282,17 @@ export default function AdminAnalytics() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="lf-page-title">Analytics</h1>
-          <p className="lf-body mt-0.5">Platform data hub — compare, analyze, discover</p>
+      {/* Sticky header + period filter */}
+      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 bg-white border-b border-border mb-6 pt-6 pb-4">
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+          <div>
+            <h1 className="lf-page-title">Analytics</h1>
+            <p className="lf-body mt-0.5">Platform data hub — compare, analyze, discover</p>
+          </div>
+          <button className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Download className="h-3.5 w-3.5" />Export
+          </button>
         </div>
-        <button className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-          <Download className="h-3.5 w-3.5" />Export
-        </button>
-      </div>
-
-      {/* Period filter — sticky */}
-      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/80 backdrop-blur-md border-b border-border -mt-6 pt-6 mb-0">
         <div className="flex items-center gap-1.5">
           {(['7d', '30d', '90d', '12m', 'all'] as Period[]).map(p => (
             <button key={p} onClick={() => setPeriod(p)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
@@ -415,11 +413,141 @@ export default function AdminAnalytics() {
         </div>
       </div>
 
-      {/* Top Cities */}
+      {/* Top Cities — Dotted Map Infographic */}
       <div className="lf-panel p-6">
         <p className="lf-card-title mb-1">Geographic Distribution</p>
-        <p className="lf-body text-xs mb-4">Top cities by user count</p>
-        <HorizontalBarChart data={periodData.topCities.map(c => ({ label: c.city, value: c.users }))} animateKey={`geo-${period}`} />
+        <p className="lf-body text-xs mb-4">Top cities by user count — pin size reflects volume</p>
+        <div className="relative w-full overflow-hidden rounded-xl bg-white border border-border" style={{ aspectRatio: '2 / 1' }}>
+          <svg viewBox="0 0 1000 500" className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="dots" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+                <circle cx="4" cy="4" r="0.8" fill="#d1d5db" />
+              </pattern>
+            </defs>
+
+            {/* Dotted continent shapes */}
+            {/* North America */}
+            <ellipse cx="240" cy="155" rx="140" ry="90" fill="url(#dots)" />
+            <ellipse cx="200" cy="200" rx="60" ry="40" fill="url(#dots)" />
+            <ellipse cx="300" cy="130" rx="80" ry="55" fill="url(#dots)" />
+            <ellipse cx="170" cy="170" rx="50" ry="35" fill="url(#dots)" />
+            <ellipse cx="280" cy="195" rx="45" ry="30" fill="url(#dots)" />
+
+            {/* South America */}
+            <ellipse cx="280" cy="330" rx="55" ry="80" fill="url(#dots)" />
+            <ellipse cx="265" cy="290" rx="40" ry="30" fill="url(#dots)" />
+            <ellipse cx="295" cy="370" rx="35" ry="45" fill="url(#dots)" />
+
+            {/* Europe */}
+            <ellipse cx="500" cy="115" rx="55" ry="40" fill="url(#dots)" />
+            <ellipse cx="530" cy="100" rx="30" ry="25" fill="url(#dots)" />
+            <ellipse cx="475" cy="130" rx="25" ry="20" fill="url(#dots)" />
+
+            {/* Africa */}
+            <ellipse cx="520" cy="265" rx="60" ry="90" fill="url(#dots)" />
+            <ellipse cx="510" cy="220" rx="40" ry="35" fill="url(#dots)" />
+            <ellipse cx="535" cy="310" rx="40" ry="45" fill="url(#dots)" />
+
+            {/* Asia */}
+            <ellipse cx="700" cy="130" rx="130" ry="70" fill="url(#dots)" />
+            <ellipse cx="750" cy="160" rx="80" ry="45" fill="url(#dots)" />
+            <ellipse cx="640" cy="115" rx="70" ry="40" fill="url(#dots)" />
+            <ellipse cx="820" cy="120" rx="50" ry="35" fill="url(#dots)" />
+
+            {/* Australia */}
+            <ellipse cx="810" cy="350" rx="50" ry="35" fill="url(#dots)" />
+
+            {/* City pin markers */}
+            {periodData.topCities.map((city) => {
+              const coords: Record<string, [number, number]> = {
+                'New York': [280, 175],
+                'Lagos': [510, 258],
+                'London': [495, 112],
+                'Toronto': [260, 152],
+                'Houston': [238, 200],
+                'San Francisco': [170, 170],
+                'Chicago': [252, 162],
+                'Atlanta': [258, 192],
+                'Dallas': [235, 198],
+                'Nairobi': [545, 268],
+              }
+              const pos = coords[city.city]
+              if (!pos) return null
+              const maxUsers = Math.max(...periodData.topCities.map(c => c.users))
+              const scale = maxUsers > 0 ? city.users / maxUsers : 0
+              const pinH = 18 + scale * 14
+              const pinW = 12 + scale * 8
+              const dotR = 3 + scale * 3
+              const colors = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#ef4444', '#22c55e', '#06b6d4', '#f97316']
+              const color = colors[periodData.topCities.indexOf(city) % colors.length]
+              return (
+                <g key={city.city}>
+                  {/* Pin shadow */}
+                  <ellipse cx={pos[0]} cy={pos[1] + 2} rx={pinW * 0.5} ry={3} fill="#00000015" />
+                  {/* Pin body */}
+                  <path
+                    d={`M${pos[0]},${pos[1] - pinH} Q${pos[0] - pinW},${pos[1] - pinH * 0.5} ${pos[0] - pinW},${pos[1] - pinH * 0.3} A${pinW},${pinW} 0 0,1 ${pos[0] + pinW},${pos[1] - pinH * 0.3} Q${pos[0] + pinW},${pos[1] - pinH * 0.5} ${pos[0]},${pos[1] - pinH} Z`}
+                    fill="white"
+                    stroke={color}
+                    strokeWidth={1.5}
+                    filter="drop-shadow(0 1px 2px rgba(0,0,0,0.15))"
+                  />
+                  {/* Pin dot */}
+                  <circle cx={pos[0]} cy={pos[1] - pinH * 0.55} r={dotR} fill={color} />
+                  {/* Pulse ring */}
+                  <circle cx={pos[0]} cy={pos[1] - pinH * 0.55} r={dotR + 2} fill="none" stroke={color} strokeWidth={1} opacity={0.4}>
+                    <animate attributeName="r" from={dotR + 2} to={dotR + 10} dur="3s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" from="0.4" to="0" dur="3s" repeatCount="indefinite" />
+                  </circle>
+                  {/* City label */}
+                  <text
+                    x={pos[0]}
+                    y={pos[1] - pinH - 6}
+                    textAnchor="middle"
+                    className="fill-foreground"
+                    fontSize="9"
+                    fontWeight="600"
+                    fontFamily="inherit"
+                  >{city.city}</text>
+                </g>
+              )
+            })}
+          </svg>
+
+          {/* Legend */}
+          <div className="absolute bottom-3 right-3 rounded-lg bg-white/90 backdrop-blur-sm border border-border p-2.5 space-y-1.5">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Users</p>
+            <div className="flex items-center gap-1.5">
+              <div className="h-3 w-3 rounded-full bg-blue-500 opacity-40" />
+              <span className="text-[10px] text-muted-foreground">Low</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-4 w-4 rounded-full bg-blue-500 opacity-70" />
+              <span className="text-[10px] text-muted-foreground">Medium</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-5 w-5 rounded-full bg-blue-500" />
+              <span className="text-[10px] text-muted-foreground">High</span>
+            </div>
+          </div>
+        </div>
+
+        {/* City list below map */}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 mt-4">
+          {periodData.topCities.map((city) => {
+            const maxUsers = Math.max(...periodData.topCities.map(c => c.users))
+            const pct = maxUsers > 0 ? (city.users / maxUsers) * 100 : 0
+            return (
+              <div key={city.city} className="flex items-center gap-2 py-1">
+                <span className="text-xs font-medium text-foreground w-28 truncate">{city.city}</span>
+                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-[11px] font-semibold tabular-nums text-foreground w-12 text-right">{city.users.toLocaleString()}</span>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {/* Key Findings */}

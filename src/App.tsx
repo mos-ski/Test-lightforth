@@ -33,6 +33,13 @@ const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'))
 const AdminAnalytics = lazy(() => import('@/pages/admin/AdminAnalytics'))
 const AdminResumeTemplates = lazy(() => import('@/pages/admin/AdminResumeTemplates'))
 const AdminActivityLogs = lazy(() => import('@/pages/admin/AdminActivityLogs'))
+const AdminAutoApply = lazy(() => import('@/pages/admin/AdminAutoApply'))
+const AdminInterviewCopilot = lazy(() => import('@/pages/admin/AdminInterviewCopilot'))
+const AdminInterviewPrep = lazy(() => import('@/pages/admin/AdminInterviewPrep'))
+const AdminAtsChecker = lazy(() => import('@/pages/admin/AdminAtsChecker'))
+const AdminFunnels = lazy(() => import('@/pages/admin/AdminFunnels'))
+const AdminPartners = lazy(() => import('@/pages/admin/AdminPartners'))
+const AdminEnterprises = lazy(() => import('@/pages/admin/AdminEnterprises'))
 const AdminPromotions = lazy(() => import('@/pages/admin/AdminPromotions'))
 const AdminBroadcast = lazy(() => import('@/pages/admin/AdminBroadcast'))
 const AdminSettings = lazy(() => import('@/pages/admin/AdminSettings'))
@@ -141,7 +148,14 @@ export default function App() {
               <Route path="revenue" element={<Suspense fallback={null}><AdminRevenue /></Suspense>} />
               <Route path="users" element={<Suspense fallback={null}><AdminUsers /></Suspense>} />
               <Route path="users/:id" element={<Suspense fallback={null}><AdminUserDetail /></Suspense>} />
+              <Route path="users/partners" element={<Suspense fallback={null}><AdminPartners /></Suspense>} />
+              <Route path="users/enterprises" element={<Suspense fallback={null}><AdminEnterprises /></Suspense>} />
               <Route path="analytics" element={<Suspense fallback={null}><AdminAnalytics /></Suspense>} />
+              <Route path="funnels" element={<Suspense fallback={null}><AdminFunnels /></Suspense>} />
+              <Route path="auto-apply" element={<Suspense fallback={null}><AdminAutoApply /></Suspense>} />
+              <Route path="interview-copilot" element={<Suspense fallback={null}><AdminInterviewCopilot /></Suspense>} />
+              <Route path="interview-prep" element={<Suspense fallback={null}><AdminInterviewPrep /></Suspense>} />
+              <Route path="ats-checker" element={<Suspense fallback={null}><AdminAtsChecker /></Suspense>} />
               <Route path="resume-templates" element={<Suspense fallback={null}><AdminResumeTemplates /></Suspense>} />
               <Route path="activity-logs" element={<Suspense fallback={null}><AdminActivityLogs /></Suspense>} />
               <Route path="promotions" element={<Suspense fallback={null}><AdminPromotions /></Suspense>} />

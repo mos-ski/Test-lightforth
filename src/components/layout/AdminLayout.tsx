@@ -1,11 +1,24 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import {
-  LayoutDashboard, DollarSign, Users,
+  LayoutDashboard, DollarSign, Users, UserPlus, Building2,
   BarChart2, FileText, Megaphone, Tag, ScrollText, LifeBuoy, Bell, Settings,
+  Zap, MessageSquare, BookOpen, FileCheck, Folder,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const NAV_GROUPS = [
+type NavItem = {
+  to: string
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  end?: boolean
+}
+
+type NavGroup = {
+  label: string
+  items: NavItem[]
+}
+
+const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Core',
     items: [
@@ -14,23 +27,35 @@ const NAV_GROUPS = [
     ],
   },
   {
-    label: 'Users & Revenue',
+    label: 'Revenue',
     items: [
-      { to: '/admin/users', icon: Users, label: 'Users' },
       { to: '/admin/revenue', icon: DollarSign, label: 'Revenue' },
+      { to: '/admin/promotions', icon: Tag, label: 'Promotions' },
     ],
   },
   {
-    label: 'Product',
+    label: 'Users',
     items: [
+      { to: '/admin/users', icon: Users, label: 'All Users' },
+      { to: '/admin/users/partners', icon: UserPlus, label: 'Partners & Affiliates' },
+      { to: '/admin/users/enterprises', icon: Building2, label: 'Enterprises' },
+    ],
+  },
+  {
+    label: 'Products',
+    items: [
+      { to: '/admin/auto-apply', icon: Zap, label: 'Auto-Apply' },
+      { to: '/admin/interview-copilot', icon: MessageSquare, label: 'Interview Copilot' },
+      { to: '/admin/interview-prep', icon: BookOpen, label: 'Interview Prep' },
+      { to: '/admin/ats-checker', icon: FileCheck, label: 'ATS Checker' },
       { to: '/admin/resume-templates', icon: FileText, label: 'Resume Templates' },
     ],
   },
   {
-    label: 'Communications',
+    label: 'Growth',
     items: [
+      { to: '/admin/funnels', icon: Folder, label: 'Funnels' },
       { to: '/admin/broadcast', icon: Megaphone, label: 'Broadcast' },
-      { to: '/admin/promotions', icon: Tag, label: 'Promotions' },
     ],
   },
   {
