@@ -157,7 +157,6 @@ export default function App() {
               <Route path="auto-apply" element={<Suspense fallback={null}><AdminAutoApply /></Suspense>} />
               <Route path="interview-copilot" element={<Suspense fallback={null}><AdminInterviewCopilot /></Suspense>} />
               <Route path="interview-prep" element={<Suspense fallback={null}><AdminInterviewPrep /></Suspense>} />
-              <Route path="ats-checker" element={<Suspense fallback={null}><AdminAtsChecker /></Suspense>} />
               <Route path="meeting" element={<Suspense fallback={null}><AdminMeeting /></Suspense>} />
               <Route path="resume-templates" element={<Suspense fallback={null}><AdminResumeTemplates /></Suspense>} />
               <Route path="activity-logs" element={<Suspense fallback={null}><AdminActivityLogs /></Suspense>} />

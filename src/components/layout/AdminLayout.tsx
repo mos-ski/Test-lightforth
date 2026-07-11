@@ -48,7 +48,6 @@ const NAV_GROUPS: NavGroup[] = [
       { to: '/admin/auto-apply', icon: Zap, label: 'Auto-Apply' },
       { to: '/admin/interview-copilot', icon: MessageSquare, label: 'Interview Copilot' },
       { to: '/admin/interview-prep', icon: BookOpen, label: 'Interview Prep' },
-      { to: '/admin/ats-checker', icon: FileCheck, label: 'ATS Checker' },
       { to: '/admin/meeting', icon: Video, label: 'Meeting' },
       { to: '/admin/resume-templates', icon: FileText, label: 'Resume Templates' },
     ],
