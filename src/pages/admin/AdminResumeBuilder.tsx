@@ -1,26 +1,38 @@
 import { useState } from 'react'
-import { TrendingUp, ArrowUpRight, FileText, Users, Target, BarChart3, Clock, Zap, CheckCircle2, XCircle, MessageSquare, Download, Settings } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, FileText, Users, Target, BarChart3, Clock, Zap, CheckCircle2, XCircle, MessageSquare, Download, Settings, X, Eye, Sparkles, Check, ExternalLink } from 'lucide-react'
 
-const RESUME_STATS = {
-  totalBuilds: 8934,
-  thisMonth: 1847,
-  avgAtsScore: 78.4,
-  acceptanceRate: 62.3,
-  rejectionRate: 37.7,
-  aiChats: 12450,
-  templatesCreated: 342,
-  exportsDownloaded: 6210,
-}
+const TEMPLATES = [
+  { id: 't01', name: 'Classic Blue', atsAvg: 82, uses: 3421, active: true, downloads: 1240, color: '#143763' },
+  { id: 't02', name: 'Centered', atsAvg: 79, uses: 1890, active: true, downloads: 890, color: '#143763' },
+  { id: 't03', name: 'Minimal', atsAvg: 84, uses: 2100, active: true, downloads: 920, color: '#64748b' },
+  { id: 't04', name: 'Teal Summary', atsAvg: 86, uses: 1670, active: true, downloads: 780, color: '#0f766e' },
+  { id: 't05', name: 'Clean Serif', atsAvg: 81, uses: 1340, active: true, downloads: 610, color: '#1e293b' },
+  { id: 't06', name: 'Professional', atsAvg: 85, uses: 2890, active: true, downloads: 1320, color: '#1e40af' },
+  { id: 't07', name: 'Green Accent', atsAvg: 83, uses: 1120, active: true, downloads: 510, color: '#0f766e' },
+  { id: 't08', name: 'Executive', atsAvg: 88, uses: 1567, active: true, downloads: 720, color: '#0f172a' },
+  { id: 't09', name: 'Burgundy', atsAvg: 77, uses: 890, active: true, downloads: 410, color: '#9f1239' },
+  { id: 't10', name: 'Bold Blue', atsAvg: 80, uses: 1450, active: true, downloads: 670, color: '#1d4ed8' },
+  { id: 't11', name: 'Simple', atsAvg: 83, uses: 1780, active: true, downloads: 820, color: '#475569' },
+  { id: 't12', name: 'Slate', atsAvg: 81, uses: 1020, active: true, downloads: 470, color: '#334155' },
+  { id: 't13', name: 'Monogram', atsAvg: 79, uses: 680, active: true, downloads: 310, color: '#143763' },
+  { id: 't14', name: 'Teal Highlight', atsAvg: 85, uses: 920, active: true, downloads: 430, color: '#0f766e' },
+  { id: 't15', name: 'Traditional', atsAvg: 82, uses: 1560, active: true, downloads: 720, color: '#1e293b' },
+  { id: 't16', name: 'Three Column', atsAvg: 78, uses: 780, active: true, downloads: 360, color: '#334155' },
+  { id: 't17', name: 'Founder', atsAvg: 87, uses: 1340, active: true, downloads: 620, color: '#0f172a' },
+  { id: 't18', name: 'Marketing Pro', atsAvg: 80, uses: 1120, active: true, downloads: 520, color: '#7c3aed' },
+  { id: 't19', name: 'Creative', atsAvg: 71, uses: 892, active: true, downloads: 410, color: '#ea580c' },
+  { id: 't20', name: 'Executive Pro', atsAvg: 89, uses: 1680, active: true, downloads: 780, color: '#0f172a' },
+]
 
 const RECENT_BUILDS = [
-  { id: '1', user: 'Darnell Smith', atsScore: 92, status: 'accepted', pages: 2, template: 'Modern', time: '12 min ago', aiMessages: 8 },
-  { id: '2', user: 'Jessica Williams', atsScore: 84, status: 'accepted', pages: 1, template: 'Professional', time: '28 min ago', aiMessages: 12 },
-  { id: '3', user: 'Omar Khan', atsScore: 68, status: 'rejected', pages: 3, template: 'Creative', time: '45 min ago', aiMessages: 5 },
-  { id: '4', user: 'Sarah Johnson', atsScore: 95, status: 'accepted', pages: 2, template: 'Executive', time: '1 hr ago', aiMessages: 15 },
-  { id: '5', user: 'Carlos Rodriguez', atsScore: 71, status: 'pending', pages: 1, template: 'Modern', time: '2 hr ago', aiMessages: 7 },
-  { id: '6', user: 'Aisha Davis', atsScore: 88, status: 'accepted', pages: 2, template: 'Professional', time: '3 hr ago', aiMessages: 10 },
-  { id: '7', user: 'James Brown', atsScore: 55, status: 'rejected', pages: 1, template: 'Basic', time: '3 hr ago', aiMessages: 3 },
-  { id: '8', user: 'Hannah Lee', atsScore: 91, status: 'accepted', pages: 2, template: 'Executive', time: '4 hr ago', aiMessages: 14 },
+  { id: '1', user: 'Darnell Smith', atsScore: 92, status: 'accepted', template: 't08', time: '12 min ago', aiMessages: 8 },
+  { id: '2', user: 'Jessica Williams', atsScore: 84, status: 'accepted', template: 't06', time: '28 min ago', aiMessages: 12 },
+  { id: '3', user: 'Omar Khan', atsScore: 68, status: 'rejected', template: 't19', time: '45 min ago', aiMessages: 5 },
+  { id: '4', user: 'Sarah Johnson', atsScore: 95, status: 'accepted', template: 't20', time: '1 hr ago', aiMessages: 15 },
+  { id: '5', user: 'Carlos Rodriguez', atsScore: 71, status: 'pending', template: 't01', time: '2 hr ago', aiMessages: 7 },
+  { id: '6', user: 'Aisha Davis', atsScore: 88, status: 'accepted', template: 't06', time: '3 hr ago', aiMessages: 10 },
+  { id: '7', user: 'James Brown', atsScore: 55, status: 'rejected', template: 't11', time: '3 hr ago', aiMessages: 3 },
+  { id: '8', user: 'Hannah Lee', atsScore: 91, status: 'accepted', template: 't08', time: '4 hr ago', aiMessages: 14 },
 ]
 
 const ATS_SCORE_DIST = [
@@ -40,23 +52,20 @@ const TOP_ISSUES = [
   { issue: 'Too many pages', frequency: 340, pct: 3 },
 ]
 
-const TEMPLATES = [
-  { id: 't1', name: 'Modern', uses: 3421, atsAvg: 82, color: '#3b82f6', active: true },
-  { id: 't2', name: 'Professional', uses: 2890, atsAvg: 85, color: '#8b5cf6', active: true },
-  { id: 't3', name: 'Executive', uses: 1567, atsAvg: 88, color: '#2dd4bf', active: true },
-  { id: 't4', name: 'Creative', uses: 892, atsAvg: 71, color: '#f59e0b', active: true },
-  { id: 't5', name: 'Basic', uses: 1234, atsAvg: 76, color: '#94a3b8', active: true },
-  { id: 't6', name: 'ATS-Optimized', uses: 2100, atsAvg: 91, color: '#22c55e', active: true },
-]
-
 const STATUS_COLORS: Record<string, string> = {
   accepted: 'bg-emerald-50 text-emerald-700',
   rejected: 'bg-red-50 text-red-600',
   pending: 'bg-amber-50 text-amber-700',
 }
 
+type TemplateModal = { open: boolean; template: typeof TEMPLATES[number] | null }
+
 export default function AdminResumeBuilder() {
   const [tab, setTab] = useState<'overview' | 'builds' | 'templates' | 'settings'>('overview')
+  const [templateModal, setTemplateModal] = useState<TemplateModal>({ open: false, template: null })
+
+  const totalDownloads = TEMPLATES.reduce((sum, t) => sum + t.downloads, 0)
+  const totalUses = TEMPLATES.reduce((sum, t) => sum + t.uses, 0)
 
   return (
     <div className="space-y-6">
@@ -77,10 +86,10 @@ export default function AdminResumeBuilder() {
         <>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { label: 'Total Builds', value: RESUME_STATS.totalBuilds.toLocaleString(), icon: FileText, change: '+22.4%' },
-              { label: 'This Month', value: RESUME_STATS.thisMonth.toLocaleString(), icon: TrendingUp, change: '+18.7%' },
-              { label: 'Avg ATS Score', value: `${RESUME_STATS.avgAtsScore}%`, icon: Target, change: '+3.2%' },
-              { label: 'Acceptance Rate', value: `${RESUME_STATS.acceptanceRate}%`, icon: CheckCircle2, change: '+5.1%' },
+              { label: 'Total Builds', value: '8,934', icon: FileText, change: '+22.4%' },
+              { label: 'This Month', value: '1,847', icon: TrendingUp, change: '+18.7%' },
+              { label: 'Avg ATS Score', value: '78.4%', icon: Target, change: '+3.2%' },
+              { label: 'Acceptance Rate', value: '62.3%', icon: CheckCircle2, change: '+5.1%' },
             ].map(({ label, value, icon: Icon, change }) => (
               <div key={label} className="lf-panel p-5">
                 <div className="flex items-center justify-between">
@@ -97,10 +106,10 @@ export default function AdminResumeBuilder() {
 
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { label: 'AI Chats', value: RESUME_STATS.aiChats.toLocaleString(), icon: MessageSquare },
-              { label: 'Templates Used', value: RESUME_STATS.templatesCreated.toLocaleString(), icon: FileText },
-              { label: 'Exports Downloaded', value: RESUME_STATS.exportsDownloaded.toLocaleString(), icon: Download },
-              { label: 'Rejection Rate', value: `${RESUME_STATS.rejectionRate}%`, icon: XCircle },
+              { label: 'AI Chats', value: '12,450', icon: MessageSquare },
+              { label: 'Templates Used', value: totalUses.toLocaleString(), icon: FileText },
+              { label: 'Exports Downloaded', value: totalDownloads.toLocaleString(), icon: Download },
+              { label: 'Rejection Rate', value: '37.7%', icon: XCircle },
             ].map(({ label, value, icon: Icon }) => (
               <div key={label} className="lf-panel p-4">
                 <div className="flex items-center justify-between mb-1">
@@ -113,7 +122,6 @@ export default function AdminResumeBuilder() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {/* ATS Score Distribution */}
             <div className="lf-panel p-6">
               <p className="lf-card-title mb-4">ATS Score Distribution</p>
               <div className="space-y-2.5">
@@ -136,17 +144,16 @@ export default function AdminResumeBuilder() {
               </div>
             </div>
 
-            {/* Acceptance vs Rejection */}
             <div className="lf-panel p-6">
               <p className="lf-card-title mb-4">Acceptance vs Rejection</p>
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-1">
                   <div className="h-8 rounded-full bg-muted overflow-hidden flex">
-                    <div className="h-full bg-emerald-500 transition-all duration-700 flex items-center justify-center" style={{ width: `${RESUME_STATS.acceptanceRate}%` }}>
-                      <span className="text-[10px] font-bold text-white">{RESUME_STATS.acceptanceRate}%</span>
+                    <div className="h-full bg-emerald-500 transition-all duration-700 flex items-center justify-center" style={{ width: '62.3%' }}>
+                      <span className="text-[10px] font-bold text-white">62.3%</span>
                     </div>
-                    <div className="h-full bg-red-500 transition-all duration-700 flex items-center justify-center" style={{ width: `${RESUME_STATS.rejectionRate}%` }}>
-                      <span className="text-[10px] font-bold text-white">{RESUME_STATS.rejectionRate}%</span>
+                    <div className="h-full bg-red-500 transition-all duration-700 flex items-center justify-center" style={{ width: '37.7%' }}>
+                      <span className="text-[10px] font-bold text-white">37.7%</span>
                     </div>
                   </div>
                 </div>
@@ -155,7 +162,6 @@ export default function AdminResumeBuilder() {
                 <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-full bg-emerald-500" /><span className="text-xs text-muted-foreground">Accepted</span></div>
                 <div className="flex items-center gap-1.5"><div className="h-2.5 w-2.5 rounded-full bg-red-500" /><span className="text-xs text-muted-foreground">Rejected</span></div>
               </div>
-
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Top ATS Issues</p>
               <div className="space-y-2">
                 {TOP_ISSUES.slice(0, 4).map(t => (
@@ -177,7 +183,6 @@ export default function AdminResumeBuilder() {
             </div>
           </div>
 
-          {/* Recent Builds */}
           <div className="lf-panel overflow-hidden">
             <div className="px-5 py-4 border-b border-border">
               <p className="lf-card-title">Recent Resume Builds</p>
@@ -195,25 +200,33 @@ export default function AdminResumeBuilder() {
                   </tr>
                 </thead>
                 <tbody>
-                  {RECENT_BUILDS.map(b => (
-                    <tr key={b.id} className="lf-table-row">
-                      <td className="lf-table-cell font-medium text-foreground">{b.user}</td>
-                      <td className="lf-table-cell">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-12 rounded-full bg-muted overflow-hidden">
-                            <div className={`h-full rounded-full ${b.atsScore >= 85 ? 'bg-emerald-500' : b.atsScore >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${b.atsScore}%` }} />
+                  {RECENT_BUILDS.map(b => {
+                    const tmpl = TEMPLATES.find(t => t.id === b.template)
+                    return (
+                      <tr key={b.id} className="lf-table-row">
+                        <td className="lf-table-cell font-medium text-foreground">{b.user}</td>
+                        <td className="lf-table-cell">
+                          <div className="flex items-center gap-2">
+                            <div className="h-1.5 w-12 rounded-full bg-muted overflow-hidden">
+                              <div className={`h-full rounded-full ${b.atsScore >= 85 ? 'bg-emerald-500' : b.atsScore >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${b.atsScore}%` }} />
+                            </div>
+                            <span className="text-xs font-semibold tabular-nums">{b.atsScore}</span>
                           </div>
-                          <span className="text-xs font-semibold tabular-nums">{b.atsScore}</span>
-                        </div>
-                      </td>
-                      <td className="lf-table-cell hidden sm:table-cell text-xs text-muted-foreground">{b.template}</td>
-                      <td className="lf-table-cell hidden md:table-cell tabular-nums">{b.aiMessages}</td>
-                      <td className="lf-table-cell">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[b.status]}`}>{b.status}</span>
-                      </td>
-                      <td className="lf-table-cell hidden sm:table-cell text-xs text-muted-foreground">{b.time}</td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="lf-table-cell hidden sm:table-cell">
+                          <button onClick={() => setTemplateModal({ open: true, template: TEMPLATES.find(t => t.id === b.template) ?? null })} className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+                            <span className="h-2 w-2 rounded-full" style={{ background: tmpl?.color ?? '#999' }} />
+                            {tmpl?.name ?? b.template}
+                          </button>
+                        </td>
+                        <td className="lf-table-cell hidden md:table-cell tabular-nums">{b.aiMessages}</td>
+                        <td className="lf-table-cell">
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[b.status]}`}>{b.status}</span>
+                        </td>
+                        <td className="lf-table-cell hidden sm:table-cell text-xs text-muted-foreground">{b.time}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -229,34 +242,40 @@ export default function AdminResumeBuilder() {
                 <tr>
                   <th className="lf-table-th">User</th>
                   <th className="lf-table-th">ATS Score</th>
-                  <th className="lf-table-th hidden sm:table-cell">Pages</th>
-                  <th className="lf-table-th hidden md:table-cell">Template</th>
+                  <th className="lf-table-th hidden sm:table-cell">Template</th>
                   <th className="lf-table-th hidden md:table-cell">AI Chats</th>
                   <th className="lf-table-th">Status</th>
                   <th className="lf-table-th hidden sm:table-cell">Time</th>
                 </tr>
               </thead>
               <tbody>
-                {RECENT_BUILDS.map(b => (
-                  <tr key={b.id} className="lf-table-row">
-                    <td className="lf-table-cell font-medium text-foreground">{b.user}</td>
-                    <td className="lf-table-cell">
-                      <div className="flex items-center gap-2">
-                        <div className="h-1.5 w-12 rounded-full bg-muted overflow-hidden">
-                          <div className={`h-full rounded-full ${b.atsScore >= 85 ? 'bg-emerald-500' : b.atsScore >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${b.atsScore}%` }} />
+                {RECENT_BUILDS.map(b => {
+                  const tmpl = TEMPLATES.find(t => t.id === b.template)
+                  return (
+                    <tr key={b.id} className="lf-table-row">
+                      <td className="lf-table-cell font-medium text-foreground">{b.user}</td>
+                      <td className="lf-table-cell">
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-12 rounded-full bg-muted overflow-hidden">
+                            <div className={`h-full rounded-full ${b.atsScore >= 85 ? 'bg-emerald-500' : b.atsScore >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${b.atsScore}%` }} />
+                          </div>
+                          <span className="text-xs font-semibold tabular-nums">{b.atsScore}</span>
                         </div>
-                        <span className="text-xs font-semibold tabular-nums">{b.atsScore}</span>
-                      </div>
-                    </td>
-                    <td className="lf-table-cell hidden sm:table-cell tabular-nums">{b.pages}</td>
-                    <td className="lf-table-cell hidden md:table-cell text-xs text-muted-foreground">{b.template}</td>
-                    <td className="lf-table-cell hidden md:table-cell tabular-nums">{b.aiMessages}</td>
-                    <td className="lf-table-cell">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[b.status]}`}>{b.status}</span>
-                    </td>
-                    <td className="lf-table-cell hidden sm:table-cell text-xs text-muted-foreground">{b.time}</td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="lf-table-cell hidden sm:table-cell">
+                        <button onClick={() => setTemplateModal({ open: true, template: TEMPLATES.find(t => t.id === b.template) ?? null })} className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+                          <span className="h-2 w-2 rounded-full" style={{ background: tmpl?.color ?? '#999' }} />
+                          {tmpl?.name ?? b.template}
+                        </button>
+                      </td>
+                      <td className="lf-table-cell hidden md:table-cell tabular-nums">{b.aiMessages}</td>
+                      <td className="lf-table-cell">
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[b.status]}`}>{b.status}</span>
+                      </td>
+                      <td className="lf-table-cell hidden sm:table-cell text-xs text-muted-foreground">{b.time}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -264,30 +283,64 @@ export default function AdminResumeBuilder() {
       )}
 
       {tab === 'templates' && (
-        <div className="lf-panel overflow-hidden">
-          <div className="px-5 py-4 border-b border-border">
-            <p className="lf-card-title">Resume Templates</p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">{TEMPLATES.length} Templates</p>
+              <p className="text-xs text-muted-foreground">Click a template to view details, usage stats, and settings</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Total downloads:</span>
+              <span className="text-xs font-semibold text-foreground">{totalDownloads.toLocaleString()}</span>
+            </div>
           </div>
-          <div className="p-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {TEMPLATES.map(t => (
-              <div key={t.id} className="rounded-lg border border-border p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full" style={{ background: t.color }} />
-                    <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                  </div>
-                  <div className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${t.active ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}>
-                    <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${t.active ? 'translate-x-4' : 'translate-x-0'}`} />
+              <button
+                key={t.id}
+                onClick={() => setTemplateModal({ open: true, template: t })}
+                className="group relative overflow-hidden rounded-lg border border-border bg-white text-left transition-all hover:border-primary/50 hover:shadow-md"
+              >
+                <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+                  <img
+                    src={`/templates/${t.id}.png`}
+                    alt={t.name}
+                    className="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur">
+                      <Eye className="h-2.5 w-2.5" /> View
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur">
+                      <Settings className="h-2.5 w-2.5" /> Settings
+                    </span>
                   </div>
                 </div>
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Total Uses</span><span className="font-medium">{t.uses.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Avg ATS Score</span><span className="font-medium">{t.atsAvg}%</span></div>
-                  <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden mt-2">
+                <div className="p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-foreground truncate">{t.name}</p>
+                    <div className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${t.active ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}>
+                      <span className={`pointer-events-none inline-block h-3 w-3 rounded-full bg-white shadow-sm transition-transform ${t.active ? 'translate-x-3' : 'translate-x-0'}`} />
+                    </div>
+                  </div>
+                  <div className="mt-2 flex items-center gap-3 text-[10px] text-muted-foreground">
+                    <span>ATS {t.atsAvg}%</span>
+                    <span>·</span>
+                    <span>{t.uses.toLocaleString()} uses</span>
+                    <span>·</span>
+                    <span>{t.downloads.toLocaleString()} DL</span>
+                  </div>
+                  <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: `${t.atsAvg}%`, background: t.color }} />
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -321,6 +374,194 @@ export default function AdminResumeBuilder() {
           ))}
         </div>
       )}
+
+      {templateModal.open && templateModal.template && (
+        <TemplateDetailModal
+          template={templateModal.template}
+          onClose={() => setTemplateModal({ open: false, template: null })}
+        />
+      )}
     </div>
+  )
+}
+
+function TemplateDetailModal({ template, onClose }: { template: typeof TEMPLATES[number]; onClose: () => void }) {
+  const [activeTab, setActiveTab] = useState<'details' | 'usage' | 'settings'>('details')
+  const templateUses = RECENT_BUILDS.filter(b => b.template === template.id)
+  const avgScore = templateUses.length ? Math.round(templateUses.reduce((sum, b) => sum + b.atsScore, 0) / templateUses.length) : template.atsAvg
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-slate-950/30" onClick={onClose} />
+      <div className="fixed inset-x-4 top-[5%] z-50 mx-auto max-w-2xl overflow-hidden rounded-xl border border-border bg-white shadow-2xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="h-3 w-3 rounded-full" style={{ background: template.color }} />
+            <div>
+              <h2 className="text-base font-semibold text-foreground">{template.name}</h2>
+              <p className="text-xs text-muted-foreground">Template {template.id.toUpperCase()}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1 border-b border-border px-5">
+          {(['details', 'usage', 'settings'] as const).map(t => (
+            <button key={t} onClick={() => setActiveTab(t)} className={`relative px-3 py-2.5 text-sm font-medium transition-colors ${
+              activeTab === t ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+            }`}>
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+              {activeTab === t && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-foreground" />}
+            </button>
+          ))}
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto p-5">
+          {activeTab === 'details' && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Avg ATS Score', value: `${template.atsAvg}%`, icon: Target },
+                  { label: 'Total Uses', value: template.uses.toLocaleString(), icon: Users },
+                  { label: 'Downloads', value: template.downloads.toLocaleString(), icon: Download },
+                ].map(({ label, value, icon: Icon }) => (
+                  <div key={label} className="rounded-lg border border-border p-3 text-center">
+                    <Icon className="mx-auto h-4 w-4 text-muted-foreground mb-1" />
+                    <p className="text-lg font-bold text-foreground">{value}</p>
+                    <p className="text-[10px] text-muted-foreground">{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Template Preview</p>
+                <div className="flex justify-center">
+                  <div className="aspect-[3/4] w-48 overflow-hidden rounded-md border border-border bg-muted">
+                    <img
+                      src={`/templates/${template.id}.png`}
+                      alt={template.name}
+                      className="h-full w-full object-cover object-top"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Recent Users</p>
+                {templateUses.length > 0 ? (
+                  <div className="space-y-2">
+                    {templateUses.map(b => (
+                      <div key={b.id} className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-foreground">{b.user}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[b.status]}`}>{b.status}</span>
+                          <span className="text-xs tabular-nums text-muted-foreground">ATS {b.atsScore}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">No recent builds using this template</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'usage' && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border border-border p-4">
+                  <p className="text-2xl font-bold text-foreground">{template.uses.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">Total Uses</p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <p className="text-2xl font-bold text-emerald-600">{avgScore}%</p>
+                  <p className="text-xs text-muted-foreground">Avg ATS Score (Recent)</p>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">ATS Score Distribution</p>
+                <div className="space-y-2">
+                  {ATS_SCORE_DIST.map(d => (
+                    <div key={d.range} className="flex items-center gap-2">
+                      <span className="w-14 text-xs text-foreground">{d.range}</span>
+                      <div className="flex-1 h-4 rounded bg-muted overflow-hidden">
+                        <div className="h-full rounded" style={{ width: `${d.pct}%`, background: d.color }} />
+                      </div>
+                      <span className="w-8 text-right text-xs tabular-nums">{d.pct}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border p-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Downloads Over Time</p>
+                <div className="flex items-end gap-1 h-24">
+                  {[35, 42, 38, 55, 48, 62, 58, 71, 65, 78, 72, 85].map((h, i) => (
+                    <div key={i} className="flex-1 rounded-t bg-primary/20" style={{ height: `${h}%` }}>
+                      <div className="w-full rounded-t bg-primary" style={{ height: `${h * 0.6}%` }} />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-[9px] text-muted-foreground">Jan</span>
+                  <span className="text-[9px] text-muted-foreground">Dec</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="space-y-4">
+              {[
+                { label: 'Template Active', desc: 'Users can select this template', checked: template.active },
+                { label: 'Featured Template', desc: 'Show in featured/recommended section', checked: template.id === 't08' || template.id === 't20' },
+                { label: 'ATS Optimized', desc: 'Template uses ATS-friendly formatting', checked: true },
+                { label: 'Premium Only', desc: 'Only available to Premium plan users', checked: false },
+              ].map(item => (
+                <div key={item.label} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{item.label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
+                  </div>
+                  <div className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${item.checked ? 'bg-primary' : 'bg-muted-foreground/30'}`}>
+                    <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${item.checked ? 'translate-x-4' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+              ))}
+
+              <div className="pt-2">
+                <p className="text-sm font-medium text-foreground mb-2">Template Color</p>
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg border border-border" style={{ background: template.color }} />
+                  <input defaultValue={template.color} className="lf-input w-28 h-8 text-sm font-mono" />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <p className="text-sm font-medium text-foreground mb-2">Description</p>
+                <textarea defaultValue="Clean ATS-friendly resume layout for professional applications." className="lf-input h-20 w-full resize-none text-sm" />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary/90">
+                  <Check className="h-3.5 w-3.5" /> Save Changes
+                </button>
+                <button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition hover:bg-muted">
+                  <ExternalLink className="h-3.5 w-3.5" /> Preview in Builder
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   )
 }

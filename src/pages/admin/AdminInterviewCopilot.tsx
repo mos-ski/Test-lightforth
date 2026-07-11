@@ -1,39 +1,55 @@
 import { useState } from 'react'
-import { TrendingUp, ArrowUpRight, Video, Mic, MessageSquare, Clock, Users, Zap } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, Video, Clock, Users, Zap, MessageSquare, Eye, EyeOff, Monitor, Smartphone, Settings, ChevronRight } from 'lucide-react'
 
-const COPILOT_STATS = {
-  totalSessions: 3421,
-  thisMonth: 687,
-  avgDuration: '34m',
-  questionsAnswered: 18943,
-  realtimeAccuracy: 94.2,
-  activeUsers: 892,
+const SESSIONS = [
+  { id: 's1', user: 'Darnell Smith', platform: 'Desktop', useCase: 'Interview', jobTitle: 'Senior Software Engineer', style: 'Headlines', answerLength: 'Medium', duration: 42, questionsAnswered: 14, speakers: 2, stealthUsed: true, autoRespond: false, aiAssistantUsed: true, contextDocs: 2, status: 'completed', time: '2 hr ago', score: 87 },
+  { id: 's2', user: 'Jessica Williams', platform: 'Desktop', useCase: 'Interview', jobTitle: 'Data Analyst', style: 'Default', answerLength: 'Long', duration: 35, questionsAnswered: 11, speakers: 2, stealthUsed: true, autoRespond: false, aiAssistantUsed: false, contextDocs: 1, status: 'completed', time: '3 hr ago', score: 82 },
+  { id: 's3', user: 'Omar Khan', platform: 'Web', useCase: 'Interview', jobTitle: 'Product Manager', style: 'Coaching', answerLength: 'Short', duration: 51, questionsAnswered: 18, speakers: 3, stealthUsed: false, autoRespond: true, aiAssistantUsed: true, contextDocs: 3, status: 'completed', time: '4 hr ago', score: 91 },
+  { id: 's4', user: 'Sarah Johnson', platform: 'Desktop', useCase: 'Interview', jobTitle: 'UX Designer', style: 'Headlines', answerLength: 'Medium', duration: 28, questionsAnswered: 9, speakers: 2, stealthUsed: true, autoRespond: false, aiAssistantUsed: false, contextDocs: 0, status: 'completed', time: '6 hr ago', score: 78 },
+  { id: 's5', user: 'Carlos Rodriguez', platform: 'Mobile', useCase: 'Interview', jobTitle: 'Cloud Engineer', style: 'Default', answerLength: 'Medium', duration: 45, questionsAnswered: 15, speakers: 2, stealthUsed: false, autoRespond: true, aiAssistantUsed: true, contextDocs: 1, status: 'completed', time: '1 day ago', score: 85 },
+  { id: 's6', user: 'Aisha Davis', platform: 'Desktop', useCase: 'Interview', jobTitle: 'Backend Engineer', style: 'Headlines', answerLength: 'Long', duration: 38, questionsAnswered: 12, speakers: 2, stealthUsed: true, autoRespond: false, aiAssistantUsed: true, contextDocs: 2, status: 'completed', time: '1 day ago', score: 89 },
+  { id: 's7', user: 'James Brown', platform: 'Web', useCase: 'Interview', jobTitle: 'iOS Developer', style: 'Default', answerLength: 'Short', duration: 22, questionsAnswered: 7, speakers: 2, stealthUsed: false, autoRespond: false, aiAssistantUsed: false, contextDocs: 0, status: 'abandoned', time: '2 days ago', score: 0 },
+  { id: 's8', user: 'Hannah Lee', platform: 'Desktop', useCase: 'Interview', jobTitle: 'Data Scientist', style: 'Coaching', answerLength: 'Medium', duration: 55, questionsAnswered: 20, speakers: 2, stealthUsed: true, autoRespond: true, aiAssistantUsed: true, contextDocs: 4, status: 'completed', time: '2 days ago', score: 94 },
+]
+
+const PLATFORM_STATS = [
+  { platform: 'Desktop', sessions: 2134, pct: 62, icon: Monitor },
+  { platform: 'Web', sessions: 890, pct: 26, icon: Monitor },
+  { platform: 'Mobile', sessions: 397, pct: 12, icon: Smartphone },
+]
+
+const STYLE_DIST = [
+  { style: 'Default', sessions: 1234, pct: 36, color: '#3b82f6' },
+  { style: 'Headlines', sessions: 1456, pct: 43, color: '#8b5cf6' },
+  { style: 'Coaching', sessions: 731, pct: 21, color: '#2dd4bf' },
+]
+
+const LENGTH_DIST = [
+  { length: 'Short', sessions: 687, pct: 20 },
+  { length: 'Medium', sessions: 1892, pct: 55 },
+  { length: 'Long', sessions: 842, pct: 25 },
+]
+
+const STATUS_COLORS: Record<string, string> = {
+  completed: 'bg-emerald-50 text-emerald-700',
+  abandoned: 'bg-red-50 text-red-600',
+  'in-progress': 'bg-amber-50 text-amber-700',
 }
-
-const RECENT_SESSIONS = [
-  { id: '1', user: 'Darnell Smith', type: 'Technical', duration: '42m', questions: 28, accuracy: 96, time: '2 hr ago', company: 'JPMorgan Chase' },
-  { id: '2', user: 'Jessica Williams', type: 'Behavioral', duration: '35m', questions: 22, accuracy: 91, time: '3 hr ago', company: 'Goldman Sachs' },
-  { id: '3', user: 'Omar Khan', type: 'Case Study', duration: '51m', questions: 35, accuracy: 88, time: '4 hr ago', company: 'McKinsey' },
-  { id: '4', user: 'Sarah Johnson', type: 'Technical', duration: '38m', questions: 24, accuracy: 97, time: '5 hr ago', company: 'Google' },
-  { id: '5', user: 'Carlos Rodriguez', type: 'Behavioral', duration: '29m', questions: 18, accuracy: 93, time: '6 hr ago', company: 'Amazon' },
-  { id: '6', user: 'Aisha Davis', type: 'Technical', duration: '45m', questions: 31, accuracy: 89, time: '7 hr ago', company: 'Meta' },
-]
-
-const INTERVIEW_TYPES = [
-  { type: 'Technical', sessions: 1456, pct: 43, color: '#3b82f6' },
-  { type: 'Behavioral', sessions: 1120, pct: 33, color: '#8b5cf6' },
-  { type: 'Case Study', sessions: 548, pct: 16, color: '#2dd4bf' },
-  { type: 'System Design', sessions: 297, pct: 8, color: '#f59e0b' },
-]
 
 export default function AdminInterviewCopilot() {
   const [tab, setTab] = useState<'overview' | 'sessions' | 'settings'>('overview')
+
+  const totalSessions = 3421
+  const completedSessions = SESSIONS.filter(s => s.status === 'completed')
+  const avgScore = completedSessions.length > 0 ? Math.round(completedSessions.reduce((s, x) => s + x.score, 0) / completedSessions.length) : 0
+  const stealthRate = Math.round((SESSIONS.filter(s => s.stealthUsed).length / SESSIONS.length) * 100)
+  const aiAssistantRate = Math.round((SESSIONS.filter(s => s.aiAssistantUsed).length / SESSIONS.length) * 100)
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="lf-page-title">Interview Copilot</h1>
-        <p className="lf-body mt-0.5">Real-time interview assistance — monitor usage and performance</p>
+        <p className="lf-body mt-0.5">Real-time interview assistance — stealth mode, response styles, multi-speaker, AI assistant</p>
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -46,14 +62,13 @@ export default function AdminInterviewCopilot() {
 
       {tab === 'overview' && (
         <>
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          {/* Core Metrics */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { label: 'Total Sessions', value: COPILOT_STATS.totalSessions.toLocaleString(), icon: Video, change: '+22.4%' },
-              { label: 'This Month', value: COPILOT_STATS.thisMonth.toLocaleString(), icon: TrendingUp, change: '+15.8%' },
-              { label: 'Avg Duration', value: COPILOT_STATS.avgDuration, icon: Clock, change: '+3m' },
-              { label: 'Questions Answered', value: COPILOT_STATS.questionsAnswered.toLocaleString(), icon: MessageSquare, change: '+1,247' },
-              { label: 'Realtime Accuracy', value: `${COPILOT_STATS.realtimeAccuracy}%`, icon: Zap, change: '+1.8%' },
-              { label: 'Active Users', value: COPILOT_STATS.activeUsers.toLocaleString(), icon: Users, change: '+89' },
+              { label: 'Total Sessions', value: totalSessions.toLocaleString(), icon: Video, change: '+26.4%' },
+              { label: 'Avg Duration', value: '34m', icon: Clock, change: '+3m' },
+              { label: 'Questions Answered', value: '18,943', icon: MessageSquare, change: '+1,247' },
+              { label: 'Avg Score', value: `${avgScore}%`, icon: Zap, change: '+4.2%' },
             ].map(({ label, value, icon: Icon, change }) => (
               <div key={label} className="lf-panel p-5">
                 <div className="flex items-center justify-between">
@@ -68,43 +83,132 @@ export default function AdminInterviewCopilot() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {/* Feature Adoption */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {[
+              { label: 'Stealth Mode Used', value: `${stealthRate}%`, desc: 'of sessions' },
+              { label: 'AI Assistant Used', value: `${aiAssistantRate}%`, desc: 'of sessions' },
+              { label: 'Auto-Respond On', value: '28%', desc: 'of sessions' },
+              { label: 'Setup Skipped', value: '34%', desc: 'power users' },
+            ].map(({ label, value, desc }) => (
+              <div key={label} className="lf-panel p-4">
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="text-xl font-bold text-foreground mt-1">{value}</p>
+                <p className="text-[10px] text-muted-foreground">{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {/* Platform Split */}
             <div className="lf-panel p-6">
-              <p className="lf-card-title mb-4">Interview Types</p>
+              <p className="lf-card-title mb-4">Platform Split</p>
               <div className="space-y-3">
-                {INTERVIEW_TYPES.map(t => (
-                  <div key={t.type}>
+                {PLATFORM_STATS.map(p => (
+                  <div key={p.platform}>
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium text-foreground">{t.type}</span>
-                      <span className="text-xs text-muted-foreground">{t.sessions.toLocaleString()} sessions · {t.pct}%</span>
+                      <div className="flex items-center gap-2">
+                        <p.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">{p.platform}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{p.sessions.toLocaleString()} · {p.pct}%</span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${t.pct}%`, background: t.color }} />
+                      <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${p.pct}%` }} />
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="mt-4 pt-3 border-t border-border">
+                <p className="text-[10px] text-muted-foreground">Desktop: stealth mode + multi-window. Web: browser-based. Mobile: phone beside laptop.</p>
               </div>
             </div>
 
+            {/* Response Styles */}
             <div className="lf-panel p-6">
-              <p className="lf-card-title mb-4">Recent Sessions</p>
-              <div className="space-y-2">
-                {RECENT_SESSIONS.slice(0, 5).map(s => (
-                  <div key={s.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Mic className="h-3.5 w-3.5 text-primary" />
+              <p className="lf-card-title mb-4">Response Styles</p>
+              <div className="space-y-3">
+                {STYLE_DIST.map(s => (
+                  <div key={s.style}>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-foreground">{s.style}</span>
+                      <span className="text-xs text-muted-foreground">{s.sessions.toLocaleString()} · {s.pct}%</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{s.user}</p>
-                      <p className="text-xs text-muted-foreground">{s.type} · {s.company} · {s.duration}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-semibold text-foreground">{s.accuracy}%</p>
-                      <p className="text-[10px] text-muted-foreground">{s.questions} Q&A</p>
+                    <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-700" style={{ width: `${s.pct}%`, background: s.color }} />
                     </div>
                   </div>
                 ))}
               </div>
+              <div className="mt-4 pt-3 border-t border-border space-y-1">
+                <p className="text-[10px] text-muted-foreground"><strong>Default</strong> — Full natural answer</p>
+                <p className="text-[10px] text-muted-foreground"><strong>Headlines</strong> — STAR bullet points</p>
+                <p className="text-[10px] text-muted-foreground"><strong>Coaching</strong> — Tips and guidance only</p>
+              </div>
+            </div>
+
+            {/* Answer Length */}
+            <div className="lf-panel p-6">
+              <p className="lf-card-title mb-4">Answer Length</p>
+              <div className="space-y-3">
+                {LENGTH_DIST.map(l => (
+                  <div key={l.length}>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-sm font-medium text-foreground">{l.length}</span>
+                      <span className="text-xs text-muted-foreground">{l.sessions.toLocaleString()} · {l.pct}%</span>
+                    </div>
+                    <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full bg-primary transition-all duration-700" style={{ width: `${l.pct}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-3 border-t border-border">
+                <p className="text-[10px] text-muted-foreground">Interview and Meeting use cases only. Coding copilot has no length option.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Sessions */}
+          <div className="lf-panel overflow-hidden">
+            <div className="px-5 py-4 border-b border-border">
+              <p className="lf-card-title">Recent Sessions</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="lf-table">
+                <thead className="lf-table-head">
+                  <tr>
+                    <th className="lf-table-th">User</th>
+                    <th className="lf-table-th hidden md:table-cell">Platform</th>
+                    <th className="lf-table-th hidden md:table-cell">Job Title</th>
+                    <th className="lf-table-th">Style</th>
+                    <th className="lf-table-th hidden sm:table-cell">Duration</th>
+                    <th className="lf-table-th hidden sm:table-cell">Q&A</th>
+                    <th className="lf-table-th hidden lg:table-cell">Speakers</th>
+                    <th className="lf-table-th hidden lg:table-cell">Stealth</th>
+                    <th className="lf-table-th hidden lg:table-cell">AI Asst</th>
+                    <th className="lf-table-th">Score</th>
+                    <th className="lf-table-th">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SESSIONS.map(s => (
+                    <tr key={s.id} className="lf-table-row">
+                      <td className="lf-table-cell font-medium text-foreground">{s.user}</td>
+                      <td className="lf-table-cell hidden md:table-cell text-xs text-muted-foreground">{s.platform}</td>
+                      <td className="lf-table-cell hidden md:table-cell text-xs text-muted-foreground truncate max-w-[140px]">{s.jobTitle}</td>
+                      <td className="lf-table-cell"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{s.style}</span></td>
+                      <td className="lf-table-cell hidden sm:table-cell tabular-nums text-sm">{s.duration}m</td>
+                      <td className="lf-table-cell hidden sm:table-cell tabular-nums text-sm">{s.questionsAnswered}</td>
+                      <td className="lf-table-cell hidden lg:table-cell tabular-nums text-sm">{s.speakers}</td>
+                      <td className="lf-table-cell hidden lg:table-cell">{s.stealthUsed ? <EyeOff className="h-3.5 w-3.5 text-emerald-500" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground/30" />}</td>
+                      <td className="lf-table-cell hidden lg:table-cell">{s.aiAssistantUsed ? <MessageSquare className="h-3.5 w-3.5 text-blue-500" /> : <span className="text-muted-foreground/30">—</span>}</td>
+                      <td className="lf-table-cell tabular-nums font-semibold">{s.score > 0 ? s.score : '—'}</td>
+                      <td className="lf-table-cell"><span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[s.status]}`}>{s.status}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </>
@@ -117,26 +221,38 @@ export default function AdminInterviewCopilot() {
               <thead className="lf-table-head">
                 <tr>
                   <th className="lf-table-th">User</th>
-                  <th className="lf-table-th">Type</th>
-                  <th className="lf-table-th hidden md:table-cell">Company</th>
-                  <th className="lf-table-th">Duration</th>
-                  <th className="lf-table-th">Questions</th>
-                  <th className="lf-table-th">Accuracy</th>
-                  <th className="lf-table-th hidden sm:table-cell">Time</th>
+                  <th className="lf-table-th">Platform</th>
+                  <th className="lf-table-th hidden md:table-cell">Job Title</th>
+                  <th className="lf-table-th">Style</th>
+                  <th className="lf-table-th hidden sm:table-cell">Length</th>
+                  <th className="lf-table-th hidden sm:table-cell">Duration</th>
+                  <th className="lf-table-th">Q&A</th>
+                  <th className="lf-table-th hidden md:table-cell">Speakers</th>
+                  <th className="lf-table-th hidden lg:table-cell">Stealth</th>
+                  <th className="lf-table-th hidden lg:table-cell">Auto</th>
+                  <th className="lf-table-th hidden lg:table-cell">AI Asst</th>
+                  <th className="lf-table-th hidden lg:table-cell">Context</th>
+                  <th className="lf-table-th">Score</th>
+                  <th className="lf-table-th">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {RECENT_SESSIONS.map(s => (
+                {SESSIONS.map(s => (
                   <tr key={s.id} className="lf-table-row">
                     <td className="lf-table-cell font-medium text-foreground">{s.user}</td>
-                    <td className="lf-table-cell">{s.type}</td>
-                    <td className="lf-table-cell hidden md:table-cell text-muted-foreground">{s.company}</td>
-                    <td className="lf-table-cell tabular-nums">{s.duration}</td>
-                    <td className="lf-table-cell tabular-nums">{s.questions}</td>
-                    <td className="lf-table-cell">
-                      <span className={`font-semibold ${s.accuracy >= 95 ? 'text-emerald-600' : s.accuracy >= 85 ? 'text-foreground' : 'text-amber-600'}`}>{s.accuracy}%</span>
-                    </td>
-                    <td className="lf-table-cell hidden sm:table-cell text-xs text-muted-foreground">{s.time}</td>
+                    <td className="lf-table-cell text-xs text-muted-foreground">{s.platform}</td>
+                    <td className="lf-table-cell hidden md:table-cell text-xs text-muted-foreground truncate max-w-[140px]">{s.jobTitle}</td>
+                    <td className="lf-table-cell"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{s.style}</span></td>
+                    <td className="lf-table-cell hidden sm:table-cell text-xs text-muted-foreground">{s.answerLength}</td>
+                    <td className="lf-table-cell hidden sm:table-cell tabular-nums text-sm">{s.duration}m</td>
+                    <td className="lf-table-cell tabular-nums text-sm">{s.questionsAnswered}</td>
+                    <td className="lf-table-cell hidden md:table-cell tabular-nums text-sm">{s.speakers}</td>
+                    <td className="lf-table-cell hidden lg:table-cell">{s.stealthUsed ? <EyeOff className="h-3.5 w-3.5 text-emerald-500" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground/30" />}</td>
+                    <td className="lf-table-cell hidden lg:table-cell text-xs text-muted-foreground">{s.autoRespond ? 'Auto' : 'Manual'}</td>
+                    <td className="lf-table-cell hidden lg:table-cell">{s.aiAssistantUsed ? <MessageSquare className="h-3.5 w-3.5 text-blue-500" /> : '—'}</td>
+                    <td className="lf-table-cell hidden lg:table-cell tabular-nums text-sm">{s.contextDocs}</td>
+                    <td className="lf-table-cell tabular-nums font-semibold">{s.score > 0 ? s.score : '—'}</td>
+                    <td className="lf-table-cell"><span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[s.status]}`}>{s.status}</span></td>
                   </tr>
                 ))}
               </tbody>
@@ -147,13 +263,18 @@ export default function AdminInterviewCopilot() {
 
       {tab === 'settings' && (
         <div className="lf-panel p-6 max-w-2xl space-y-4">
-          <p className="lf-card-title">Copilot Configuration</p>
+          <p className="lf-card-title">Interview Copilot Configuration</p>
           {[
-            { label: 'Copilot Enabled', desc: 'Allow users to use the Interview Copilot', checked: true },
-            { label: 'Stealth Mode', desc: 'Hide AI assistance from interviewers', checked: true },
-            { label: 'Real-time Hints', desc: 'Provide hints during live interviews', checked: true },
-            { label: 'Post-Interview Analysis', desc: 'Generate feedback after each session', checked: true },
-            { label: 'Max Session Duration', desc: 'Maximum length of a copilot session', value: '60' },
+            { label: 'Copilot Enabled', desc: 'Allow users to access Interview Copilot', checked: true },
+            { label: 'Stealth Mode Default', desc: 'Default state of stealth mode for new sessions', checked: true },
+            { label: 'AI Assistant Panel', desc: 'Allow users to open the AI chat panel during sessions', checked: true },
+            { label: 'Multi-Speaker Detection', desc: 'Automatically detect and label multiple speakers', checked: true },
+            { label: 'Post-Session Report', desc: 'Generate feedback report after each session', checked: true },
+            { label: 'Transcript Saving', desc: 'Save session transcripts for review', checked: true },
+            { label: 'Interjection Support', desc: 'Detect and display interjections from other speakers', checked: true },
+            { label: 'Max Session Duration (min)', desc: 'Maximum length of a copilot session', value: '60' },
+            { label: 'Transcript Retention (days)', desc: 'How long transcripts are kept before auto-delete', value: '90' },
+            { label: 'AI Response Latency Target (ms)', desc: 'Target response time from end-of-question to start-of-answer', value: '1500' },
           ].map(item => (
             <div key={item.label} className="flex items-center justify-between py-3 border-b border-border last:border-0">
               <div>
