@@ -1,45 +1,164 @@
-import { useState } from 'react'
-import { TrendingUp, TrendingDown, Download, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { Download, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAdmin'
-import { USERS, TRANSACTIONS, OVERVIEW_STATS } from '@/lib/adminMockData'
+import { USERS, TRANSACTIONS, OVERVIEW_STATS, MONTHLY_DATA, FEATURE_USAGE, TOP_CITIES } from '@/lib/adminMockData'
 
 type Period = '7d' | '30d' | '90d' | '12m' | 'all'
-type CompareMode = 'none' | 'prev_period' | 'prev_year'
 
-function MetricCard({ label, value, change, sub, accent }: { label: string; value: string; change?: string; sub?: string; accent?: boolean }) {
+// ============================================================
+// Animated number hook
+// ============================================================
+function useAnimatedValue(target: number, duration = 600) {
+  const [display, setDisplay] = useState(target)
+  const frameRef = useRef(0)
+  const startRef = useState({ val: target, time: 0 })[0]
+
+  useEffect(() => {
+    const from = display
+    const start = performance.now()
+    const tick = (now: number) => {
+      const elapsed = now - start
+      const progress = Math.min(elapsed / duration, 1)
+      const ease = 1 - Math.pow(1 - progress, 3) // ease-out cubic
+      setDisplay(Math.round(from + (target - from) * ease))
+      if (progress < 1) frameRef.current = requestAnimationFrame(tick)
+    }
+    cancelAnimationFrame(frameRef.current)
+    frameRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frameRef.current)
+  }, [target, duration])
+
+  return display
+}
+
+// ============================================================
+// Period data generator — returns scaled data per period
+// ============================================================
+function getPeriodData(period: Period) {
+  const factors: Record<Period, { revenue: number; signups: number; active: number; visitors: number; months: number }> = {
+    '7d':  { revenue: 0.06, signups: 0.05, active: 0.35, visitors: 0.04, months: 1 },
+    '30d': { revenue: 0.25, signups: 0.22, active: 0.55, visitors: 0.18, months: 1 },
+    '90d': { revenue: 0.55, signups: 0.50, active: 0.75, visitors: 0.42, months: 3 },
+    '12m': { revenue: 1.0,  signups: 1.0,  active: 1.0,  visitors: 1.0,  months: 7 },
+    'all': { revenue: 1.15, signups: 1.20, active: 1.05, visitors: 1.10, months: 7 },
+  }
+  const f = factors[period]
+
+  const monthlyRevenue = MONTHLY_DATA.map(m => ({
+    ...m,
+    revenue: Math.round(m.revenue * f.revenue / f.months * (f.months === 1 ? 1 : 1)),
+    signups: Math.round(m.signups * f.signups / f.months * (f.months === 1 ? 1 : 1)),
+    activeUsers: Math.round(m.activeUsers * f.active),
+  }))
+
+  // Trim months based on period
+  const trimmed = period === '7d' ? monthlyRevenue.slice(-1) :
+                  period === '30d' ? monthlyRevenue.slice(-1) :
+                  period === '90d' ? monthlyRevenue.slice(-3) :
+                  monthlyRevenue
+
+  const totalRevenue = trimmed.reduce((s, m) => s + m.revenue, 0)
+  const totalSignups = trimmed.reduce((s, m) => s + m.signups, 0)
+  const latestActive = trimmed[trimmed.length - 1]?.activeUsers || 0
+  const visitors = Math.round(45200 * f.visitors)
+
+  const featureUsage = FEATURE_USAGE.map(fu => ({
+    ...fu,
+    users: Math.round(fu.users * f.active),
+    percentage: Math.min(100, Math.round(fu.percentage * (0.8 + f.active * 0.2))),
+  }))
+
+  const topCities = TOP_CITIES.map(c => ({
+    ...c,
+    users: Math.round(c.users * f.active),
+  }))
+
+  const planDist = [
+    { label: 'Premium', value: Math.round(USERS.filter(u => u.plan === 'premium').length * f.active), color: '#8b5cf6' },
+    { label: 'Pro', value: Math.round(USERS.filter(u => u.plan === 'pro').length * f.active), color: '#3b82f6' },
+    { label: 'Starter', value: Math.round(USERS.filter(u => u.plan === 'starter').length * f.active), color: '#2dd4bf' },
+    { label: 'Free', value: Math.round(USERS.filter(u => u.plan === 'free').length * f.active), color: '#94a3b8' },
+  ]
+
+  const statusDist = [
+    { label: 'Active', value: Math.round(USERS.filter(u => u.status === 'active').length * f.active), color: '#22c55e' },
+    { label: 'Trial', value: Math.round(USERS.filter(u => u.status === 'trial').length * f.active), color: '#f59e0b' },
+    { label: 'Suspended', value: Math.round(USERS.filter(u => u.status === 'suspended').length * f.active), color: '#ef4444' },
+    { label: 'Cancelled', value: Math.round(USERS.filter(u => u.status === 'cancelled').length * f.active), color: '#94a3b8' },
+  ]
+
+  const txTypes = [
+    { label: 'Subscriptions', value: Math.round(TRANSACTIONS.filter(t => t.type === 'subscription').length * f.revenue), color: '#3b82f6' },
+    { label: 'One-time', value: Math.round(TRANSACTIONS.filter(t => t.type === 'one_time').length * f.revenue), color: '#8b5cf6' },
+    { label: 'Refunds', value: Math.round(TRANSACTIONS.filter(t => t.type === 'refund').length * f.revenue), color: '#ef4444' },
+  ]
+
+  const funnel = [
+    { label: 'Visitors', value: visitors, pct: 100 },
+    { label: 'Signups', value: totalSignups, pct: Math.round((totalSignups / visitors) * 100) || 1 },
+    { label: 'Activated', value: Math.round(totalSignups * 0.68), pct: Math.round(68 * f.active) },
+    { label: 'First Purchase', value: Math.round(totalSignups * 0.246), pct: Math.round(25 * f.active) },
+    { label: 'Retained (30d)', value: Math.round(totalSignups * 0.18), pct: Math.round(18 * f.active) },
+  ]
+
+  const changes: Record<Period, string> = {
+    '7d': '+2.1%',
+    '30d': '+8.4%',
+    '90d': '+14.2%',
+    '12m': '+12.4%',
+    'all': '+18.7%',
+  }
+
+  return { monthly: trimmed, totalRevenue, totalSignups, latestActive, visitors, featureUsage, topCities, planDist, statusDist, txTypes, funnel, change: changes[period] }
+}
+
+// ============================================================
+// Components
+// ============================================================
+function MetricCard({ label, value, change, accent }: { label: string; value: string; change?: string; accent?: boolean }) {
   const isDown = change?.startsWith('-')
   return (
-    <div className={`lf-panel p-5 ${accent ? 'ring-1 ring-primary/20' : ''}`}>
+    <div className={`lf-panel p-5 transition-all duration-300 ${accent ? 'ring-1 ring-primary/20' : ''}`}>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`mt-1.5 text-2xl font-bold tracking-tight ${accent ? 'text-primary' : 'text-foreground'}`}>{value}</p>
-      {(change || sub) && (
-        <div className="mt-1.5 flex items-center gap-2">
-          {change && (
-            <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${isDown ? 'text-red-600' : 'text-emerald-600'}`}>
-              {isDown ? <ArrowDownRight className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
-              {change}
-            </span>
-          )}
-          {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
+      <p className={`mt-1.5 text-2xl font-bold tracking-tight transition-colors duration-300 ${accent ? 'text-primary' : 'text-foreground'}`}>{value}</p>
+      {change && (
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${isDown ? 'text-red-600' : 'text-emerald-600'}`}>
+            {isDown ? <ArrowDownRight className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
+            {change}
+          </span>
+          <span className="text-xs text-muted-foreground">vs prev</span>
         </div>
       )}
     </div>
   )
 }
 
-function BarChart({ data, label, sublabel }: { data: { label: string; value: number }[]; label: string; sublabel: string }) {
-  const max = Math.max(...data.map(d => d.value))
+function AnimatedNumber({ value, prefix = '', suffix = '', duration = 500 }: { value: number; prefix?: string; suffix?: string; duration?: number }) {
+  const animated = useAnimatedValue(value, duration)
+  return <>{prefix}{animated.toLocaleString()}{suffix}</>
+}
+
+function BarChart({ data, label, sublabel, animateKey }: { data: { label: string; value: number }[]; label: string; sublabel: string; animateKey: string }) {
+  const max = Math.max(...data.map(d => d.value), 1)
   return (
     <div className="lf-panel p-6">
       <p className="lf-card-title">{label}</p>
       <p className="lf-body text-xs mb-4">{sublabel}</p>
       <div className="flex items-end gap-2 h-44">
-        {data.map(d => (
-          <div key={d.label} className="flex flex-1 flex-col items-center gap-1.5">
+        {data.map((d, i) => (
+          <div key={`${animateKey}-${d.label}`} className="flex flex-1 flex-col items-center gap-1.5">
             <span className="text-[10px] font-semibold text-foreground tabular-nums">
               {d.value >= 1000 ? `${(d.value / 1000).toFixed(1)}k` : d.value}
             </span>
-            <div className="w-full rounded-t bg-primary" style={{ height: `${(d.value / max) * 100}%`, minHeight: d.value > 0 ? 4 : 0 }} />
+            <div
+              className="w-full rounded-t bg-primary transition-all duration-700 ease-out"
+              style={{
+                height: `${(d.value / max) * 100}%`,
+                minHeight: d.value > 0 ? 4 : 0,
+                transitionDelay: `${i * 60}ms`,
+              }}
+            />
             <span className="text-[10px] text-muted-foreground">{d.label}</span>
           </div>
         ))}
@@ -48,18 +167,25 @@ function BarChart({ data, label, sublabel }: { data: { label: string; value: num
   )
 }
 
-function HorizontalBarChart({ data, maxVal }: { data: { label: string; value: number; color?: string }[]; maxVal?: number }) {
-  const max = maxVal || Math.max(...data.map(d => d.value))
+function HorizontalBarChart({ data, maxVal, animateKey }: { data: { label: string; value: number; color?: string }[]; maxVal?: number; animateKey: string }) {
+  const max = maxVal || Math.max(...data.map(d => d.value), 1)
   return (
     <div className="space-y-3">
-      {data.map(d => (
-        <div key={d.label}>
+      {data.map((d, i) => (
+        <div key={`${animateKey}-${d.label}`}>
           <div className="flex justify-between mb-1">
             <span className="text-sm font-medium text-foreground">{d.label}</span>
             <span className="text-xs text-muted-foreground tabular-nums">{d.value.toLocaleString()}</span>
           </div>
           <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-            <div className="h-full rounded-full transition-all" style={{ width: `${(d.value / max) * 100}%`, background: d.color || 'hsl(var(--primary))' }} />
+            <div
+              className="h-full rounded-full transition-all duration-700 ease-out"
+              style={{
+                width: `${(d.value / max) * 100}%`,
+                background: d.color || 'hsl(var(--primary))',
+                transitionDelay: `${i * 80}ms`,
+              }}
+            />
           </div>
         </div>
       ))}
@@ -67,35 +193,43 @@ function HorizontalBarChart({ data, maxVal }: { data: { label: string; value: nu
   )
 }
 
-function DonutChart({ segments, size = 140 }: { segments: { label: string; value: number; color: string }[]; size?: number }) {
-  const total = segments.reduce((s, seg) => s + seg.value, 0)
-  let cumulative = 0
-  const gradientParts: string[] = []
-  segments.forEach(seg => {
-    const start = (cumulative / total) * 100
-    cumulative += seg.value
-    const end = (cumulative / total) * 100
-    gradientParts.push(`${seg.color} ${start}% ${end}%`)
-  })
+function DonutChart({ segments, animateKey, size = 140 }: { segments: { label: string; value: number; color: string }[]; animateKey: string; size?: number }) {
+  const total = segments.reduce((s, seg) => s + seg.value, 0) || 1
   const r = size / 2
-  const innerR = r * 0.55
+  const circumference = 2 * Math.PI * r
+
   return (
     <div className="flex items-center gap-6">
       <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="rotate-[-90deg]">
-          <circle cx={r} cy={r} r={r} fill="none" stroke="hsl(var(--muted))" strokeWidth={r - innerR} />
-          <circle cx={r} cy={r} r={r} fill="none" stroke={`conic-gradient(${gradientParts.join(', ')})`} strokeWidth={r - innerR}
-            style={{ stroke: segments[0]?.color || '#3b82f6', strokeDasharray: segments.map(s => `${(s.value / total) * (2 * Math.PI * r)} ${2 * Math.PI * r}`).join(' ') }}
-          />
+          <circle cx={r} cy={r} r={r - 8} fill="none" stroke="hsl(var(--muted))" strokeWidth="16" />
+          {segments.map((seg, i) => {
+            const prevSum = segments.slice(0, i).reduce((s, x) => s + x.value, 0)
+            const dashLen = (seg.value / total) * circumference
+            const dashOff = -((prevSum / total) * circumference)
+            return (
+              <circle
+                key={`${animateKey}-${seg.label}`}
+                cx={r} cy={r} r={r - 8}
+                fill="none"
+                stroke={seg.color}
+                strokeWidth="16"
+                strokeDasharray={`${dashLen} ${circumference}`}
+                strokeDashoffset={dashOff}
+                className="transition-all duration-700 ease-out"
+                style={{ transitionDelay: `${i * 100}ms` }}
+              />
+            )
+          })}
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="text-xl font-bold text-foreground">{total.toLocaleString()}</span>
         </div>
       </div>
       <div className="space-y-2 flex-1">
-        {segments.map(seg => (
-          <div key={seg.label} className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ background: seg.color }} />
+        {segments.map((seg, i) => (
+          <div key={`${animateKey}-${seg.label}`} className="flex items-center gap-2" style={{ animationDelay: `${i * 50}ms` }}>
+            <span className="h-2.5 w-2.5 rounded-sm shrink-0 transition-colors duration-300" style={{ background: seg.color }} />
             <span className="text-sm text-foreground flex-1">{seg.label}</span>
             <span className="text-sm font-semibold text-foreground tabular-nums">{seg.value.toLocaleString()}</span>
             <span className="text-xs text-muted-foreground tabular-nums">{((seg.value / total) * 100).toFixed(0)}%</span>
@@ -106,10 +240,37 @@ function DonutChart({ segments, size = 140 }: { segments: { label: string; value
   )
 }
 
+function FunnelChart({ steps, animateKey }: { steps: { label: string; value: number; pct: number }[]; animateKey: string }) {
+  return (
+    <div className="space-y-2">
+      {steps.map((step, i) => (
+        <div key={`${animateKey}-${step.label}`} className="flex items-center gap-3">
+          <span className="text-sm text-foreground w-28 shrink-0">{step.label}</span>
+          <div className="flex-1">
+            <div className="h-8 rounded bg-muted overflow-hidden relative">
+              <div
+                className="h-full rounded bg-primary transition-all duration-700 ease-out flex items-center px-3"
+                style={{ width: `${step.pct}%`, transitionDelay: `${i * 100}ms` }}
+              >
+                {step.pct > 15 && <span className="text-xs font-semibold text-white">{step.value.toLocaleString()}</span>}
+              </div>
+            </div>
+          </div>
+          <span className="text-xs font-semibold text-foreground w-10 text-right tabular-nums">{step.pct}%</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ============================================================
+// Main
+// ============================================================
 export default function AdminAnalytics() {
   const [period, setPeriod] = useState<Period>('12m')
-  const [compare, setCompare] = useState<CompareMode>('none')
   const { data, isLoading } = useAnalytics()
+
+  const periodData = useMemo(() => getPeriodData(period), [period])
 
   if (isLoading || !data) {
     return (
@@ -119,49 +280,6 @@ export default function AdminAnalytics() {
     )
   }
 
-  const { monthlyData, featureUsage, topCities, sessionStats } = data
-  const maxSignups = Math.max(...monthlyData.map(m => m.signups))
-  const maxRevenue = Math.max(...monthlyData.map(m => m.revenue))
-  const maxActive = Math.max(...monthlyData.map(m => m.activeUsers))
-
-  // Plan distribution from real user data
-  const planDist = [
-    { label: 'Premium', value: USERS.filter(u => u.plan === 'premium').length, color: '#8b5cf6' },
-    { label: 'Pro', value: USERS.filter(u => u.plan === 'pro').length, color: '#3b82f6' },
-    { label: 'Starter', value: USERS.filter(u => u.plan === 'starter').length, color: '#2dd4bf' },
-    { label: 'Free', value: USERS.filter(u => u.plan === 'free').length, color: '#94a3b8' },
-  ]
-
-  // Status distribution
-  const statusDist = [
-    { label: 'Active', value: USERS.filter(u => u.status === 'active').length, color: '#22c55e' },
-    { label: 'Trial', value: USERS.filter(u => u.status === 'trial').length, color: '#f59e0b' },
-    { label: 'Suspended', value: USERS.filter(u => u.status === 'suspended').length, color: '#ef4444' },
-    { label: 'Cancelled', value: USERS.filter(u => u.status === 'cancelled').length, color: '#94a3b8' },
-  ]
-
-  // Transaction type breakdown
-  const txTypes = [
-    { label: 'Subscriptions', value: TRANSACTIONS.filter(t => t.type === 'subscription').length, color: '#3b82f6' },
-    { label: 'One-time', value: TRANSACTIONS.filter(t => t.type === 'one_time').length, color: '#8b5cf6' },
-    { label: 'Refunds', value: TRANSACTIONS.filter(t => t.type === 'refund').length, color: '#ef4444' },
-  ]
-
-  // Key findings
-  const totalRevenue = monthlyData.reduce((s, m) => s + m.revenue, 0)
-  const totalSignups = monthlyData.reduce((s, m) => s + m.signups, 0)
-  const avgRevenuePerUser = OVERVIEW_STATS.avgRevenuePerUser
-  const topFeature = featureUsage[0]
-
-  // Conversion funnel
-  const funnel = [
-    { label: 'Visitors', value: 45200, pct: 100 },
-    { label: 'Signups', value: totalSignups, pct: Math.round((totalSignups / 45200) * 100) },
-    { label: 'Activated', value: Math.round(totalSignups * 0.68), pct: 68 },
-    { label: 'First Purchase', value: Math.round(totalSignups * 0.246), pct: 25 },
-    { label: 'Retained (30d)', value: Math.round(totalSignups * 0.18), pct: 18 },
-  ]
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -170,132 +288,113 @@ export default function AdminAnalytics() {
           <h1 className="lf-page-title">Analytics</h1>
           <p className="lf-body mt-0.5">Platform data hub — compare, analyze, discover</p>
         </div>
-        <div className="flex items-center gap-2">
-          <select value={compare} onChange={e => setCompare(e.target.value as CompareMode)} className="lf-select h-9 text-sm w-44">
-            <option value="none">No comparison</option>
-            <option value="prev_period">vs Previous period</option>
-            <option value="prev_year">vs Previous year</option>
-          </select>
-          <button className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <Download className="h-3.5 w-3.5" />Export
-          </button>
-        </div>
+        <button className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <Download className="h-3.5 w-3.5" />Export
+        </button>
       </div>
 
       {/* Period filter */}
       <div className="flex items-center gap-1.5">
         {(['7d', '30d', '90d', '12m', 'all'] as Period[]).map(p => (
-          <button key={p} onClick={() => setPeriod(p)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
-            period === p ? 'bg-foreground text-white' : 'border border-border text-muted-foreground hover:text-foreground'
+          <button key={p} onClick={() => setPeriod(p)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
+            period === p ? 'bg-foreground text-white scale-105 shadow-md' : 'border border-border text-muted-foreground hover:text-foreground hover:border-foreground/20'
           }`}>{p === 'all' ? 'All time' : p}</button>
         ))}
+        <span className="ml-3 text-xs text-muted-foreground transition-opacity duration-300">
+          Showing data for <strong className="text-foreground">{period === 'all' ? 'all time' : `last ${period}`}</strong>
+        </span>
       </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <MetricCard label="Total Revenue" value={`$${totalRevenue.toLocaleString()}`} change="+12.4%" accent />
+        <MetricCard label="Total Revenue" value={`$${periodData.totalRevenue.toLocaleString()}`} change={periodData.change} accent />
         <MetricCard label="Total Users" value={OVERVIEW_STATS.totalUsers.toLocaleString()} change="+8.7%" />
         <MetricCard label="Conversion Rate" value={`${OVERVIEW_STATS.conversionRate}%`} change="+1.2%" />
         <MetricCard label="Churn Rate" value={`${OVERVIEW_STATS.churnRate}%`} change="-0.3%" />
-        <MetricCard label="Avg Revenue/User" value={`$${avgRevenuePerUser}`} change="+5.2%" />
+        <MetricCard label="Active Users" value={periodData.latestActive.toLocaleString()} change={periodData.change} />
       </div>
 
-      {/* Revenue + Users trend */}
+      {/* Revenue + Signups */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <BarChart
-          data={monthlyData.map(m => ({ label: m.month.split(' ')[0], value: m.revenue }))}
+          data={periodData.monthly.map(m => ({ label: m.month.split(' ')[0], value: m.revenue }))}
           label="Revenue by Month"
-          sublabel="Jan – Jul 2026 · dollar amounts"
+          sublabel={`Period: ${period === 'all' ? 'All time' : period} · dollar amounts`}
+          animateKey={`rev-${period}`}
         />
         <BarChart
-          data={monthlyData.map(m => ({ label: m.month.split(' ')[0], value: m.signups }))}
-          label="New Signups by Month"
-          sublabel="Jan – Jul 2026 · new user accounts"
+          data={periodData.monthly.map(m => ({ label: m.month.split(' ')[0], value: m.signups }))}
+          label="New Signups"
+          sublabel={`Period: ${period === 'all' ? 'All time' : period} · new accounts`}
+          animateKey={`sign-${period}`}
         />
       </div>
 
-      {/* Active users + Conversion funnel */}
+      {/* Active users + Funnel */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <BarChart
-          data={monthlyData.map(m => ({ label: m.month.split(' ')[0], value: m.activeUsers }))}
+          data={periodData.monthly.map(m => ({ label: m.month.split(' ')[0], value: m.activeUsers }))}
           label="Monthly Active Users"
-          sublabel="Jan – Jul 2026 · unique active users"
+          sublabel={`Period: ${period === 'all' ? 'All time' : period} · unique users`}
+          animateKey={`act-${period}`}
         />
-
-        {/* Conversion funnel */}
         <div className="lf-panel p-6">
           <p className="lf-card-title">Conversion Funnel</p>
           <p className="lf-body text-xs mb-4">Visitor → Signup → Purchase → Retention</p>
-          <div className="space-y-2">
-            {funnel.map((step, i) => (
-              <div key={step.label} className="flex items-center gap-3">
-                <span className="text-sm text-foreground w-28 shrink-0">{step.label}</span>
-                <div className="flex-1">
-                  <div className="h-8 rounded bg-muted overflow-hidden relative">
-                    <div className="h-full rounded bg-primary transition-all flex items-center px-3" style={{ width: `${step.pct}%` }}>
-                      {step.pct > 15 && <span className="text-xs font-semibold text-white">{step.value.toLocaleString()}</span>}
-                    </div>
-                  </div>
-                </div>
-                <span className="text-xs font-semibold text-foreground w-10 text-right tabular-nums">{step.pct}%</span>
-              </div>
-            ))}
-          </div>
+          <FunnelChart steps={periodData.funnel} animateKey={`funnel-${period}`} />
         </div>
       </div>
 
-      {/* Plan + Status + Transaction donuts */}
+      {/* Donuts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lf-panel p-6">
           <p className="lf-card-title mb-4">Plan Distribution</p>
-          <DonutChart segments={planDist} />
+          <DonutChart segments={periodData.planDist} animateKey={`plan-${period}`} />
         </div>
         <div className="lf-panel p-6">
           <p className="lf-card-title mb-4">User Status</p>
-          <DonutChart segments={statusDist} />
+          <DonutChart segments={periodData.statusDist} animateKey={`status-${period}`} />
         </div>
         <div className="lf-panel p-6">
           <p className="lf-card-title mb-4">Transaction Types</p>
-          <DonutChart segments={txTypes} />
+          <DonutChart segments={periodData.txTypes} animateKey={`tx-${period}`} />
         </div>
       </div>
 
-      {/* Feature usage + Session stats + Device split */}
+      {/* Features + Session + Device */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lf-panel p-6">
           <p className="lf-card-title mb-1">Feature Adoption</p>
           <p className="lf-body text-xs mb-4">% of active users per feature</p>
-          <HorizontalBarChart data={featureUsage.map(f => ({ label: f.feature, value: f.users }))} />
+          <HorizontalBarChart data={periodData.featureUsage.map(f => ({ label: f.feature, value: f.users }))} animateKey={`feat-${period}`} />
         </div>
-
         <div className="lf-panel p-6">
           <p className="lf-card-title mb-4">Session Metrics</p>
           <div className="space-y-4">
             {[
-              { label: 'Avg Duration', value: sessionStats.avgDuration, bar: 70 },
-              { label: 'Bounce Rate', value: sessionStats.bounceRate, bar: 18 },
-              { label: 'Pages/Session', value: String(sessionStats.pagesPerSession), bar: 57 },
-              { label: 'Return Rate', value: `${sessionStats.returnRate}%`, bar: sessionStats.returnRate },
-            ].map(m => (
+              { label: 'Avg Duration', value: '8m 24s', bar: 70 },
+              { label: 'Bounce Rate', value: '18.4%', bar: 18 },
+              { label: 'Pages/Session', value: '5.7', bar: 57 },
+              { label: 'Return Rate', value: '63%', bar: 63 },
+            ].map((m, i) => (
               <div key={m.label}>
                 <div className="flex justify-between mb-1">
                   <span className="text-sm text-foreground">{m.label}</span>
                   <span className="text-sm font-semibold text-foreground tabular-nums">{m.value}</span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                  <div className="h-full rounded-full bg-primary" style={{ width: `${m.bar}%` }} />
+                  <div className="h-full rounded-full bg-primary transition-all duration-700 ease-out" style={{ width: `${m.bar}%`, transitionDelay: `${i * 100}ms` }} />
                 </div>
               </div>
             ))}
           </div>
         </div>
-
         <div className="lf-panel p-6">
           <p className="lf-card-title mb-4">Device Split</p>
           <div className="flex h-4 overflow-hidden rounded-full gap-0.5 mb-4">
-            <div className="bg-primary rounded-l-full" style={{ width: '68%' }} />
-            <div className="bg-primary/40" style={{ width: '29%' }} />
-            <div className="bg-primary/15 rounded-r-full flex-1" />
+            <div className="bg-primary rounded-l-full transition-all duration-700" style={{ width: '68%' }} />
+            <div className="bg-primary/40 transition-all duration-700" style={{ width: '29%' }} />
+            <div className="bg-primary/15 rounded-r-full flex-1 transition-all duration-700" />
           </div>
           <div className="space-y-2.5">
             {[['bg-primary', 'Desktop', '68%', '30,736'], ['bg-primary/40', 'Mobile', '29%', '13,108'], ['bg-primary/15', 'Tablet', '3%', '1,356']].map(([cls, label, pct, count]) => (
@@ -318,46 +417,39 @@ export default function AdminAnalytics() {
       <div className="lf-panel p-6">
         <p className="lf-card-title mb-1">Geographic Distribution</p>
         <p className="lf-body text-xs mb-4">Top cities by user count</p>
-        <HorizontalBarChart
-          data={topCities.map(c => ({ label: c.city, value: c.users }))}
-          maxVal={topCities[0]?.users || 1}
-        />
+        <HorizontalBarChart data={periodData.topCities.map(c => ({ label: c.city, value: c.users }))} animateKey={`geo-${period}`} />
       </div>
 
-      {/* Key Findings Table */}
+      {/* Key Findings */}
       <div className="lf-panel overflow-hidden">
         <div className="px-5 py-4 border-b border-border">
           <p className="lf-card-title">Key Findings</p>
-          <p className="lf-body text-xs mt-0.5">Auto-generated insights from platform data</p>
+          <p className="lf-body text-xs mt-0.5">Auto-generated insights — updates with selected period</p>
         </div>
         <div className="overflow-x-auto">
           <table className="lf-table">
             <thead className="lf-table-head">
               <tr>
                 <th className="lf-table-th">Metric</th>
-                <th className="lf-table-th">Current</th>
-                <th className="lf-table-th">Previous</th>
+                <th className="lf-table-th">Value</th>
                 <th className="lf-table-th">Change</th>
                 <th className="lf-table-th hidden md:table-cell">Insight</th>
               </tr>
             </thead>
             <tbody>
               {[
-                { metric: 'MRR', current: '$38,900', prev: '$34,600', change: '+12.4%', positive: true, insight: 'Strong growth driven by Pro plan upgrades' },
-                { metric: 'Paid Users', current: '2,880', prev: '2,560', change: '+12.5%', positive: true, insight: 'Trial-to-paid conversion improving' },
-                { metric: 'Churn Rate', current: '3.2%', prev: '3.5%', change: '-0.3%', positive: true, insight: 'Retention campaigns showing results' },
-                { metric: 'Avg Session Duration', current: '8m 24s', prev: '7m 12s', change: '+16.7%', positive: true, insight: 'Copilot engagement driving longer sessions' },
-                { metric: 'Bounce Rate', current: '18.4%', prev: '20.5%', change: '-2.1%', positive: true, insight: 'Landing page优化生效' },
-                { metric: 'Feature: Auto-Apply', current: '84%', prev: '79%', change: '+5%', positive: true, insight: 'Most adopted feature — consider premium gating' },
-                { metric: 'Feature: Career Specialist', current: '18%', prev: '15%', change: '+3%', positive: true, insight: 'Low adoption — needs better onboarding' },
-                { metric: 'Top City: New York', current: '1,523', prev: '1,380', change: '+10.4%', positive: true, insight: 'NYC strongest market — consider local campaigns' },
-                { metric: 'Refund Rate', current: '2.1%', prev: '2.8%', change: '-0.7%', positive: true, insight: 'Payment flow improvements reducing refunds' },
-                { metric: 'Conversion (Free→Paid)', current: '4.8%', prev: '4.2%', change: '+0.6%', positive: true, insight: 'Paywall optimization working' },
-              ].map(row => (
-                <tr key={row.metric} className="lf-table-row">
+                { metric: 'Total Revenue', value: `$${periodData.totalRevenue.toLocaleString()}`, change: periodData.change, positive: true, insight: `Revenue for ${period === 'all' ? 'all time' : `last ${period}`}` },
+                { metric: 'New Signups', value: periodData.totalSignups.toLocaleString(), change: periodData.change, positive: true, insight: `New user accounts in period` },
+                { metric: 'Active Users', value: periodData.latestActive.toLocaleString(), change: '+8.7%', positive: true, insight: 'Current active user base' },
+                { metric: 'Top Feature', value: periodData.featureUsage[0]?.feature || '—', change: `${periodData.featureUsage[0]?.percentage || 0}%`, positive: true, insight: 'Most adopted product feature' },
+                { metric: 'Top City', value: periodData.topCities[0]?.city || '—', change: `${periodData.topCities[0]?.users?.toLocaleString() || 0} users`, positive: true, insight: 'Strongest geographic market' },
+                { metric: 'Conversion Rate', value: `${OVERVIEW_STATS.conversionRate}%`, change: '+1.2%', positive: true, insight: 'Free → Paid conversion improving' },
+                { metric: 'Churn Rate', value: `${OVERVIEW_STATS.churnRate}%`, change: '-0.3%', positive: true, insight: 'Retention efforts showing results' },
+                { metric: 'Paid Users', value: OVERVIEW_STATS.paidUsers.toLocaleString(), change: '+12.5%', positive: true, insight: 'Growing paying customer base' },
+              ].map((row, i) => (
+                <tr key={`${row.metric}-${period}`} className="lf-table-row" style={{ animationDelay: `${i * 40}ms` }}>
                   <td className="lf-table-cell font-medium text-foreground">{row.metric}</td>
-                  <td className="lf-table-cell font-semibold tabular-nums">{row.current}</td>
-                  <td className="lf-table-cell text-muted-foreground tabular-nums">{row.prev}</td>
+                  <td className="lf-table-cell font-semibold tabular-nums">{row.value}</td>
                   <td className="lf-table-cell">
                     <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${row.positive ? 'text-emerald-600' : 'text-red-600'}`}>
                       {row.positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
