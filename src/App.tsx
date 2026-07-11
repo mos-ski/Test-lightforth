@@ -31,7 +31,7 @@ const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
 const AdminRevenue = lazy(() => import('@/pages/admin/AdminRevenue'))
 const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'))
 const AdminAnalytics = lazy(() => import('@/pages/admin/AdminAnalytics'))
-const AdminResumeTemplates = lazy(() => import('@/pages/admin/AdminResumeTemplates'))
+const AdminResumeBuilder = lazy(() => import('@/pages/admin/AdminResumeBuilder'))
 const AdminActivityLogs = lazy(() => import('@/pages/admin/AdminActivityLogs'))
 const AdminAutoApply = lazy(() => import('@/pages/admin/AdminAutoApply'))
 const AdminInterviewCopilot = lazy(() => import('@/pages/admin/AdminInterviewCopilot'))
@@ -158,7 +158,7 @@ export default function App() {
               <Route path="interview-copilot" element={<Suspense fallback={null}><AdminInterviewCopilot /></Suspense>} />
               <Route path="interview-prep" element={<Suspense fallback={null}><AdminInterviewPrep /></Suspense>} />
               <Route path="meeting" element={<Suspense fallback={null}><AdminMeeting /></Suspense>} />
-              <Route path="resume-templates" element={<Suspense fallback={null}><AdminResumeTemplates /></Suspense>} />
+              <Route path="resume-builder" element={<Suspense fallback={null}><AdminResumeBuilder /></Suspense>} />
               <Route path="activity-logs" element={<Suspense fallback={null}><AdminActivityLogs /></Suspense>} />
               <Route path="promotions" element={<Suspense fallback={null}><AdminPromotions /></Suspense>} />
               <Route path="broadcast" element={<Suspense fallback={null}><AdminBroadcast /></Suspense>} />

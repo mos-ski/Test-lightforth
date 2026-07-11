@@ -49,7 +49,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: '/admin/interview-copilot', icon: MessageSquare, label: 'Interview Copilot' },
       { to: '/admin/interview-prep', icon: BookOpen, label: 'Interview Prep' },
       { to: '/admin/meeting', icon: Video, label: 'Meeting' },
-      { to: '/admin/resume-templates', icon: FileText, label: 'Resume Templates' },
+      { to: '/admin/resume-builder', icon: FileText, label: 'Resume Builder' },
     ],
   },
   {
