@@ -96,9 +96,9 @@ const OBJECTIVES: Objective[] = [
 
 export default function AdminOKR() {
   return (
-    <div className="p-6 space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">OKR</h1>
+        <h1 className="lf-page-title">OKR</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">Q2 2026 · April – June · PM: Adedamola Adewale</p>
       </div>
 

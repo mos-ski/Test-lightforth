@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Search, Download } from 'lucide-react'
+import { Search, Download, Activity, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useActivityLogs } from '@/hooks/useAdmin'
+import { ACTIVITY_LOGS } from '@/lib/adminMockData'
 
 type TabKey = 'all' | 'auth' | 'application' | 'payment' | 'admin' | 'system'
 
@@ -26,6 +27,12 @@ export default function AdminActivityLogs() {
   const { data, isLoading } = useActivityLogs({ category: tab, search })
 
   const logs = data?.logs ?? []
+
+  // Compute stats from all logs
+  const totalEvents = ACTIVITY_LOGS.length
+  const failedToday = ACTIVITY_LOGS.filter(l => l.status === 'failed').length
+  const successRate = Math.round(((totalEvents - failedToday) / totalEvents) * 100)
+  const adminActions = ACTIVITY_LOGS.filter(l => l.category === 'admin').length
 
   const exportCSV = () => {
     const headers = ['Time', 'User', 'Email', 'Action', 'Resource', 'IP', 'Status', 'Category']
@@ -52,15 +59,36 @@ export default function AdminActivityLogs() {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-        <input
-          placeholder="Search logs..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="lf-input pl-9 h-9"
-        />
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[
+          { label: 'Total Events', value: String(totalEvents), icon: Activity, color: 'text-primary' },
+          { label: 'Failed Today', value: String(failedToday), icon: XCircle, color: 'text-red-500' },
+          { label: 'Success Rate', value: `${successRate}%`, icon: CheckCircle2, color: 'text-emerald-500' },
+          { label: 'Admin Actions', value: String(adminActions), icon: AlertTriangle, color: 'text-amber-500' },
+        ].map(({ label, value, icon: Icon, color }) => (
+          <div key={label} className="lf-panel p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{label}</p>
+              <Icon className={`h-4 w-4 ${color}`} />
+            </div>
+            <p className="mt-1.5 text-2xl font-bold text-foreground">{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Search + filter bar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <input
+            placeholder="Search by user, action, or IP..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="lf-input pl-9 h-9"
+          />
+        </div>
+        <span className="text-xs text-muted-foreground">{logs.length} events</span>
       </div>
 
       <div className="lf-panel overflow-hidden">

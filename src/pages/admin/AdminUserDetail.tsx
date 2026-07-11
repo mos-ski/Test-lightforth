@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ChevronRight, ExternalLink, CreditCard, X } from 'lucide-react'
+import { ChevronRight, ExternalLink, CreditCard, X, Clock, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUser, useUpdateUser } from '@/hooks/useAdmin'
+import { ACTIVITY_LOGS, TICKETS, TRANSACTIONS } from '@/lib/adminMockData'
 
 type DetailTab = 'details' | 'subscriptions'
 type BillingTab = 'history' | 'methods'
@@ -56,6 +57,19 @@ function AssignPlanModal({ onClose }: { onClose: () => void }) {
   )
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  success: 'bg-emerald-50 text-emerald-700',
+  failed: 'bg-red-50 text-red-600',
+  warning: 'bg-amber-50 text-amber-700',
+}
+
+const TICKET_STATUS_COLORS: Record<string, string> = {
+  open: 'bg-primary text-white',
+  in_progress: 'bg-amber-50 text-amber-700',
+  resolved: 'bg-emerald-50 text-emerald-700',
+  closed: 'bg-muted text-muted-foreground',
+}
+
 export default function AdminUserDetail() {
   const { id } = useParams<{ id: string }>()
   const { data: user, isLoading } = useUser(id)
@@ -97,6 +111,12 @@ export default function AdminUserDetail() {
     starter: '$27',
     free: '$0',
   }
+
+  // Filter related data for this user
+  const userLogs = ACTIVITY_LOGS.filter(l => l.email === user.email).slice(0, 5)
+  const userTickets = TICKETS.filter(t => t.userId === user.id).slice(0, 5)
+  const userTransactions = TRANSACTIONS.filter(t => t.userId === user.id).slice(0, 5)
+  const creditPct = user.credits > 0 ? Math.round((user.creditsUsed / user.credits) * 100) : 0
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -228,6 +248,139 @@ export default function AdminUserDetail() {
                     <p className="text-xs text-muted-foreground mt-1">Interviews Prepped</p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Credits Usage */}
+            <div>
+              <div className="rounded-t-lg border border-border border-b-0 bg-muted/40 px-4 py-2">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Credits Usage</p>
+              </div>
+              <div className="lf-panel rounded-t-none overflow-hidden p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{user.creditsUsed} of {user.credits} credits used</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{user.credits - user.creditsUsed} credits remaining</p>
+                  </div>
+                  <span className="text-2xl font-bold text-foreground">{creditPct}%</span>
+                </div>
+                <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${creditPct > 80 ? 'bg-red-500' : creditPct > 50 ? 'bg-amber-500' : 'bg-primary'}`}
+                    style={{ width: `${creditPct}%` }}
+                  />
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <button className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    <CreditCard className="h-3.5 w-3.5" />Give Credits
+                  </button>
+                  <button className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    Reset Usage
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div>
+              <div className="rounded-t-lg border border-border border-b-0 bg-muted/40 px-4 py-2">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Recent Activity</p>
+              </div>
+              <div className="lf-panel rounded-t-none overflow-hidden">
+                {userLogs.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">No activity recorded yet</p>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {userLogs.map(log => (
+                      <div key={log.id} className="flex items-center gap-3 px-5 py-3">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground">{log.action}</p>
+                          <p className="text-xs text-muted-foreground">{log.resource} · {log.ip}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${STATUS_COLORS[log.status]}`}>
+                            {log.status}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Transactions */}
+            <div>
+              <div className="rounded-t-lg border border-border border-b-0 bg-muted/40 px-4 py-2">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Recent Transactions</p>
+              </div>
+              <div className="lf-panel rounded-t-none overflow-hidden">
+                {userTransactions.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">No transactions yet</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="lf-table">
+                      <thead className="lf-table-head">
+                        <tr>
+                          <th className="lf-table-th">Date</th>
+                          <th className="lf-table-th">Type</th>
+                          <th className="lf-table-th">Amount</th>
+                          <th className="lf-table-th">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userTransactions.map(tx => (
+                          <tr key={tx.id} className="lf-table-row">
+                            <td className="lf-table-cell text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</td>
+                            <td className="lf-table-cell capitalize">{tx.type.replace('_', ' ')}</td>
+                            <td className="lf-table-cell font-semibold tabular-nums">${Math.abs(tx.amount).toFixed(2)}</td>
+                            <td className="lf-table-cell">
+                              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                tx.status === 'completed' ? 'bg-emerald-50 text-emerald-700' :
+                                tx.status === 'pending' ? 'bg-amber-50 text-amber-700' :
+                                'bg-red-50 text-red-600'
+                              }`}>{tx.status}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Support Tickets */}
+            <div>
+              <div className="rounded-t-lg border border-border border-b-0 bg-muted/40 px-4 py-2 flex items-center justify-between">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Support Tickets</p>
+                {userTickets.length > 0 && (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">{userTickets.length}</span>
+                )}
+              </div>
+              <div className="lf-panel rounded-t-none overflow-hidden">
+                {userTickets.length === 0 ? (
+                  <p className="py-8 text-center text-sm text-muted-foreground">No support tickets</p>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {userTickets.map(ticket => (
+                      <div key={ticket.id} className="flex items-center gap-3 px-5 py-3">
+                        <AlertTriangle className={`h-3.5 w-3.5 shrink-0 ${
+                          ticket.priority === 'high' || ticket.priority === 'urgent' ? 'text-red-500' : 'text-muted-foreground'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{ticket.subject}</p>
+                          <p className="text-xs text-muted-foreground">{ticket.category} · {new Date(ticket.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0 ${TICKET_STATUS_COLORS[ticket.status]}`}>
+                          {ticket.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -1,10 +1,25 @@
 import { useState } from 'react'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, Megaphone, Eye, MousePointerClick, Calendar } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCoupons, useCreateCoupon, useUpdateCoupon } from '@/hooks/useAdmin'
 import type { Coupon } from '@/lib/adminMockData'
 
 type PromoTab = 'promotions' | 'coupons'
+
+const MOCK_PROMOTIONS = [
+  { id: '1', name: 'Summer Job Hunt Sale', type: 'Percentage Discount', value: '20%', audience: 'All Users', startDate: '2026-06-01', endDate: '2026-08-31', status: 'active', code: 'SUMMER20', views: 4521, clicks: 1247, conversions: 312 },
+  { id: '2', name: 'Welcome Campaign', type: 'Percentage Discount', value: '30%', audience: 'New Signups', startDate: '2026-01-01', endDate: '2026-12-31', status: 'active', code: 'WELCOME30', views: 12400, clicks: 5600, conversions: 1890 },
+  { id: '3', name: 'Win-Back Inactive Users', type: 'Fixed Discount', value: '$10', audience: 'Inactive 30+ days', startDate: '2026-06-15', endDate: '2026-07-15', status: 'active', code: 'COMEBACK10', views: 890, clicks: 234, conversions: 67 },
+  { id: '4', name: 'Referral Boost', type: 'Lifetime Discount', value: '40%', audience: 'Referral Partners', startDate: '2026-01-01', endDate: '2026-12-31', status: 'active', code: 'REF40', views: 3200, clicks: 1100, conversions: 450 },
+  { id: '5', name: 'Black Friday 2025', type: 'Percentage Discount', value: '50%', audience: 'All Users', startDate: '2025-11-25', endDate: '2025-12-01', status: 'ended', code: 'BLACKFRIDAY50', views: 8900, clicks: 3400, conversions: 1200 },
+  { id: '6', name: 'New Year Kickoff', type: 'Percentage Discount', value: '25%', audience: 'All Users', startDate: '2025-12-26', endDate: '2026-01-15', status: 'ended', code: 'NEWYEAR25', views: 6700, clicks: 2100, conversions: 567 },
+]
+
+const PROMO_STATUS: Record<string, string> = {
+  active: 'bg-emerald-50 text-emerald-700',
+  ended: 'bg-muted text-muted-foreground',
+  scheduled: 'bg-amber-50 text-amber-700',
+}
 
 function CreateCouponModal({ onClose }: { onClose: () => void }) {
   const createCoupon = useCreateCoupon()
@@ -75,6 +90,71 @@ function CreateCouponModal({ onClose }: { onClose: () => void }) {
             <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Create</button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+function PromotionsView() {
+  const activePromos = MOCK_PROMOTIONS.filter(p => p.status === 'active').length
+  const totalViews = MOCK_PROMOTIONS.reduce((s, p) => s + p.views, 0)
+  const totalConversions = MOCK_PROMOTIONS.reduce((s, p) => s + p.conversions, 0)
+  const overallConversionRate = totalViews > 0 ? ((totalConversions / totalViews) * 100).toFixed(1) : '0'
+
+  return (
+    <div className="space-y-5">
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[
+          { label: 'Active Promotions', value: String(activePromos), icon: Megaphone },
+          { label: 'Total Impressions', value: totalViews.toLocaleString(), icon: Eye },
+          { label: 'Total Clicks', value: MOCK_PROMOTIONS.reduce((s, p) => s + p.clicks, 0).toLocaleString(), icon: MousePointerClick },
+          { label: 'Conversion Rate', value: `${overallConversionRate}%`, icon: Calendar },
+        ].map(({ label, value, icon: Icon }) => (
+          <div key={label} className="lf-panel p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{label}</p>
+              <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+            <p className="mt-1 text-xl font-bold text-foreground">{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Promotions list */}
+      <div className="space-y-3">
+        {MOCK_PROMOTIONS.map(promo => (
+          <div key={promo.id} className="lf-panel p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-semibold text-foreground">{promo.name}</p>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${PROMO_STATUS[promo.status]}`}>{promo.status}</span>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
+                  <span>Code: <code className="rounded bg-muted px-1 font-mono">{promo.code}</code></span>
+                  <span>Discount: {promo.value}</span>
+                  <span>Audience: {promo.audience}</span>
+                  <span>{promo.startDate} → {promo.endDate}</span>
+                </div>
+              </div>
+              <div className="flex gap-4 shrink-0 text-right">
+                <div>
+                  <p className="text-xs text-muted-foreground">Views</p>
+                  <p className="text-sm font-semibold text-foreground tabular-nums">{promo.views.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Clicks</p>
+                  <p className="text-sm font-semibold text-foreground tabular-nums">{promo.clicks.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Conversions</p>
+                  <p className="text-sm font-semibold text-foreground tabular-nums">{promo.conversions.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -173,12 +253,15 @@ function CouponsView() {
 }
 
 export default function AdminPromotions() {
-  const [tab, setTab] = useState<PromoTab>('coupons')
+  const [tab, setTab] = useState<PromoTab>('promotions')
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="lf-page-title">Promotions</h1>
+        <button className="rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
+          + Create Promotion
+        </button>
       </div>
 
       <div className="lf-panel overflow-hidden">
@@ -194,11 +277,7 @@ export default function AdminPromotions() {
           ))}
         </div>
 
-        {tab === 'promotions' ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">No promotions yet.</p>
-        ) : (
-          <CouponsView />
-        )}
+        {tab === 'promotions' ? <PromotionsView /> : <CouponsView />}
       </div>
     </div>
   )

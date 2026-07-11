@@ -96,7 +96,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex flex-1 flex-col overflow-y-auto bg-white px-6 pt-6 pb-8">
+      <main className="flex flex-1 flex-col overflow-y-auto bg-white px-4 pt-6 sm:px-6 sm:py-8 pb-6">
         <Outlet />
       </main>
     </div>
