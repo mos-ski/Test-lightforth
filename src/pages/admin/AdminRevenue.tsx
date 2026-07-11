@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { TrendingUp, TrendingDown, Download, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTransactions } from '@/hooks/useAdmin'
 
-type Period = '12m' | '30d' | '7d' | '24h'
 type TxTab = 'revenue' | 'payouts'
 
 function ChangeBadge({ value }: { value: string }) {
@@ -30,65 +30,97 @@ function StatCard({ label, value, change }: { label: string; value: string; chan
   )
 }
 
-const TRANSACTIONS = [
-  { id: 'TXN-001', type: 'Subscription',   amount: '$20.00',  description: 'Pro Plan – Monthly',     date: 'Jun 10, 2026', status: 'Successful' },
-  { id: 'TXN-002', type: 'Subscription',   amount: '₦5,000',  description: 'Starter Plan – Monthly', date: 'Jun 9, 2026',  status: 'Successful' },
-  { id: 'TXN-003', type: 'Pay-as-you-go',  amount: '$4.99',   description: 'Resume Download',        date: 'Jun 9, 2026',  status: 'Successful' },
-  { id: 'TXN-004', type: 'Refund',         amount: '-$20.00', description: 'Pro Plan refund',        date: 'Jun 8, 2026',  status: 'Refunded'   },
-  { id: 'TXN-005', type: 'Subscription',   amount: '$20.00',  description: 'Pro Plan – Monthly',     date: 'Jun 8, 2026',  status: 'Failed'     },
-  { id: 'TXN-006', type: 'Subscription',   amount: '₦5,000',  description: 'Starter Plan – Monthly', date: 'Jun 7, 2026',  status: 'Successful' },
-]
-
 const STATUS_COLORS: Record<string, string> = {
-  Successful: 'bg-emerald-50 text-emerald-700',
-  Failed:     'bg-red-50 text-red-600',
-  Refunded:   'bg-muted text-muted-foreground',
-  Pending:    'bg-amber-50 text-amber-700',
+  completed: 'bg-emerald-50 text-emerald-700',
+  failed: 'bg-red-50 text-red-600',
+  refunded: 'bg-muted text-muted-foreground',
+  pending: 'bg-amber-50 text-amber-700',
 }
 
-function TransactionTable({ rows }: { rows: typeof TRANSACTIONS }) {
+function TransactionTable({ rows }: { rows: { id: string; type: string; amount: number; plan: string; date: string; status: string; userName: string; email: string }[] }) {
   const [search, setSearch] = useState('')
-  const filtered = rows.filter(r =>
-    r.description.toLowerCase().includes(search.toLowerCase()) ||
-    r.id.toLowerCase().includes(search.toLowerCase())
-  )
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
+
+  const filtered = rows.filter(r => {
+    const matchesSearch = !search ||
+      r.userName.toLowerCase().includes(search.toLowerCase()) ||
+      r.email.toLowerCase().includes(search.toLowerCase()) ||
+      r.id.toLowerCase().includes(search.toLowerCase())
+    const matchesType = typeFilter === 'all' || r.type === typeFilter
+    const matchesStatus = statusFilter === 'all' || r.status === statusFilter
+    return matchesSearch && matchesType && matchesStatus
+  })
+
+  const exportCSV = () => {
+    const headers = ['ID', 'User', 'Email', 'Type', 'Amount', 'Plan', 'Status', 'Date']
+    const rows = filtered.map(r => [r.id, r.userName, r.email, r.type, r.amount, r.plan, r.status, new Date(r.date).toLocaleDateString()])
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'transactions.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div>
       <div className="p-4 border-b border-border">
-        <div className="relative max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <input placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="lf-input pl-9 h-9" />
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <input placeholder="Search transactions..." value={search} onChange={e => setSearch(e.target.value)} className="lf-input pl-9 h-9" />
+          </div>
+          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="lf-select h-9 text-sm">
+            <option value="all">All Types</option>
+            <option value="subscription">Subscription</option>
+            <option value="one_time">One-time</option>
+            <option value="refund">Refund</option>
+          </select>
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="lf-select h-9 text-sm">
+            <option value="all">All Status</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+            <option value="refunded">Refunded</option>
+          </select>
+          <button onClick={exportCSV} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Download className="h-3.5 w-3.5" />Export
+          </button>
         </div>
       </div>
       {filtered.length === 0 ? (
-        <p className="py-16 text-center text-sm text-muted-foreground">Nothing to show yet</p>
+        <p className="py-16 text-center text-sm text-muted-foreground">No transactions found</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="lf-table">
             <thead className="lf-table-head">
               <tr>
+                <th className="lf-table-th">User</th>
                 <th className="lf-table-th">Type</th>
                 <th className="lf-table-th">Amount</th>
-                <th className="lf-table-th">Transaction ID</th>
-                <th className="lf-table-th hidden md:table-cell">Description</th>
+                <th className="lf-table-th hidden md:table-cell">Plan</th>
                 <th className="lf-table-th hidden sm:table-cell">Date</th>
                 <th className="lf-table-th">Status</th>
-                <th className="lf-table-th w-16">Action</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(row => (
                 <tr key={row.id} className="lf-table-row">
-                  <td className="lf-table-cell">{row.type}</td>
-                  <td className="lf-table-cell font-semibold tabular-nums">{row.amount}</td>
-                  <td className="lf-table-cell font-mono text-xs text-muted-foreground">{row.id}</td>
-                  <td className="lf-table-cell hidden md:table-cell text-muted-foreground">{row.description}</td>
-                  <td className="lf-table-cell hidden sm:table-cell text-muted-foreground">{row.date}</td>
+                  <td className="lf-table-cell">
+                    <div>
+                      <p className="font-medium text-foreground text-sm">{row.userName}</p>
+                      <p className="text-xs text-muted-foreground">{row.email}</p>
+                    </div>
+                  </td>
+                  <td className="lf-table-cell capitalize">{row.type.replace('_', ' ')}</td>
+                  <td className="lf-table-cell font-semibold tabular-nums">${Math.abs(row.amount).toFixed(2)}</td>
+                  <td className="lf-table-cell hidden md:table-cell capitalize">{row.plan}</td>
+                  <td className="lf-table-cell hidden sm:table-cell text-muted-foreground">{new Date(row.date).toLocaleDateString()}</td>
                   <td className="lf-table-cell">
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[row.status]}`}>{row.status}</span>
-                  </td>
-                  <td className="lf-table-cell">
-                    <button className="text-sm font-medium text-primary hover:underline">View</button>
                   </td>
                 </tr>
               ))}
@@ -101,40 +133,26 @@ function TransactionTable({ rows }: { rows: typeof TRANSACTIONS }) {
 }
 
 export default function AdminRevenue() {
-  const [period, setPeriod] = useState<Period>('30d')
   const [tab, setTab] = useState<TxTab>('revenue')
+  const { data, isLoading } = useTransactions()
+
+  const revenue = data?.revenue
+  const transactions = data?.transactions ?? []
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="lf-page-title">Revenue</h1>
-          <p className="lf-body mt-0.5">Check out latest updates</p>
+          <p className="lf-body mt-0.5">Financial overview and transaction history</p>
         </div>
-        <button className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-          <Download className="h-3.5 w-3.5" />Export
-        </button>
-      </div>
-
-      <div className="flex items-center gap-1.5">
-        {(['12m', '30d', '7d', '24h'] as Period[]).map(p => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors ${
-              period === p ? 'bg-foreground text-white' : 'border border-border text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {p}
-          </button>
-        ))}
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Total Earned" value="$525,658.7" change="+3890%" />
-        <StatCard label="Total Payout" value="$0"         change="+0%"    />
-        <StatCard label="Total Sales"  value="168"        change="-2%"    />
-        <StatCard label="Cancelled"    value="31"         change="+288%"  />
+        <StatCard label="Total Earned" value={`$${revenue?.thisMonthRevenue.toLocaleString() ?? '...'}`} change="+12.4%" />
+        <StatCard label="This Month" value={`$${revenue?.thisMonthRevenue.toLocaleString() ?? '...'}`} change="+8.2%" />
+        <StatCard label="Transactions" value={revenue?.thisMonthTransactions.toLocaleString() ?? '...'} change="+15.3%" />
+        <StatCard label="Refunds" value={`$${revenue?.thisMonthRefunds.toLocaleString() ?? '...'}`} change="+2.1%" />
       </div>
 
       <div>
@@ -151,8 +169,12 @@ export default function AdminRevenue() {
               </button>
             ))}
           </div>
-          {tab === 'revenue' ? <TransactionTable rows={TRANSACTIONS} /> : (
-            <p className="py-16 text-center text-sm text-muted-foreground">Nothing to show yet</p>
+          {isLoading ? (
+            <div className="p-8 text-center text-sm text-muted-foreground">Loading transactions...</div>
+          ) : tab === 'revenue' ? (
+            <TransactionTable rows={transactions} />
+          ) : (
+            <p className="py-16 text-center text-sm text-muted-foreground">No payout requests yet</p>
           )}
         </div>
       </div>

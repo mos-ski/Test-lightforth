@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSettings } from '@/hooks/useAdmin'
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
@@ -30,38 +31,39 @@ function Row({ label, desc, children }: { label: string; desc?: string; children
 }
 
 const INTEGRATIONS = [
-  { name: 'Paystack',   role: 'Payment gateway',      status: 'connected' },
-  { name: 'Mailgun',    role: 'Email service',         status: 'connected' },
-  { name: 'Claude AI',  role: 'AI model (Sonnet 4.6)', status: 'connected' },
-  { name: 'LinkedIn',   role: 'Job board',             status: 'limited'   },
-  { name: 'Greenhouse', role: 'Job board',             status: 'connected' },
-  { name: 'Workday',    role: 'Job board',             status: 'connected' },
+  { name: 'Paystack', role: 'Payment gateway', status: 'connected' },
+  { name: 'Mailgun', role: 'Email service', status: 'connected' },
+  { name: 'Claude AI', role: 'AI model (Sonnet 4.6)', status: 'connected' },
+  { name: 'LinkedIn', role: 'Job board', status: 'limited' },
+  { name: 'Greenhouse', role: 'Job board', status: 'connected' },
+  { name: 'Workday', role: 'Job board', status: 'connected' },
 ]
 
 const INT_STYLE: Record<string, string> = {
   connected: 'bg-emerald-50 text-emerald-700',
-  limited:   'bg-amber-50 text-amber-700',
-  down:      'bg-red-50 text-red-600',
+  limited: 'bg-amber-50 text-amber-700',
+  down: 'bg-red-50 text-red-600',
 }
 
 const INT_LABEL: Record<string, string> = {
   connected: 'Connected',
-  limited:   'Rate limited',
-  down:      'Down',
+  limited: 'Rate limited',
+  down: 'Down',
 }
 
 export default function AdminSettings() {
-  const [maintenance,   setMaintenance]   = useState(false)
-  const [appName,       setAppName]       = useState('Lightforth')
-  const [supportEmail,  setSupportEmail]  = useState('support@lightforth.io')
-  const [timezone,      setTimezone]      = useState('lag')
-  const [flags, setFlags] = useState({
-    autoApply: true, interviewCopilot: true, careerSpecialist: true, mobileApp: true, resumeAI: true,
-  })
+  const { flags, toggleFlag } = useSettings()
+  const [appName, setAppName] = useState('Lightforth')
+  const [supportEmail, setSupportEmail] = useState('support@lightforth.ai')
+  const [timezone, setTimezone] = useState('lag')
 
   const FLAG_LABELS: Record<keyof typeof flags, string> = {
-    autoApply: 'Auto-Apply', interviewCopilot: 'Interview Copilot',
-    careerSpecialist: 'Career Specialist', mobileApp: 'Mobile App', resumeAI: 'Resume AI',
+    autoApply: 'Auto-Apply',
+    interviewCopilot: 'Interview Copilot',
+    careerSpecialist: 'Career Specialist',
+    mobileApp: 'Mobile App',
+    resumeAI: 'Resume AI',
+    maintenance: 'Maintenance Mode',
   }
 
   return (
@@ -100,9 +102,6 @@ export default function AdminSettings() {
             <option value="nyc">UTC−5 — New York</option>
           </select>
         </Row>
-        <Row label="Maintenance Mode" desc="Takes the app offline for all users">
-          <Toggle checked={maintenance} onChange={() => setMaintenance(v => !v)} />
-        </Row>
       </div>
 
       {/* Feature flags */}
@@ -111,7 +110,7 @@ export default function AdminSettings() {
         <p className="lf-body text-xs mb-4">Enable or disable features for all users</p>
         {(Object.keys(flags) as (keyof typeof flags)[]).map(key => (
           <Row key={key} label={FLAG_LABELS[key]}>
-            <Toggle checked={flags[key]} onChange={() => setFlags(f => ({ ...f, [key]: !f[key] }))} />
+            <Toggle checked={flags[key]} onChange={() => toggleFlag(key)} />
           </Row>
         ))}
       </div>

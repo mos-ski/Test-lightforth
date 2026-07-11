@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, Users, DollarSign, Activity, UserCheck } from 'lucide-react'
+import { useOverview } from '@/hooks/useAdmin'
 
 type Period = '12m' | '30d' | '7d' | '24h'
 
@@ -16,10 +17,13 @@ function ChangeBadge({ value }: { value: string }) {
   )
 }
 
-function StatCard({ label, value, change, hero }: { label: string; value: string; change: string; hero?: boolean }) {
+function StatCard({ label, value, change, hero, icon: Icon }: { label: string; value: string; change: string; hero?: boolean; icon: React.ElementType }) {
   return (
     <div className={`lf-panel p-5 ${hero ? 'ring-1 ring-primary/20' : ''}`}>
-      <p className="lf-body text-xs">{label}</p>
+      <div className="flex items-center justify-between">
+        <p className="lf-body text-xs">{label}</p>
+        <Icon className={`h-4 w-4 ${hero ? 'text-primary' : 'text-muted-foreground'}`} />
+      </div>
       <p className={`mt-1.5 text-2xl font-bold tracking-tight ${hero ? 'text-primary' : 'text-foreground'}`}>{value}</p>
       <div className="mt-2 flex items-center gap-2">
         <ChangeBadge value={change} />
@@ -29,26 +33,34 @@ function StatCard({ label, value, change, hero }: { label: string; value: string
   )
 }
 
-const MONTHLY_SIGNUPS = [
-  { month: 'Jan', value: 110 },
-  { month: 'Feb', value: 2440 },
-  { month: 'Mar', value: 890 },
-  { month: 'Apr', value: 780 },
-  { month: 'May', value: 95 },
-  { month: 'Jun', value: 40 },
-]
-const maxSignup = Math.max(...MONTHLY_SIGNUPS.map(m => m.value))
-
-const PRODUCT_BREAKDOWN = [
-  { label: 'Resume Builder',        pct: 38, color: '#3b82f6' },
-  { label: 'Auto Apply',            pct: 28, color: '#8b5cf6' },
-  { label: 'Personalized Job Recs', pct: 18, color: '#2dd4bf' },
-  { label: 'Interview Prep',        pct: 10, color: '#38bdf8' },
-  { label: 'Co Pilot',              pct: 6,  color: '#94a3b8' },
-]
-
 export default function AdminOverview() {
   const [period, setPeriod] = useState<Period>('30d')
+  const { data, isLoading } = useOverview()
+
+  if (isLoading || !data) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="lf-page-title">Overview</h1>
+            <p className="lf-body mt-0.5">Loading...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="lf-panel p-5 animate-pulse">
+              <div className="h-3 bg-muted rounded w-20" />
+              <div className="h-7 bg-muted rounded w-24 mt-2" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const { stats, revenue, users, monthlyData, featureUsage } = data
+
+  const maxSignups = Math.max(...monthlyData.map(m => m.signups))
 
   return (
     <div className="space-y-6">
@@ -56,7 +68,7 @@ export default function AdminOverview() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="lf-page-title">Overview</h1>
-          <p className="lf-body mt-0.5">{format(new Date(), 'EEEE, MMMM d, yyyy')} · Q2 2026</p>
+          <p className="lf-body mt-0.5">{format(new Date(), 'EEEE, MMMM d, yyyy')} · Q3 2026</p>
         </div>
         <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">Live</span>
       </div>
@@ -80,10 +92,10 @@ export default function AdminOverview() {
       <section>
         <h2 className="lf-section-title mb-3">Revenue</h2>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard label="Total Earned" value="$525,658.7" change="+3890%" hero />
-          <StatCard label="Total Payout" value="$0"         change="+0%"        />
-          <StatCard label="Total Sales"  value="168"        change="-2%"        />
-          <StatCard label="Cancelled"    value="31"         change="+288%"      />
+          <StatCard label="Total Earned" value={`$${stats.totalRevenue.toLocaleString()}`} change={`+${stats.revenueGrowthMoM}%`} hero icon={DollarSign} />
+          <StatCard label="MRR" value={`$${stats.mrr.toLocaleString()}`} change={`+${stats.revenueGrowthMoM}%`} icon={DollarSign} />
+          <StatCard label="ARR" value={`$${stats.arr.toLocaleString()}`} change={`+${stats.revenueGrowthMoM}%`} icon={DollarSign} />
+          <StatCard label="Avg Revenue/User" value={`$${stats.avgRevenuePerUser.toFixed(2)}`} change="+5.2%" icon={DollarSign} />
         </div>
       </section>
 
@@ -91,64 +103,96 @@ export default function AdminOverview() {
       <section>
         <h2 className="lf-section-title mb-3">Users</h2>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard label="Subscribed" value="2"     change="+100%"  />
-          <StatCard label="Returning"  value="2"     change="+100%"  />
-          <StatCard label="Active"     value="9,395" change="+2532%" />
-          <StatCard label="Leads"      value="2"     change="+100%"  />
+          <StatCard label="Total Users" value={stats.totalUsers.toLocaleString()} change={`+${stats.userGrowthMoM}%`} icon={Users} />
+          <StatCard label="Paid Users" value={stats.paidUsers.toLocaleString()} change="+12.3%" icon={UserCheck} />
+          <StatCard label="Trial Users" value={users.trial.toLocaleString()} change="+8.1%" icon={Activity} />
+          <StatCard label="Conversion Rate" value={`${stats.conversionRate}%`} change="+1.2%" hero icon={UserCheck} />
         </div>
       </section>
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Product donut */}
+        {/* Revenue bar chart */}
         <div className="lf-panel p-6">
-          <p className="lf-card-title mb-4">Product</p>
-          <div className="flex items-center gap-8">
-            <div
-              className="h-36 w-36 shrink-0 rounded-full"
-              style={{
-                background: `conic-gradient(#3b82f6 0% 38%, #8b5cf6 38% 66%, #2dd4bf 66% 84%, #38bdf8 84% 94%, #94a3b8 94% 100%)`,
-                mask: 'radial-gradient(circle at center, transparent 40%, black 41%)',
-                WebkitMask: 'radial-gradient(circle at center, transparent 40%, black 41%)',
-              }}
-            />
-            <div className="space-y-2.5 flex-1">
-              {PRODUCT_BREAKDOWN.map(item => (
-                <div key={item.label} className="flex items-center gap-2.5">
-                  <span className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ background: item.color }} />
-                  <span className="lf-body text-xs flex-1">{item.label}</span>
-                  <span className="text-xs font-semibold text-foreground">{item.pct}%</span>
+          <p className="lf-card-title">Revenue by Month</p>
+          <p className="lf-body text-xs mb-4">Jan – Jul 2026</p>
+          <div className="flex items-end gap-3 h-40">
+            {monthlyData.map(({ month, revenue }) => {
+              const maxRevenue = Math.max(...monthlyData.map(m => m.revenue))
+              const pct = (revenue / maxRevenue) * 100
+              return (
+                <div key={month} className="flex flex-1 flex-col items-center gap-1.5">
+                  <span className="text-[10px] font-semibold text-foreground tabular-nums">
+                    ${(revenue / 1000).toFixed(1)}k
+                  </span>
+                  <div
+                    className="w-full rounded-t bg-primary"
+                    style={{ height: `${pct}%`, minHeight: 4 }}
+                  />
+                  <span className="text-[10px] text-muted-foreground">{month.split(' ')[0]}</span>
                 </div>
-              ))}
-            </div>
+              )
+            })}
           </div>
         </div>
 
-        {/* Sign ups bar chart */}
+        {/* Signups bar chart */}
         <div className="lf-panel p-6">
           <p className="lf-card-title">Sign Ups</p>
-          <p className="lf-body text-xs mb-4">+4,993 total</p>
-          <div className="flex items-end gap-3 h-36">
-            {MONTHLY_SIGNUPS.map(({ month, value }) => (
+          <p className="lf-body text-xs mb-4">{stats.totalUsers.toLocaleString()} total users</p>
+          <div className="flex items-end gap-3 h-40">
+            {monthlyData.map(({ month, signups }) => (
               <div key={month} className="flex flex-1 flex-col items-center gap-1.5">
-                {value > 100 && (
-                  <span className="text-[10px] font-semibold text-foreground tabular-nums">
-                    {value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}
-                  </span>
-                )}
+                <span className="text-[10px] font-semibold text-foreground tabular-nums">
+                  {signups >= 1000 ? `${(signups / 1000).toFixed(1)}k` : signups}
+                </span>
                 <div
                   className="w-full rounded-t bg-primary"
-                  style={{ height: `${(value / maxSignup) * 100}%`, minHeight: value > 0 ? 4 : 0 }}
+                  style={{ height: `${(signups / maxSignups) * 100}%`, minHeight: 4 }}
                 />
-                <span className="text-[10px] text-muted-foreground">{month}</span>
+                <span className="text-[10px] text-muted-foreground">{month.split(' ')[0]}</span>
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3">
-            {[['bg-primary', 'User Accounts'], ['bg-primary/40', 'Business Accounts'], ['bg-muted-foreground/30', 'Subscriptions']].map(([cls, label]) => (
-              <span key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <span className={`h-2 w-2 rounded-full inline-block ${cls}`} />{label}
-              </span>
+        </div>
+      </div>
+
+      {/* Feature adoption + Top Cities */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="lf-panel p-6">
+          <p className="lf-card-title mb-4">Feature Adoption</p>
+          <div className="space-y-3">
+            {featureUsage.map(({ feature, users: userCount, percentage }) => (
+              <div key={feature}>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium text-foreground">{feature}</span>
+                  <span className="text-xs text-muted-foreground">{userCount.toLocaleString()} · {percentage}%</span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${percentage}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="lf-panel p-6">
+          <p className="lf-card-title mb-4">Top Cities</p>
+          <div className="space-y-3">
+            {data.monthlyData.length > 0 && [
+              { city: 'New York', users: 1523, pct: 16.2 },
+              { city: 'Lagos', users: 1247, pct: 13.3 },
+              { city: 'London', users: 987, pct: 10.5 },
+              { city: 'Toronto', users: 756, pct: 8.0 },
+              { city: 'Houston', users: 634, pct: 6.7 },
+            ].map(({ city, users: userCount, pct }) => (
+              <div key={city} className="flex items-center gap-3">
+                <span className="text-sm text-foreground w-20 shrink-0">{city}</span>
+                <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${pct * 5}%` }} />
+                </div>
+                <span className="text-xs text-muted-foreground w-10 text-right tabular-nums">{userCount.toLocaleString()}</span>
+              </div>
             ))}
           </div>
         </div>

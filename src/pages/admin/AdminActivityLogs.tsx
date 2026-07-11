@@ -1,91 +1,66 @@
 import { useState } from 'react'
+import { Search, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useActivityLogs } from '@/hooks/useAdmin'
 
-type LogStatus   = 'success' | 'failed' | 'pending'
-type LogCategory = 'logins' | 'applications' | 'payments' | 'admin'
-type TabKey = 'all' | LogCategory
+type TabKey = 'all' | 'auth' | 'application' | 'payment' | 'admin' | 'system'
 
-interface LogEntry {
-  id: string; time: string; user: string; action: string
-  resource: string; ip: string; status: LogStatus; category: LogCategory
-}
-
-const STATUS_COLORS: Record<LogStatus, string> = {
+const STATUS_COLORS: Record<string, string> = {
   success: 'bg-emerald-50 text-emerald-700',
-  failed:  'bg-red-50 text-red-600',
-  pending: 'bg-amber-50 text-amber-700',
+  failed: 'bg-red-50 text-red-600',
+  warning: 'bg-amber-50 text-amber-700',
 }
-
-const LOGS: LogEntry[] = [
-  { id: '1',  time: '09:41:02', user: 'sarah.m@email.com',   action: 'Login',                 resource: 'Auth',           ip: '104.28.14.2',  status: 'success', category: 'logins'       },
-  { id: '2',  time: '09:40:18', user: 'james.o@email.com',   action: 'Application Submitted', resource: 'JPMorgan Chase', ip: '198.41.22.7',  status: 'success', category: 'applications' },
-  { id: '3',  time: '09:38:55', user: 'priya.s@email.com',   action: 'Payment Processed',     resource: 'Premium Plan',   ip: '203.0.113.1',  status: 'success', category: 'payments'     },
-  { id: '4',  time: '09:35:12', user: 'admin@lightforth.io', action: 'Feature Flag Updated',  resource: 'Auto-Apply',     ip: '10.0.0.1',     status: 'success', category: 'admin'        },
-  { id: '5',  time: '09:33:47', user: 'kevin.l@email.com',   action: 'Login Failed',          resource: 'Auth',           ip: '185.76.43.9',  status: 'failed',  category: 'logins'       },
-  { id: '6',  time: '09:31:20', user: 'aisha.b@email.com',   action: 'Application Submitted', resource: 'Goldman Sachs',  ip: '162.158.0.1',  status: 'success', category: 'applications' },
-  { id: '7',  time: '09:28:04', user: 'tom.w@email.com',     action: 'Payment Failed',        resource: 'Premium Plan',   ip: '104.18.2.3',   status: 'failed',  category: 'payments'     },
-  { id: '8',  time: '09:24:50', user: 'admin@lightforth.io', action: 'Coupon Created',        resource: 'STUDENT30',      ip: '10.0.0.1',     status: 'success', category: 'admin'        },
-  { id: '9',  time: '09:22:11', user: 'maya.r@email.com',    action: 'Login',                 resource: 'Auth',           ip: '141.101.72.1', status: 'success', category: 'logins'       },
-  { id: '10', time: '09:19:38', user: 'david.k@email.com',   action: 'Application Submitted', resource: 'Citibank',       ip: '172.68.5.2',   status: 'pending', category: 'applications' },
-  { id: '11', time: '09:17:02', user: 'nina.c@email.com',    action: 'Payment Processed',     resource: 'Premium Plan',   ip: '162.158.88.1', status: 'success', category: 'payments'     },
-  { id: '12', time: '09:14:45', user: 'admin@lightforth.io', action: 'Broadcast Sent',        resource: 'All Users',      ip: '10.0.0.1',     status: 'success', category: 'admin'        },
-  { id: '13', time: '09:12:30', user: 'leon.f@email.com',    action: 'Login',                 resource: 'Auth',           ip: '198.41.18.4',  status: 'success', category: 'logins'       },
-  { id: '14', time: '09:09:14', user: 'grace.n@email.com',   action: 'Application Submitted', resource: 'Barclays',       ip: '104.26.3.1',   status: 'failed',  category: 'applications' },
-  { id: '15', time: '09:07:58', user: 'admin@lightforth.io', action: 'User Suspended',        resource: 'user#4821',      ip: '10.0.0.1',     status: 'success', category: 'admin'        },
-]
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'all',          label: 'All'          },
-  { key: 'logins',       label: 'Logins'       },
-  { key: 'applications', label: 'Applications' },
-  { key: 'payments',     label: 'Payments'     },
-  { key: 'admin',        label: 'Admin'        },
+  { key: 'all', label: 'All' },
+  { key: 'auth', label: 'Auth' },
+  { key: 'application', label: 'Applications' },
+  { key: 'payment', label: 'Payments' },
+  { key: 'admin', label: 'Admin' },
+  { key: 'system', label: 'System' },
 ]
-
-function LogTable({ logs }: { logs: LogEntry[] }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="lf-table">
-        <thead className="lf-table-head">
-          <tr>
-            <th className="lf-table-th w-20">Time</th>
-            <th className="lf-table-th">User</th>
-            <th className="lf-table-th">Action</th>
-            <th className="lf-table-th hidden md:table-cell">Resource</th>
-            <th className="lf-table-th hidden lg:table-cell">IP</th>
-            <th className="lf-table-th w-24">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map(log => (
-            <tr key={log.id} className="lf-table-row">
-              <td className="lf-table-cell font-mono text-xs text-muted-foreground">{log.time}</td>
-              <td className="lf-table-cell text-xs">{log.user}</td>
-              <td className="lf-table-cell font-medium text-foreground">{log.action}</td>
-              <td className="lf-table-cell hidden md:table-cell text-muted-foreground">{log.resource}</td>
-              <td className="lf-table-cell hidden lg:table-cell font-mono text-xs text-muted-foreground">{log.ip}</td>
-              <td className="lf-table-cell">
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${STATUS_COLORS[log.status]}`}>
-                  {log.status}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
 
 export default function AdminActivityLogs() {
   const [tab, setTab] = useState<TabKey>('all')
-  const filtered = tab === 'all' ? LOGS : LOGS.filter(l => l.category === tab)
+  const [search, setSearch] = useState('')
+  const { data, isLoading } = useActivityLogs({ category: tab, search })
+
+  const logs = data?.logs ?? []
+
+  const exportCSV = () => {
+    const headers = ['Time', 'User', 'Email', 'Action', 'Resource', 'IP', 'Status', 'Category']
+    const rows = logs.map(l => [l.timestamp, l.userName, l.email, l.action, l.resource, l.ip, l.status, l.category])
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'activity-logs.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">Activity Logs</h1>
-        <p className="lf-body mt-0.5">System-wide event log — last 24 hours</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="lf-page-title">Activity Logs</h1>
+          <p className="lf-body mt-0.5">System-wide event log — filterable audit trail</p>
+        </div>
+        <button onClick={exportCSV} className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <Download className="h-3.5 w-3.5" />Export
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative max-w-xs">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <input
+          placeholder="Search logs..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="lf-input pl-9 h-9"
+        />
       </div>
 
       <div className="lf-panel overflow-hidden">
@@ -100,7 +75,56 @@ export default function AdminActivityLogs() {
             </button>
           ))}
         </div>
-        <LogTable logs={filtered} />
+
+        {isLoading ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">Loading logs...</div>
+        ) : logs.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">No logs found</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="lf-table">
+              <thead className="lf-table-head">
+                <tr>
+                  <th className="lf-table-th w-24">Time</th>
+                  <th className="lf-table-th">User</th>
+                  <th className="lf-table-th">Action</th>
+                  <th className="lf-table-th hidden md:table-cell">Resource</th>
+                  <th className="lf-table-th hidden lg:table-cell">IP</th>
+                  <th className="lf-table-th w-24">Status</th>
+                  <th className="lf-table-th hidden sm:table-cell w-24">Category</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map(log => (
+                  <tr key={log.id} className="lf-table-row">
+                    <td className="lf-table-cell font-mono text-xs text-muted-foreground">
+                      {new Date(log.timestamp).toLocaleTimeString()}
+                    </td>
+                    <td className="lf-table-cell text-xs">
+                      <div>
+                        <p className="font-medium text-foreground">{log.userName}</p>
+                        <p className="text-muted-foreground">{log.email}</p>
+                      </div>
+                    </td>
+                    <td className="lf-table-cell font-medium text-foreground">{log.action}</td>
+                    <td className="lf-table-cell hidden md:table-cell text-muted-foreground">{log.resource}</td>
+                    <td className="lf-table-cell hidden lg:table-cell font-mono text-xs text-muted-foreground">{log.ip}</td>
+                    <td className="lf-table-cell">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${STATUS_COLORS[log.status]}`}>
+                        {log.status}
+                      </span>
+                    </td>
+                    <td className="lf-table-cell hidden sm:table-cell">
+                      <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-muted text-muted-foreground">
+                        {log.category}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )
