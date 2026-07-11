@@ -3,6 +3,7 @@ import { DollarSign, CreditCard, Save, RotateCcw, Plus, Trash2, CheckCircle2, XC
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 interface PlanFeature {
   key: string
@@ -275,17 +276,15 @@ export default function AdminPricing() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="lf-page-title">Pricing Configuration</h1>
-          <p className="lf-body mt-0.5">Manage plans, credits, features, and add-ons</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {hasChanges && <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">Unsaved changes</span>}
-          <button onClick={resetPlans} className="lf-btn-outline gap-1.5 text-sm"><RotateCcw className="h-3.5 w-3.5" />Reset</button>
-          <button onClick={() => setHasChanges(false)} className="lf-btn gap-1.5 text-sm"><Save className="h-3.5 w-3.5" />Save Changes</button>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Pricing Configuration"
+        subtitle="Manage plans, credits, features, and add-ons"
+        extra={hasChanges && <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">Unsaved changes</span>}
+        actions={[
+          { label: 'Reset', icon: RotateCcw, onClick: resetPlans, variant: 'outline' },
+          { label: 'Save Changes', icon: Save, onClick: () => setHasChanges(false) },
+        ]}
+      />
 
       <div className="flex items-center gap-1.5">
         {(['plans', 'addons', 'settings'] as const).map(t => (

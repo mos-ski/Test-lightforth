@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CheckCircle2, AlertTriangle, Info, XCircle, Clock, Shield } from 'lucide-react'
 import { useSystemStatus } from '@/hooks/useAdmin'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 type AlertType = 'error' | 'warning' | 'info' | 'success'
 
@@ -47,10 +48,7 @@ export default function AdminNotifications() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">Notifications</h1>
-        <p className="lf-body mt-0.5">System health and active alerts</p>
-      </div>
+      <AdminPageHeader title="Notifications" subtitle="System health and active alerts" />
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { TrendingUp, TrendingDown, Users, DollarSign, Activity, UserCheck } from 'lucide-react'
 import { useOverview } from '@/hooks/useAdmin'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 type Period = '12m' | '30d' | '7d' | '24h'
 
@@ -40,12 +41,7 @@ export default function AdminOverview() {
   if (isLoading || !data) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="lf-page-title">Overview</h1>
-            <p className="lf-body mt-0.5">Loading...</p>
-          </div>
-        </div>
+        <AdminPageHeader title="Overview" subtitle="Loading..." />
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="lf-panel p-5 animate-pulse">
@@ -65,13 +61,11 @@ export default function AdminOverview() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Overview</h1>
-          <p className="lf-body mt-0.5">{format(new Date(), 'EEEE, MMMM d, yyyy')} · Q3 2026</p>
-        </div>
-        <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">Live</span>
-      </div>
+      <AdminPageHeader
+        title="Overview"
+        subtitle={`${format(new Date(), 'EEEE, MMMM d, yyyy')} · Q3 2026`}
+        extra={<span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">Live</span>}
+      />
 
       {/* Time filter */}
       <div className="flex items-center gap-1.5">

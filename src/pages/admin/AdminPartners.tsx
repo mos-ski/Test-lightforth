@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { TrendingUp, ArrowUpRight, Users, DollarSign, MousePointerClick, Gift, Search, Download, ChevronRight, ArrowLeft, BarChart3, Settings, Save, Eye, Zap, Star, Target, Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { TrendingUp, ArrowUpRight, Users, DollarSign, MousePointerClick, Gift, Search, Download, ChevronRight, BarChart3, Settings, Save, Eye, Zap, Star, Target, Plus } from 'lucide-react'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const PARTNERS = [
   { id: 'p1', name: 'TechHire Academy', email: 'partners@techhire.io', type: 'Creator', status: 'active', referrals: 1247, revenue: 49880, commission: 7482, conversionRate: 34.2, joinDate: '2025-11-15', lastActive: '2 hr ago', tier: 'Gold' },
@@ -92,24 +92,17 @@ export default function AdminPartners() {
   if (selectedPartner) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <button onClick={() => { setSelectedPartner(null); setSelectedReferral(null); setReferralSearch('') }} className="hover:text-foreground transition-colors flex items-center gap-1">
-            <ArrowLeft className="h-3.5 w-3.5" />Partners
-          </button>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-foreground font-medium">{selectedPartner.name}</span>
-        </div>
-
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="lf-page-title">{selectedPartner.name}</h1>
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${TIER_COLORS[selectedPartner.tier]}`}>{selectedPartner.tier}</span>
-            </div>
-            <p className="lf-body mt-0.5">{selectedPartner.email} · {selectedPartner.type} · Joined {selectedPartner.joinDate}</p>
-          </div>
-          <button className="lf-btn-outline gap-1.5"><Download className="h-3.5 w-3.5" />Export Referrals</button>
-        </div>
+        <AdminPageHeader
+          breadcrumb={[
+            { label: 'Partners', onClick: () => { setSelectedPartner(null); setSelectedReferral(null); setReferralSearch('') } },
+            { label: selectedPartner.name },
+          ]}
+          title={selectedPartner.name}
+          badge={selectedPartner.tier}
+          badgeClassName={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${TIER_COLORS[selectedPartner.tier]}`}
+          subtitle={`${selectedPartner.email} · ${selectedPartner.type} · Joined ${selectedPartner.joinDate}`}
+          actions={[{ label: 'Export Referrals', icon: Download, variant: 'outline' }]}
+        />
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
@@ -196,18 +189,13 @@ export default function AdminPartners() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="lf-page-title">Partners & Affiliates</h1>
-          <p className="lf-body mt-0.5">Creator Program — commissions, bonuses, tiers, and partner management</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="lf-btn gap-1.5">
-            <Plus className="h-3.5 w-3.5" />Invite Partner
-          </button>
-          <TimelineFilter value={period} onChange={setPeriod} />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Partners & Affiliates"
+        subtitle="Creator Program — commissions, bonuses, tiers, and partner management"
+        actions={[{ label: 'Invite Partner', icon: Plus }]}
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       <div className="flex items-center gap-1.5">
         {(['overview', 'partners', 'settings'] as const).map(t => (

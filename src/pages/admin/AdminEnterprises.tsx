@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Building2, Users, TrendingUp, ArrowUpRight, Search, ChevronRight, Download, BarChart3, Clock, BookOpen, ArrowLeft, DollarSign, Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Building2, Users, TrendingUp, ArrowUpRight, Search, ChevronRight, Download, BarChart3, Clock, BookOpen, DollarSign, Plus } from 'lucide-react'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const ENTERPRISES = [
   { id: 'e1', name: 'Howard University', domain: 'howard.edu', plan: 'Campus Growth', students: 342, activeUsers: 287, avgCredits: 45, monthlySpend: 12800, contractValue: 153600, billingCycle: 'Annual', renewalDate: '2026-09-01', invoiceStatus: 'paid', joinDate: '2025-09-01', lastActive: '2 hr ago', status: 'active', department: 'Career Services' },
@@ -67,26 +67,17 @@ export default function AdminEnterprises() {
   if (selectedEnterprise) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <button onClick={() => { setSelectedEnterprise(null); setSelectedStudent(null); setStudentSearch('') }} className="hover:text-foreground transition-colors flex items-center gap-1">
-            <ArrowLeft className="h-3.5 w-3.5" />Enterprises
-          </button>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-foreground font-medium">{selectedEnterprise.name}</span>
-        </div>
-
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="lf-page-title">{selectedEnterprise.name}</h1>
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${PLAN_COLORS[selectedEnterprise.plan]}`}>{selectedEnterprise.plan}</span>
-            </div>
-            <p className="lf-body mt-0.5">{selectedEnterprise.domain} · {selectedEnterprise.department} · {selectedEnterprise.students} included seats · {selectedEnterprise.billingCycle} billing</p>
-          </div>
-          <button className="lf-btn-outline gap-1.5">
-            <Download className="h-3.5 w-3.5" />Export Students
-          </button>
-        </div>
+        <AdminPageHeader
+          breadcrumb={[
+            { label: 'Enterprises', onClick: () => { setSelectedEnterprise(null); setSelectedStudent(null); setStudentSearch('') } },
+            { label: selectedEnterprise.name },
+          ]}
+          title={selectedEnterprise.name}
+          badge={selectedEnterprise.plan}
+          badgeClassName={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${PLAN_COLORS[selectedEnterprise.plan]}`}
+          subtitle={`${selectedEnterprise.domain} · ${selectedEnterprise.department} · ${selectedEnterprise.students} included seats · ${selectedEnterprise.billingCycle} billing`}
+          actions={[{ label: 'Export Students', icon: Download, variant: 'outline' }]}
+        />
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
@@ -181,26 +172,17 @@ export default function AdminEnterprises() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <Link to="/admin/users" className="hover:text-foreground transition-colors">Users</Link>
-            <span>/</span>
-            <span className="text-foreground font-medium">Enterprises</span>
-          </div>
-          <h1 className="lf-page-title">Enterprises</h1>
-          <p className="lf-body mt-0.5">Institution accounts — contract billing, included seats, student activation, and usage</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="lf-btn gap-1.5">
-            <Plus className="h-3.5 w-3.5" />Add Institution
-          </button>
-          <TimelineFilter value={period} onChange={setPeriod} />
-          <button className="lf-btn-outline gap-1.5">
-            <Download className="h-3.5 w-3.5" />Export CSV
-          </button>
-        </div>
-      </div>
+      <AdminPageHeader
+        breadcrumb={[{ label: 'Users', to: '/admin/users' }, { label: 'Enterprises' }]}
+        title="Enterprises"
+        subtitle="Institution accounts — contract billing, included seats, student activation, and usage"
+        actions={[
+          { label: 'Add Institution', icon: Plus },
+          { label: 'Export CSV', icon: Download, variant: 'outline' },
+        ]}
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         {[

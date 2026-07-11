@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSettings } from '@/hooks/useAdmin'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
@@ -68,10 +69,7 @@ export default function AdminSettings() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div>
-        <h1 className="lf-page-title">Settings</h1>
-        <p className="lf-body mt-0.5">Platform configuration and feature management</p>
-      </div>
+      <AdminPageHeader title="Settings" subtitle="Platform configuration and feature management" />
 
       {/* General */}
       <div className="lf-panel p-5">

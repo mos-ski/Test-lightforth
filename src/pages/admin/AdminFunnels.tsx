@@ -3,6 +3,7 @@ import { TrendingUp, ArrowUpRight, Folder, Users, Download, Mail, ChevronRight, 
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const FUNNELS = [
   {
@@ -176,29 +177,17 @@ export default function AdminFunnels() {
   if (view === 'folder' && selectedFunnel) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <button onClick={() => setView('folders')} className="hover:text-foreground transition-colors">Funnels</button>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-foreground font-medium">{selectedFunnel.name}</span>
-        </div>
-
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="lf-page-title">{selectedFunnel.name}</h1>
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_COLORS[selectedFunnel.status]}`}>{selectedFunnel.status}</span>
-            </div>
-            <p className="lf-body mt-0.5">{selectedFunnel.type} · {leads.length} leads · {selectedFunnel.steps.length} steps</p>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={exportCSV} className="lf-btn-outline gap-1.5">
-              <Download className="h-3.5 w-3.5" />Export CSV
-            </button>
-            <button className="lf-btn gap-1.5">
-              <Send className="h-3.5 w-3.5" />Nurture Sequence
-            </button>
-          </div>
-        </div>
+        <AdminPageHeader
+          breadcrumb={[{ label: 'Funnels', onClick: () => setView('folders') }, { label: selectedFunnel.name }]}
+          title={selectedFunnel.name}
+          badge={selectedFunnel.status}
+          badgeClassName={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_COLORS[selectedFunnel.status]}`}
+          subtitle={`${selectedFunnel.type} · ${leads.length} leads · ${selectedFunnel.steps.length} steps`}
+          actions={[
+            { label: 'Export CSV', icon: Download, onClick: exportCSV, variant: 'outline' },
+            { label: 'Nurture Sequence', icon: Send },
+          ]}
+        />
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
@@ -309,15 +298,11 @@ export default function AdminFunnels() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="lf-page-title">Funnels</h1>
-          <p className="lf-body mt-0.5">All funnel databases — click a folder to view leads, export, and nurture</p>
-        </div>
-        <button className="lf-btn gap-1.5">
-          <Plus className="h-3.5 w-3.5" />Create Funnel
-        </button>
-      </div>
+      <AdminPageHeader
+        title="Funnels"
+        subtitle="All funnel databases — click a folder to view leads, export, and nurture"
+        actions={[{ label: 'Create Funnel', icon: Plus }]}
+      />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         {[

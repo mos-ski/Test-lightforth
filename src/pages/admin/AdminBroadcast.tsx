@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Mail, Bell, Smartphone, Send } from 'lucide-react'
 import { useBroadcasts, useCreateBroadcast } from '@/hooks/useAdmin'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const CHANNEL_ICON: Record<string, React.ElementType> = { email: Mail, in_app: Bell, push: Smartphone }
 const CHANNEL_LABEL: Record<string, string> = { email: 'Email', in_app: 'In-App', push: 'Push' }
@@ -41,10 +42,7 @@ export default function AdminBroadcast() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">Broadcast</h1>
-        <p className="lf-body mt-0.5">Send messages and announcements to your users</p>
-      </div>
+      <AdminPageHeader title="Broadcast" subtitle="Send messages and announcements to your users" />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
         {/* Compose */}

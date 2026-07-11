@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { useTemplates, useToggleTemplate } from '@/hooks/useAdmin'
 import type { ResumeTemplate } from '@/lib/adminMockData'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 type Category = ResumeTemplate['category']
 
@@ -40,15 +42,11 @@ export default function AdminResumeTemplates() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Resume Templates</h1>
-          <p className="lf-body mt-0.5">Manage templates available to all students</p>
-        </div>
-        <button className="rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
-          + Add Template
-        </button>
-      </div>
+      <AdminPageHeader
+        title="Resume Templates"
+        subtitle="Manage templates available to all students"
+        actions={[{ label: 'Add Template', icon: Plus }]}
+      />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
