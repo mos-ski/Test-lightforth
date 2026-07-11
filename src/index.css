@@ -71,11 +71,11 @@
   }
 
   .lf-tabs {
-    @apply flex gap-6 border-b border-border;
+    @apply flex gap-6 overflow-x-auto border-b border-border;
   }
 
   .lf-tab {
-    @apply border-b-2 border-transparent pb-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground;
+    @apply shrink-0 whitespace-nowrap border-b-2 border-transparent pb-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground;
   }
 
   .lf-tab-active {

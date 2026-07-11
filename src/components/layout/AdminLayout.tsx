@@ -1,10 +1,10 @@
-import { NavLink, Outlet, Link } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
 import {
   LayoutDashboard, DollarSign, Users, UserPlus, Building2,
   BarChart2, FileText, Megaphone, Tag, ScrollText, LifeBuoy, Bell, Settings,
   Zap, MessageSquare, BookOpen, FileCheck, Folder,
-  CreditCard, Video, Search, Code2,
+  CreditCard, Video, Search, Code2, Menu, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -86,6 +86,8 @@ const SEARCH_RECORDS = [
 
 export default function AdminLayout() {
   const [query, setQuery] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const location = useLocation()
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return []
@@ -94,10 +96,29 @@ export default function AdminLayout() {
       .slice(0, 8)
   }, [query])
 
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-card overflow-y-auto">
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 -translate-x-full flex-col border-r border-border bg-card overflow-y-auto transition-transform duration-200 ease-in-out',
+          'lg:static lg:z-auto lg:w-56 lg:translate-x-0',
+          sidebarOpen && 'translate-x-0',
+        )}
+      >
         {/* Logo */}
         <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-border px-5">
           <div className="flex items-center gap-2">
@@ -109,6 +130,13 @@ export default function AdminLayout() {
           <span className="ml-auto rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
             Admin
           </span>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="ml-2 text-muted-foreground hover:text-foreground lg:hidden"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Nav */}
@@ -144,7 +172,27 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex flex-1 flex-col overflow-y-auto bg-white px-4 pt-4 sm:px-6 sm:py-6 pb-6">
+      <main className="flex flex-1 flex-col overflow-y-auto bg-white px-4 pt-4 sm:px-6 sm:py-6 pb-6 min-w-0">
+        {/* Mobile top bar */}
+        <div className="mb-4 flex items-center gap-3 lg:hidden">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center">
+              <span className="text-[10px] font-bold text-primary-foreground">L</span>
+            </div>
+            <span className="text-sm font-semibold text-foreground">Lightforth</span>
+          </div>
+          <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+            Admin
+          </span>
+        </div>
+
         <div className="relative mb-6">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
