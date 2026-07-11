@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import {
-  LayoutDashboard, DollarSign, Users, Target,
+  LayoutDashboard, DollarSign, Users,
   BarChart2, FileText, Megaphone, Tag, ScrollText, LifeBuoy, Bell, Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -11,7 +11,6 @@ const NAV_GROUPS = [
     items: [
       { to: '/admin', icon: LayoutDashboard, label: 'Overview', end: true },
       { to: '/admin/analytics', icon: BarChart2, label: 'Analytics' },
-      { to: '/admin/okr', icon: Target, label: 'OKR' },
     ],
   },
   {

@@ -30,7 +30,6 @@ const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
 const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
 const AdminRevenue = lazy(() => import('@/pages/admin/AdminRevenue'))
 const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'))
-const AdminOKR = lazy(() => import('@/pages/admin/AdminOKR'))
 const AdminAnalytics = lazy(() => import('@/pages/admin/AdminAnalytics'))
 const AdminResumeTemplates = lazy(() => import('@/pages/admin/AdminResumeTemplates'))
 const AdminActivityLogs = lazy(() => import('@/pages/admin/AdminActivityLogs'))
@@ -142,7 +141,6 @@ export default function App() {
               <Route path="revenue" element={<Suspense fallback={null}><AdminRevenue /></Suspense>} />
               <Route path="users" element={<Suspense fallback={null}><AdminUsers /></Suspense>} />
               <Route path="users/:id" element={<Suspense fallback={null}><AdminUserDetail /></Suspense>} />
-              <Route path="okr" element={<Suspense fallback={null}><AdminOKR /></Suspense>} />
               <Route path="analytics" element={<Suspense fallback={null}><AdminAnalytics /></Suspense>} />
               <Route path="resume-templates" element={<Suspense fallback={null}><AdminResumeTemplates /></Suspense>} />
               <Route path="activity-logs" element={<Suspense fallback={null}><AdminActivityLogs /></Suspense>} />
