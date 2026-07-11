@@ -15,10 +15,11 @@ interface PlanConfig {
   name: string
   slug: string
   price: number
-  interval: 'month' | 'year'
+  interval: 'month' | 'year' | 'one-time'
   credits: number
   color: string
   popular: boolean
+  description?: string
   features: Record<string, boolean | number>
 }
 
@@ -28,7 +29,7 @@ const DEFAULT_PLANS: PlanConfig[] = [
     features: { atsCheck: true, resumeBuilder: '1', autoApply: false, copilot: false, interviewPrep: '3', export: false, priority: false, api: false, customDomain: false, team: false },
   },
   {
-    id: 'starter', name: 'Starter', slug: 'starter', price: 19, interval: 'month', credits: 20, color: '#2dd4bf', popular: false,
+    id: 'starter', name: 'Starter', slug: 'starter', price: 27, interval: 'month', credits: 25, color: '#2dd4bf', popular: false,
     features: { atsCheck: true, resumeBuilder: '5', autoApply: '10', copilot: '5', interviewPrep: '10', export: true, priority: false, api: false, customDomain: false, team: false },
   },
   {
@@ -36,8 +37,18 @@ const DEFAULT_PLANS: PlanConfig[] = [
     features: { atsCheck: true, resumeBuilder: '25', autoApply: '50', copilot: '30', interviewPrep: '25', export: true, priority: true, api: false, customDomain: false, team: false },
   },
   {
-    id: 'premium', name: 'Premium', slug: 'premium', price: 99, interval: 'month', credits: 150, color: '#8b5cf6', popular: false,
+    id: 'premium', name: 'Premium', slug: 'premium', price: 79, interval: 'month', credits: 150, color: '#8b5cf6', popular: false,
     features: { atsCheck: true, resumeBuilder: 'unlimited', autoApply: 'unlimited', copilot: 'unlimited', interviewPrep: 'unlimited', export: true, priority: true, api: true, customDomain: true, team: false },
+  },
+  {
+    id: 'activation', name: 'Activation', slug: 'activation', price: 10, interval: 'one-time', credits: 10, color: '#f59e0b', popular: false,
+    description: 'Funnel entry — auto-renews to Pro at $49/mo',
+    features: { atsCheck: true, resumeBuilder: '3', autoApply: false, copilot: false, interviewPrep: '5', export: false, priority: false, api: false, customDomain: false, team: false },
+  },
+  {
+    id: 'dfy', name: 'Done For You', slug: 'done-for-you', price: 500, interval: 'one-time', credits: 0, color: '#ef4444', popular: false,
+    description: 'Full service — includes 3 months of Pro access',
+    features: { atsCheck: true, resumeBuilder: 'unlimited', autoApply: 'unlimited', copilot: 'unlimited', interviewPrep: 'unlimited', export: true, priority: true, api: false, customDomain: false, team: false },
   },
 ]
 
@@ -58,7 +69,8 @@ const ADDONS = [
   { id: 'a1', name: 'Extra 50 Credits', price: 9.99, type: 'credits', active: true },
   { id: 'a2', name: 'Premium Support', price: 19.99, type: 'addon', active: true },
   { id: 'a3', name: 'Team Seat', price: 29.99, type: 'addon', active: true },
-  { id: 'a4', name: 'API Access (Standalone)', price: 39.99, type: 'addon', active: false },
+  { id: 'a4', name: 'Activation Upgrade to Pro', price: 49, type: 'renewal', active: true, desc: 'Auto-renewal price after Activation plan' },
+  { id: 'a5', name: 'DFY Pro Extension (1 month)', price: 49, type: 'addon', active: true, desc: 'Additional Pro month after DFY 3-month access' },
 ]
 
 function FeatureToggle({ value, onChange }: { value: boolean | number | string; onChange: (v: boolean | number | string) => void }) {
@@ -154,11 +166,11 @@ export default function AdminPricing() {
       {tab === 'plans' && (
         <>
           {/* Plan Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {plans.map(plan => (
               <div key={plan.id} className={`lf-panel p-5 relative ${editingPlan === plan.id ? 'ring-2 ring-primary' : ''}`}>
                 {plan.popular && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold text-primary-foreground uppercase tracking-wide">Most Popular</span>
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold text-primary-foreground uppercase tracking-wide whitespace-nowrap">Most Popular</span>
                 )}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
@@ -170,7 +182,7 @@ export default function AdminPricing() {
                   </button>
                 </div>
 
-                <div className="flex items-baseline gap-1 mb-3">
+                <div className="flex items-baseline gap-1 mb-1">
                   {editingPlan === plan.id ? (
                     <div className="flex items-baseline gap-1">
                       <span className="text-lg font-bold text-muted-foreground">$</span>
@@ -178,17 +190,21 @@ export default function AdminPricing() {
                         type="number"
                         value={plan.price}
                         onChange={e => updatePlan(plan.id, { price: Math.max(0, Number(e.target.value)) })}
-                        className="lf-input h-8 w-20 text-2xl font-bold text-center px-1"
+                        className="lf-input h-8 w-16 text-xl font-bold text-center px-1"
                         min={0}
                       />
                     </div>
                   ) : (
                     <>
-                      <span className="text-3xl font-bold text-foreground">${plan.price}</span>
-                      <span className="text-sm text-muted-foreground">/{plan.interval}</span>
+                      <span className="text-2xl font-bold text-foreground">${plan.price}</span>
+                      <span className="text-xs text-muted-foreground">/{plan.interval === 'one-time' ? 'once' : plan.interval}</span>
                     </>
                   )}
                 </div>
+
+                {plan.description && (
+                  <p className="text-[10px] text-muted-foreground mb-3 leading-tight">{plan.description}</p>
+                )}
 
                 <div className="mb-3">
                   {editingPlan === plan.id ? (
@@ -198,7 +214,7 @@ export default function AdminPricing() {
                         type="number"
                         value={plan.credits}
                         onChange={e => updatePlan(plan.id, { credits: Math.max(0, Number(e.target.value)) })}
-                        className="lf-input h-7 w-16 text-sm text-center px-1"
+                        className="lf-input h-7 w-14 text-sm text-center px-1"
                         min={0}
                       />
                     </div>
