@@ -293,16 +293,18 @@ export default function AdminAnalytics() {
         </button>
       </div>
 
-      {/* Period filter */}
-      <div className="flex items-center gap-1.5">
-        {(['7d', '30d', '90d', '12m', 'all'] as Period[]).map(p => (
-          <button key={p} onClick={() => setPeriod(p)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
-            period === p ? 'bg-foreground text-white scale-105 shadow-md' : 'border border-border text-muted-foreground hover:text-foreground hover:border-foreground/20'
-          }`}>{p === 'all' ? 'All time' : p}</button>
-        ))}
-        <span className="ml-3 text-xs text-muted-foreground transition-opacity duration-300">
-          Showing data for <strong className="text-foreground">{period === 'all' ? 'all time' : `last ${period}`}</strong>
-        </span>
+      {/* Period filter — sticky */}
+      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/80 backdrop-blur-md border-b border-border -mt-6 pt-6 mb-0">
+        <div className="flex items-center gap-1.5">
+          {(['7d', '30d', '90d', '12m', 'all'] as Period[]).map(p => (
+            <button key={p} onClick={() => setPeriod(p)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
+              period === p ? 'bg-foreground text-white scale-105 shadow-md' : 'border border-border text-muted-foreground hover:text-foreground hover:border-foreground/20'
+            }`}>{p === 'all' ? 'All time' : p}</button>
+          ))}
+          <span className="ml-3 text-xs text-muted-foreground transition-opacity duration-300">
+            Showing data for <strong className="text-foreground">{period === 'all' ? 'all time' : `last ${period}`}</strong>
+          </span>
+        </div>
       </div>
 
       {/* Key Metrics */}
