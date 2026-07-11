@@ -131,6 +131,49 @@
   }
 }
 
+@media (max-width: 640px) {
+  .lf-table-wrap,
+  .lf-panel .overflow-x-auto {
+    overflow-x: visible;
+  }
+
+  .lf-table {
+    min-width: 0;
+    display: block;
+  }
+
+  .lf-table-head {
+    display: none;
+  }
+
+  .lf-table tbody {
+    display: block;
+  }
+
+  .lf-table-row {
+    display: block;
+    margin: 0.75rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    background: white;
+    overflow: hidden;
+  }
+
+  .lf-table-cell {
+    display: block;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid hsl(var(--border) / 0.55);
+  }
+
+  .lf-table-cell:last-child {
+    border-bottom: 0;
+  }
+
+  .lf-table-cell.hidden {
+    display: none;
+  }
+}
+
 @layer utilities {
   @keyframes uploadCtaPulse {
     0%, 100% {

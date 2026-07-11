@@ -30,8 +30,8 @@ const DOCS_SUB_NAV = [
 
 const PRIMARY_NAV = [
   { to: '/app', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  { to: '/auto-apply', icon: Briefcase, label: 'Auto-Apply', requiresPlan: true },
-  { to: '/interview-prep', icon: Target, label: 'Interview Prep', requiresPlan: true },
+  { to: '/app/auto-apply', icon: Briefcase, label: 'Auto-Apply', requiresPlan: true },
+  { to: '/app/interview-prep', icon: Target, label: 'Interview Prep', requiresPlan: true },
   { to: '/interview-copilot', icon: Headphones, label: 'Interview Co-Pilot' },
 ]
 

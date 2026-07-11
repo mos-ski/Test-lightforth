@@ -121,7 +121,7 @@ export default function Dashboard() {
               Icon={Monitor}
               title="Practice For Interview"
               description="Practice with AI interviewers, get actionable feedback, and walk into interviews more confident than ever."
-              to="/interview-prep"
+              to="/app/interview-prep"
             />
             <ActionCard
               Icon={Briefcase}
@@ -133,7 +133,7 @@ export default function Dashboard() {
               Icon={Send}
               title="Auto-Apply"
               description="Let Lightforth auto-apply to relevant roles based on your preferences — no more job hunting stress."
-              to="/auto-apply"
+              to="/app/auto-apply"
               badge="NEW"
             />
           </div>

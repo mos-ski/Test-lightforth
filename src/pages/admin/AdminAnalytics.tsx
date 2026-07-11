@@ -2,6 +2,10 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Download, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useAnalytics } from '@/hooks/useAdmin'
 import { USERS, TRANSACTIONS, OVERVIEW_STATS, MONTHLY_DATA, FEATURE_USAGE, TOP_CITIES } from '@/lib/adminMockData'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 type Period = '7d' | '30d' | '90d' | '12m' | 'all'
 
@@ -267,10 +271,24 @@ function FunnelChart({ steps, animateKey }: { steps: { label: string; value: num
 // Main
 // ============================================================
 export default function AdminAnalytics() {
-  const [period, setPeriod] = useState<Period>('12m')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
+  const [selectedFinding, setSelectedFinding] = useState<{ metric: string; value: string; change: string; positive: boolean; insight: string } | null>(null)
   const { data, isLoading } = useAnalytics()
 
   const periodData = useMemo(() => getPeriodData(period), [period])
+
+  const keyFindingsData = useMemo(() => [
+    { metric: 'Total Revenue', value: `$${periodData.totalRevenue.toLocaleString()}`, change: periodData.change, positive: true, insight: `Revenue for ${period === 'all' ? 'all time' : `last ${period}`}` },
+    { metric: 'New Signups', value: periodData.totalSignups.toLocaleString(), change: periodData.change, positive: true, insight: `New user accounts in period` },
+    { metric: 'Active Users', value: periodData.latestActive.toLocaleString(), change: '+8.7%', positive: true, insight: 'Current active user base' },
+    { metric: 'Top Feature', value: periodData.featureUsage[0]?.feature || '—', change: `${periodData.featureUsage[0]?.percentage || 0}%`, positive: true, insight: 'Most adopted product feature' },
+    { metric: 'Top City', value: periodData.topCities[0]?.city || '—', change: `${periodData.topCities[0]?.users?.toLocaleString() || 0} users`, positive: true, insight: 'Strongest geographic market' },
+    { metric: 'Conversion Rate', value: `${OVERVIEW_STATS.conversionRate}%`, change: '+1.2%', positive: true, insight: 'Free → Paid conversion improving' },
+    { metric: 'Churn Rate', value: `${OVERVIEW_STATS.churnRate}%`, change: '-0.3%', positive: true, insight: 'Retention efforts showing results' },
+    { metric: 'Paid Users', value: OVERVIEW_STATS.paidUsers.toLocaleString(), change: '+12.5%', positive: true, insight: 'Growing paying customer base' },
+  ], [periodData, period])
+
+  const { sortKey, sortDirection, toggleSort, sorted: sortedFindings } = useSort({ data: keyFindingsData })
 
   if (isLoading || !data) {
     return (
@@ -284,14 +302,12 @@ export default function AdminAnalytics() {
     <div className="space-y-6">
       {/* Sticky header + period filter */}
       <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 bg-white border-b border-border mb-6 pt-6 pb-4">
-        <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="lf-page-title">Analytics</h1>
-            <p className="lf-body mt-0.5">Platform data hub — compare, analyze, discover</p>
+            <p className="lf-body mt-0.5">Platform performance metrics and trends</p>
           </div>
-          <button className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <Download className="h-3.5 w-3.5" />Export
-          </button>
+          <TimelineFilter value={period} onChange={setPeriod} />
         </div>
         <div className="flex items-center gap-1.5">
           {(['7d', '30d', '90d', '12m', 'all'] as Period[]).map(p => (
@@ -560,24 +576,15 @@ export default function AdminAnalytics() {
           <table className="lf-table">
             <thead className="lf-table-head">
               <tr>
-                <th className="lf-table-th">Metric</th>
-                <th className="lf-table-th">Value</th>
-                <th className="lf-table-th">Change</th>
-                <th className="lf-table-th hidden md:table-cell">Insight</th>
+                <SortableHeader label="Metric" sortKey="metric" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                <SortableHeader label="Value" sortKey="value" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                <SortableHeader label="Change" sortKey="change" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                <SortableHeader label="Insight" sortKey="insight" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
               </tr>
             </thead>
             <tbody>
-              {[
-                { metric: 'Total Revenue', value: `$${periodData.totalRevenue.toLocaleString()}`, change: periodData.change, positive: true, insight: `Revenue for ${period === 'all' ? 'all time' : `last ${period}`}` },
-                { metric: 'New Signups', value: periodData.totalSignups.toLocaleString(), change: periodData.change, positive: true, insight: `New user accounts in period` },
-                { metric: 'Active Users', value: periodData.latestActive.toLocaleString(), change: '+8.7%', positive: true, insight: 'Current active user base' },
-                { metric: 'Top Feature', value: periodData.featureUsage[0]?.feature || '—', change: `${periodData.featureUsage[0]?.percentage || 0}%`, positive: true, insight: 'Most adopted product feature' },
-                { metric: 'Top City', value: periodData.topCities[0]?.city || '—', change: `${periodData.topCities[0]?.users?.toLocaleString() || 0} users`, positive: true, insight: 'Strongest geographic market' },
-                { metric: 'Conversion Rate', value: `${OVERVIEW_STATS.conversionRate}%`, change: '+1.2%', positive: true, insight: 'Free → Paid conversion improving' },
-                { metric: 'Churn Rate', value: `${OVERVIEW_STATS.churnRate}%`, change: '-0.3%', positive: true, insight: 'Retention efforts showing results' },
-                { metric: 'Paid Users', value: OVERVIEW_STATS.paidUsers.toLocaleString(), change: '+12.5%', positive: true, insight: 'Growing paying customer base' },
-              ].map((row, i) => (
-                <tr key={`${row.metric}-${period}`} className="lf-table-row" style={{ animationDelay: `${i * 40}ms` }}>
+              {sortedFindings.map((row, i) => (
+                <tr key={`${row.metric}-${period}`} className="lf-table-row cursor-pointer" onClick={() => setSelectedFinding(row)} style={{ animationDelay: `${i * 40}ms` }}>
                   <td className="lf-table-cell font-medium text-foreground">{row.metric}</td>
                   <td className="lf-table-cell font-semibold tabular-nums">{row.value}</td>
                   <td className="lf-table-cell">
@@ -593,6 +600,19 @@ export default function AdminAnalytics() {
           </table>
         </div>
       </div>
+      {selectedFinding && (
+        <AdminDetailModal
+          title={selectedFinding.metric}
+          subtitle={`Period: ${period}`}
+          onClose={() => setSelectedFinding(null)}
+          fields={[
+            { label: 'Value', value: selectedFinding.value },
+            { label: 'Change', value: selectedFinding.change },
+            { label: 'Direction', value: selectedFinding.positive ? 'Positive' : 'Needs attention' },
+            { label: 'Insight', value: selectedFinding.insight },
+          ]}
+        />
+      )}
     </div>
   )
 }

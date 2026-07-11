@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { TrendingUp, ArrowUpRight, Folder, Users, Download, Mail, ChevronRight, Search, Filter, Plus, Eye, Send, BarChart3, Clock, MousePointerClick } from 'lucide-react'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 const FUNNELS = [
   {
@@ -135,6 +138,7 @@ export default function AdminFunnels() {
   const [selectedFunnel, setSelectedFunnel] = useState<typeof FUNNELS[0] | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [leadSearch, setLeadSearch] = useState('')
+  const [selectedLead, setSelectedLead] = useState<(typeof MOCK_LEADS)[string][number] | null>(null)
 
   const filteredFunnels = FUNNELS.filter(f =>
     f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -145,6 +149,7 @@ export default function AdminFunnels() {
     setSelectedFunnel(funnel)
     setView('folder')
     setLeadSearch('')
+    setSelectedLead(null)
   }
 
   const leads = selectedFunnel ? (MOCK_LEADS[selectedFunnel.id] || []) : []
@@ -152,6 +157,7 @@ export default function AdminFunnels() {
     l.name.toLowerCase().includes(leadSearch.toLowerCase()) ||
     l.email.toLowerCase().includes(leadSearch.toLowerCase())
   )
+  const { sortKey, sortDirection, toggleSort, sorted: sortedLeads } = useSort({ data: filteredLeads })
 
   const exportCSV = () => {
     if (!selectedFunnel) return
@@ -247,17 +253,17 @@ export default function AdminFunnels() {
             <table className="lf-table">
               <thead className="lf-table-head">
                 <tr>
-                  <th className="lf-table-th">Name</th>
-                  <th className="lf-table-th hidden md:table-cell">Email</th>
-                  <th className="lf-table-th">Score</th>
-                  <th className="lf-table-th">Status</th>
-                  <th className="lf-table-th hidden sm:table-cell">Source</th>
-                  <th className="lf-table-th hidden sm:table-cell">Date</th>
+                  <SortableHeader label="Name" sortKey="name" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Email" sortKey="email" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+                  <SortableHeader label="Score" sortKey="score" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Source" sortKey="source" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
+                  <SortableHeader label="Date" sortKey="date" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
                 </tr>
               </thead>
               <tbody>
-                {filteredLeads.map(lead => (
-                  <tr key={lead.id} className="lf-table-row">
+                {sortedLeads.map(lead => (
+                  <tr key={lead.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedLead(lead)}>
                     <td className="lf-table-cell font-medium text-foreground">{lead.name}</td>
                     <td className="lf-table-cell hidden md:table-cell text-muted-foreground">{lead.email}</td>
                     <td className="lf-table-cell">
@@ -282,6 +288,21 @@ export default function AdminFunnels() {
             </table>
           </div>
         </div>
+        {selectedLead && (
+          <AdminDetailModal
+            title={selectedLead.name}
+            subtitle={selectedLead.email}
+            onClose={() => setSelectedLead(null)}
+            fields={[
+              { label: 'Funnel', value: selectedFunnel.name },
+              { label: 'Lead Score', value: selectedLead.score },
+              { label: 'Status', value: selectedLead.status },
+              { label: 'Source', value: selectedLead.source },
+              { label: 'Date Captured', value: selectedLead.date },
+              { label: 'Recommended Action', value: selectedLead.score >= 85 ? 'Send sales outreach' : selectedLead.score >= 70 ? 'Add to nurture sequence' : 'Keep in awareness campaign' },
+            ]}
+          />
+        )}
       </div>
     )
   }
@@ -294,7 +315,7 @@ export default function AdminFunnels() {
           <p className="lf-body mt-0.5">All funnel databases — click a folder to view leads, export, and nurture</p>
         </div>
         <button className="lf-btn gap-1.5">
-          <Plus className="h-3.5 w-3.5" />New Funnel
+          <Plus className="h-3.5 w-3.5" />Create Funnel
         </button>
       </div>
 

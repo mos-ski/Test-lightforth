@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { TrendingUp, ArrowUpRight, FileText, Users, Target, BarChart3, Clock, Zap, CheckCircle2, XCircle, MessageSquare, Download, Settings, X, Eye, Sparkles, Check, ExternalLink } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, FileText, Users, Target, BarChart3, Clock, Zap, CheckCircle2, XCircle, MessageSquare, Download, Settings, X, Eye, Sparkles, Check, ExternalLink, Plus } from 'lucide-react'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 const TEMPLATES = [
   { id: 't01', name: 'Classic Blue', atsAvg: 82, uses: 3421, active: true, downloads: 1240, color: '#143763', premium: false },
@@ -62,16 +64,26 @@ type TemplateModal = { open: boolean; template: typeof TEMPLATES[number] | null 
 
 export default function AdminResumeBuilder() {
   const [tab, setTab] = useState<'overview' | 'builds' | 'templates' | 'settings'>('overview')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
   const [templateModal, setTemplateModal] = useState<TemplateModal>({ open: false, template: null })
+  const [selectedRow, setSelectedRow] = useState<typeof RECENT_BUILDS[number] | null>(null)
 
   const totalDownloads = TEMPLATES.reduce((sum, t) => sum + t.downloads, 0)
   const totalUses = TEMPLATES.reduce((sum, t) => sum + t.uses, 0)
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">Resume Builder</h1>
-        <p className="lf-body mt-0.5">AI-powered resume building — chat, ATS scoring, templates, and acceptance tracking</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="lf-page-title">Resume Builder</h1>
+          <p className="lf-body mt-0.5">AI-powered resume building — chat, ATS scoring, templates, and acceptance tracking</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="lf-btn gap-1.5">
+            <Plus className="h-3.5 w-3.5" />Create Resume
+          </button>
+          <TimelineFilter value={period} onChange={setPeriod} />
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -203,7 +215,7 @@ export default function AdminResumeBuilder() {
                   {RECENT_BUILDS.map(b => {
                     const tmpl = TEMPLATES.find(t => t.id === b.template)
                     return (
-                      <tr key={b.id} className="lf-table-row">
+                      <tr key={b.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(b)}>
                         <td className="lf-table-cell font-medium text-foreground">{b.user}</td>
                         <td className="lf-table-cell">
                           <div className="flex items-center gap-2">
@@ -214,7 +226,7 @@ export default function AdminResumeBuilder() {
                           </div>
                         </td>
                         <td className="lf-table-cell hidden sm:table-cell">
-                          <button onClick={() => setTemplateModal({ open: true, template: TEMPLATES.find(t => t.id === b.template) ?? null })} className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+                          <button onClick={(event) => { event.stopPropagation(); setTemplateModal({ open: true, template: TEMPLATES.find(t => t.id === b.template) ?? null }) }} className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
                             <span className="h-2 w-2 rounded-full" style={{ background: tmpl?.color ?? '#999' }} />
                             {tmpl?.name ?? b.template}
                           </button>
@@ -252,7 +264,7 @@ export default function AdminResumeBuilder() {
                 {RECENT_BUILDS.map(b => {
                   const tmpl = TEMPLATES.find(t => t.id === b.template)
                   return (
-                    <tr key={b.id} className="lf-table-row">
+                    <tr key={b.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(b)}>
                       <td className="lf-table-cell font-medium text-foreground">{b.user}</td>
                       <td className="lf-table-cell">
                         <div className="flex items-center gap-2">
@@ -263,7 +275,7 @@ export default function AdminResumeBuilder() {
                         </div>
                       </td>
                       <td className="lf-table-cell hidden sm:table-cell">
-                        <button onClick={() => setTemplateModal({ open: true, template: TEMPLATES.find(t => t.id === b.template) ?? null })} className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
+                        <button onClick={(event) => { event.stopPropagation(); setTemplateModal({ open: true, template: TEMPLATES.find(t => t.id === b.template) ?? null }) }} className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
                           <span className="h-2 w-2 rounded-full" style={{ background: tmpl?.color ?? '#999' }} />
                           {tmpl?.name ?? b.template}
                         </button>
@@ -384,6 +396,21 @@ export default function AdminResumeBuilder() {
         <TemplateDetailModal
           template={templateModal.template}
           onClose={() => setTemplateModal({ open: false, template: null })}
+        />
+      )}
+      {selectedRow && (
+        <AdminDetailModal
+          title={`${selectedRow.user} Resume Build`}
+          subtitle={TEMPLATES.find(t => t.id === selectedRow.template)?.name ?? selectedRow.template}
+          onClose={() => setSelectedRow(null)}
+          fields={[
+            { label: 'ATS Score', value: selectedRow.atsScore },
+            { label: 'Status', value: selectedRow.status },
+            { label: 'Template', value: TEMPLATES.find(t => t.id === selectedRow.template)?.name ?? selectedRow.template },
+            { label: 'AI Messages', value: selectedRow.aiMessages },
+            { label: 'Time', value: selectedRow.time },
+            { label: 'Recommended Action', value: selectedRow.atsScore >= 85 ? 'Highlight as a strong build' : selectedRow.atsScore >= 70 ? 'Review optimization suggestions' : 'Needs resume coaching follow-up' },
+          ]}
         />
       )}
     </div>

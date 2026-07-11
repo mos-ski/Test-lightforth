@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { TrendingUp, ArrowUpRight, FileCheck, Target, Zap, Users, BarChart3 } from 'lucide-react'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 const ATS_STATS = {
   totalScans: 18943,
@@ -37,6 +38,7 @@ const SCORE_RANGES = [
 
 export default function AdminAtsChecker() {
   const [tab, setTab] = useState<'overview' | 'scans' | 'settings'>('overview')
+  const [selectedScan, setSelectedScan] = useState<typeof RECENT_SCANS[number] | null>(null)
 
   return (
     <div className="space-y-6">
@@ -136,7 +138,7 @@ export default function AdminAtsChecker() {
               </thead>
               <tbody>
                 {RECENT_SCANS.map(s => (
-                  <tr key={s.id} className="lf-table-row">
+                  <tr key={s.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedScan(s)}>
                     <td className="lf-table-cell font-medium text-foreground">{s.user}</td>
                     <td className="lf-table-cell hidden md:table-cell text-muted-foreground">{s.resume}</td>
                     <td className="lf-table-cell">
@@ -188,6 +190,20 @@ export default function AdminAtsChecker() {
             </div>
           ))}
         </div>
+      )}
+      {selectedScan && (
+        <AdminDetailModal
+          title={`${selectedScan.user} ATS Scan`}
+          subtitle={selectedScan.resume}
+          onClose={() => setSelectedScan(null)}
+          fields={[
+            { label: 'Score', value: `${selectedScan.score}%` },
+            { label: 'Issues', value: selectedScan.issues },
+            { label: 'Improvements', value: selectedScan.improved ? 'Applied' : 'Pending' },
+            { label: 'Time', value: selectedScan.time },
+            { label: 'Priority', value: selectedScan.score >= 85 ? 'Healthy' : selectedScan.score >= 70 ? 'Needs review' : 'Needs intervention' },
+          ]}
+        />
       )}
     </div>
   )

@@ -1,6 +1,10 @@
 import { useState } from 'react'
-import { TrendingUp, ArrowUpRight, Settings, Zap, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, Settings, Zap, Clock, CheckCircle2, XCircle, Plus, X } from 'lucide-react'
 import { USERS, TRANSACTIONS } from '@/lib/adminMockData'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 const AUTO_APPLY_STATS = {
   totalApplications: 12847,
@@ -45,12 +49,23 @@ const BOARD_STATUS: Record<string, string> = {
 
 export default function AdminAutoApply() {
   const [tab, setTab] = useState<'overview' | 'jobs' | 'settings'>('overview')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
+  const [selectedRow, setSelectedRow] = useState<typeof RECENT_APPLICATIONS[number] | null>(null)
+  const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: RECENT_APPLICATIONS })
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">Auto-Apply</h1>
-        <p className="lf-body mt-0.5">Automated job application engine — monitor performance and configuration</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="lf-page-title">Auto-Apply</h1>
+          <p className="lf-body mt-0.5">Automated job application engine — monitor performance and configuration</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="lf-btn gap-1.5">
+            <Plus className="h-3.5 w-3.5" />New Application
+          </button>
+          <TimelineFilter value={period} onChange={setPeriod} />
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -91,17 +106,17 @@ export default function AdminAutoApply() {
               <table className="lf-table">
                 <thead className="lf-table-head">
                   <tr>
-                    <th className="lf-table-th">User</th>
-                    <th className="lf-table-th">Company</th>
-                    <th className="lf-table-th hidden md:table-cell">Role</th>
-                    <th className="lf-table-th">ATS Score</th>
-                    <th className="lf-table-th">Status</th>
-                    <th className="lf-table-th hidden sm:table-cell">Time</th>
+                    <SortableHeader label="User" sortKey="user" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                    <SortableHeader label="Company" sortKey="company" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                    <SortableHeader label="Role" sortKey="role" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+                    <SortableHeader label="ATS Score" sortKey="atsScore" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                    <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                    <SortableHeader label="Time" sortKey="time" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
                   </tr>
                 </thead>
                 <tbody>
-                  {RECENT_APPLICATIONS.map(app => (
-                    <tr key={app.id} className="lf-table-row">
+                  {sorted.map(app => (
+                    <tr key={app.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(app)}>
                       <td className="lf-table-cell font-medium text-foreground">{app.user}</td>
                       <td className="lf-table-cell">{app.company}</td>
                       <td className="lf-table-cell hidden md:table-cell text-muted-foreground">{app.role}</td>
@@ -174,6 +189,20 @@ export default function AdminAutoApply() {
             </div>
           ))}
         </div>
+      )}
+      {selectedRow && (
+        <AdminDetailModal
+          title={`${selectedRow.company} Application`}
+          subtitle={selectedRow.user}
+          onClose={() => setSelectedRow(null)}
+          fields={[
+            { label: 'Role', value: selectedRow.role },
+            { label: 'ATS Score', value: selectedRow.atsScore },
+            { label: 'Status', value: selectedRow.status },
+            { label: 'Time', value: selectedRow.time },
+            { label: 'Recommended Action', value: selectedRow.status === 'failed' ? 'Review blocker and retry' : selectedRow.status === 'pending' ? 'Monitor submission' : 'No action needed' },
+          ]}
+        />
       )}
     </div>
   )

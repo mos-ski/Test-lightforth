@@ -3,6 +3,10 @@ import { Search, Plus, Megaphone, Eye, MousePointerClick, Calendar } from 'lucid
 import { cn } from '@/lib/utils'
 import { useCoupons, useCreateCoupon, useUpdateCoupon } from '@/hooks/useAdmin'
 import type { Coupon } from '@/lib/adminMockData'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 type PromoTab = 'promotions' | 'coupons'
 
@@ -96,6 +100,7 @@ function CreateCouponModal({ onClose }: { onClose: () => void }) {
 }
 
 function PromotionsView() {
+  const [selectedPromo, setSelectedPromo] = useState<typeof MOCK_PROMOTIONS[number] | null>(null)
   const activePromos = MOCK_PROMOTIONS.filter(p => p.status === 'active').length
   const totalViews = MOCK_PROMOTIONS.reduce((s, p) => s + p.views, 0)
   const totalConversions = MOCK_PROMOTIONS.reduce((s, p) => s + p.conversions, 0)
@@ -124,7 +129,7 @@ function PromotionsView() {
       {/* Promotions list */}
       <div className="space-y-3">
         {MOCK_PROMOTIONS.map(promo => (
-          <div key={promo.id} className="lf-panel p-5">
+          <button key={promo.id} onClick={() => setSelectedPromo(promo)} className="lf-panel block w-full p-5 text-left transition-colors hover:border-primary/30">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -153,9 +158,28 @@ function PromotionsView() {
                 </div>
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
+      {selectedPromo && (
+        <AdminDetailModal
+          title={selectedPromo.name}
+          subtitle={`${selectedPromo.code} · ${selectedPromo.audience}`}
+          onClose={() => setSelectedPromo(null)}
+          fields={[
+            { label: 'Type', value: selectedPromo.type },
+            { label: 'Value', value: selectedPromo.value },
+            { label: 'Status', value: selectedPromo.status },
+            { label: 'Audience', value: selectedPromo.audience },
+            { label: 'Start Date', value: selectedPromo.startDate },
+            { label: 'End Date', value: selectedPromo.endDate },
+            { label: 'Views', value: selectedPromo.views.toLocaleString() },
+            { label: 'Clicks', value: selectedPromo.clicks.toLocaleString() },
+            { label: 'Conversions', value: selectedPromo.conversions.toLocaleString() },
+            { label: 'Click Rate', value: `${((selectedPromo.clicks / selectedPromo.views) * 100).toFixed(1)}%` },
+          ]}
+        />
+      )}
     </div>
   )
 }
@@ -164,10 +188,12 @@ function CouponsView() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [showCreate, setShowCreate] = useState(false)
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null)
   const updateCoupon = useUpdateCoupon()
   const { data, isLoading } = useCoupons({ search, status: statusFilter })
 
   const coupons = data?.coupons ?? []
+  const { sortKey, sortDirection, toggleSort, sorted: sortedCoupons } = useSort({ data: coupons })
   const active = coupons.filter(c => c.status === 'active').length
   const inactive = coupons.filter(c => c.status === 'inactive' || c.status === 'expired').length
 
@@ -206,18 +232,18 @@ function CouponsView() {
           <table className="lf-table">
             <thead className="lf-table-head">
               <tr>
-                <th className="lf-table-th">Name</th>
-                <th className="lf-table-th">Discount</th>
-                <th className="lf-table-th hidden md:table-cell">Duration</th>
-                <th className="lf-table-th hidden md:table-cell">Uses</th>
-                <th className="lf-table-th">Code</th>
-                <th className="lf-table-th">Status</th>
+                <SortableHeader label="Name" sortKey="name" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="lf-table-th" />
+                <SortableHeader label="Discount" sortKey="discountValue" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="lf-table-th" />
+                <SortableHeader label="Duration" sortKey="duration" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="lf-table-th hidden md:table-cell" />
+                <SortableHeader label="Uses" sortKey="usageCount" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="lf-table-th hidden md:table-cell" />
+                <SortableHeader label="Code" sortKey="code" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="lf-table-th" />
+                <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="lf-table-th" />
                 <th className="lf-table-th w-24">Action</th>
               </tr>
             </thead>
             <tbody>
-              {coupons.map(c => (
-                <tr key={c.id} className="lf-table-row">
+              {sortedCoupons.map(c => (
+                <tr key={c.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedCoupon(c)}>
                   <td className="lf-table-cell font-medium text-foreground">{c.name}</td>
                   <td className="lf-table-cell text-muted-foreground">
                     {c.discountType === 'percentage' ? `${c.discountValue}%` : `$${c.discountValue}`}
@@ -236,7 +262,10 @@ function CouponsView() {
                   </td>
                   <td className="lf-table-cell">
                     <button
-                      onClick={() => updateCoupon.mutate({ id: c.id, updates: { status: c.status === 'active' ? 'inactive' : 'active' } })}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        updateCoupon.mutate({ id: c.id, updates: { status: c.status === 'active' ? 'inactive' : 'active' } })
+                      }}
                       className="text-sm font-medium text-primary hover:underline"
                     >
                       {c.status === 'active' ? 'Deactivate' : 'Activate'}
@@ -248,20 +277,39 @@ function CouponsView() {
           </table>
         </div>
       )}
+      {selectedCoupon && (
+        <AdminDetailModal
+          title={selectedCoupon.name}
+          subtitle={selectedCoupon.code}
+          onClose={() => setSelectedCoupon(null)}
+          fields={[
+            { label: 'Discount', value: selectedCoupon.discountType === 'percentage' ? `${selectedCoupon.discountValue}%` : `$${selectedCoupon.discountValue}` },
+            { label: 'Duration', value: selectedCoupon.duration },
+            { label: 'Status', value: selectedCoupon.status },
+            { label: 'Usage', value: `${selectedCoupon.usageCount}/${selectedCoupon.maxUses}` },
+            { label: 'Created', value: selectedCoupon.createdAt },
+            { label: 'Expires', value: selectedCoupon.expiresAt },
+          ]}
+        />
+      )}
     </div>
   )
 }
 
 export default function AdminPromotions() {
   const [tab, setTab] = useState<PromoTab>('promotions')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="lf-page-title">Promotions</h1>
-        <button className="rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
-          + Create Promotion
-        </button>
+        <div className="flex items-center gap-3">
+          <button className="rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
+            + Create Promotion
+          </button>
+          <TimelineFilter value={period} onChange={setPeriod} />
+        </div>
       </div>
 
       <div className="lf-panel overflow-hidden">

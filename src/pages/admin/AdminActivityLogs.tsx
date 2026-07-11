@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import { Search, Download, Activity, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
+import { Search, Download, Activity, CheckCircle2, XCircle, AlertTriangle, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useActivityLogs } from '@/hooks/useAdmin'
 import { ACTIVITY_LOGS } from '@/lib/adminMockData'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
 
 type TabKey = 'all' | 'auth' | 'application' | 'payment' | 'admin' | 'system'
 
@@ -23,10 +26,14 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export default function AdminActivityLogs() {
   const [tab, setTab] = useState<TabKey>('all')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
   const [search, setSearch] = useState('')
+  const [selectedLog, setSelectedLog] = useState<typeof logs[0] | null>(null)
   const { data, isLoading } = useActivityLogs({ category: tab, search })
 
   const logs = data?.logs ?? []
+
+  const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: logs })
 
   // Compute stats from all logs
   const totalEvents = ACTIVITY_LOGS.length
@@ -54,9 +61,12 @@ export default function AdminActivityLogs() {
           <h1 className="lf-page-title">Activity Logs</h1>
           <p className="lf-body mt-0.5">System-wide event log — filterable audit trail</p>
         </div>
-        <button onClick={exportCSV} className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-          <Download className="h-3.5 w-3.5" />Export
-        </button>
+        <div className="flex items-center gap-3">
+          <TimelineFilter value={period} onChange={setPeriod} />
+          <button onClick={exportCSV} className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Download className="h-3.5 w-3.5" />Export
+          </button>
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -113,18 +123,18 @@ export default function AdminActivityLogs() {
             <table className="lf-table">
               <thead className="lf-table-head">
                 <tr>
-                  <th className="lf-table-th w-24">Time</th>
-                  <th className="lf-table-th">User</th>
-                  <th className="lf-table-th">Action</th>
-                  <th className="lf-table-th hidden md:table-cell">Resource</th>
-                  <th className="lf-table-th hidden lg:table-cell">IP</th>
-                  <th className="lf-table-th w-24">Status</th>
-                  <th className="lf-table-th hidden sm:table-cell w-24">Category</th>
+                  <SortableHeader label="Time" sortKey="timestamp" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="w-24" />
+                  <SortableHeader label="User" sortKey="userName" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Action" sortKey="action" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Resource" sortKey="resource" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+                  <SortableHeader label="IP" sortKey="ip" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden lg:table-cell" />
+                  <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="w-24" />
+                  <SortableHeader label="Category" sortKey="category" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell w-24" />
                 </tr>
               </thead>
               <tbody>
-                {logs.map(log => (
-                  <tr key={log.id} className="lf-table-row">
+                {sorted.map(log => (
+                  <tr key={log.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedLog(log)}>
                     <td className="lf-table-cell font-mono text-xs text-muted-foreground">
                       {new Date(log.timestamp).toLocaleTimeString()}
                     </td>
@@ -154,6 +164,36 @@ export default function AdminActivityLogs() {
           </div>
         )}
       </div>
+      {selectedLog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="lf-panel w-full max-w-lg p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="lf-card-title">Log Detail</h2>
+              <button onClick={() => setSelectedLog(null)} className="text-muted-foreground hover:text-foreground transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'User', value: selectedLog.userName },
+                { label: 'Email', value: selectedLog.email },
+                { label: 'Action', value: selectedLog.action },
+                { label: 'Resource', value: selectedLog.resource },
+                { label: 'IP', value: selectedLog.ip },
+                { label: 'Status', value: selectedLog.status },
+                { label: 'Category', value: selectedLog.category },
+                { label: 'Timestamp', value: new Date(selectedLog.timestamp).toLocaleString() },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-lg border border-border p-3">
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="text-sm font-medium text-foreground mt-0.5">{value}</p>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setSelectedLog(null)} className="mt-5 w-full rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Close</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

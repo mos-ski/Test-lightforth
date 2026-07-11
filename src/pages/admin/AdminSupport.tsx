@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
 import { useTickets, useUpdateTicket } from '@/hooks/useAdmin'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -27,6 +29,7 @@ export default function AdminSupport() {
   const updateTicket = useUpdateTicket()
 
   const tickets = data?.tickets ?? []
+  const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: tickets })
   const stats = data?.stats
 
   const handleStatusChange = (ticketId: string, newStatus: string) => {
@@ -35,9 +38,14 @@ export default function AdminSupport() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">Support</h1>
-        <p className="lf-body mt-0.5">User support tickets and issue tracking</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="lf-page-title">Support</h1>
+          <p className="lf-body mt-0.5">User support tickets and issue tracking</p>
+        </div>
+        <button className="lf-btn gap-1.5">
+          <Plus className="h-3.5 w-3.5" />New Ticket
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -135,20 +143,20 @@ export default function AdminSupport() {
           <table className="lf-table">
             <thead className="lf-table-head">
               <tr>
-                <th className="lf-table-th w-20">ID</th>
-                <th className="lf-table-th">User</th>
-                <th className="lf-table-th">Subject</th>
-                <th className="lf-table-th hidden md:table-cell">Category</th>
-                <th className="lf-table-th w-24">Priority</th>
-                <th className="lf-table-th w-28">Status</th>
-                <th className="lf-table-th hidden sm:table-cell w-20">Created</th>
+                <SortableHeader label="ID" sortKey="id" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="w-20" />
+                <SortableHeader label="User" sortKey="email" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                <SortableHeader label="Subject" sortKey="subject" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                <SortableHeader label="Category" sortKey="category" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+                <SortableHeader label="Priority" sortKey="priority" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="w-24" />
+                <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="w-28" />
+                <SortableHeader label="Created" sortKey="createdAt" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell w-20" />
                 <th className="lf-table-th w-16" />
               </tr>
             </thead>
             <tbody>
-              {tickets.length === 0 ? (
+              {sorted.length === 0 ? (
                 <tr><td colSpan={8} className="lf-table-cell text-center text-muted-foreground">No tickets found</td></tr>
-              ) : tickets.map(t => (
+              ) : sorted.map(t => (
                 <tr key={t.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedTicket(t.id)}>
                   <td className="lf-table-cell font-mono text-xs text-muted-foreground">{t.id}</td>
                   <td className="lf-table-cell text-xs text-muted-foreground">{t.email}</td>

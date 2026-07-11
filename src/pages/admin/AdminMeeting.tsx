@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import { TrendingUp, ArrowUpRight, Video, Clock, Users, Zap, MessageSquare, Eye, EyeOff, ChevronRight, Shield, ArrowUpCircle, FileText, Settings } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, Video, Clock, Users, Zap, MessageSquare, Eye, EyeOff, ChevronRight, Shield, ArrowUpCircle, FileText, Settings, X } from 'lucide-react'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 const MEETINGS = [
   { id: 'm1', user: 'Darnell Smith', title: 'Q3 Sprint Planning', speakers: 5, duration: 42, style: 'Headlines', answerLength: 'Medium', actionItems: 8, stealthUsed: true, transcriptViewed: true, autoRespond: false, contextDocs: 3, status: 'completed', time: '2 hr ago', plan: 'Premium' },
@@ -31,15 +35,24 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function AdminMeeting() {
   const [tab, setTab] = useState<'overview' | 'sessions' | 'upsell' | 'settings'>('overview')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
+  const [selectedRow, setSelectedRow] = useState<typeof MEETINGS[number] | null>(null)
+  const [selectedUpsell, setSelectedUpsell] = useState<typeof UPSELL_EVENTS[number] | null>(null)
 
   const transcriptRate = Math.round((MEETINGS.filter(m => m.transcriptViewed).length / MEETINGS.length) * 100)
   const stealthRate = Math.round((MEETINGS.filter(m => m.stealthUsed).length / MEETINGS.length) * 100)
 
+  const { sortKey: mSortKey, sortDirection: mSortDirection, toggleSort: mToggleSort, sorted: sortedMeetings } = useSort({ data: MEETINGS })
+  const { sortKey: uSortKey, sortDirection: uSortDirection, toggleSort: uToggleSort, sorted: sortedUpsell } = useSort({ data: UPSELL_EVENTS })
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">Meeting</h1>
-        <p className="lf-body mt-0.5">Premium-only Copilot for professional meetings — multi-speaker, action items, transcript review</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="lf-page-title">Meeting</h1>
+          <p className="lf-body mt-0.5">Premium-only Copilot for professional meetings — multi-speaker, action items, transcript review</p>
+        </div>
+        <TimelineFilter value={period} onChange={setPeriod} />
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -148,20 +161,20 @@ export default function AdminMeeting() {
               <table className="lf-table">
                 <thead className="lf-table-head">
                   <tr>
-                    <th className="lf-table-th">User</th>
-                    <th className="lf-table-th hidden md:table-cell">Meeting Title</th>
-                    <th className="lf-table-th">Speakers</th>
-                    <th className="lf-table-th hidden sm:table-cell">Duration</th>
-                    <th className="lf-table-th hidden lg:table-cell">Style</th>
-                    <th className="lf-table-th hidden lg:table-cell">Action Items</th>
-                    <th className="lf-table-th hidden lg:table-cell">Stealth</th>
-                    <th className="lf-table-th hidden lg:table-cell">Transcript</th>
-                    <th className="lf-table-th">Status</th>
+                    <SortableHeader label="User" sortKey="user" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                    <SortableHeader label="Meeting Title" sortKey="title" className="hidden md:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                    <SortableHeader label="Speakers" sortKey="speakers" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                    <SortableHeader label="Duration" sortKey="duration" className="hidden sm:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                    <SortableHeader label="Style" sortKey="style" className="hidden lg:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                    <SortableHeader label="Action Items" sortKey="actionItems" className="hidden lg:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                    <SortableHeader label="Stealth" sortKey="stealthUsed" className="hidden lg:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                    <SortableHeader label="Transcript" sortKey="transcriptViewed" className="hidden lg:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                    <SortableHeader label="Status" sortKey="status" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
                   </tr>
                 </thead>
                 <tbody>
-                  {MEETINGS.map(m => (
-                    <tr key={m.id} className="lf-table-row">
+                  {sortedMeetings.map(m => (
+                    <tr key={m.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(m)}>
                       <td className="lf-table-cell font-medium text-foreground">{m.user}</td>
                       <td className="lf-table-cell hidden md:table-cell text-xs text-muted-foreground truncate max-w-[180px]">{m.title}</td>
                       <td className="lf-table-cell tabular-nums text-sm">{m.speakers}</td>
@@ -186,23 +199,23 @@ export default function AdminMeeting() {
             <table className="lf-table">
               <thead className="lf-table-head">
                 <tr>
-                  <th className="lf-table-th">User</th>
-                  <th className="lf-table-th">Title</th>
-                  <th className="lf-table-th">Speakers</th>
-                  <th className="lf-table-th hidden sm:table-cell">Duration</th>
-                  <th className="lf-table-th hidden md:table-cell">Style</th>
-                  <th className="lf-table-th hidden md:table-cell">Length</th>
-                  <th className="lf-table-th">Action Items</th>
-                  <th className="lf-table-th hidden lg:table-cell">Stealth</th>
-                  <th className="lf-table-th hidden lg:table-cell">Auto</th>
-                  <th className="lf-table-th hidden lg:table-cell">Context</th>
-                  <th className="lf-table-th hidden lg:table-cell">Transcript</th>
-                  <th className="lf-table-th">Status</th>
+                  <SortableHeader label="User" sortKey="user" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Title" sortKey="title" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Speakers" sortKey="speakers" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Duration" sortKey="duration" className="hidden sm:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Style" sortKey="style" className="hidden md:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Length" sortKey="answerLength" className="hidden md:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Action Items" sortKey="actionItems" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Stealth" sortKey="stealthUsed" className="hidden lg:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Auto" sortKey="autoRespond" className="hidden lg:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Context" sortKey="contextDocs" className="hidden lg:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Transcript" sortKey="transcriptViewed" className="hidden lg:table-cell" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
+                  <SortableHeader label="Status" sortKey="status" activeSortKey={mSortKey} sortDirection={mSortDirection} onToggleSort={mToggleSort} />
                 </tr>
               </thead>
               <tbody>
-                {MEETINGS.map(m => (
-                  <tr key={m.id} className="lf-table-row">
+                {sortedMeetings.map(m => (
+                  <tr key={m.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(m)}>
                     <td className="lf-table-cell font-medium text-foreground">{m.user}</td>
                     <td className="lf-table-cell text-xs text-muted-foreground truncate max-w-[160px]">{m.title}</td>
                     <td className="lf-table-cell tabular-nums text-sm">{m.speakers}</td>
@@ -233,17 +246,17 @@ export default function AdminMeeting() {
             <table className="lf-table">
               <thead className="lf-table-head">
                 <tr>
-                  <th className="lf-table-th">User</th>
-                  <th className="lf-table-th">Trigger</th>
-                  <th className="lf-table-th hidden sm:table-cell">From Plan</th>
-                  <th className="lf-table-th hidden sm:table-cell">To Plan</th>
-                  <th className="lf-table-th">Converted</th>
-                  <th className="lf-table-th hidden sm:table-cell">Time</th>
+                  <SortableHeader label="User" sortKey="user" activeSortKey={uSortKey} sortDirection={uSortDirection} onToggleSort={uToggleSort} />
+                  <SortableHeader label="Trigger" sortKey="trigger" activeSortKey={uSortKey} sortDirection={uSortDirection} onToggleSort={uToggleSort} />
+                  <SortableHeader label="From Plan" sortKey="fromPlan" className="hidden sm:table-cell" activeSortKey={uSortKey} sortDirection={uSortDirection} onToggleSort={uToggleSort} />
+                  <SortableHeader label="To Plan" sortKey="toPlan" className="hidden sm:table-cell" activeSortKey={uSortKey} sortDirection={uSortDirection} onToggleSort={uToggleSort} />
+                  <SortableHeader label="Converted" sortKey="converted" activeSortKey={uSortKey} sortDirection={uSortDirection} onToggleSort={uToggleSort} />
+                  <SortableHeader label="Time" sortKey="time" className="hidden sm:table-cell" activeSortKey={uSortKey} sortDirection={uSortDirection} onToggleSort={uToggleSort} />
                 </tr>
               </thead>
               <tbody>
-                {UPSELL_EVENTS.map(u => (
-                  <tr key={u.id} className="lf-table-row">
+                {sortedUpsell.map(u => (
+                  <tr key={u.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedUpsell(u)}>
                     <td className="lf-table-cell font-medium text-foreground">{u.user}</td>
                     <td className="lf-table-cell text-xs text-muted-foreground">{u.trigger}</td>
                     <td className="lf-table-cell hidden sm:table-cell"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">{u.fromPlan}</span></td>
@@ -295,6 +308,40 @@ export default function AdminMeeting() {
             </div>
           ))}
         </div>
+      )}
+      {selectedRow && (
+        <AdminDetailModal
+          title={selectedRow.title}
+          subtitle={selectedRow.user}
+          onClose={() => setSelectedRow(null)}
+          fields={[
+            { label: 'Plan', value: selectedRow.plan },
+            { label: 'Speakers', value: selectedRow.speakers },
+            { label: 'Duration', value: `${selectedRow.duration}m` },
+            { label: 'Response Style', value: selectedRow.style },
+            { label: 'Answer Length', value: selectedRow.answerLength },
+            { label: 'Action Items', value: selectedRow.actionItems },
+            { label: 'Stealth Used', value: selectedRow.stealthUsed ? 'Yes' : 'No' },
+            { label: 'Transcript Viewed', value: selectedRow.transcriptViewed ? 'Yes' : 'No' },
+            { label: 'Auto Respond', value: selectedRow.autoRespond ? 'On' : 'Off' },
+            { label: 'Context Docs', value: selectedRow.contextDocs },
+            { label: 'Status', value: selectedRow.status },
+            { label: 'Time', value: selectedRow.time },
+          ]}
+        />
+      )}
+      {selectedUpsell && (
+        <AdminDetailModal
+          title={`${selectedUpsell.user} Upsell Event`}
+          subtitle={selectedUpsell.trigger}
+          onClose={() => setSelectedUpsell(null)}
+          fields={[
+            { label: 'From Plan', value: selectedUpsell.fromPlan },
+            { label: 'To Plan', value: selectedUpsell.toPlan },
+            { label: 'Converted', value: selectedUpsell.converted ? 'Yes' : 'No' },
+            { label: 'Time', value: selectedUpsell.time },
+          ]}
+        />
       )}
     </div>
   )

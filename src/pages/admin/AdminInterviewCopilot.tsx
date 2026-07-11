@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { TrendingUp, ArrowUpRight, Video, Clock, Users, Zap, MessageSquare, Eye, EyeOff, Monitor, Smartphone, Settings, ChevronRight } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, Video, Clock, Users, Zap, MessageSquare, Eye, EyeOff, Monitor, Smartphone, Settings, ChevronRight, X } from 'lucide-react'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
 
 const SESSIONS = [
   { id: 's1', user: 'Darnell Smith', platform: 'Desktop', useCase: 'Interview', jobTitle: 'Senior Software Engineer', style: 'Headlines', answerLength: 'Medium', duration: 42, questionsAnswered: 14, speakers: 2, stealthUsed: true, autoRespond: false, aiAssistantUsed: true, contextDocs: 2, status: 'completed', time: '2 hr ago', score: 87 },
@@ -38,6 +41,9 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function AdminInterviewCopilot() {
   const [tab, setTab] = useState<'overview' | 'sessions' | 'settings'>('overview')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
+  const [selectedRow, setSelectedRow] = useState<typeof SESSIONS[number] | null>(null)
+  const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: SESSIONS })
 
   const totalSessions = 3421
   const completedSessions = SESSIONS.filter(s => s.status === 'completed')
@@ -47,9 +53,12 @@ export default function AdminInterviewCopilot() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">Interview Copilot</h1>
-        <p className="lf-body mt-0.5">Real-time interview assistance — stealth mode, response styles, multi-speaker, AI assistant</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="lf-page-title">Interview Copilot</h1>
+          <p className="lf-body mt-0.5">Real-time interview assistance — stealth mode, response styles, multi-speaker, AI assistant</p>
+        </div>
+        <TimelineFilter value={period} onChange={setPeriod} />
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -176,24 +185,24 @@ export default function AdminInterviewCopilot() {
             </div>
             <div className="overflow-x-auto">
               <table className="lf-table">
-                <thead className="lf-table-head">
-                  <tr>
-                    <th className="lf-table-th">User</th>
-                    <th className="lf-table-th hidden md:table-cell">Platform</th>
-                    <th className="lf-table-th hidden md:table-cell">Job Title</th>
-                    <th className="lf-table-th">Style</th>
-                    <th className="lf-table-th hidden sm:table-cell">Duration</th>
-                    <th className="lf-table-th hidden sm:table-cell">Q&A</th>
-                    <th className="lf-table-th hidden lg:table-cell">Speakers</th>
-                    <th className="lf-table-th hidden lg:table-cell">Stealth</th>
-                    <th className="lf-table-th hidden lg:table-cell">AI Asst</th>
-                    <th className="lf-table-th">Score</th>
-                    <th className="lf-table-th">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {SESSIONS.map(s => (
-                    <tr key={s.id} className="lf-table-row">
+              <thead className="lf-table-head">
+                <tr>
+                  <SortableHeader label="User" sortKey="user" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Platform" sortKey="platform" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+                  <SortableHeader label="Job Title" sortKey="jobTitle" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+                  <SortableHeader label="Style" sortKey="style" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Duration" sortKey="duration" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
+                  <SortableHeader label="Q&A" sortKey="questionsAnswered" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
+                  <SortableHeader label="Speakers" sortKey="speakers" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden lg:table-cell" />
+                  <SortableHeader label="Stealth" sortKey="stealthUsed" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden lg:table-cell" />
+                  <SortableHeader label="AI Asst" sortKey="aiAssistantUsed" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden lg:table-cell" />
+                  <SortableHeader label="Score" sortKey="score" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map(s => (
+                    <tr key={s.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(s)}>
                       <td className="lf-table-cell font-medium text-foreground">{s.user}</td>
                       <td className="lf-table-cell hidden md:table-cell text-xs text-muted-foreground">{s.platform}</td>
                       <td className="lf-table-cell hidden md:table-cell text-xs text-muted-foreground truncate max-w-[140px]">{s.jobTitle}</td>
@@ -220,25 +229,25 @@ export default function AdminInterviewCopilot() {
             <table className="lf-table">
               <thead className="lf-table-head">
                 <tr>
-                  <th className="lf-table-th">User</th>
-                  <th className="lf-table-th">Platform</th>
-                  <th className="lf-table-th hidden md:table-cell">Job Title</th>
-                  <th className="lf-table-th">Style</th>
-                  <th className="lf-table-th hidden sm:table-cell">Length</th>
-                  <th className="lf-table-th hidden sm:table-cell">Duration</th>
-                  <th className="lf-table-th">Q&A</th>
-                  <th className="lf-table-th hidden md:table-cell">Speakers</th>
-                  <th className="lf-table-th hidden lg:table-cell">Stealth</th>
-                  <th className="lf-table-th hidden lg:table-cell">Auto</th>
-                  <th className="lf-table-th hidden lg:table-cell">AI Asst</th>
-                  <th className="lf-table-th hidden lg:table-cell">Context</th>
-                  <th className="lf-table-th">Score</th>
-                  <th className="lf-table-th">Status</th>
+                  <SortableHeader label="User" sortKey="user" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Platform" sortKey="platform" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Job Title" sortKey="jobTitle" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+                  <SortableHeader label="Style" sortKey="style" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Length" sortKey="answerLength" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
+                  <SortableHeader label="Duration" sortKey="duration" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
+                  <SortableHeader label="Q&A" sortKey="questionsAnswered" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Speakers" sortKey="speakers" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+                  <SortableHeader label="Stealth" sortKey="stealthUsed" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden lg:table-cell" />
+                  <SortableHeader label="Auto" sortKey="autoRespond" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden lg:table-cell" />
+                  <SortableHeader label="AI Asst" sortKey="aiAssistantUsed" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden lg:table-cell" />
+                  <SortableHeader label="Context" sortKey="contextDocs" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden lg:table-cell" />
+                  <SortableHeader label="Score" sortKey="score" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
                 </tr>
               </thead>
               <tbody>
-                {SESSIONS.map(s => (
-                  <tr key={s.id} className="lf-table-row">
+                {sorted.map(s => (
+                  <tr key={s.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(s)}>
                     <td className="lf-table-cell font-medium text-foreground">{s.user}</td>
                     <td className="lf-table-cell text-xs text-muted-foreground">{s.platform}</td>
                     <td className="lf-table-cell hidden md:table-cell text-xs text-muted-foreground truncate max-w-[140px]">{s.jobTitle}</td>

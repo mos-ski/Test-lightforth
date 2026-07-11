@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import { TrendingUp, ArrowUpRight, BookOpen, Target, Clock, Users, CheckCircle2 } from 'lucide-react'
+import { TrendingUp, ArrowUpRight, BookOpen, Target, Clock, Users, CheckCircle2, Plus } from 'lucide-react'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 const PREP_STATS = {
   totalSessions: 5678,
@@ -36,12 +40,23 @@ const SCORE_DIST = [
 
 export default function AdminInterviewPrep() {
   const [tab, setTab] = useState<'overview' | 'practice' | 'settings'>('overview')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
+  const [selectedPractice, setSelectedPractice] = useState<typeof RECENT_PRACTICE[number] | null>(null)
+  const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: RECENT_PRACTICE })
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">Interview Prep</h1>
-        <p className="lf-body mt-0.5">Practice questions and mock interviews — track user progress</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="lf-page-title">Interview Prep</h1>
+          <p className="lf-body mt-0.5">Practice questions and mock interviews — track user progress</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="lf-btn gap-1.5">
+            <Plus className="h-3.5 w-3.5" />New Practice Session
+          </button>
+          <TimelineFilter value={period} onChange={setPeriod} />
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -122,17 +137,17 @@ export default function AdminInterviewPrep() {
             <table className="lf-table">
               <thead className="lf-table-head">
                 <tr>
-                  <th className="lf-table-th">User</th>
-                  <th className="lf-table-th">Category</th>
-                  <th className="lf-table-th">Questions</th>
-                  <th className="lf-table-th">Score</th>
-                  <th className="lf-table-th">Status</th>
-                  <th className="lf-table-th hidden sm:table-cell">Time</th>
+                  <SortableHeader label="User" sortKey="user" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Category" sortKey="type" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Questions" sortKey="questions" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Score" sortKey="score" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Status" sortKey="completed" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Time" sortKey="time" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
                 </tr>
               </thead>
               <tbody>
-                {RECENT_PRACTICE.map(p => (
-                  <tr key={p.id} className="lf-table-row">
+                {sorted.map(p => (
+                  <tr key={p.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedPractice(p)}>
                     <td className="lf-table-cell font-medium text-foreground">{p.user}</td>
                     <td className="lf-table-cell">{p.type}</td>
                     <td className="lf-table-cell tabular-nums">{p.questions}</td>
@@ -178,6 +193,22 @@ export default function AdminInterviewPrep() {
             </div>
           ))}
         </div>
+      )}
+
+      {selectedPractice && (
+        <AdminDetailModal
+          title={`${selectedPractice.user} Practice Session`}
+          subtitle={selectedPractice.type}
+          onClose={() => setSelectedPractice(null)}
+          fields={[
+            { label: 'User', value: selectedPractice.user },
+            { label: 'Category', value: selectedPractice.type },
+            { label: 'Questions', value: selectedPractice.questions },
+            { label: 'Score', value: `${selectedPractice.score}%` },
+            { label: 'Status', value: selectedPractice.completed ? 'Completed' : 'In Progress' },
+            { label: 'Time', value: selectedPractice.time },
+          ]}
+        />
       )}
     </div>
   )

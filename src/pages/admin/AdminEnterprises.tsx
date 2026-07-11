@@ -1,16 +1,20 @@
 import { useState } from 'react'
-import { Building2, Users, TrendingUp, ArrowUpRight, Search, ChevronRight, Download, BarChart3, Clock, BookOpen, ArrowLeft, DollarSign } from 'lucide-react'
+import { Building2, Users, TrendingUp, ArrowUpRight, Search, ChevronRight, Download, BarChart3, Clock, BookOpen, ArrowLeft, DollarSign, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 const ENTERPRISES = [
-  { id: 'e1', name: 'Howard University', domain: 'howard.edu', plan: 'Enterprise', students: 342, activeUsers: 287, avgCredits: 45, monthlySpend: 12800, joinDate: '2025-09-01', lastActive: '2 hr ago', status: 'active', department: 'Career Services' },
-  { id: 'e2', name: 'Morehouse College', domain: 'morehouse.edu', plan: 'Enterprise', students: 218, activeUsers: 178, avgCredits: 38, monthlySpend: 8200, joinDate: '2025-10-15', lastActive: '5 hr ago', status: 'active', department: 'Student Affairs' },
-  { id: 'e3', name: 'Spelman College', domain: 'spelman.edu', plan: 'Enterprise', students: 195, activeUsers: 167, avgCredits: 42, monthlySpend: 7600, joinDate: '2025-11-01', lastActive: '1 hr ago', status: 'active', department: 'Academic Affairs' },
-  { id: 'e4', name: 'Georgia Tech', domain: 'gatech.edu', plan: 'Enterprise+', students: 567, activeUsers: 489, avgCredits: 52, monthlySpend: 21400, joinDate: '2025-08-01', lastActive: '30 min ago', status: 'active', department: 'Career Center' },
-  { id: 'e5', name: 'Florida A&M University', domain: 'famu.edu', plan: 'Enterprise', students: 156, activeUsers: 112, avgCredits: 30, monthlySpend: 5800, joinDate: '2026-01-10', lastActive: '1 day ago', status: 'active', department: 'Career Services' },
-  { id: 'e6', name: 'Tuskegee University', domain: 'tuskegee.edu', plan: 'Starter', students: 89, activeUsers: 64, avgCredits: 22, monthlySpend: 2400, joinDate: '2026-03-01', lastActive: '3 days ago', status: 'active', department: 'Student Development' },
-  { id: 'e7', name: 'Hampton University', domain: 'hamptonu.edu', plan: 'Enterprise', students: 234, activeUsers: 198, avgCredits: 40, monthlySpend: 9200, joinDate: '2025-12-01', lastActive: '4 hr ago', status: 'active', department: 'Career Center' },
-  { id: 'e8', name: 'North Carolina A&T', domain: 'ncat.edu', plan: 'Enterprise', students: 289, activeUsers: 241, avgCredits: 36, monthlySpend: 10800, joinDate: '2025-10-01', lastActive: '2 hr ago', status: 'active', department: 'Academic Success' },
+  { id: 'e1', name: 'Howard University', domain: 'howard.edu', plan: 'Campus Growth', students: 342, activeUsers: 287, avgCredits: 45, monthlySpend: 12800, contractValue: 153600, billingCycle: 'Annual', renewalDate: '2026-09-01', invoiceStatus: 'paid', joinDate: '2025-09-01', lastActive: '2 hr ago', status: 'active', department: 'Career Services' },
+  { id: 'e2', name: 'Morehouse College', domain: 'morehouse.edu', plan: 'Campus Growth', students: 218, activeUsers: 178, avgCredits: 38, monthlySpend: 8200, contractValue: 98400, billingCycle: 'Annual', renewalDate: '2026-10-15', invoiceStatus: 'paid', joinDate: '2025-10-15', lastActive: '5 hr ago', status: 'active', department: 'Student Affairs' },
+  { id: 'e3', name: 'Spelman College', domain: 'spelman.edu', plan: 'Campus Growth', students: 195, activeUsers: 167, avgCredits: 42, monthlySpend: 7600, contractValue: 91200, billingCycle: 'Annual', renewalDate: '2026-11-01', invoiceStatus: 'paid', joinDate: '2025-11-01', lastActive: '1 hr ago', status: 'active', department: 'Academic Affairs' },
+  { id: 'e4', name: 'Georgia Tech', domain: 'gatech.edu', plan: 'Campus Enterprise', students: 567, activeUsers: 489, avgCredits: 52, monthlySpend: 21400, contractValue: 256800, billingCycle: 'Annual', renewalDate: '2026-08-01', invoiceStatus: 'paid', joinDate: '2025-08-01', lastActive: '30 min ago', status: 'active', department: 'Career Center' },
+  { id: 'e5', name: 'Florida A&M University', domain: 'famu.edu', plan: 'Campus Starter', students: 156, activeUsers: 112, avgCredits: 30, monthlySpend: 5800, contractValue: 69600, billingCycle: 'Annual', renewalDate: '2027-01-10', invoiceStatus: 'open', joinDate: '2026-01-10', lastActive: '1 day ago', status: 'active', department: 'Career Services' },
+  { id: 'e6', name: 'Tuskegee University', domain: 'tuskegee.edu', plan: 'Campus Starter', students: 89, activeUsers: 64, avgCredits: 22, monthlySpend: 2400, contractValue: 28800, billingCycle: 'Semester', renewalDate: '2026-09-01', invoiceStatus: 'open', joinDate: '2026-03-01', lastActive: '3 days ago', status: 'active', department: 'Student Development' },
+  { id: 'e7', name: 'Hampton University', domain: 'hamptonu.edu', plan: 'Campus Growth', students: 234, activeUsers: 198, avgCredits: 40, monthlySpend: 9200, contractValue: 110400, billingCycle: 'Annual', renewalDate: '2026-12-01', invoiceStatus: 'paid', joinDate: '2025-12-01', lastActive: '4 hr ago', status: 'active', department: 'Career Center' },
+  { id: 'e8', name: 'North Carolina A&T', domain: 'ncat.edu', plan: 'Campus Growth', students: 289, activeUsers: 241, avgCredits: 36, monthlySpend: 10800, contractValue: 129600, billingCycle: 'Annual', renewalDate: '2026-10-01', invoiceStatus: 'paid', joinDate: '2025-10-01', lastActive: '2 hr ago', status: 'active', department: 'Academic Success' },
 ]
 
 const ENTERPRISE_STUDENTS: Record<string, Array<{ id: string; name: string; email: string; credits: number; creditsUsed: number; applications: number; lastActive: string; status: string }>> = {
@@ -31,14 +35,16 @@ const ENTERPRISE_STUDENTS: Record<string, Array<{ id: string; name: string; emai
 }
 
 const PLAN_COLORS: Record<string, string> = {
-  'Enterprise+': 'bg-violet-50 text-violet-700',
-  'Enterprise': 'bg-blue-50 text-blue-700',
-  'Starter': 'bg-slate-100 text-slate-600',
+  'Campus Enterprise': 'bg-violet-50 text-violet-700',
+  'Campus Growth': 'bg-blue-50 text-blue-700',
+  'Campus Starter': 'bg-slate-100 text-slate-600',
 }
 
 export default function AdminEnterprises() {
   const [search, setSearch] = useState('')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
   const [selectedEnterprise, setSelectedEnterprise] = useState<typeof ENTERPRISES[0] | null>(null)
+  const [selectedStudent, setSelectedStudent] = useState<(typeof ENTERPRISE_STUDENTS)[string][number] | null>(null)
   const [studentSearch, setStudentSearch] = useState('')
 
   const filtered = ENTERPRISES.filter(e =>
@@ -51,16 +57,18 @@ export default function AdminEnterprises() {
     s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
     s.email.toLowerCase().includes(studentSearch.toLowerCase())
   )
+  const { sortKey: iSortKey, sortDirection: iSortDirection, toggleSort: iToggleSort, sorted: sortedInstitutions } = useSort({ data: filtered })
+  const { sortKey: sSortKey, sortDirection: sSortDirection, toggleSort: sToggleSort, sorted: sortedStudents } = useSort({ data: filteredStudents })
 
   const totalStudents = ENTERPRISES.reduce((s, e) => s + e.students, 0)
   const totalActive = ENTERPRISES.reduce((s, e) => s + e.activeUsers, 0)
-  const totalSpend = ENTERPRISES.reduce((s, e) => s + e.monthlySpend, 0)
+  const totalContractValue = ENTERPRISES.reduce((s, e) => s + e.contractValue, 0)
 
   if (selectedEnterprise) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <button onClick={() => { setSelectedEnterprise(null); setStudentSearch('') }} className="hover:text-foreground transition-colors flex items-center gap-1">
+          <button onClick={() => { setSelectedEnterprise(null); setSelectedStudent(null); setStudentSearch('') }} className="hover:text-foreground transition-colors flex items-center gap-1">
             <ArrowLeft className="h-3.5 w-3.5" />Enterprises
           </button>
           <ChevronRight className="h-3.5 w-3.5" />
@@ -73,7 +81,7 @@ export default function AdminEnterprises() {
               <h1 className="lf-page-title">{selectedEnterprise.name}</h1>
               <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${PLAN_COLORS[selectedEnterprise.plan]}`}>{selectedEnterprise.plan}</span>
             </div>
-            <p className="lf-body mt-0.5">{selectedEnterprise.domain} · {selectedEnterprise.department} · {selectedEnterprise.students} students</p>
+            <p className="lf-body mt-0.5">{selectedEnterprise.domain} · {selectedEnterprise.department} · {selectedEnterprise.students} included seats · {selectedEnterprise.billingCycle} billing</p>
           </div>
           <button className="lf-btn-outline gap-1.5">
             <Download className="h-3.5 w-3.5" />Export Students
@@ -85,7 +93,7 @@ export default function AdminEnterprises() {
             { label: 'Total Students', value: String(selectedEnterprise.students), icon: Users },
             { label: 'Active Users', value: String(selectedEnterprise.activeUsers), icon: TrendingUp },
             { label: 'Avg Credits', value: String(selectedEnterprise.avgCredits), icon: BarChart3 },
-            { label: 'Monthly Spend', value: `$${selectedEnterprise.monthlySpend.toLocaleString()}`, icon: DollarSign },
+            { label: 'Contract Value', value: `$${selectedEnterprise.contractValue.toLocaleString()}`, icon: DollarSign },
           ].map(({ label, value, icon: Icon }) => (
             <div key={label} className="lf-panel p-4">
               <div className="flex items-center justify-between mb-1">
@@ -109,19 +117,19 @@ export default function AdminEnterprises() {
             <table className="lf-table">
               <thead className="lf-table-head">
                 <tr>
-                  <th className="lf-table-th">Student</th>
-                  <th className="lf-table-th">Credits</th>
-                  <th className="lf-table-th hidden sm:table-cell">Usage</th>
-                  <th className="lf-table-th">Applications</th>
-                  <th className="lf-table-th">Status</th>
-                  <th className="lf-table-th hidden sm:table-cell">Last Active</th>
+                  <SortableHeader label="Student" sortKey="name" activeSortKey={sSortKey} sortDirection={sSortDirection} onToggleSort={sToggleSort} />
+                  <SortableHeader label="Credits" sortKey="credits" activeSortKey={sSortKey} sortDirection={sSortDirection} onToggleSort={sToggleSort} />
+                  <SortableHeader label="Usage" sortKey="creditsUsed" activeSortKey={sSortKey} sortDirection={sSortDirection} onToggleSort={sToggleSort} className="hidden sm:table-cell" />
+                  <SortableHeader label="Applications" sortKey="applications" activeSortKey={sSortKey} sortDirection={sSortDirection} onToggleSort={sToggleSort} />
+                  <SortableHeader label="Status" sortKey="status" activeSortKey={sSortKey} sortDirection={sSortDirection} onToggleSort={sToggleSort} />
+                  <SortableHeader label="Last Active" sortKey="lastActive" activeSortKey={sSortKey} sortDirection={sSortDirection} onToggleSort={sToggleSort} className="hidden sm:table-cell" />
                 </tr>
               </thead>
               <tbody>
-                {filteredStudents.map(s => {
+                {sortedStudents.map(s => {
                   const usage = s.credits > 0 ? (s.creditsUsed / s.credits) * 100 : 0
                   return (
-                    <tr key={s.id} className="lf-table-row">
+                    <tr key={s.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedStudent(s)}>
                       <td className="lf-table-cell">
                         <div>
                           <p className="font-medium text-foreground">{s.name}</p>
@@ -152,6 +160,21 @@ export default function AdminEnterprises() {
             </table>
           </div>
         </div>
+        {selectedStudent && (
+          <AdminDetailModal
+            title={selectedStudent.name}
+            subtitle={selectedStudent.email}
+            onClose={() => setSelectedStudent(null)}
+            fields={[
+              { label: 'Institution', value: selectedEnterprise.name },
+              { label: 'Credits', value: `${selectedStudent.creditsUsed}/${selectedStudent.credits}` },
+              { label: 'Applications', value: selectedStudent.applications },
+              { label: 'Status', value: selectedStudent.status },
+              { label: 'Last Active', value: selectedStudent.lastActive },
+              { label: 'Usage Level', value: selectedStudent.creditsUsed / selectedStudent.credits >= 0.8 ? 'High' : selectedStudent.creditsUsed / selectedStudent.credits >= 0.5 ? 'Medium' : 'Low' },
+            ]}
+          />
+        )}
       </div>
     )
   }
@@ -166,18 +189,24 @@ export default function AdminEnterprises() {
             <span className="text-foreground font-medium">Enterprises</span>
           </div>
           <h1 className="lf-page-title">Enterprises</h1>
-          <p className="lf-body mt-0.5">Institution accounts — students, performance, and usage</p>
+          <p className="lf-body mt-0.5">Institution accounts — contract billing, included seats, student activation, and usage</p>
         </div>
-        <button className="lf-btn-outline gap-1.5">
-          <Download className="h-3.5 w-3.5" />Export CSV
-        </button>
+        <div className="flex items-center gap-3">
+          <button className="lf-btn gap-1.5">
+            <Plus className="h-3.5 w-3.5" />Add Institution
+          </button>
+          <TimelineFilter value={period} onChange={setPeriod} />
+          <button className="lf-btn-outline gap-1.5">
+            <Download className="h-3.5 w-3.5" />Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         {[
           { label: 'Total Institutions', value: String(ENTERPRISES.length), icon: Building2 },
-          { label: 'Total Students', value: totalStudents.toLocaleString(), icon: Users },
-          { label: 'Monthly Revenue', value: `$${totalSpend.toLocaleString()}`, icon: TrendingUp },
+          { label: 'Included Seats', value: totalStudents.toLocaleString(), icon: Users },
+          { label: 'Annual Contract Value', value: `$${totalContractValue.toLocaleString()}`, icon: TrendingUp },
         ].map(({ label, value, icon: Icon }) => (
           <div key={label} className="lf-panel p-4">
             <div className="flex items-center justify-between mb-1">
@@ -199,18 +228,18 @@ export default function AdminEnterprises() {
           <table className="lf-table">
             <thead className="lf-table-head">
               <tr>
-                <th className="lf-table-th">Institution</th>
-                <th className="lf-table-th hidden md:table-cell">Department</th>
-                <th className="lf-table-th">Plan</th>
-                <th className="lf-table-th">Students</th>
-                <th className="lf-table-th hidden sm:table-cell">Active</th>
-                <th className="lf-table-th hidden lg:table-cell">Spend</th>
-                <th className="lf-table-th hidden sm:table-cell">Last Active</th>
+                <SortableHeader label="Institution" sortKey="name" activeSortKey={iSortKey} sortDirection={iSortDirection} onToggleSort={iToggleSort} />
+                <SortableHeader label="Department" sortKey="department" activeSortKey={iSortKey} sortDirection={iSortDirection} onToggleSort={iToggleSort} className="hidden md:table-cell" />
+                <SortableHeader label="Plan" sortKey="plan" activeSortKey={iSortKey} sortDirection={iSortDirection} onToggleSort={iToggleSort} />
+                <SortableHeader label="Seats" sortKey="students" activeSortKey={iSortKey} sortDirection={iSortDirection} onToggleSort={iToggleSort} />
+                <SortableHeader label="Active" sortKey="activeUsers" activeSortKey={iSortKey} sortDirection={iSortDirection} onToggleSort={iToggleSort} className="hidden sm:table-cell" />
+                <SortableHeader label="Contract" sortKey="contractValue" activeSortKey={iSortKey} sortDirection={iSortDirection} onToggleSort={iToggleSort} className="hidden lg:table-cell" />
+                <SortableHeader label="Last Active" sortKey="lastActive" activeSortKey={iSortKey} sortDirection={iSortDirection} onToggleSort={iToggleSort} className="hidden sm:table-cell" />
                 <th className="lf-table-th w-8"></th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(e => (
+              {sortedInstitutions.map(e => (
                 <tr key={e.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedEnterprise(e)}>
                   <td className="lf-table-cell">
                     <div className="flex items-center gap-3">
@@ -236,7 +265,7 @@ export default function AdminEnterprises() {
                       <span className="text-xs tabular-nums">{e.activeUsers}</span>
                     </div>
                   </td>
-                  <td className="lf-table-cell hidden lg:table-cell tabular-nums text-sm">${e.monthlySpend.toLocaleString()}</td>
+                  <td className="lf-table-cell hidden lg:table-cell tabular-nums text-sm">${e.contractValue.toLocaleString()}</td>
                   <td className="lf-table-cell hidden sm:table-cell text-xs text-muted-foreground">{e.lastActive}</td>
                   <td className="lf-table-cell">
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />

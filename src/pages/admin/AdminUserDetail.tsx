@@ -4,6 +4,8 @@ import { ChevronRight, ExternalLink, CreditCard, X, Clock, AlertTriangle } from 
 import { cn } from '@/lib/utils'
 import { useUser, useUpdateUser } from '@/hooks/useAdmin'
 import { ACTIVITY_LOGS, TICKETS, TRANSACTIONS } from '@/lib/adminMockData'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
 
 type DetailTab = 'details' | 'subscriptions'
 type BillingTab = 'history' | 'methods'
@@ -117,6 +119,9 @@ export default function AdminUserDetail() {
   const userTickets = TICKETS.filter(t => t.userId === user.id).slice(0, 5)
   const userTransactions = TRANSACTIONS.filter(t => t.userId === user.id).slice(0, 5)
   const creditPct = user.credits > 0 ? Math.round((user.creditsUsed / user.credits) * 100) : 0
+
+  const { sortKey: txSortKey, sortDirection: txSortDirection, toggleSort: txToggleSort, sorted: sortedTransactions } = useSort({ data: userTransactions })
+  const { sortKey: bSortKey, sortDirection: bSortDirection, toggleSort: bToggleSort, sorted: sortedBilling } = useSort({ data: user.billingHistory })
 
   return (
     <div className="space-y-6">
@@ -324,14 +329,14 @@ export default function AdminUserDetail() {
                     <table className="lf-table">
                       <thead className="lf-table-head">
                         <tr>
-                          <th className="lf-table-th">Date</th>
-                          <th className="lf-table-th">Type</th>
-                          <th className="lf-table-th">Amount</th>
-                          <th className="lf-table-th">Status</th>
+                          <SortableHeader label="Date" sortKey="date" activeSortKey={txSortKey} sortDirection={txSortDirection} onToggleSort={txToggleSort} />
+                          <SortableHeader label="Type" sortKey="type" activeSortKey={txSortKey} sortDirection={txSortDirection} onToggleSort={txToggleSort} />
+                          <SortableHeader label="Amount" sortKey="amount" activeSortKey={txSortKey} sortDirection={txSortDirection} onToggleSort={txToggleSort} />
+                          <SortableHeader label="Status" sortKey="status" activeSortKey={txSortKey} sortDirection={txSortDirection} onToggleSort={txToggleSort} />
                         </tr>
                       </thead>
                       <tbody>
-                        {userTransactions.map(tx => (
+                        {sortedTransactions.map(tx => (
                           <tr key={tx.id} className="lf-table-row">
                             <td className="lf-table-cell text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</td>
                             <td className="lf-table-cell capitalize">{tx.type.replace('_', ' ')}</td>
@@ -454,14 +459,14 @@ export default function AdminUserDetail() {
                       <table className="lf-table">
                         <thead className="lf-table-head">
                           <tr>
-                            <th className="lf-table-th">Date</th>
-                            <th className="lf-table-th">Description</th>
-                            <th className="lf-table-th">Amount</th>
-                            <th className="lf-table-th">Status</th>
+                            <SortableHeader label="Date" sortKey="date" activeSortKey={bSortKey} sortDirection={bSortDirection} onToggleSort={bToggleSort} />
+                            <SortableHeader label="Description" sortKey="description" activeSortKey={bSortKey} sortDirection={bSortDirection} onToggleSort={bToggleSort} />
+                            <SortableHeader label="Amount" sortKey="amount" activeSortKey={bSortKey} sortDirection={bSortDirection} onToggleSort={bToggleSort} />
+                            <SortableHeader label="Status" sortKey="status" activeSortKey={bSortKey} sortDirection={bSortDirection} onToggleSort={bToggleSort} />
                           </tr>
                         </thead>
                         <tbody>
-                          {user.billingHistory.map(bill => (
+                          {sortedBilling.map(bill => (
                             <tr key={bill.id} className="lf-table-row">
                               <td className="lf-table-cell text-muted-foreground">{new Date(bill.date).toLocaleDateString()}</td>
                               <td className="lf-table-cell font-medium text-foreground">{bill.description}</td>

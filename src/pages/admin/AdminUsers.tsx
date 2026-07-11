@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { Search, Download, UserPlus, TrendingUp, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUsers, useUpdateUser } from '@/hooks/useAdmin'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import { X } from 'lucide-react'
 import type { AdminUser, PlanTier, UserStatus } from '@/lib/adminMockData'
 
 type TabKey = 'all' | PlanTier | UserStatus
@@ -55,13 +59,14 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'suspended', label: 'Suspended' },
 ]
 
-function UserTable({ users }: { users: AdminUser[] }) {
+function UserTable({ users, period, setPeriod }: { users: AdminUser[]; period: TimePeriod; setPeriod: (period: TimePeriod) => void }) {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const filtered = users.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
   )
+  const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: filtered })
 
   const exportCSV = () => {
     const headers = ['Name', 'Email', 'Plan', 'Status', 'Credits', 'Credits Used', 'Signup Date', 'Total Spent']
@@ -89,6 +94,7 @@ function UserTable({ users }: { users: AdminUser[] }) {
               className="lf-input pl-9 h-9"
             />
           </div>
+          <TimelineFilter value={period} onChange={setPeriod} />
           <button onClick={exportCSV} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             <Download className="h-3.5 w-3.5" />Export
           </button>
@@ -98,18 +104,18 @@ function UserTable({ users }: { users: AdminUser[] }) {
         <table className="lf-table">
           <thead className="lf-table-head">
             <tr>
-              <th className="lf-table-th">Name</th>
-              <th className="lf-table-th">Email</th>
-              <th className="lf-table-th hidden md:table-cell">Plan</th>
-              <th className="lf-table-th hidden sm:table-cell">Credits</th>
-              <th className="lf-table-th hidden sm:table-cell">Applications</th>
-              <th className="lf-table-th">Status</th>
+              <SortableHeader label="Name" sortKey="name" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+              <SortableHeader label="Email" sortKey="email" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+              <SortableHeader label="Plan" sortKey="plan" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+              <SortableHeader label="Credits" sortKey="creditsUsed" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
+              <SortableHeader label="Applications" sortKey="applicationsSent" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
+              <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {sorted.length === 0 ? (
               <tr><td colSpan={6} className="lf-table-cell text-center text-muted-foreground">No users found</td></tr>
-            ) : filtered.map(user => (
+            ) : sorted.map(user => (
               <tr
                 key={user.id}
                 className="lf-table-row cursor-pointer"
@@ -140,6 +146,9 @@ function UserTable({ users }: { users: AdminUser[] }) {
 
 export default function AdminUsers() {
   const [tab, setTab] = useState<TabKey>('all')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'user' as 'user' | 'affiliate' | 'enterprise', plan: 'free' as 'free' | 'starter' | 'pro' | 'premium', message: '' })
   const { data, isLoading } = useUsers()
 
   const stats = data?.stats
@@ -158,8 +167,8 @@ export default function AdminUsers() {
           <p className="lf-body mt-0.5">Manage and monitor all platform users</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
-            <UserPlus className="h-3.5 w-3.5" />Invite
+          <button onClick={() => setShowInviteModal(true)} className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
+            <UserPlus className="h-3.5 w-3.5" />Invite User
           </button>
         </div>
       </div>
@@ -188,9 +197,103 @@ export default function AdminUsers() {
         {isLoading ? (
           <div className="p-8 text-center text-sm text-muted-foreground">Loading users...</div>
         ) : (
-          <UserTable users={filteredUsers} />
+          <UserTable users={filteredUsers} period={period} setPeriod={setPeriod} />
         )}
       </div>
+
+      {/* Invite User Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="lf-panel w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Invite User</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">Send an invitation to join Lightforth</p>
+              </div>
+              <button onClick={() => setShowInviteModal(false)} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Full Name</label>
+                <input
+                  value={inviteForm.name}
+                  onChange={e => setInviteForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="John Doe"
+                  className="lf-input w-full"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Email Address</label>
+                <input
+                  type="email"
+                  value={inviteForm.email}
+                  onChange={e => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="john@example.com"
+                  className="lf-input w-full"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Role</label>
+                  <select
+                    value={inviteForm.role}
+                    onChange={e => setInviteForm(prev => ({ ...prev, role: e.target.value as any }))}
+                    className="lf-select w-full"
+                  >
+                    <option value="user">User</option>
+                    <option value="affiliate">Affiliate / Partner</option>
+                    <option value="enterprise">Enterprise / Institution</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Plan</label>
+                  <select
+                    value={inviteForm.plan}
+                    onChange={e => setInviteForm(prev => ({ ...prev, plan: e.target.value as any }))}
+                    className="lf-select w-full"
+                  >
+                    <option value="free">Free</option>
+                    <option value="starter">Starter ($27/mo)</option>
+                    <option value="pro">Pro ($49/mo)</option>
+                    <option value="premium">Premium ($79/mo)</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Personal Message (optional)</label>
+                <textarea
+                  value={inviteForm.message}
+                  onChange={e => setInviteForm(prev => ({ ...prev, message: e.target.value }))}
+                  placeholder="Welcome to Lightforth! We're excited to have you on board."
+                  className="lf-input w-full min-h-[80px] resize-none"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    setShowInviteModal(false)
+                    setInviteForm({ name: '', email: '', role: 'user', plan: 'free', message: '' })
+                  }}
+                  className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowInviteModal(false)
+                    setInviteForm({ name: '', email: '', role: 'user', plan: 'free', message: '' })
+                  }}
+                  className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+                >
+                  Send Invitation
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,9 +1,10 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, Link } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 import {
   LayoutDashboard, DollarSign, Users, UserPlus, Building2,
   BarChart2, FileText, Megaphone, Tag, ScrollText, LifeBuoy, Bell, Settings,
   Zap, MessageSquare, BookOpen, FileCheck, Folder,
-  CreditCard, Video,
+  CreditCard, Video, Search, Code2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -47,6 +48,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: '/admin/auto-apply', icon: Zap, label: 'Auto-Apply' },
       { to: '/admin/interview-copilot', icon: MessageSquare, label: 'Interview Copilot' },
+      { to: '/admin/coding-copilot', icon: Code2, label: 'Coding Copilot' },
       { to: '/admin/interview-prep', icon: BookOpen, label: 'Interview Prep' },
       { to: '/admin/meeting', icon: Video, label: 'Meeting' },
       { to: '/admin/resume-builder', icon: FileText, label: 'Resume Builder' },
@@ -71,7 +73,27 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
+const SEARCH_RECORDS = [
+  ...NAV_GROUPS.flatMap(group => group.items.map(item => ({ label: item.label, group: group.label, to: item.to }))),
+  { label: 'Darnell Smith', group: 'User', to: '/admin/users/1' },
+  { label: 'Jessica Williams', group: 'User', to: '/admin/users/2' },
+  { label: 'Howard University', group: 'Enterprise', to: '/admin/users/enterprises' },
+  { label: 'Georgia Tech', group: 'Enterprise', to: '/admin/users/enterprises' },
+  { label: 'Auto-Apply failures', group: 'Product', to: '/admin/auto-apply' },
+  { label: 'Pricing plans', group: 'Revenue', to: '/admin/pricing' },
+  { label: 'Support tickets', group: 'System', to: '/admin/support' },
+]
+
 export default function AdminLayout() {
+  const [query, setQuery] = useState('')
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return SEARCH_RECORDS
+      .filter(item => `${item.label} ${item.group}`.toLowerCase().includes(q))
+      .slice(0, 8)
+  }, [query])
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar */}
@@ -122,7 +144,31 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex flex-1 flex-col overflow-y-auto bg-white px-4 pt-6 sm:px-6 sm:py-8 pb-6">
+      <main className="flex flex-1 flex-col overflow-y-auto bg-white px-4 pt-4 sm:px-6 sm:py-6 pb-6">
+        <div className="relative mb-6">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            placeholder="Search admin: users, revenue, tickets, modules..."
+            className="lf-input h-11 w-full max-w-2xl pl-10"
+          />
+          {results.length > 0 && (
+            <div className="absolute left-0 top-full z-30 mt-2 w-full max-w-2xl overflow-hidden rounded-lg border border-border bg-white shadow-xl">
+              {results.map(item => (
+                <Link
+                  key={`${item.group}-${item.label}`}
+                  to={item.to}
+                  onClick={() => setQuery('')}
+                  className="flex items-center justify-between border-b border-border/60 px-4 py-3 text-sm transition-colors last:border-0 hover:bg-muted/50"
+                >
+                  <span className="font-medium text-foreground">{item.label}</span>
+                  <span className="text-xs text-muted-foreground">{item.group}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
         <Outlet />
       </main>
     </div>

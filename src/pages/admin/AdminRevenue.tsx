@@ -1,8 +1,12 @@
 import { useState } from 'react'
-import { TrendingUp, TrendingDown, Download, Search, Globe, MapPin } from 'lucide-react'
+import { TrendingUp, TrendingDown, Download, Search, Globe, MapPin, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTransactions } from '@/hooks/useAdmin'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
 import { NG_REVENUE, NG_TRANSACTIONS, GLOBAL_REVENUE } from '@/lib/adminMockData'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 type TxTab = 'revenue' | 'payouts' | 'ng'
 
@@ -42,6 +46,7 @@ function TransactionTable({ rows }: { rows: { id: string; type: string; amount: 
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [selectedRow, setSelectedRow] = useState<typeof rows[0] | null>(null)
 
   const filtered = rows.filter(r => {
     const matchesSearch = !search ||
@@ -52,6 +57,8 @@ function TransactionTable({ rows }: { rows: { id: string; type: string; amount: 
     const matchesStatus = statusFilter === 'all' || r.status === statusFilter
     return matchesSearch && matchesType && matchesStatus
   })
+
+  const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: filtered })
 
   const exportCSV = () => {
     const headers = ['ID', 'User', 'Email', 'Type', 'Amount', 'Plan', 'Status', 'Date']
@@ -130,17 +137,17 @@ function TransactionTable({ rows }: { rows: { id: string; type: string; amount: 
           <table className="lf-table">
             <thead className="lf-table-head">
               <tr>
-                <th className="lf-table-th">User</th>
-                <th className="lf-table-th">Type</th>
-                <th className="lf-table-th">Amount</th>
-                <th className="lf-table-th hidden md:table-cell">Plan</th>
-                <th className="lf-table-th hidden sm:table-cell">Date</th>
-                <th className="lf-table-th">Status</th>
+                <SortableHeader label="User" sortKey="userName" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                <SortableHeader label="Type" sortKey="type" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                <SortableHeader label="Amount" sortKey="amount" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                <SortableHeader label="Plan" sortKey="plan" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
+                <SortableHeader label="Date" sortKey="date" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
+                <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
               </tr>
             </thead>
             <tbody>
-              {filtered.map(row => (
-                <tr key={row.id} className="lf-table-row">
+              {sorted.map(row => (
+                <tr key={row.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(row)}>
                   <td className="lf-table-cell">
                     <div>
                       <p className="font-medium text-foreground text-sm">{row.userName}</p>
@@ -160,18 +167,72 @@ function TransactionTable({ rows }: { rows: { id: string; type: string; amount: 
           </table>
         </div>
       )}
+      {selectedRow && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="lf-panel w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Transaction Details</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">{selectedRow.id}</p>
+              </div>
+              <button onClick={() => setSelectedRow(null)} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">User</p>
+                  <p className="text-sm font-semibold text-foreground mt-0.5">{selectedRow.userName}</p>
+                  <p className="text-xs text-muted-foreground">{selectedRow.email}</p>
+                </div>
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Amount</p>
+                  <p className="text-lg font-bold text-foreground mt-0.5">${Math.abs(selectedRow.amount).toFixed(2)}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Type</p>
+                  <p className="text-sm font-medium text-foreground mt-0.5 capitalize">{selectedRow.type.replace('_', ' ')}</p>
+                </div>
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Plan</p>
+                  <p className="text-sm font-medium text-foreground mt-0.5 capitalize">{selectedRow.plan}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Status</p>
+                  <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium mt-0.5 ${STATUS_COLORS[selectedRow.status]}`}>{selectedRow.status}</span>
+                </div>
+                <div className="rounded-lg border border-border p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase">Date</p>
+                  <p className="text-sm text-foreground mt-0.5">{new Date(selectedRow.date).toLocaleDateString()}</p>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button onClick={() => setSelectedRow(null)} className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 function NgRevenueTable() {
   const [search, setSearch] = useState('')
+  const [selectedRow, setSelectedRow] = useState<typeof NG_TRANSACTIONS[number] | null>(null)
 
   const filtered = NG_TRANSACTIONS.filter(r =>
     !search ||
     r.userName.toLowerCase().includes(search.toLowerCase()) ||
     r.email.toLowerCase().includes(search.toLowerCase())
   )
+
+  const { sortKey: ngSortKey, sortDirection: ngSortDirection, toggleSort: ngToggleSort, sorted: ngSorted } = useSort({ data: filtered })
 
   const exportNgCSV = () => {
     const headers = ['User', 'Email', 'Plan', 'Amount (₦)', 'Amount ($)', 'Type', 'Status', 'Date']
@@ -235,17 +296,17 @@ function NgRevenueTable() {
         <table className="lf-table">
           <thead className="lf-table-head">
             <tr>
-              <th className="lf-table-th">User</th>
-              <th className="lf-table-th hidden sm:table-cell">Plan</th>
-              <th className="lf-table-th">Amount (₦)</th>
-              <th className="lf-table-th hidden md:table-cell">Amount ($)</th>
-              <th className="lf-table-th">Status</th>
-              <th className="lf-table-th hidden sm:table-cell">Date</th>
+              <SortableHeader label="User" sortKey="userName" activeSortKey={ngSortKey} sortDirection={ngSortDirection} onToggleSort={ngToggleSort} />
+              <SortableHeader label="Plan" sortKey="plan" activeSortKey={ngSortKey} sortDirection={ngSortDirection} onToggleSort={ngToggleSort} className="hidden sm:table-cell" />
+              <SortableHeader label="Amount (₦)" sortKey="amountNgn" activeSortKey={ngSortKey} sortDirection={ngSortDirection} onToggleSort={ngToggleSort} />
+              <SortableHeader label="Amount ($)" sortKey="amountUsd" activeSortKey={ngSortKey} sortDirection={ngSortDirection} onToggleSort={ngToggleSort} className="hidden md:table-cell" />
+              <SortableHeader label="Status" sortKey="status" activeSortKey={ngSortKey} sortDirection={ngSortDirection} onToggleSort={ngToggleSort} />
+              <SortableHeader label="Date" sortKey="date" activeSortKey={ngSortKey} sortDirection={ngSortDirection} onToggleSort={ngToggleSort} className="hidden sm:table-cell" />
             </tr>
           </thead>
           <tbody>
-            {filtered.map(row => (
-              <tr key={row.id} className="lf-table-row">
+            {ngSorted.map(row => (
+              <tr key={row.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(row)}>
                 <td className="lf-table-cell">
                   <div>
                     <p className="font-medium text-foreground text-sm">{row.userName}</p>
@@ -266,12 +327,28 @@ function NgRevenueTable() {
           </tbody>
         </table>
       </div>
+      {selectedRow && (
+        <AdminDetailModal
+          title={selectedRow.userName}
+          subtitle={selectedRow.email}
+          onClose={() => setSelectedRow(null)}
+          fields={[
+            { label: 'Plan', value: selectedRow.plan },
+            { label: 'Amount (NGN)', value: `₦${Math.abs(selectedRow.amountNgn).toLocaleString()}` },
+            { label: 'Amount (USD)', value: `$${Math.abs(selectedRow.amountUsd)}` },
+            { label: 'Type', value: selectedRow.type },
+            { label: 'Status', value: selectedRow.status },
+            { label: 'Date', value: selectedRow.date },
+          ]}
+        />
+      )}
     </div>
   )
 }
 
 export default function AdminRevenue() {
   const [tab, setTab] = useState<TxTab>('revenue')
+  const [period, setPeriod] = useState<TimePeriod>('12m')
   const { data, isLoading } = useTransactions()
 
   const revenue = data?.revenue
@@ -287,6 +364,7 @@ export default function AdminRevenue() {
           <h1 className="lf-page-title">Revenue</h1>
           <p className="lf-body mt-0.5">Financial overview — Global and Nigeria breakdown</p>
         </div>
+        <TimelineFilter value={period} onChange={setPeriod} />
       </div>
 
       {/* Global + NG Summary */}

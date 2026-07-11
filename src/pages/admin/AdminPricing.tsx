@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { DollarSign, CreditCard, Save, RotateCcw, Plus, Trash2, CheckCircle2, XCircle, Settings, X } from 'lucide-react'
+import { useSort } from '@/hooks/useSort'
+import { SortableHeader } from '@/components/shared/SortableHeader'
+import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 interface PlanFeature {
   key: string
@@ -255,6 +258,8 @@ export default function AdminPricing() {
   const [editingPlan, setEditingPlan] = useState<PlanConfig | null>(null)
   const [tab, setTab] = useState<'plans' | 'addons' | 'settings'>('plans')
   const [hasChanges, setHasChanges] = useState(false)
+  const [selectedAddon, setSelectedAddon] = useState<typeof ADDONS[number] | null>(null)
+  const { sortKey, sortDirection, toggleSort, sorted: sortedAddons } = useSort({ data: ADDONS })
 
   const savePlan = (updated: PlanConfig) => {
     setPlans(prev => prev.map(p => p.id === updated.id ? updated : p))
@@ -406,16 +411,16 @@ export default function AdminPricing() {
             <table className="lf-table">
               <thead className="lf-table-head">
                 <tr>
-                  <th className="lf-table-th">Add-on</th>
-                  <th className="lf-table-th">Type</th>
-                  <th className="lf-table-th">Price</th>
-                  <th className="lf-table-th">Status</th>
+                  <SortableHeader label="Add-on" sortKey="name" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Type" sortKey="type" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Price" sortKey="price" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
+                  <SortableHeader label="Status" sortKey="active" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
                   <th className="lf-table-th w-20"></th>
                 </tr>
               </thead>
               <tbody>
-                {ADDONS.map(a => (
-                  <tr key={a.id} className="lf-table-row">
+                {sortedAddons.map(a => (
+                  <tr key={a.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedAddon(a)}>
                     <td className="lf-table-cell font-medium text-foreground">{a.name}</td>
                     <td className="lf-table-cell"><span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary capitalize">{a.type}</span></td>
                     <td className="lf-table-cell tabular-nums font-semibold">${a.price}{a.type === 'addon' || a.type === 'renewal' ? '/mo' : ''}</td>
@@ -424,7 +429,7 @@ export default function AdminPricing() {
                         <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${a.active ? 'translate-x-4' : 'translate-x-0'}`} />
                       </div>
                     </td>
-                    <td className="lf-table-cell"><button className="text-muted-foreground hover:text-red-600 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button></td>
+                    <td className="lf-table-cell"><button onClick={(event) => event.stopPropagation()} className="text-muted-foreground hover:text-red-600 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -461,6 +466,19 @@ export default function AdminPricing() {
 
       {/* ───── Edit Modal ───── */}
       {editingPlan && <PlanModal plan={editingPlan} onClose={() => setEditingPlan(null)} onSave={savePlan} />}
+      {selectedAddon && (
+        <AdminDetailModal
+          title={selectedAddon.name}
+          subtitle={selectedAddon.type}
+          onClose={() => setSelectedAddon(null)}
+          fields={[
+            { label: 'Price', value: `$${selectedAddon.price}` },
+            { label: 'Type', value: selectedAddon.type },
+            { label: 'Status', value: selectedAddon.active ? 'Active' : 'Inactive' },
+            { label: 'Billing Behavior', value: selectedAddon.type === 'credits' ? 'Adds credits to account' : selectedAddon.type === 'one-time' ? 'One-time purchase' : selectedAddon.type === 'renewal' ? 'Plan renewal' : 'Recurring add-on' },
+          ]}
+        />
+      )}
     </div>
   )
 }
