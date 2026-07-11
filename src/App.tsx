@@ -52,6 +52,16 @@ const JobsPage = lazy(() => import('@/pages/career-specialist/JobsPage'))
 const SettingsPage = lazy(() => import('@/pages/career-specialist/SettingsPage'))
 const CreateStudentPage = lazy(() => import('@/pages/career-specialist/CreateStudentPage'))
 
+const AtsCheckerPage = lazy(() => import('@/pages/marketing/products/AtsCheckerPage'))
+const AutoApplyMarketingPage = lazy(() => import('@/pages/marketing/products/AutoApplyMarketingPage'))
+const ResumeMarketingPage = lazy(() => import('@/pages/marketing/products/ResumeMarketingPage'))
+const InterviewPrepMarketingPage = lazy(() => import('@/pages/marketing/products/InterviewPrepMarketingPage'))
+const CopilotMarketingPage = lazy(() => import('@/pages/marketing/products/CopilotMarketingPage'))
+const PricingPage = lazy(() => import('@/pages/marketing/pricing/PricingPage'))
+const PrivacyPolicyPage = lazy(() => import('@/pages/marketing/legal/PrivacyPolicyPage'))
+const TermsPage = lazy(() => import('@/pages/marketing/legal/TermsPage'))
+const RefundPolicyPage = lazy(() => import('@/pages/marketing/legal/RefundPolicyPage'))
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -78,14 +88,23 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/" element={<LightforthHomePage />} />
+            <Route path="/ats-checker" element={<Suspense fallback={null}><AtsCheckerPage /></Suspense>} />
+            <Route path="/resume" element={<Suspense fallback={null}><ResumeMarketingPage /></Suspense>} />
+            <Route path="/co-pilot" element={<Suspense fallback={null}><CopilotMarketingPage /></Suspense>} />
+            <Route path="/pricing" element={<Suspense fallback={null}><PricingPage /></Suspense>} />
+            <Route path="/privacy-policy" element={<Suspense fallback={null}><PrivacyPolicyPage /></Suspense>} />
+            <Route path="/terms-condition" element={<Suspense fallback={null}><TermsPage /></Suspense>} />
+            <Route path="/refund-policy" element={<Suspense fallback={null}><RefundPolicyPage /></Suspense>} />
             <Route path="/auth/*" element={<Auth />} />
             <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
             <Route path="/app" element={<AppRoute><Dashboard /></AppRoute>} />
             <Route path="/documents" element={<AppRoute><Suspense fallback={null}><MyDocuments /></Suspense></AppRoute>} />
             <Route path="/documents/context" element={<AppRoute><Suspense fallback={null}><ContextPage /></Suspense></AppRoute>} />
             <Route path="/resume-builder" element={<ProtectedRoute><Suspense fallback={null}><ResumeBuilder /></Suspense></ProtectedRoute>} />
-            <Route path="/auto-apply" element={<AppRoute><Suspense fallback={null}><AutoApply /></Suspense></AppRoute>} />
-            <Route path="/interview-prep" element={<AppRoute><Suspense fallback={null}><InterviewPrep /></Suspense></AppRoute>} />
+            <Route path="/auto-apply" element={<Suspense fallback={null}><AutoApplyMarketingPage /></Suspense>} />
+            <Route path="/app/auto-apply" element={<AppRoute><Suspense fallback={null}><AutoApply /></Suspense></AppRoute>} />
+            <Route path="/interview-prep" element={<Suspense fallback={null}><InterviewPrepMarketingPage /></Suspense>} />
+            <Route path="/app/interview-prep" element={<AppRoute><Suspense fallback={null}><InterviewPrep /></Suspense></AppRoute>} />
             <Route path="/interview-copilot" element={<AppRoute><Suspense fallback={null}><InterviewCopilot /></Suspense></AppRoute>} />
             <Route path="/billing" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
             <Route path="/billings-and-subscription" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
