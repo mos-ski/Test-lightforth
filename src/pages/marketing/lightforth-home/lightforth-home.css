@@ -1,0 +1,20 @@
+@font-face {
+  font-family: 'Georgia LF';
+  src: url('/lightforth-home/fonts/georgia.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Georgia LF';
+  src: url('/lightforth-home/fonts/georgiab.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.lf-home h1,
+.lf-home h2,
+.lf-home h3 {
+  font-family: 'Georgia LF', Georgia, serif;
+}

@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout'
 import { lazy, Suspense } from 'react'
 import Auth from '@/pages/Auth'
 import Dashboard from '@/pages/Dashboard'
-import CopilotLanding from '@/pages/marketing/CopilotLanding'
+import LightforthHomePage from '@/pages/marketing/lightforth-home/LightforthHomePage'
 
 const OnboardingFlow = lazy(() => import('@/pages/OnboardingFlow'))
 const MyDocuments = lazy(() => import('@/pages/MyDocuments'))
@@ -77,7 +77,7 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<CopilotLanding />} />
+            <Route path="/" element={<LightforthHomePage />} />
             <Route path="/auth/*" element={<Auth />} />
             <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
             <Route path="/app" element={<AppRoute><Dashboard /></AppRoute>} />
