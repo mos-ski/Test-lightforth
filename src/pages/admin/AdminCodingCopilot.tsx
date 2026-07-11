@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { ArrowUpRight, Code2, Cpu, FileCode2, Plus, ShieldCheck, Terminal, Timer, Users } from 'lucide-react'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const SESSIONS = [
   { id: 'c1', user: 'Darnell Smith', language: 'TypeScript', challenge: 'React state machine', duration: 38, captures: 12, accuracy: 94, status: 'completed', plan: 'Pro', time: '18 min ago' },
@@ -27,16 +28,13 @@ export default function AdminCodingCopilot() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="lf-page-title">Coding Copilot</h1>
-          <p className="lf-body mt-0.5">Live coding support, screen capture sessions, answer quality, and review flags</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="lf-btn gap-1.5"><Plus className="h-3.5 w-3.5" />Create Review</button>
-          <TimelineFilter value={period} onChange={setPeriod} />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Coding Copilot"
+        subtitle="Live coding support, screen capture sessions, answer quality, and review flags"
+        actions={[{ label: 'Create Review', icon: Plus }]}
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       <div className="flex items-center gap-1.5">
         {(['overview', 'sessions', 'settings'] as const).map(item => (

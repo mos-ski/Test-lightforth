@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { TrendingUp, ArrowUpRight, FileText, Users, Target, BarChart3, Clock, Zap, CheckCircle2, XCircle, MessageSquare, Download, Settings, X, Eye, Sparkles, Check, ExternalLink, Plus } from 'lucide-react'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const TEMPLATES = [
   { id: 't01', name: 'Classic Blue', atsAvg: 82, uses: 3421, active: true, downloads: 1240, color: '#143763', premium: false },
@@ -73,18 +74,13 @@ export default function AdminResumeBuilder() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Resume Builder</h1>
-          <p className="lf-body mt-0.5">AI-powered resume building — chat, ATS scoring, templates, and acceptance tracking</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="lf-btn gap-1.5">
-            <Plus className="h-3.5 w-3.5" />Create Resume
-          </button>
-          <TimelineFilter value={period} onChange={setPeriod} />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Resume Builder"
+        subtitle="AI-powered resume building — chat, ATS scoring, templates, and acceptance tracking"
+        actions={[{ label: 'Create Resume', icon: Plus }]}
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       <div className="flex items-center gap-1.5">
         {(['overview', 'builds', 'templates', 'settings'] as const).map(t => (

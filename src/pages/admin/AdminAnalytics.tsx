@@ -4,7 +4,8 @@ import { useAnalytics } from '@/hooks/useAdmin'
 import { USERS, TRANSACTIONS, OVERVIEW_STATS, MONTHLY_DATA, FEATURE_USAGE, TOP_CITIES } from '@/lib/adminMockData'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 type Period = '7d' | '30d' | '90d' | '12m' | 'all'
@@ -293,7 +294,7 @@ export default function AdminAnalytics() {
   if (isLoading || !data) {
     return (
       <div className="space-y-6">
-        <div><h1 className="lf-page-title">Analytics</h1><p className="lf-body mt-0.5">Loading...</p></div>
+        <AdminPageHeader title="Analytics" subtitle="Loading..." />
       </div>
     )
   }
@@ -302,23 +303,12 @@ export default function AdminAnalytics() {
     <div className="space-y-6">
       {/* Sticky header + period filter */}
       <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 bg-white border-b border-border mb-6 pt-6 pb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="lf-page-title">Analytics</h1>
-            <p className="lf-body mt-0.5">Platform performance metrics and trends</p>
-          </div>
-          <TimelineFilter value={period} onChange={setPeriod} />
-        </div>
-        <div className="flex items-center gap-1.5">
-          {(['7d', '30d', '90d', '12m', 'all'] as Period[]).map(p => (
-            <button key={p} onClick={() => setPeriod(p)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
-              period === p ? 'bg-foreground text-white scale-105 shadow-md' : 'border border-border text-muted-foreground hover:text-foreground hover:border-foreground/20'
-            }`}>{p === 'all' ? 'All time' : p}</button>
-          ))}
-          <span className="ml-3 text-xs text-muted-foreground transition-opacity duration-300">
-            Showing data for <strong className="text-foreground">{period === 'all' ? 'all time' : `last ${period}`}</strong>
-          </span>
-        </div>
+        <AdminPageHeader
+          title="Analytics"
+          subtitle="Platform performance metrics and trends"
+          period={period}
+          onPeriodChange={setPeriod}
+        />
       </div>
 
       {/* Key Metrics */}

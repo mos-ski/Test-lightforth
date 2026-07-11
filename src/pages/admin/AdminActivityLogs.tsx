@@ -5,7 +5,8 @@ import { useActivityLogs } from '@/hooks/useAdmin'
 import { ACTIVITY_LOGS } from '@/lib/adminMockData'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 type TabKey = 'all' | 'auth' | 'application' | 'payment' | 'admin' | 'system'
 
@@ -56,18 +57,13 @@ export default function AdminActivityLogs() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Activity Logs</h1>
-          <p className="lf-body mt-0.5">System-wide event log — filterable audit trail</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <TimelineFilter value={period} onChange={setPeriod} />
-          <button onClick={exportCSV} className="flex items-center gap-1.5 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <Download className="h-3.5 w-3.5" />Export
-          </button>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Activity Logs"
+        subtitle="System-wide event log — filterable audit trail"
+        actions={[{ label: 'Export', icon: Download, onClick: exportCSV, variant: 'outline' }]}
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

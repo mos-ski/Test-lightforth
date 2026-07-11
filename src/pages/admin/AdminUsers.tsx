@@ -6,6 +6,7 @@ import { useUsers, useUpdateUser } from '@/hooks/useAdmin'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
 import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 import { X } from 'lucide-react'
 import type { AdminUser, PlanTier, UserStatus } from '@/lib/adminMockData'
 
@@ -161,17 +162,11 @@ export default function AdminUsers() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Users</h1>
-          <p className="lf-body mt-0.5">Manage and monitor all platform users</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowInviteModal(true)} className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
-            <UserPlus className="h-3.5 w-3.5" />Invite User
-          </button>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Users"
+        subtitle="Manage and monitor all platform users"
+        actions={[{ label: 'Invite User', icon: UserPlus, onClick: () => setShowInviteModal(true) }]}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

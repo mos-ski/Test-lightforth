@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { TrendingUp, ArrowUpRight, FileCheck, Target, Zap, Users, BarChart3 } from 'lucide-react'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const ATS_STATS = {
   totalScans: 18943,
@@ -42,10 +43,7 @@ export default function AdminAtsChecker() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="lf-page-title">ATS Checker</h1>
-        <p className="lf-body mt-0.5">Resume optimization and ATS scoring — monitor usage and effectiveness</p>
-      </div>
+      <AdminPageHeader title="ATS Checker" subtitle="Resume optimization and ATS scoring — monitor usage and effectiveness" />
 
       <div className="flex items-center gap-1.5">
         {(['overview', 'scans', 'settings'] as const).map(t => (

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
 import { useTickets, useUpdateTicket } from '@/hooks/useAdmin'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const STATUS_COLORS: Record<string, string> = {
   open: 'bg-primary text-white',
@@ -38,15 +39,11 @@ export default function AdminSupport() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Support</h1>
-          <p className="lf-body mt-0.5">User support tickets and issue tracking</p>
-        </div>
-        <button className="lf-btn gap-1.5">
-          <Plus className="h-3.5 w-3.5" />New Ticket
-        </button>
-      </div>
+      <AdminPageHeader
+        title="Support"
+        subtitle="User support tickets and issue tracking"
+        actions={[{ label: 'New Ticket', icon: Plus }]}
+      />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { TrendingUp, ArrowUpRight, Video, Clock, Users, Zap, MessageSquare, Eye, EyeOff, ChevronRight, Shield, ArrowUpCircle, FileText, Settings, X } from 'lucide-react'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
 const MEETINGS = [
@@ -47,13 +48,12 @@ export default function AdminMeeting() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Meeting</h1>
-          <p className="lf-body mt-0.5">Premium-only Copilot for professional meetings — multi-speaker, action items, transcript review</p>
-        </div>
-        <TimelineFilter value={period} onChange={setPeriod} />
-      </div>
+      <AdminPageHeader
+        title="Meeting"
+        subtitle="Premium-only Copilot for professional meetings — multi-speaker, action items, transcript review"
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       <div className="flex items-center gap-1.5">
         {(['overview', 'sessions', 'upsell', 'settings'] as const).map(t => (

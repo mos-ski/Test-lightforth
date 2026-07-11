@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { TrendingUp, ArrowUpRight, Video, Clock, Users, Zap, MessageSquare, Eye, EyeOff, Monitor, Smartphone, Settings, ChevronRight, X } from 'lucide-react'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const SESSIONS = [
   { id: 's1', user: 'Darnell Smith', platform: 'Desktop', useCase: 'Interview', jobTitle: 'Senior Software Engineer', style: 'Headlines', answerLength: 'Medium', duration: 42, questionsAnswered: 14, speakers: 2, stealthUsed: true, autoRespond: false, aiAssistantUsed: true, contextDocs: 2, status: 'completed', time: '2 hr ago', score: 87 },
@@ -53,13 +54,12 @@ export default function AdminInterviewCopilot() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Interview Copilot</h1>
-          <p className="lf-body mt-0.5">Real-time interview assistance — stealth mode, response styles, multi-speaker, AI assistant</p>
-        </div>
-        <TimelineFilter value={period} onChange={setPeriod} />
-      </div>
+      <AdminPageHeader
+        title="Interview Copilot"
+        subtitle="Real-time interview assistance — stealth mode, response styles, multi-speaker, AI assistant"
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       <div className="flex items-center gap-1.5">
         {(['overview', 'sessions', 'settings'] as const).map(t => (

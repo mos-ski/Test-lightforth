@@ -3,8 +3,9 @@ import { TrendingUp, ArrowUpRight, Settings, Zap, Clock, CheckCircle2, XCircle, 
 import { USERS, TRANSACTIONS } from '@/lib/adminMockData'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const AUTO_APPLY_STATS = {
   totalApplications: 12847,
@@ -55,18 +56,13 @@ export default function AdminAutoApply() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Auto-Apply</h1>
-          <p className="lf-body mt-0.5">Automated job application engine — monitor performance and configuration</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="lf-btn gap-1.5">
-            <Plus className="h-3.5 w-3.5" />New Application
-          </button>
-          <TimelineFilter value={period} onChange={setPeriod} />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Auto-Apply"
+        subtitle="Automated job application engine — monitor performance and configuration"
+        actions={[{ label: 'New Application', icon: Plus }]}
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       <div className="flex items-center gap-1.5">
         {(['overview', 'jobs', 'settings'] as const).map(t => (

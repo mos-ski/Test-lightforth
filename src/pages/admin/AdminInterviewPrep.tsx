@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { TrendingUp, ArrowUpRight, BookOpen, Target, Clock, Users, CheckCircle2, Plus } from 'lucide-react'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const PREP_STATS = {
   totalSessions: 5678,
@@ -46,18 +47,13 @@ export default function AdminInterviewPrep() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Interview Prep</h1>
-          <p className="lf-body mt-0.5">Practice questions and mock interviews — track user progress</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="lf-btn gap-1.5">
-            <Plus className="h-3.5 w-3.5" />New Practice Session
-          </button>
-          <TimelineFilter value={period} onChange={setPeriod} />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Interview Prep"
+        subtitle="Practice questions and mock interviews — track user progress"
+        actions={[{ label: 'New Practice Session', icon: Plus }]}
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       <div className="flex items-center gap-1.5">
         {(['overview', 'practice', 'settings'] as const).map(t => (

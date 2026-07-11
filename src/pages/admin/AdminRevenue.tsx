@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils'
 import { useTransactions } from '@/hooks/useAdmin'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 import { NG_REVENUE, NG_TRANSACTIONS, GLOBAL_REVENUE } from '@/lib/adminMockData'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
 
@@ -359,13 +360,12 @@ export default function AdminRevenue() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="lf-page-title">Revenue</h1>
-          <p className="lf-body mt-0.5">Financial overview — Global and Nigeria breakdown</p>
-        </div>
-        <TimelineFilter value={period} onChange={setPeriod} />
-      </div>
+      <AdminPageHeader
+        title="Revenue"
+        subtitle="Financial overview — Global and Nigeria breakdown"
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       {/* Global + NG Summary */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

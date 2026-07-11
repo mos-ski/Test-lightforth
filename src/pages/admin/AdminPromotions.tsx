@@ -5,8 +5,9 @@ import { useCoupons, useCreateCoupon, useUpdateCoupon } from '@/hooks/useAdmin'
 import type { Coupon } from '@/lib/adminMockData'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
 import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 type PromoTab = 'promotions' | 'coupons'
 
@@ -302,15 +303,12 @@ export default function AdminPromotions() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="lf-page-title">Promotions</h1>
-        <div className="flex items-center gap-3">
-          <button className="rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
-            + Create Promotion
-          </button>
-          <TimelineFilter value={period} onChange={setPeriod} />
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Promotions"
+        actions={[{ label: 'Create Promotion', icon: Plus }]}
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       <div className="lf-panel overflow-hidden">
         <div className="lf-tabs px-4 pt-1 gap-0">
