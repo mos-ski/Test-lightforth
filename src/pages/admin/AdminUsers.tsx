@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { useUsers, useUpdateUser } from '@/hooks/useAdmin'
 import { useSort } from '@/hooks/useSort'
 import { SortableHeader } from '@/components/shared/SortableHeader'
-import { TimelineFilter, type TimePeriod } from '@/components/shared/TimelineFilter'
+import type { TimePeriod } from '@/components/shared/TimelineFilter'
 import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 import { X } from 'lucide-react'
 import type { AdminUser, PlanTier, UserStatus } from '@/lib/adminMockData'
@@ -60,7 +60,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'suspended', label: 'Suspended' },
 ]
 
-function UserTable({ users, period, setPeriod }: { users: AdminUser[]; period: TimePeriod; setPeriod: (period: TimePeriod) => void }) {
+function UserTable({ users }: { users: AdminUser[] }) {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const filtered = users.filter(u =>
@@ -95,7 +95,6 @@ function UserTable({ users, period, setPeriod }: { users: AdminUser[]; period: T
               className="lf-input pl-9 h-9"
             />
           </div>
-          <TimelineFilter value={period} onChange={setPeriod} />
           <button onClick={exportCSV} className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             <Download className="h-3.5 w-3.5" />Export
           </button>
@@ -166,6 +165,8 @@ export default function AdminUsers() {
         title="Users"
         subtitle="Manage and monitor all platform users"
         actions={[{ label: 'Invite User', icon: UserPlus, onClick: () => setShowInviteModal(true) }]}
+        period={period}
+        onPeriodChange={setPeriod}
       />
 
       {/* Stats */}
@@ -192,7 +193,7 @@ export default function AdminUsers() {
         {isLoading ? (
           <div className="p-8 text-center text-sm text-muted-foreground">Loading users...</div>
         ) : (
-          <UserTable users={filteredUsers} period={period} setPeriod={setPeriod} />
+          <UserTable users={filteredUsers} />
         )}
       </div>
 
