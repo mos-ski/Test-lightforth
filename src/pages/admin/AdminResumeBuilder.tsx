@@ -2,26 +2,26 @@ import { useState } from 'react'
 import { TrendingUp, ArrowUpRight, FileText, Users, Target, BarChart3, Clock, Zap, CheckCircle2, XCircle, MessageSquare, Download, Settings, X, Eye, Sparkles, Check, ExternalLink } from 'lucide-react'
 
 const TEMPLATES = [
-  { id: 't01', name: 'Classic Blue', atsAvg: 82, uses: 3421, active: true, downloads: 1240, color: '#143763' },
-  { id: 't02', name: 'Centered', atsAvg: 79, uses: 1890, active: true, downloads: 890, color: '#143763' },
-  { id: 't03', name: 'Minimal', atsAvg: 84, uses: 2100, active: true, downloads: 920, color: '#64748b' },
-  { id: 't04', name: 'Teal Summary', atsAvg: 86, uses: 1670, active: true, downloads: 780, color: '#0f766e' },
-  { id: 't05', name: 'Clean Serif', atsAvg: 81, uses: 1340, active: true, downloads: 610, color: '#1e293b' },
-  { id: 't06', name: 'Professional', atsAvg: 85, uses: 2890, active: true, downloads: 1320, color: '#1e40af' },
-  { id: 't07', name: 'Green Accent', atsAvg: 83, uses: 1120, active: true, downloads: 510, color: '#0f766e' },
-  { id: 't08', name: 'Executive', atsAvg: 88, uses: 1567, active: true, downloads: 720, color: '#0f172a' },
-  { id: 't09', name: 'Burgundy', atsAvg: 77, uses: 890, active: true, downloads: 410, color: '#9f1239' },
-  { id: 't10', name: 'Bold Blue', atsAvg: 80, uses: 1450, active: true, downloads: 670, color: '#1d4ed8' },
-  { id: 't11', name: 'Simple', atsAvg: 83, uses: 1780, active: true, downloads: 820, color: '#475569' },
-  { id: 't12', name: 'Slate', atsAvg: 81, uses: 1020, active: true, downloads: 470, color: '#334155' },
-  { id: 't13', name: 'Monogram', atsAvg: 79, uses: 680, active: true, downloads: 310, color: '#143763' },
-  { id: 't14', name: 'Teal Highlight', atsAvg: 85, uses: 920, active: true, downloads: 430, color: '#0f766e' },
-  { id: 't15', name: 'Traditional', atsAvg: 82, uses: 1560, active: true, downloads: 720, color: '#1e293b' },
-  { id: 't16', name: 'Three Column', atsAvg: 78, uses: 780, active: true, downloads: 360, color: '#334155' },
-  { id: 't17', name: 'Founder', atsAvg: 87, uses: 1340, active: true, downloads: 620, color: '#0f172a' },
-  { id: 't18', name: 'Marketing Pro', atsAvg: 80, uses: 1120, active: true, downloads: 520, color: '#7c3aed' },
-  { id: 't19', name: 'Creative', atsAvg: 71, uses: 892, active: true, downloads: 410, color: '#ea580c' },
-  { id: 't20', name: 'Executive Pro', atsAvg: 89, uses: 1680, active: true, downloads: 780, color: '#0f172a' },
+  { id: 't01', name: 'Classic Blue', atsAvg: 82, uses: 3421, active: true, downloads: 1240, color: '#143763', premium: false },
+  { id: 't02', name: 'Centered', atsAvg: 79, uses: 1890, active: true, downloads: 890, color: '#143763', premium: false },
+  { id: 't03', name: 'Minimal', atsAvg: 84, uses: 2100, active: true, downloads: 920, color: '#64748b', premium: false },
+  { id: 't04', name: 'Teal Summary', atsAvg: 86, uses: 1670, active: true, downloads: 780, color: '#0f766e', premium: false },
+  { id: 't05', name: 'Clean Serif', atsAvg: 81, uses: 1340, active: true, downloads: 610, color: '#1e293b', premium: false },
+  { id: 't06', name: 'Professional', atsAvg: 85, uses: 2890, active: true, downloads: 1320, color: '#1e40af', premium: false },
+  { id: 't07', name: 'Green Accent', atsAvg: 83, uses: 1120, active: true, downloads: 510, color: '#0f766e', premium: false },
+  { id: 't08', name: 'Executive', atsAvg: 88, uses: 1567, active: true, downloads: 720, color: '#0f172a', premium: true },
+  { id: 't09', name: 'Burgundy', atsAvg: 77, uses: 890, active: true, downloads: 410, color: '#9f1239', premium: false },
+  { id: 't10', name: 'Bold Blue', atsAvg: 80, uses: 1450, active: true, downloads: 670, color: '#1d4ed8', premium: false },
+  { id: 't11', name: 'Simple', atsAvg: 83, uses: 1780, active: true, downloads: 820, color: '#475569', premium: false },
+  { id: 't12', name: 'Slate', atsAvg: 81, uses: 1020, active: true, downloads: 470, color: '#334155', premium: false },
+  { id: 't13', name: 'Monogram', atsAvg: 79, uses: 680, active: true, downloads: 310, color: '#143763', premium: true },
+  { id: 't14', name: 'Teal Highlight', atsAvg: 85, uses: 920, active: true, downloads: 430, color: '#0f766e', premium: false },
+  { id: 't15', name: 'Traditional', atsAvg: 82, uses: 1560, active: true, downloads: 720, color: '#1e293b', premium: false },
+  { id: 't16', name: 'Three Column', atsAvg: 78, uses: 780, active: true, downloads: 360, color: '#334155', premium: false },
+  { id: 't17', name: 'Founder', atsAvg: 87, uses: 1340, active: true, downloads: 620, color: '#0f172a', premium: true },
+  { id: 't18', name: 'Marketing Pro', atsAvg: 80, uses: 1120, active: true, downloads: 520, color: '#7c3aed', premium: false },
+  { id: 't19', name: 'Creative', atsAvg: 71, uses: 892, active: true, downloads: 410, color: '#ea580c', premium: false },
+  { id: 't20', name: 'Executive Pro', atsAvg: 89, uses: 1680, active: true, downloads: 780, color: '#0f172a', premium: true },
 ]
 
 const RECENT_BUILDS = [
@@ -312,6 +312,11 @@ export default function AdminResumeBuilder() {
                       target.style.display = 'none'
                     }}
                   />
+                  <span className={`absolute left-2 top-2 z-10 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide backdrop-blur ${
+                    t.premium ? 'bg-amber-500/90 text-white' : 'bg-emerald-500/90 text-white'
+                  }`}>
+                    {t.premium ? 'Premium' : 'Free'}
+                  </span>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                   <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100">
                     <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur">
@@ -392,24 +397,24 @@ function TemplateDetailModal({ template, onClose }: { template: typeof TEMPLATES
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-slate-950/30" onClick={onClose} />
-      <div className="fixed inset-x-4 top-[5%] z-50 mx-auto max-w-2xl overflow-hidden rounded-xl border border-border bg-white shadow-2xl sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+      <div className="fixed inset-0 z-40 bg-slate-950/30 transition-opacity" onClick={onClose} />
+      <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col border-l border-border bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="h-3 w-3 rounded-full" style={{ background: template.color }} />
+            <div className="h-3.5 w-3.5 rounded-full" style={{ background: template.color }} />
             <div>
               <h2 className="text-base font-semibold text-foreground">{template.name}</h2>
               <p className="text-xs text-muted-foreground">Template {template.id.toUpperCase()}</p>
             </div>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+          <button onClick={onClose} className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="flex items-center gap-1 border-b border-border px-5">
+        <div className="flex items-center gap-1 border-b border-border px-6">
           {(['details', 'usage', 'settings'] as const).map(t => (
-            <button key={t} onClick={() => setActiveTab(t)} className={`relative px-3 py-2.5 text-sm font-medium transition-colors ${
+            <button key={t} onClick={() => setActiveTab(t)} className={`relative px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === t ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
             }`}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -418,27 +423,27 @@ function TemplateDetailModal({ template, onClose }: { template: typeof TEMPLATES
           ))}
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'details' && (
-            <div className="space-y-5">
-              <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-6">
+              <div className="grid grid-cols-3 gap-4">
                 {[
                   { label: 'Avg ATS Score', value: `${template.atsAvg}%`, icon: Target },
                   { label: 'Total Uses', value: template.uses.toLocaleString(), icon: Users },
                   { label: 'Downloads', value: template.downloads.toLocaleString(), icon: Download },
                 ].map(({ label, value, icon: Icon }) => (
-                  <div key={label} className="rounded-lg border border-border p-3 text-center">
-                    <Icon className="mx-auto h-4 w-4 text-muted-foreground mb-1" />
-                    <p className="text-lg font-bold text-foreground">{value}</p>
-                    <p className="text-[10px] text-muted-foreground">{label}</p>
+                  <div key={label} className="rounded-lg border border-border p-4 text-center">
+                    <Icon className="mx-auto h-5 w-5 text-muted-foreground mb-2" />
+                    <p className="text-xl font-bold text-foreground">{value}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-lg border border-border p-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Template Preview</p>
+              <div className="rounded-lg border border-border p-5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Template Preview</p>
                 <div className="flex justify-center">
-                  <div className="aspect-[3/4] w-48 overflow-hidden rounded-md border border-border bg-muted">
+                  <div className="relative aspect-[3/4] w-full max-w-[280px] overflow-hidden rounded-lg border border-border bg-muted shadow-sm">
                     <img
                       src={`/templates/${template.id}.png`}
                       alt={template.name}
@@ -448,85 +453,90 @@ function TemplateDetailModal({ template, onClose }: { template: typeof TEMPLATES
                         target.style.display = 'none'
                       }}
                     />
+                    <span className={`absolute left-2 top-2 z-10 inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide backdrop-blur ${
+                      template.premium ? 'bg-amber-500/90 text-white' : 'bg-emerald-500/90 text-white'
+                    }`}>
+                      {template.premium ? 'Premium' : 'Free'}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border p-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Recent Users</p>
+              <div className="rounded-lg border border-border p-5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Recent Users</p>
                 {templateUses.length > 0 ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {templateUses.map(b => (
-                      <div key={b.id} className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-foreground">{b.user}</span>
-                        <div className="flex items-center gap-2">
-                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[b.status]}`}>{b.status}</span>
+                      <div key={b.id} className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3">
+                        <span className="text-sm font-medium text-foreground">{b.user}</span>
+                        <div className="flex items-center gap-3">
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[b.status]}`}>{b.status}</span>
                           <span className="text-xs tabular-nums text-muted-foreground">ATS {b.atsScore}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground">No recent builds using this template</p>
+                  <p className="text-sm text-muted-foreground">No recent builds using this template</p>
                 )}
               </div>
             </div>
           )}
 
           {activeTab === 'usage' && (
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-border p-4">
-                  <p className="text-2xl font-bold text-foreground">{template.uses.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">Total Uses</p>
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg border border-border p-5">
+                  <p className="text-3xl font-bold text-foreground">{template.uses.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Total Uses</p>
                 </div>
-                <div className="rounded-lg border border-border p-4">
-                  <p className="text-2xl font-bold text-emerald-600">{avgScore}%</p>
-                  <p className="text-xs text-muted-foreground">Avg ATS Score (Recent)</p>
+                <div className="rounded-lg border border-border p-5">
+                  <p className="text-3xl font-bold text-emerald-600">{avgScore}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Avg ATS Score (Recent)</p>
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border p-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">ATS Score Distribution</p>
-                <div className="space-y-2">
+              <div className="rounded-lg border border-border p-5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">ATS Score Distribution</p>
+                <div className="space-y-3">
                   {ATS_SCORE_DIST.map(d => (
-                    <div key={d.range} className="flex items-center gap-2">
-                      <span className="w-14 text-xs text-foreground">{d.range}</span>
-                      <div className="flex-1 h-4 rounded bg-muted overflow-hidden">
+                    <div key={d.range} className="flex items-center gap-3">
+                      <span className="w-16 text-sm text-foreground">{d.range}</span>
+                      <div className="flex-1 h-5 rounded bg-muted overflow-hidden">
                         <div className="h-full rounded" style={{ width: `${d.pct}%`, background: d.color }} />
                       </div>
-                      <span className="w-8 text-right text-xs tabular-nums">{d.pct}%</span>
+                      <span className="w-10 text-right text-sm tabular-nums">{d.pct}%</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-lg border border-border p-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Downloads Over Time</p>
-                <div className="flex items-end gap-1 h-24">
+              <div className="rounded-lg border border-border p-5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Downloads Over Time</p>
+                <div className="flex items-end gap-1.5 h-32">
                   {[35, 42, 38, 55, 48, 62, 58, 71, 65, 78, 72, 85].map((h, i) => (
                     <div key={i} className="flex-1 rounded-t bg-primary/20" style={{ height: `${h}%` }}>
                       <div className="w-full rounded-t bg-primary" style={{ height: `${h * 0.6}%` }} />
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-[9px] text-muted-foreground">Jan</span>
-                  <span className="text-[9px] text-muted-foreground">Dec</span>
+                <div className="flex justify-between mt-2">
+                  <span className="text-[10px] text-muted-foreground">Jan</span>
+                  <span className="text-[10px] text-muted-foreground">Dec</span>
                 </div>
               </div>
             </div>
           )}
 
           {activeTab === 'settings' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {[
                 { label: 'Template Active', desc: 'Users can select this template', checked: template.active },
                 { label: 'Featured Template', desc: 'Show in featured/recommended section', checked: template.id === 't08' || template.id === 't20' },
                 { label: 'ATS Optimized', desc: 'Template uses ATS-friendly formatting', checked: true },
                 { label: 'Premium Only', desc: 'Only available to Premium plan users', checked: false },
               ].map(item => (
-                <div key={item.label} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+                <div key={item.label} className="flex items-center justify-between py-3.5 border-b border-border last:border-0">
                   <div>
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
@@ -537,25 +547,30 @@ function TemplateDetailModal({ template, onClose }: { template: typeof TEMPLATES
                 </div>
               ))}
 
-              <div className="pt-2">
-                <p className="text-sm font-medium text-foreground mb-2">Template Color</p>
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg border border-border" style={{ background: template.color }} />
-                  <input defaultValue={template.color} className="lf-input w-28 h-8 text-sm font-mono" />
+              <div className="pt-1">
+                <p className="text-sm font-medium text-foreground mb-2.5">Template Color</p>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg border border-border" style={{ background: template.color }} />
+                  <input defaultValue={template.color} className="lf-input w-32 h-10 text-sm font-mono" />
                 </div>
               </div>
 
-              <div className="pt-2">
-                <p className="text-sm font-medium text-foreground mb-2">Description</p>
-                <textarea defaultValue="Clean ATS-friendly resume layout for professional applications." className="lf-input h-20 w-full resize-none text-sm" />
+              <div className="pt-1">
+                <p className="text-sm font-medium text-foreground mb-2.5">Description</p>
+                <textarea defaultValue="Clean ATS-friendly resume layout for professional applications." className="lf-input h-24 w-full resize-none text-sm" />
               </div>
 
-              <div className="flex gap-2 pt-2">
-                <button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-white transition hover:bg-primary/90">
-                  <Check className="h-3.5 w-3.5" /> Save Changes
+              <div className="pt-1">
+                <p className="text-sm font-medium text-foreground mb-2.5">Sort Order</p>
+                <input type="number" defaultValue={TEMPLATES.findIndex(t => t.id === template.id) + 1} className="lf-input w-full h-10 text-sm" />
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-primary/90">
+                  <Check className="h-4 w-4" /> Save Changes
                 </button>
-                <button className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition hover:bg-muted">
-                  <ExternalLink className="h-3.5 w-3.5" /> Preview in Builder
+                <button className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-border px-5 text-sm font-semibold text-foreground transition hover:bg-muted">
+                  <ExternalLink className="h-4 w-4" /> Preview in Builder
                 </button>
               </div>
             </div>

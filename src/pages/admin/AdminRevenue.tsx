@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { TrendingUp, TrendingDown, Download, Search, Globe, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTransactions } from '@/hooks/useAdmin'
-import { NG_REVENUE, NG_TRANSACTIONS } from '@/lib/adminMockData'
+import { NG_REVENUE, NG_TRANSACTIONS, GLOBAL_REVENUE } from '@/lib/adminMockData'
 
 type TxTab = 'revenue' | 'payouts' | 'ng'
 
@@ -68,6 +68,37 @@ function TransactionTable({ rows }: { rows: { id: string; type: string; amount: 
 
   return (
     <div>
+      {/* Global Revenue Stats */}
+      <div className="p-4 border-b border-border bg-slate-50/50">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 mb-4">
+          {[
+            { label: 'Total Revenue (USD)', value: `$${GLOBAL_REVENUE.totalUsd.toLocaleString()}` },
+            { label: 'This Month (USD)', value: `$${GLOBAL_REVENUE.thisMonthUsd.toLocaleString()}` },
+            { label: 'Global Users', value: String(GLOBAL_REVENUE.totalUsers) },
+            { label: 'Conversion Rate', value: `${GLOBAL_REVENUE.conversionRate}%` },
+          ].map(s => (
+            <div key={s.label} className="rounded-lg border border-border bg-white p-3">
+              <p className="text-[10px] font-medium text-muted-foreground uppercase">{s.label}</p>
+              <p className="text-lg font-bold text-foreground mt-0.5">{s.value}</p>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { label: 'Premium', count: GLOBAL_REVENUE.premiumUsers, color: '#8b5cf6' },
+            { label: 'Pro', count: GLOBAL_REVENUE.proUsers, color: '#3b82f6' },
+            { label: 'Starter', count: GLOBAL_REVENUE.starterUsers, color: '#2dd4bf' },
+            { label: 'Free', count: GLOBAL_REVENUE.freeUsers, color: '#94a3b8' },
+          ].map(p => (
+            <div key={p.label} className="flex items-center gap-2 rounded-lg border border-border bg-white p-2.5">
+              <div className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />
+              <span className="text-xs font-medium text-foreground">{p.label}</span>
+              <span className="ml-auto text-sm font-bold tabular-nums">{p.count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2">
           <div className="relative flex-1 min-w-0">

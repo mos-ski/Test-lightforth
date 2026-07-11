@@ -454,6 +454,23 @@ export const NG_REVENUE = {
   avgRevenuePerUser: 12400,
 }
 
+export const GLOBAL_REVENUE = {
+  totalUsd: TRANSACTIONS.filter(t => t.status === 'completed').reduce((s, t) => s + t.amount, 0),
+  thisMonthUsd: TRANSACTIONS.filter(t => {
+    const d = new Date(t.date)
+    const now = new Date()
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear() && t.status === 'completed'
+  }).reduce((s, t) => s + t.amount, 0),
+  totalUsers: USERS.length,
+  activeUsers: USERS.filter(u => u.status === 'active').length,
+  premiumUsers: USERS.filter(u => u.plan === 'premium').length,
+  proUsers: USERS.filter(u => u.plan === 'pro').length,
+  starterUsers: USERS.filter(u => u.plan === 'starter').length,
+  freeUsers: USERS.filter(u => u.plan === 'free').length,
+  conversionRate: Math.round((USERS.filter(u => u.plan !== 'free').length / USERS.length) * 100 * 10) / 10,
+  avgRevenuePerUser: Math.round(TRANSACTIONS.filter(t => t.status === 'completed').reduce((s, t) => s + t.amount, 0) / USERS.length),
+}
+
 // ============================================================
 // HELPER FUNCTIONS
 // ============================================================

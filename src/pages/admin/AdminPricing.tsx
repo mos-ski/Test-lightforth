@@ -64,6 +64,11 @@ const DEFAULT_PLANS: PlanConfig[] = [
     geoRestriction: 'US/Global only',
     features: { atsCheck: true, resumeBuilder: 'unlimited', autoApply: 'unlimited', copilot: 'unlimited', interviewPrep: 'unlimited', meeting: true, export: true, priority: true, api: false, customDomain: false, team: false },
   },
+  {
+    id: 'resume-download', name: 'Resume Download', slug: 'resume-download', price: 1.2, ngnPrice: 1200, interval: 'one-time', credits: 0, color: '#06b6d4', popular: false,
+    description: 'One-time single resume download — no subscription required',
+    features: { atsCheck: false, resumeBuilder: '1', autoApply: false, copilot: false, interviewPrep: false, meeting: false, export: '1', priority: false, api: false, customDomain: false, team: false },
+  },
 ]
 
 const CREDIT_COSTS = [
@@ -92,6 +97,8 @@ const ADDONS = [
   { id: 'a3', name: 'Team Seat', price: 29.99, type: 'addon', active: true },
   { id: 'a4', name: 'Activation Renewal (Pro)', price: 49, type: 'renewal', active: true },
   { id: 'a5', name: 'DFY Pro Extension (1 mo)', price: 49, type: 'addon', active: true },
+  { id: 'a6', name: 'Single Resume Download (US)', price: 1.2, type: 'one-time', active: true },
+  { id: 'a7', name: 'Single Resume Download (NG)', price: 1200, type: 'one-time', active: true },
 ]
 
 // ============================================================
