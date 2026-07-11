@@ -284,15 +284,14 @@ export default function AdminPricing() {
           { label: 'Reset', icon: RotateCcw, onClick: resetPlans, variant: 'outline' },
           { label: 'Save Changes', icon: Save, onClick: () => setHasChanges(false) },
         ]}
+        tabs={[
+          { key: 'plans', label: 'Plans & Credits' },
+          { key: 'addons', label: 'Add-ons' },
+          { key: 'settings', label: 'Settings' },
+        ]}
+        activeTab={tab}
+        onTabChange={v => setTab(v as typeof tab)}
       />
-
-      <div className="flex items-center gap-1.5">
-        {(['plans', 'addons', 'settings'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
-            tab === t ? 'bg-foreground text-white' : 'border border-border text-muted-foreground hover:text-foreground'
-          }`}>{t === 'plans' ? 'Plans & Credits' : t === 'addons' ? 'Add-ons' : 'Settings'}</button>
-        ))}
-      </div>
 
       {/* ───── Plans Tab ───── */}
       {tab === 'plans' && (

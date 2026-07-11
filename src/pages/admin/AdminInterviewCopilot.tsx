@@ -59,15 +59,10 @@ export default function AdminInterviewCopilot() {
         subtitle="Real-time interview assistance — stealth mode, response styles, multi-speaker, AI assistant"
         period={period}
         onPeriodChange={setPeriod}
+        tabs={[{ key: 'overview', label: 'Overview' }, { key: 'sessions', label: 'Sessions' }, { key: 'settings', label: 'Settings' }]}
+        activeTab={tab}
+        onTabChange={v => setTab(v as typeof tab)}
       />
-
-      <div className="flex items-center gap-1.5">
-        {(['overview', 'sessions', 'settings'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
-            tab === t ? 'bg-foreground text-white' : 'border border-border text-muted-foreground hover:text-foreground'
-          }`}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
-        ))}
-      </div>
 
       {tab === 'overview' && (
         <>

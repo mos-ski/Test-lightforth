@@ -53,15 +53,15 @@ export default function AdminMeeting() {
         subtitle="Premium-only Copilot for professional meetings — multi-speaker, action items, transcript review"
         period={period}
         onPeriodChange={setPeriod}
+        tabs={[
+          { key: 'overview', label: 'Overview' },
+          { key: 'sessions', label: 'Sessions' },
+          { key: 'upsell', label: 'Pro→Premium Upsell' },
+          { key: 'settings', label: 'Settings' },
+        ]}
+        activeTab={tab}
+        onTabChange={v => setTab(v as typeof tab)}
       />
-
-      <div className="flex items-center gap-1.5">
-        {(['overview', 'sessions', 'upsell', 'settings'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
-            tab === t ? 'bg-foreground text-white' : 'border border-border text-muted-foreground hover:text-foreground'
-          }`}>{t === 'upsell' ? 'Pro→Premium Upsell' : t.charAt(0).toUpperCase() + t.slice(1)}</button>
-        ))}
-      </div>
 
       {tab === 'overview' && (
         <>

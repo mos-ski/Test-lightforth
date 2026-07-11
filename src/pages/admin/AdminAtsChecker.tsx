@@ -43,15 +43,13 @@ export default function AdminAtsChecker() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="ATS Checker" subtitle="Resume optimization and ATS scoring — monitor usage and effectiveness" />
-
-      <div className="flex items-center gap-1.5">
-        {(['overview', 'scans', 'settings'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
-            tab === t ? 'bg-foreground text-white' : 'border border-border text-muted-foreground hover:text-foreground'
-          }`}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
-        ))}
-      </div>
+      <AdminPageHeader
+        title="ATS Checker"
+        subtitle="Resume optimization and ATS scoring — monitor usage and effectiveness"
+        tabs={[{ key: 'overview', label: 'Overview' }, { key: 'scans', label: 'Scans' }, { key: 'settings', label: 'Settings' }]}
+        activeTab={tab}
+        onTabChange={v => setTab(v as typeof tab)}
+      />
 
       {tab === 'overview' && (
         <>

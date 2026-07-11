@@ -34,21 +34,10 @@ export default function AdminCodingCopilot() {
         actions={[{ label: 'Create Review', icon: Plus }]}
         period={period}
         onPeriodChange={setPeriod}
+        tabs={[{ key: 'overview', label: 'Overview' }, { key: 'sessions', label: 'Sessions' }, { key: 'settings', label: 'Settings' }]}
+        activeTab={tab}
+        onTabChange={v => setTab(v as typeof tab)}
       />
-
-      <div className="flex items-center gap-1.5">
-        {(['overview', 'sessions', 'settings'] as const).map(item => (
-          <button
-            key={item}
-            onClick={() => setTab(item)}
-            className={`rounded-lg px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
-              tab === item ? 'bg-foreground text-white' : 'border border-border text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {item.charAt(0).toUpperCase() + item.slice(1)}
-          </button>
-        ))}
-      </div>
 
       {tab === 'overview' && (
         <>
