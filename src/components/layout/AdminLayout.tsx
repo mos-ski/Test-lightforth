@@ -122,9 +122,7 @@ export default function AdminLayout() {
         {/* Logo */}
         <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-border px-5">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-[10px] font-bold text-primary-foreground">L</span>
-            </div>
+            <img src="/favicon.svg" alt="" className="h-6 w-6" />
             <span className="text-sm font-semibold text-foreground">Lightforth</span>
           </div>
           <span className="ml-auto rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">

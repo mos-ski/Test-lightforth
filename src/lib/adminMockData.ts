@@ -118,6 +118,9 @@ export interface MonthlyData {
   signups: number
   revenue: number
   activeUsers: number
+  signupsByPlan: { free: number; starter: number; pro: number; premium: number }
+  revenueUsd: number
+  revenueNgn: number
 }
 
 export interface FeatureUsage {
@@ -274,13 +277,13 @@ export const BROADCASTS: Broadcast[] = [
 ]
 
 export const MONTHLY_DATA: MonthlyData[] = [
-  { month: 'Jan 2026', signups: 1247, revenue: 18950, activeUsers: 3420 },
-  { month: 'Feb 2026', signups: 1456, revenue: 22340, activeUsers: 4120 },
-  { month: 'Mar 2026', signups: 1689, revenue: 28750, activeUsers: 5230 },
-  { month: 'Apr 2026', signups: 1534, revenue: 26100, activeUsers: 5890 },
-  { month: 'May 2026', signups: 1823, revenue: 32450, activeUsers: 6780 },
-  { month: 'Jun 2026', signups: 2104, revenue: 38900, activeUsers: 7850 },
-  { month: 'Jul 2026', signups: 943, revenue: 17650, activeUsers: 9396 },
+  { month: 'Jan 2026', signups: 1247, revenue: 18950, activeUsers: 3420, signupsByPlan: { free: 620, starter: 340, pro: 187, premium: 100 }, revenueUsd: 14200, revenueNgn: 7200000 },
+  { month: 'Feb 2026', signups: 1456, revenue: 22340, activeUsers: 4120, signupsByPlan: { free: 710, starter: 400, pro: 226, premium: 120 }, revenueUsd: 16800, revenueNgn: 8500000 },
+  { month: 'Mar 2026', signups: 1689, revenue: 28750, activeUsers: 5230, signupsByPlan: { free: 820, starter: 470, pro: 269, premium: 130 }, revenueUsd: 21600, revenueNgn: 11000000 },
+  { month: 'Apr 2026', signups: 1534, revenue: 26100, activeUsers: 5890, signupsByPlan: { free: 750, starter: 420, pro: 244, premium: 120 }, revenueUsd: 19700, revenueNgn: 10000000 },
+  { month: 'May 2026', signups: 1823, revenue: 32450, activeUsers: 6780, signupsByPlan: { free: 890, starter: 500, pro: 293, premium: 140 }, revenueUsd: 24500, revenueNgn: 12500000 },
+  { month: 'Jun 2026', signups: 2104, revenue: 38900, activeUsers: 7850, signupsByPlan: { free: 1020, starter: 580, pro: 344, premium: 160 }, revenueUsd: 29400, revenueNgn: 15000000 },
+  { month: 'Jul 2026', signups: 943, revenue: 17650, activeUsers: 9396, signupsByPlan: { free: 460, starter: 260, pro: 143, premium: 80 }, revenueUsd: 13300, revenueNgn: 6800000 },
 ]
 
 export const FEATURE_USAGE: FeatureUsage[] = [
