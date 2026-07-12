@@ -268,14 +268,15 @@ function FeatureRadarChart({ data }: { data: { feature: string; users: number; p
           const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ' Z'
           return <path key={f} d={path} fill="none" stroke="#E5E7EB" strokeWidth={0.5} />
         })}
-        {/* Ring scale labels, up the top spoke */}
-        {[0.2, 0.4, 0.6, 0.8, 1].map(f => {
+        {/* Ring scale labels, up the top spoke — only 3 stops (not 5) so the
+            pills have room to breathe instead of overlapping each other */}
+        {[0.33, 0.66, 1].map(f => {
           const y = cy - f * R
           const label = `${Math.round(f * 100)}%`
           return (
             <g key={`ring-${f}`}>
-              <rect x={cx - 14} y={y - 7} width={28} height={14} rx={7} fill="#fff" stroke="#E5E7EB" strokeWidth={0.75} />
-              <text x={cx} y={y + 3} textAnchor="middle" fill="#9CA3AF" fontSize={8} fontWeight={600}>{label}</text>
+              <rect x={cx - 13} y={y - 6.5} width={26} height={13} rx={6.5} fill="#fff" stroke="#E5E7EB" strokeWidth={0.75} />
+              <text x={cx} y={y + 3} textAnchor="middle" fill="#9CA3AF" fontSize={7.5} fontWeight={600}>{label}</text>
             </g>
           )
         })}
@@ -480,8 +481,8 @@ export default function AdminOverview() {
         </div>
       </div>
 
-      {/* Charts row 2: Radar + Map */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* Charts row 2: Radar + Map — items-start so neither card stretches to match a taller sibling and strands its chart in dead space */}
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
         <div className="lf-panel p-6">
           <p className="lf-card-title mb-2">Feature Adoption</p>
           <FeatureRadarChart data={featureUsage} />
