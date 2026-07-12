@@ -1,12 +1,17 @@
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import {
   LayoutDashboard, DollarSign, Users, UserPlus, Building2,
   BarChart2, FileText, Megaphone, Tag, ScrollText, LifeBuoy, Bell, Settings,
   Zap, MessageSquare, BookOpen, FileCheck, Folder,
   CreditCard, Video, Search, Code2, Menu, X,
+  CircleDollarSign, Ticket, ClipboardList, Send, Palette, UserCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  USERS, TRANSACTIONS, TICKETS, ACTIVITY_LOGS, COUPONS,
+  BROADCASTS, TEMPLATES, NG_USERS,
+} from '@/lib/adminMockData'
 
 type NavItem = {
   to: string
@@ -73,33 +78,205 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ]
 
-const SEARCH_RECORDS = [
-  ...NAV_GROUPS.flatMap(group => group.items.map(item => ({ label: item.label, group: group.label, to: item.to }))),
-  { label: 'Darnell Smith', group: 'User', to: '/admin/users/1' },
-  { label: 'Jessica Williams', group: 'User', to: '/admin/users/2' },
-  { label: 'Howard University', group: 'Enterprise', to: '/admin/users/enterprises' },
-  { label: 'Georgia Tech', group: 'Enterprise', to: '/admin/users/enterprises' },
-  { label: 'Auto-Apply failures', group: 'Product', to: '/admin/auto-apply' },
-  { label: 'Pricing plans', group: 'Revenue', to: '/admin/pricing' },
-  { label: 'Support tickets', group: 'System', to: '/admin/support' },
-]
+type SearchResult = {
+  id: string
+  label: string
+  sublabel: string
+  group: string
+  to: string
+  icon: React.ComponentType<{ className?: string }>
+}
+
+function buildSearchIndex(): SearchResult[] {
+  const navResults: SearchResult[] = NAV_GROUPS.flatMap(g =>
+    g.items.map(item => ({
+      id: `nav-${item.to}`,
+      label: item.label,
+      sublabel: g.label,
+      group: 'Pages',
+      to: item.to,
+      icon: item.icon,
+    })),
+  )
+
+  const userResults: SearchResult[] = USERS.map(u => ({
+    id: `user-${u.id}`,
+    label: u.name,
+    sublabel: `${u.email} · ${u.plan}`,
+    group: 'Users',
+    to: `/admin/users/${u.id}`,
+    icon: UserCircle,
+  }))
+
+  const ngUserResults: SearchResult[] = NG_USERS.map(u => ({
+    id: `ng-${u.id}`,
+    label: u.name,
+    sublabel: `${u.email} · ${u.plan} · ${u.city}`,
+    group: 'NG Users',
+    to: `/admin/users/${u.id}`,
+    icon: UserCircle,
+  }))
+
+  const txResults: SearchResult[] = TRANSACTIONS.map(t => ({
+    id: `tx-${t.id}`,
+    label: t.userName,
+    sublabel: `${t.type === 'refund' ? '-' : ''}$${Math.abs(t.amount)} · ${t.status} · ${new Date(t.date).toLocaleDateString()}`,
+    group: 'Transactions',
+    to: '/admin/revenue',
+    icon: CircleDollarSign,
+  }))
+
+  const ticketResults: SearchResult[] = TICKETS.map(t => ({
+    id: `ticket-${t.id}`,
+    label: t.subject,
+    sublabel: `${t.userName} · ${t.status} · ${t.priority}`,
+    group: 'Support',
+    to: '/admin/support',
+    icon: Ticket,
+  }))
+
+  const logResults: SearchResult[] = ACTIVITY_LOGS.map(l => ({
+    id: `log-${l.id}`,
+    label: `${l.action} — ${l.userName}`,
+    sublabel: `${l.resource} · ${l.status} · ${new Date(l.timestamp).toLocaleString()}`,
+    group: 'Activity Logs',
+    to: '/admin/activity-logs',
+    icon: ClipboardList,
+  }))
+
+  const couponResults: SearchResult[] = COUPONS.map(c => ({
+    id: `coupon-${c.id}`,
+    label: c.name,
+    sublabel: `${c.code} · ${c.discountType === 'percentage' ? `${c.discountValue}%` : `$${c.discountValue}`} · ${c.status}`,
+    group: 'Promotions',
+    to: '/admin/promotions',
+    icon: Tag,
+  }))
+
+  const broadcastResults: SearchResult[] = BROADCASTS.map(b => ({
+    id: `bc-${b.id}`,
+    label: b.subject,
+    sublabel: `${b.audience} · ${b.recipients.toLocaleString()} recipients · ${b.status}`,
+    group: 'Broadcasts',
+    to: '/admin/broadcast',
+    icon: Send,
+  }))
+
+  const templateResults: SearchResult[] = TEMPLATES.map(t => ({
+    id: `tpl-${t.id}`,
+    label: t.name,
+    sublabel: `${t.category} · ATS ${t.atsScore} · ${t.usageCount.toLocaleString()} uses`,
+    group: 'Templates',
+    to: '/admin/resume-builder',
+    icon: Palette,
+  }))
+
+  return [
+    ...navResults,
+    ...userResults,
+    ...ngUserResults,
+    ...txResults,
+    ...ticketResults,
+    ...logResults,
+    ...couponResults,
+    ...broadcastResults,
+    ...templateResults,
+  ]
+}
+
+const SEARCH_INDEX = buildSearchIndex()
+const GROUP_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Pages: LayoutDashboard,
+  Users: UserCircle,
+  'NG Users': UserCircle,
+  Transactions: CircleDollarSign,
+  Support: Ticket,
+  'Activity Logs': ClipboardList,
+  Promotions: Tag,
+  Broadcasts: Send,
+  Templates: Palette,
+}
 
 export default function AdminLayout() {
   const [query, setQuery] = useState('')
+  const [focused, setFocused] = useState(false)
+  const [activeIdx, setActiveIdx] = useState(-1)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return []
-    return SEARCH_RECORDS
-      .filter(item => `${item.label} ${item.group}`.toLowerCase().includes(q))
-      .slice(0, 8)
+    const matched = SEARCH_INDEX.filter(item =>
+      `${item.label} ${item.sublabel} ${item.group}`.toLowerCase().includes(q)
+    )
+    // Group by type, max 3 per group, max 12 total
+    const grouped: Record<string, SearchResult[]> = {}
+    for (const item of matched) {
+      if (!grouped[item.group]) grouped[item.group] = []
+      if (grouped[item.group].length < 3) grouped[item.group].push(item)
+    }
+    const flat: SearchResult[] = []
+    for (const group of Object.keys(grouped)) {
+      flat.push(...grouped[group])
+      if (flat.length >= 12) break
+    }
+    return flat.slice(0, 12)
   }, [query])
 
-  // Close the mobile drawer whenever the route changes.
+  const showDropdown = focused && (query.trim().length > 0)
+
+  const navigate = useCallback((idx: number) => {
+    if (idx >= 0 && idx < results.length) {
+      inputRef.current?.blur()
+      setFocused(false)
+      setQuery('')
+      setActiveIdx(-1)
+    }
+  }, [results])
+
+  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!showDropdown) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIdx(i => Math.min(i + 1, results.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIdx(i => Math.max(i - 1, 0))
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault()
+      navigate(activeIdx)
+    } else if (e.key === 'Escape') {
+      setFocused(false)
+      inputRef.current?.blur()
+    }
+  }, [showDropdown, results.length, activeIdx, navigate])
+
+  // Reset active index when results change
+  useEffect(() => { setActiveIdx(-1) }, [results])
+
+  useEffect(() => { setSidebarOpen(false) }, [location.pathname])
+
+  // Close dropdown on outside click
   useEffect(() => {
-    setSidebarOpen(false)
-  }, [location.pathname])
+    const handler = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('[data-search]')) {
+        setFocused(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Scroll active item into view
+  useEffect(() => {
+    if (activeIdx >= 0 && listRef.current) {
+      const el = listRef.current.children[activeIdx] as HTMLElement
+      el?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [activeIdx])
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -181,9 +358,7 @@ export default function AdminLayout() {
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-[10px] font-bold text-primary-foreground">L</span>
-            </div>
+            <img src="/favicon.svg" alt="" className="h-6 w-6" />
             <span className="text-sm font-semibold text-foreground">Lightforth</span>
           </div>
           <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
@@ -191,27 +366,57 @@ export default function AdminLayout() {
           </span>
         </div>
 
-        <div className="relative mb-6">
+        {/* Search */}
+        <div className="relative mb-6" data-search>
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
+            ref={inputRef}
             value={query}
-            onChange={event => setQuery(event.target.value)}
-            placeholder="Search admin: users, revenue, tickets, modules..."
+            onChange={e => setQuery(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onKeyDown={onKeyDown}
+            placeholder="Search everything: users, tickets, transactions, coupons, broadcasts..."
             className="lf-input h-11 w-full max-w-2xl pl-10"
           />
-          {results.length > 0 && (
-            <div className="absolute left-0 top-full z-30 mt-2 w-full max-w-2xl overflow-hidden rounded-lg border border-border bg-white shadow-xl">
-              {results.map(item => (
-                <Link
-                  key={`${item.group}-${item.label}`}
-                  to={item.to}
-                  onClick={() => setQuery('')}
-                  className="flex items-center justify-between border-b border-border/60 px-4 py-3 text-sm transition-colors last:border-0 hover:bg-muted/50"
-                >
-                  <span className="font-medium text-foreground">{item.label}</span>
-                  <span className="text-xs text-muted-foreground">{item.group}</span>
-                </Link>
-              ))}
+          {query.trim() && !results.length && (
+            <div className="absolute left-0 top-full z-30 mt-2 w-full max-w-2xl rounded-lg border border-border bg-white p-4 text-sm text-muted-foreground shadow-xl">
+              No results for "{query.trim()}"
+            </div>
+          )}
+          {showDropdown && results.length > 0 && (
+            <div ref={listRef} className="absolute left-0 top-full z-30 mt-2 w-full max-w-2xl max-h-[420px] overflow-y-auto rounded-lg border border-border bg-white shadow-xl">
+              {(() => {
+                let lastGroup = ''
+                return results.map((item, idx) => {
+                  const showGroupHeader = item.group !== lastGroup
+                  lastGroup = item.group
+                  const GroupIcon = GROUP_ICONS[item.group] || LayoutDashboard
+                  return (
+                    <div key={item.id}>
+                      {showGroupHeader && (
+                        <div className="flex items-center gap-2 px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                          <GroupIcon className="h-3 w-3" />
+                          {item.group}
+                        </div>
+                      )}
+                      <Link
+                        to={item.to}
+                        onClick={() => { setQuery(''); setFocused(false) }}
+                        className={cn(
+                          'flex items-center gap-3 px-4 py-2.5 text-sm transition-colors last:border-0',
+                          idx === activeIdx ? 'bg-primary/5 text-primary' : 'hover:bg-muted/50',
+                        )}
+                      >
+                        <GroupIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-foreground truncate">{item.label}</div>
+                          <div className="text-xs text-muted-foreground truncate">{item.sublabel}</div>
+                        </div>
+                      </Link>
+                    </div>
+                  )
+                })
+              })()}
             </div>
           )}
         </div>
