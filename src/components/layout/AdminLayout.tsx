@@ -347,81 +347,88 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex flex-1 flex-col overflow-y-auto bg-white px-4 pt-4 sm:px-6 sm:py-6 pb-6 min-w-0">
-        {/* Mobile top bar */}
-        <div className="mb-4 flex items-center gap-3 lg:hidden">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <div className="flex items-center gap-2">
-            <img src="/favicon.svg" alt="" className="h-6 w-6" />
-            <span className="text-sm font-semibold text-foreground">Lightforth</span>
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden bg-white">
+        {/* Fixed top: mobile bar + search */}
+        <div className="shrink-0 px-4 pt-4 sm:px-6 sm:pt-6 pb-2">
+          {/* Mobile top bar */}
+          <div className="mb-4 flex items-center gap-3 lg:hidden">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <img src="/favicon.svg" alt="" className="h-6 w-6" />
+              <span className="text-sm font-semibold text-foreground">Lightforth</span>
+            </div>
+            <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+              Admin
+            </span>
           </div>
-          <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-            Admin
-          </span>
+
+          {/* Search */}
+          <div className="relative" data-search>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onKeyDown={onKeyDown}
+              placeholder="Search everything: users, tickets, transactions, coupons, broadcasts..."
+              className="lf-input h-11 w-full max-w-2xl pl-10"
+            />
+            {query.trim() && !results.length && (
+              <div className="absolute left-0 top-full z-30 mt-2 w-full max-w-2xl rounded-lg border border-border bg-white p-4 text-sm text-muted-foreground shadow-xl">
+                No results for "{query.trim()}"
+              </div>
+            )}
+            {showDropdown && results.length > 0 && (
+              <div ref={listRef} className="absolute left-0 top-full z-30 mt-2 w-full max-w-2xl max-h-[420px] overflow-y-auto rounded-lg border border-border bg-white shadow-xl">
+                {(() => {
+                  let lastGroup = ''
+                  return results.map((item, idx) => {
+                    const showGroupHeader = item.group !== lastGroup
+                    lastGroup = item.group
+                    const GroupIcon = GROUP_ICONS[item.group] || LayoutDashboard
+                    return (
+                      <div key={item.id}>
+                        {showGroupHeader && (
+                          <div className="flex items-center gap-2 px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                            <GroupIcon className="h-3 w-3" />
+                            {item.group}
+                          </div>
+                        )}
+                        <Link
+                          to={item.to}
+                          onClick={() => { setQuery(''); setFocused(false) }}
+                          className={cn(
+                            'flex items-center gap-3 px-4 py-2.5 text-sm transition-colors last:border-0',
+                            idx === activeIdx ? 'bg-primary/5 text-primary' : 'hover:bg-muted/50',
+                          )}
+                        >
+                          <GroupIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-foreground truncate">{item.label}</div>
+                            <div className="text-xs text-muted-foreground truncate">{item.sublabel}</div>
+                          </div>
+                        </Link>
+                      </div>
+                    )
+                  })
+                })()}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-6" data-search>
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            ref={inputRef}
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onKeyDown={onKeyDown}
-            placeholder="Search everything: users, tickets, transactions, coupons, broadcasts..."
-            className="lf-input h-11 w-full max-w-2xl pl-10"
-          />
-          {query.trim() && !results.length && (
-            <div className="absolute left-0 top-full z-30 mt-2 w-full max-w-2xl rounded-lg border border-border bg-white p-4 text-sm text-muted-foreground shadow-xl">
-              No results for "{query.trim()}"
-            </div>
-          )}
-          {showDropdown && results.length > 0 && (
-            <div ref={listRef} className="absolute left-0 top-full z-30 mt-2 w-full max-w-2xl max-h-[420px] overflow-y-auto rounded-lg border border-border bg-white shadow-xl">
-              {(() => {
-                let lastGroup = ''
-                return results.map((item, idx) => {
-                  const showGroupHeader = item.group !== lastGroup
-                  lastGroup = item.group
-                  const GroupIcon = GROUP_ICONS[item.group] || LayoutDashboard
-                  return (
-                    <div key={item.id}>
-                      {showGroupHeader && (
-                        <div className="flex items-center gap-2 px-4 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
-                          <GroupIcon className="h-3 w-3" />
-                          {item.group}
-                        </div>
-                      )}
-                      <Link
-                        to={item.to}
-                        onClick={() => { setQuery(''); setFocused(false) }}
-                        className={cn(
-                          'flex items-center gap-3 px-4 py-2.5 text-sm transition-colors last:border-0',
-                          idx === activeIdx ? 'bg-primary/5 text-primary' : 'hover:bg-muted/50',
-                        )}
-                      >
-                        <GroupIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                        <div className="min-w-0 flex-1">
-                          <div className="font-medium text-foreground truncate">{item.label}</div>
-                          <div className="text-xs text-muted-foreground truncate">{item.sublabel}</div>
-                        </div>
-                      </Link>
-                    </div>
-                  )
-                })
-              })()}
-            </div>
-          )}
+        {/* Scrollable page content */}
+        <div className="flex-1 overflow-y-auto min-h-0 px-4 sm:px-6 pb-6">
+          <Outlet />
         </div>
-        <Outlet />
-      </main>
+      </div>
     </div>
   )
 }
