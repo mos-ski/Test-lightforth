@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Search, Plus, MessageSquare, Clock, GripVertical } from 'lucide-react'
+import { Search, Plus, MessageSquare, Clock, GripVertical, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useTickets, useUpdateTicket } from '@/hooks/useAdmin'
 import type { SupportTicket } from '@/lib/adminMockData'
@@ -114,7 +114,11 @@ function TicketDetailModal({ ticket, onClose, onStatusChange }: {
               {COLUMNS.find(c => c.key === ticket.status)?.label ?? ticket.status}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-foreground">
-              <span className={cn('h-2 w-2 rounded-full', PRIORITY_DOT[ticket.priority])} />
+              {ticket.status === 'closed' ? (
+                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+              ) : (
+                <span className={cn('h-2 w-2 rounded-full', PRIORITY_DOT[ticket.priority])} />
+              )}
               {ticket.priority}
             </span>
           </div>
@@ -154,6 +158,7 @@ function TicketCard({ ticket, onClick, onDragStart }: {
   onClick: () => void
   onDragStart: (e: React.DragEvent, ticket: SupportTicket) => void
 }) {
+  const isClosed = ticket.status === 'closed'
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime()
     const mins = Math.floor(diff / 60000)
@@ -168,15 +173,22 @@ function TicketCard({ ticket, onClick, onDragStart }: {
       draggable
       onDragStart={e => onDragStart(e, ticket)}
       onClick={onClick}
-      className="group relative rounded-lg border border-border/60 bg-white p-3.5 cursor-grab active:cursor-grabbing transition-all hover:border-border hover:shadow-md hover:shadow-black/5"
+      className={cn(
+        "group relative rounded-lg border border-border/60 bg-white p-3.5 cursor-grab active:cursor-grabbing transition-all hover:border-border hover:shadow-md hover:shadow-black/5",
+        isClosed && "opacity-60 hover:opacity-100"
+      )}
     >
       <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
         <GripVertical className="h-3.5 w-3.5 text-muted-foreground/50" />
       </div>
 
       <div className="flex items-start gap-2.5 mb-2.5">
-        <span className={cn('mt-1 h-2 w-2 shrink-0 rounded-full', PRIORITY_DOT[ticket.priority])} />
-        <p className="text-sm font-semibold text-foreground leading-snug line-clamp-2 pr-4">{ticket.subject}</p>
+        {isClosed ? (
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+        ) : (
+          <span className={cn('mt-1 h-2 w-2 shrink-0 rounded-full', PRIORITY_DOT[ticket.priority])} />
+        )}
+        <p className={cn("text-sm font-semibold text-foreground leading-snug line-clamp-2 pr-4", isClosed && "line-through decoration-muted-foreground/40")}>{ticket.subject}</p>
       </div>
 
       <p className="text-xs text-muted-foreground mb-3 line-clamp-2 pl-[18px]">{ticket.description}</p>
