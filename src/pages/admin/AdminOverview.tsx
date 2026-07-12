@@ -261,7 +261,7 @@ function FeatureRadarChart({ data }: { data: { feature: string; users: number; p
   const poly = dataPts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + ' Z'
 
   return (
-    <div className="relative">
+    <div className="relative mx-auto max-w-[300px]">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto overflow-visible" onMouseLeave={() => setHover(null)}>
         {[0.2, 0.4, 0.6, 0.8, 1].map(f => {
           const pts = Array.from({ length: n }, (_, i) => pt(i, f * R))
@@ -341,7 +341,7 @@ function WorldMapDots({ cities }: { cities: { city: string; users: number; x: nu
   const sorted = cities.map((c, i) => ({ ...c, i })).sort((a, b) => a.y - b.y)
 
   return (
-    <div className="relative" style={{ aspectRatio: '2099 / 1000' }}>
+    <div className="relative mx-auto max-w-[420px]" style={{ aspectRatio: '2099 / 1000' }}>
       <img src="/world-map-dots.png" alt="" className="absolute inset-0 h-full w-full object-contain opacity-90" />
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full overflow-visible" onMouseLeave={() => setHover(null)}>
         <defs>
