@@ -39,18 +39,66 @@ const SCORE_DIST = [
   { range: '<60', count: 201, pct: 5 },
 ]
 
+function NewPracticeSessionModal({ onClose }: { onClose: () => void }) {
+  const [user, setUser] = useState('')
+  const [type, setType] = useState('Technical')
+  const [questions, setQuestions] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user) return
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">New Practice Session</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">User <span className="text-red-500">*</span></label>
+            <input value={user} onChange={e => setUser(e.target.value)} placeholder="e.g. Darnell Smith" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Category</label>
+            <select value={type} onChange={e => setType(e.target.value)} className="lf-select">
+              <option>Technical</option>
+              <option>Behavioral</option>
+              <option>Case Study</option>
+              <option>System Design</option>
+            </select>
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Questions</label>
+            <input type="number" value={questions} onChange={e => setQuestions(e.target.value)} placeholder="25" className="lf-input" />
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Start</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminInterviewPrep() {
   const [tab, setTab] = useState<'overview' | 'practice' | 'settings'>('overview')
   const [period, setPeriod] = useState<TimePeriod>('12m')
   const [selectedPractice, setSelectedPractice] = useState<typeof RECENT_PRACTICE[number] | null>(null)
   const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: RECENT_PRACTICE })
+  const [showNewSession, setShowNewSession] = useState(false)
 
   return (
     <div className="space-y-6">
+      {showNewSession && <NewPracticeSessionModal onClose={() => setShowNewSession(false)} />}
       <AdminPageHeader
         title="Interview Prep"
         subtitle="Practice questions and mock interviews — track user progress"
-        actions={[{ label: 'New Practice Session', icon: Plus }]}
+        actions={[{ label: 'New Practice Session', icon: Plus, onClick: () => setShowNewSession(true) }]}
         period={period}
         onPeriodChange={setPeriod}
         tabs={[{ key: 'overview', label: 'Overview' }, { key: 'practice', label: 'Practice' }, { key: 'settings', label: 'Settings' }]}

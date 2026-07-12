@@ -20,18 +20,74 @@ const STATUS_COLORS: Record<string, string> = {
   flagged: 'bg-red-50 text-red-600',
 }
 
+function CreateReviewModal({ onClose }: { onClose: () => void }) {
+  const [user, setUser] = useState('')
+  const [language, setLanguage] = useState('TypeScript')
+  const [challenge, setChallenge] = useState('')
+  const [notes, setNotes] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user || !challenge) return
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">Create Coding Review</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">User <span className="text-red-500">*</span></label>
+            <input value={user} onChange={e => setUser(e.target.value)} placeholder="e.g. Darnell Smith" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Language</label>
+            <select value={language} onChange={e => setLanguage(e.target.value)} className="lf-select">
+              <option>TypeScript</option>
+              <option>JavaScript</option>
+              <option>Python</option>
+              <option>Java</option>
+              <option>Go</option>
+              <option>SQL</option>
+              <option>Rust</option>
+            </select>
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Challenge <span className="text-red-500">*</span></label>
+            <input value={challenge} onChange={e => setChallenge(e.target.value)} placeholder="e.g. React state machine" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Notes</label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Additional context..." rows={3} className="lf-input resize-none" />
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminCodingCopilot() {
   const [period, setPeriod] = useState<TimePeriod>('12m')
   const [tab, setTab] = useState<'overview' | 'sessions' | 'settings'>('overview')
   const [selectedSession, setSelectedSession] = useState<typeof SESSIONS[number] | null>(null)
   const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: SESSIONS })
+  const [showCreateReview, setShowCreateReview] = useState(false)
 
   return (
     <div className="space-y-6">
+      {showCreateReview && <CreateReviewModal onClose={() => setShowCreateReview(false)} />}
       <AdminPageHeader
         title="Coding Copilot"
         subtitle="Live coding support, screen capture sessions, answer quality, and review flags"
-        actions={[{ label: 'Create Review', icon: Plus }]}
+        actions={[{ label: 'Create Review', icon: Plus, onClick: () => setShowCreateReview(true) }]}
         period={period}
         onPeriodChange={setPeriod}
         tabs={[{ key: 'overview', label: 'Overview' }, { key: 'sessions', label: 'Sessions' }, { key: 'settings', label: 'Settings' }]}

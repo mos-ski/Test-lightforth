@@ -297,15 +297,94 @@ function CouponsView() {
   )
 }
 
+function CreatePromotionModal({ onClose }: { onClose: () => void }) {
+  const [name, setName] = useState('')
+  const [code, setCode] = useState('')
+  const [type, setType] = useState<'Percentage Discount' | 'Fixed Discount' | 'Lifetime Discount'>('Percentage Discount')
+  const [value, setValue] = useState('')
+  const [audience, setAudience] = useState('All Users')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name || !code || !value) return
+    // TODO: wire to mutation
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">Create Promotion</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">Name <span className="text-red-500">*</span></label>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Summer Sale" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Code <span className="text-red-500">*</span></label>
+            <input value={code} onChange={e => setCode(e.target.value.toUpperCase())} placeholder="e.g. SUMMER20" className="lf-input font-mono" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="lf-label block mb-1.5">Type</label>
+              <select value={type} onChange={e => setType(e.target.value as any)} className="lf-select">
+                <option value="Percentage Discount">Percentage Discount</option>
+                <option value="Fixed Discount">Fixed Discount</option>
+                <option value="Lifetime Discount">Lifetime Discount</option>
+              </select>
+            </div>
+            <div>
+              <label className="lf-label block mb-1.5">Value <span className="text-red-500">*</span></label>
+              <input value={value} onChange={e => setValue(e.target.value)} placeholder={type === 'Fixed Discount' ? '$10' : '20%'} className="lf-input" />
+            </div>
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Audience</label>
+            <select value={audience} onChange={e => setAudience(e.target.value)} className="lf-select">
+              <option>All Users</option>
+              <option>New Signups</option>
+              <option>Pro Users</option>
+              <option>Premium Users</option>
+              <option>Inactive 30+ days</option>
+              <option>Referral Partners</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="lf-label block mb-1.5">Start Date</label>
+              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="lf-input" />
+            </div>
+            <div>
+              <label className="lf-label block mb-1.5">End Date</label>
+              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="lf-input" />
+            </div>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminPromotions() {
   const [tab, setTab] = useState<PromoTab>('promotions')
   const [period, setPeriod] = useState<TimePeriod>('12m')
+  const [showCreatePromo, setShowCreatePromo] = useState(false)
 
   return (
     <div className="space-y-6">
+      {showCreatePromo && <CreatePromotionModal onClose={() => setShowCreatePromo(false)} />}
       <AdminPageHeader
         title="Promotions"
-        actions={[{ label: 'Create Promotion', icon: Plus }]}
+        actions={[{ label: 'Create Promotion', icon: Plus, onClick: () => setShowCreatePromo(true) }]}
         period={period}
         onPeriodChange={setPeriod}
       />

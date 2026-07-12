@@ -55,10 +55,64 @@ function AtsBadge({ score }: { score: number }) {
   )
 }
 
+function NewApplicationModal({ onClose }: { onClose: () => void }) {
+  const [user, setUser] = useState('')
+  const [role, setRole] = useState('')
+  const [company, setCompany] = useState('')
+  const [source, setSource] = useState('LinkedIn')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user || !role) return
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">New Auto-Apply</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">User <span className="text-red-500">*</span></label>
+            <input value={user} onChange={e => setUser(e.target.value)} placeholder="e.g. Darnell Smith" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Target Role <span className="text-red-500">*</span></label>
+            <input value={role} onChange={e => setRole(e.target.value)} placeholder="e.g. Software Engineer" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Company</label>
+            <input value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Google" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Job Board</label>
+            <select value={source} onChange={e => setSource(e.target.value)} className="lf-select">
+              <option>LinkedIn</option>
+              <option>Greenhouse</option>
+              <option>Workday</option>
+              <option>Lever</option>
+              <option>Ashby</option>
+              <option>BambooHR</option>
+            </select>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminAutoApply() {
   const [tab, setTab] = useState<'overview' | 'jobs' | 'settings'>('overview')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [showNewApp, setShowNewApp] = useState(false)
 
   const filtered = APPLICATIONS.filter(a =>
     `${a.user} ${a.company} ${a.role}`.toLowerCase().includes(search.toLowerCase())
@@ -68,10 +122,11 @@ export default function AdminAutoApply() {
 
   return (
     <div className="space-y-6">
+      {showNewApp && <NewApplicationModal onClose={() => setShowNewApp(false)} />}
       <AdminPageHeader
         title="Auto-Apply"
         subtitle="Automated job application engine — monitor performance and configuration"
-        actions={[{ label: 'New Application', icon: Plus }]}
+        actions={[{ label: 'New Application', icon: Plus, onClick: () => setShowNewApp(true) }]}
         tabs={[{ key: 'overview', label: 'Overview' }, { key: 'jobs', label: 'Job Boards' }, { key: 'settings', label: 'Settings' }]}
         activeTab={tab}
         onTabChange={v => setTab(v as typeof tab)}

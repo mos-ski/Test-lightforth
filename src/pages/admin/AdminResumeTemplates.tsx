@@ -31,9 +31,57 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void 
   )
 }
 
+function AddTemplateModal({ onClose }: { onClose: () => void }) {
+  const [name, setName] = useState('')
+  const [category, setCategory] = useState<Category>('Professional')
+  const [atsScore, setAtsScore] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name) return
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">Add Template</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">Name <span className="text-red-500">*</span></label>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Modern Blue" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Category</label>
+            <select value={category} onChange={e => setCategory(e.target.value as Category)} className="lf-select">
+              <option>Professional</option>
+              <option>Creative</option>
+              <option>ATS-Optimised</option>
+              <option>Executive</option>
+              <option>Modern</option>
+            </select>
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">ATS Score</label>
+            <input type="number" value={atsScore} onChange={e => setAtsScore(e.target.value)} placeholder="85" className="lf-input" />
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminResumeTemplates() {
   const { data, isLoading } = useTemplates()
   const toggleTemplate = useToggleTemplate()
+  const [showAddTemplate, setShowAddTemplate] = useState(false)
 
   const templates = data?.templates ?? []
   const activeCount = data?.active ?? 0
@@ -42,10 +90,11 @@ export default function AdminResumeTemplates() {
 
   return (
     <div className="space-y-6">
+      {showAddTemplate && <AddTemplateModal onClose={() => setShowAddTemplate(false)} />}
       <AdminPageHeader
         title="Resume Templates"
         subtitle="Manage templates available to all students"
-        actions={[{ label: 'Add Template', icon: Plus }]}
+        actions={[{ label: 'Add Template', icon: Plus, onClick: () => setShowAddTemplate(true) }]}
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

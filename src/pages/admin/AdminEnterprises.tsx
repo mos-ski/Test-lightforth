@@ -40,12 +40,63 @@ const PLAN_COLORS: Record<string, string> = {
   'Campus Starter': 'bg-slate-100 text-slate-600',
 }
 
+function AddInstitutionModal({ onClose }: { onClose: () => void }) {
+  const [name, setName] = useState('')
+  const [domain, setDomain] = useState('')
+  const [plan, setPlan] = useState('Campus Starter')
+  const [contact, setContact] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name || !domain) return
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">Add Institution</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">Institution Name <span className="text-red-500">*</span></label>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Howard University" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Domain <span className="text-red-500">*</span></label>
+            <input value={domain} onChange={e => setDomain(e.target.value)} placeholder="e.g. howard.edu" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Plan</label>
+            <select value={plan} onChange={e => setPlan(e.target.value)} className="lf-select">
+              <option>Campus Starter</option>
+              <option>Campus Growth</option>
+              <option>Campus Enterprise</option>
+            </select>
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Contact Email</label>
+            <input type="email" value={contact} onChange={e => setContact(e.target.value)} placeholder="admin@university.edu" className="lf-input" />
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminEnterprises() {
   const [search, setSearch] = useState('')
   const [period, setPeriod] = useState<TimePeriod>('12m')
   const [selectedEnterprise, setSelectedEnterprise] = useState<typeof ENTERPRISES[0] | null>(null)
   const [selectedStudent, setSelectedStudent] = useState<(typeof ENTERPRISE_STUDENTS)[string][number] | null>(null)
   const [studentSearch, setStudentSearch] = useState('')
+  const [showAddInstitution, setShowAddInstitution] = useState(false)
 
   const filtered = ENTERPRISES.filter(e =>
     e.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -76,7 +127,7 @@ export default function AdminEnterprises() {
           badge={selectedEnterprise.plan}
           badgeClassName={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${PLAN_COLORS[selectedEnterprise.plan]}`}
           subtitle={`${selectedEnterprise.domain} · ${selectedEnterprise.department} · ${selectedEnterprise.students} included seats · ${selectedEnterprise.billingCycle} billing`}
-          actions={[{ label: 'Export Students', icon: Download, variant: 'outline' }]}
+          actions={[{ label: 'Export Students', icon: Download, variant: 'outline', onClick: () => {} }]}
         />
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -172,12 +223,13 @@ export default function AdminEnterprises() {
 
   return (
     <div className="space-y-6">
+      {showAddInstitution && <AddInstitutionModal onClose={() => setShowAddInstitution(false)} />}
       <AdminPageHeader
         breadcrumb={[{ label: 'Users', to: '/admin/users' }, { label: 'Enterprises' }]}
         title="Enterprises"
         subtitle="Institution accounts — contract billing, included seats, student activation, and usage"
         actions={[
-          { label: 'Add Institution', icon: Plus },
+          { label: 'Add Institution', icon: Plus, onClick: () => setShowAddInstitution(true) },
           { label: 'Export CSV', icon: Download, variant: 'outline' },
         ]}
         period={period}

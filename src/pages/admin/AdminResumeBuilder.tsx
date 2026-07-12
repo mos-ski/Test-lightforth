@@ -63,21 +63,66 @@ const STATUS_COLORS: Record<string, string> = {
 
 type TemplateModal = { open: boolean; template: typeof TEMPLATES[number] | null }
 
+function CreateResumeModal({ onClose }: { onClose: () => void }) {
+  const [user, setUser] = useState('')
+  const [template, setTemplate] = useState('t01')
+  const [jobRole, setJobRole] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user) return
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">Create Resume</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">User <span className="text-red-500">*</span></label>
+            <input value={user} onChange={e => setUser(e.target.value)} placeholder="e.g. Darnell Smith" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Template</label>
+            <select value={template} onChange={e => setTemplate(e.target.value)} className="lf-select">
+              {TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.name}{t.premium ? ' (Premium)' : ''}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Target Role</label>
+            <input value={jobRole} onChange={e => setJobRole(e.target.value)} placeholder="e.g. Software Engineer" className="lf-input" />
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminResumeBuilder() {
   const [tab, setTab] = useState<'overview' | 'builds' | 'templates' | 'settings'>('overview')
   const [period, setPeriod] = useState<TimePeriod>('12m')
   const [templateModal, setTemplateModal] = useState<TemplateModal>({ open: false, template: null })
   const [selectedRow, setSelectedRow] = useState<typeof RECENT_BUILDS[number] | null>(null)
+  const [showCreateResume, setShowCreateResume] = useState(false)
 
   const totalDownloads = TEMPLATES.reduce((sum, t) => sum + t.downloads, 0)
   const totalUses = TEMPLATES.reduce((sum, t) => sum + t.uses, 0)
 
   return (
     <div className="space-y-6">
+      {showCreateResume && <CreateResumeModal onClose={() => setShowCreateResume(false)} />}
       <AdminPageHeader
         title="Resume Builder"
         subtitle="AI-powered resume building — chat, ATS scoring, templates, and acceptance tracking"
-        actions={[{ label: 'Create Resume', icon: Plus }]}
+        actions={[{ label: 'Create Resume', icon: Plus, onClick: () => setShowCreateResume(true) }]}
         period={period}
         onPeriodChange={setPeriod}
         tabs={[{ key: 'overview', label: 'Overview' }, { key: 'builds', label: 'Builds' }, { key: 'templates', label: 'Templates' }, { key: 'settings', label: 'Settings' }]}

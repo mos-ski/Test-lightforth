@@ -134,12 +134,59 @@ const LEAD_STATUS_COLORS: Record<string, string> = {
   converted: 'bg-emerald-50 text-emerald-700',
 }
 
+function CreateFunnelModal({ onClose }: { onClose: () => void }) {
+  const [name, setName] = useState('')
+  const [type, setType] = useState('Quiz Flow')
+  const [steps, setSteps] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name) return
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">Create Funnel</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">Name <span className="text-red-500">*</span></label>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Career Clarity Quiz" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Type</label>
+            <select value={type} onChange={e => setType(e.target.value)} className="lf-select">
+              <option>Quiz Flow</option>
+              <option>Tool Funnel</option>
+              <option>Assessment Flow</option>
+              <option>Course Funnel</option>
+            </select>
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Steps (comma-separated)</label>
+            <input value={steps} onChange={e => setSteps(e.target.value)} placeholder="Landing, Quiz, Results, Upsell" className="lf-input" />
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminFunnels() {
   const [view, setView] = useState<'folders' | 'folder'>('folders')
   const [selectedFunnel, setSelectedFunnel] = useState<typeof FUNNELS[0] | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [leadSearch, setLeadSearch] = useState('')
   const [selectedLead, setSelectedLead] = useState<(typeof MOCK_LEADS)[string][number] | null>(null)
+  const [showCreateFunnel, setShowCreateFunnel] = useState(false)
 
   const filteredFunnels = FUNNELS.filter(f =>
     f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -185,7 +232,7 @@ export default function AdminFunnels() {
           subtitle={`${selectedFunnel.type} · ${leads.length} leads · ${selectedFunnel.steps.length} steps`}
           actions={[
             { label: 'Export CSV', icon: Download, onClick: exportCSV, variant: 'outline' },
-            { label: 'Nurture Sequence', icon: Send },
+            { label: 'Nurture Sequence', icon: Send, onClick: () => {} },
           ]}
         />
 
@@ -298,10 +345,11 @@ export default function AdminFunnels() {
 
   return (
     <div className="space-y-6">
+      {showCreateFunnel && <CreateFunnelModal onClose={() => setShowCreateFunnel(false)} />}
       <AdminPageHeader
         title="Funnels"
         subtitle="All funnel databases — click a folder to view leads, export, and nurture"
-        actions={[{ label: 'Create Funnel', icon: Plus }]}
+        actions={[{ label: 'Create Funnel', icon: Plus, onClick: () => setShowCreateFunnel(true) }]}
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">

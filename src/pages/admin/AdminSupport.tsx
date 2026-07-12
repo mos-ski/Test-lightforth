@@ -20,11 +20,76 @@ const PRIORITY_COLORS: Record<string, string> = {
   low: 'bg-muted text-muted-foreground',
 }
 
+function NewTicketModal({ onClose }: { onClose: () => void }) {
+  const [subject, setSubject] = useState('')
+  const [email, setEmail] = useState('')
+  const [category, setCategory] = useState('Bug Report')
+  const [priority, setPriority] = useState('medium')
+  const [description, setDescription] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!subject || !email) return
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">New Support Ticket</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">Subject <span className="text-red-500">*</span></label>
+            <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Brief description" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Email <span className="text-red-500">*</span></label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="user@example.com" className="lf-input" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="lf-label block mb-1.5">Category</label>
+              <select value={category} onChange={e => setCategory(e.target.value)} className="lf-select">
+                <option>Bug Report</option>
+                <option>Billing</option>
+                <option>Account</option>
+                <option>Feature Request</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="lf-label block mb-1.5">Priority</label>
+              <select value={priority} onChange={e => setPriority(e.target.value)} className="lf-select">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Description</label>
+            <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Detailed description..." rows={3} className="lf-input resize-none" />
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminSupport() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null)
+  const [showNewTicket, setShowNewTicket] = useState(false)
 
   const { data, isLoading } = useTickets({ search, status: statusFilter, priority: priorityFilter })
   const updateTicket = useUpdateTicket()
@@ -39,10 +104,11 @@ export default function AdminSupport() {
 
   return (
     <div className="space-y-6">
+      {showNewTicket && <NewTicketModal onClose={() => setShowNewTicket(false)} />}
       <AdminPageHeader
         title="Support"
         subtitle="User support tickets and issue tracking"
-        actions={[{ label: 'New Ticket', icon: Plus }]}
+        actions={[{ label: 'New Ticket', icon: Plus, onClick: () => setShowNewTicket(true) }]}
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

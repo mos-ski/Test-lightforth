@@ -60,6 +60,55 @@ const REFERRAL_STATUS_COLORS: Record<string, string> = {
 
 type Tab = 'overview' | 'partners' | 'settings'
 
+function InvitePartnerModal({ onClose }: { onClose: () => void }) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [type, setType] = useState('Creator')
+  const [commission, setCommission] = useState('15')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name || !email) return
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="lf-panel w-full max-w-md p-6 shadow-2xl">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="lf-card-title">Invite Partner</h2>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="lf-label block mb-1.5">Partner Name <span className="text-red-500">*</span></label>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. TechHire Academy" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Email <span className="text-red-500">*</span></label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="partners@example.com" className="lf-input" />
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Type</label>
+            <select value={type} onChange={e => setType(e.target.value)} className="lf-select">
+              <option>Creator</option>
+              <option>Referral</option>
+            </select>
+          </div>
+          <div>
+            <label className="lf-label block mb-1.5">Commission %</label>
+            <input type="number" value={commission} onChange={e => setCommission(e.target.value)} placeholder="15" className="lf-input" />
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-border py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
+            <button type="submit" className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">Send Invite</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminPartners() {
   const [tab, setTab] = useState<Tab>('overview')
   const [period, setPeriod] = useState<TimePeriod>('12m')
@@ -68,6 +117,7 @@ export default function AdminPartners() {
   const [selectedPartner, setSelectedPartner] = useState<typeof PARTNERS[0] | null>(null)
   const [selectedReferral, setSelectedReferral] = useState<(typeof PARTNER_REFERRALS)[string][number] | null>(null)
   const [referralSearch, setReferralSearch] = useState('')
+  const [showInvitePartner, setShowInvitePartner] = useState(false)
 
   const filtered = PARTNERS.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.email.toLowerCase().includes(search.toLowerCase())
@@ -101,7 +151,7 @@ export default function AdminPartners() {
           badge={selectedPartner.tier}
           badgeClassName={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${TIER_COLORS[selectedPartner.tier]}`}
           subtitle={`${selectedPartner.email} · ${selectedPartner.type} · Joined ${selectedPartner.joinDate}`}
-          actions={[{ label: 'Export Referrals', icon: Download, variant: 'outline' }]}
+          actions={[{ label: 'Export Referrals', icon: Download, variant: 'outline', onClick: () => {} }]}
         />
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -189,10 +239,11 @@ export default function AdminPartners() {
 
   return (
     <div className="space-y-6">
+      {showInvitePartner && <InvitePartnerModal onClose={() => setShowInvitePartner(false)} />}
       <AdminPageHeader
         title="Partners & Affiliates"
         subtitle="Creator Program — commissions, bonuses, tiers, and partner management"
-        actions={[{ label: 'Invite Partner', icon: Plus }]}
+        actions={[{ label: 'Invite Partner', icon: Plus, onClick: () => setShowInvitePartner(true) }]}
         period={period}
         onPeriodChange={setPeriod}
         tabs={[
