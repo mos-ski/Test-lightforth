@@ -1,10 +1,6 @@
 import { useState } from 'react'
-import { TrendingUp, ArrowUpRight, Settings, Zap, Clock, CheckCircle2, XCircle, Plus, X } from 'lucide-react'
-import { USERS, TRANSACTIONS } from '@/lib/adminMockData'
-import { useSort } from '@/hooks/useSort'
-import { SortableHeader } from '@/components/shared/SortableHeader'
-import type { TimePeriod } from '@/components/shared/TimelineFilter'
-import { AdminDetailModal } from '@/components/shared/AdminDetailModal'
+import { TrendingUp, ArrowUpRight, Settings, Zap, Clock, CheckCircle2, Plus, X, Search, FileText, ChevronDown, ExternalLink } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { AdminPageHeader } from '@/components/shared/AdminPageHeader'
 
 const AUTO_APPLY_STATS = {
@@ -16,21 +12,23 @@ const AUTO_APPLY_STATS = {
   platforms: 8,
 }
 
-const RECENT_APPLICATIONS = [
-  { id: '1', user: 'Darnell Smith', company: 'JPMorgan Chase', role: 'Software Engineer', status: 'submitted', time: '12 min ago', atsScore: 92 },
-  { id: '2', user: 'Jessica Williams', company: 'Goldman Sachs', role: 'Data Analyst', status: 'submitted', time: '28 min ago', atsScore: 87 },
-  { id: '3', user: 'Omar Khan', company: 'Google', role: 'Product Manager', status: 'failed', time: '45 min ago', atsScore: 71 },
-  { id: '4', user: 'Sarah Johnson', company: 'Microsoft', role: 'UX Designer', status: 'submitted', time: '1 hr ago', atsScore: 94 },
-  { id: '5', user: 'Carlos Rodriguez', company: 'Amazon', role: 'Cloud Engineer', status: 'pending', time: '1 hr ago', atsScore: 83 },
-  { id: '6', user: 'Aisha Davis', company: 'Meta', role: 'Backend Engineer', status: 'submitted', time: '2 hr ago', atsScore: 89 },
-  { id: '7', user: 'James Brown', company: 'Apple', role: 'iOS Developer', status: 'failed', time: '2 hr ago', atsScore: 65 },
-  { id: '8', user: 'Hannah Lee', company: 'Netflix', role: 'Data Scientist', status: 'submitted', time: '3 hr ago', atsScore: 91 },
+const APPLICATIONS = [
+  { id: '1', user: 'Darnell Smith', userInitials: 'DS', company: 'JPMorgan Chase', companyInitials: 'JP', role: 'Software Engineer', location: 'New York, NY', type: 'Full-time', level: 'Senior', status: 'submitted' as const, salary: '$145k – $185k', atsScore: 92, time: '12 min ago', resume: 'Darnell_Smith_Resume.pdf', coverLetter: 'Cover_Letter_JPMorgan.pdf', source: 'LinkedIn' },
+  { id: '2', user: 'Jessica Williams', userInitials: 'JW', company: 'Goldman Sachs', companyInitials: 'GS', role: 'Data Analyst', location: 'London, UK', type: 'Full-time', level: 'Mid', status: 'submitted' as const, salary: '£65k – £85k', atsScore: 87, time: '28 min ago', resume: 'Jessica_Williams_Resume.pdf', coverLetter: 'Cover_Letter_Goldman.pdf', source: 'Greenhouse' },
+  { id: '3', user: 'Omar Khan', userInitials: 'OK', company: 'Google', companyInitials: 'GO', role: 'Product Manager', location: 'Mountain View, CA', type: 'Full-time', level: 'Senior', status: 'failed' as const, salary: '$160k – $210k', atsScore: 71, time: '45 min ago', resume: 'Omar_Khan_Resume.pdf', coverLetter: '', source: 'Workday', failReason: 'Application form requires manual captcha verification' },
+  { id: '4', user: 'Sarah Johnson', userInitials: 'SJ', company: 'Microsoft', companyInitials: 'MS', role: 'UX Designer', location: 'Seattle, WA', type: 'Full-time', level: 'Mid', status: 'submitted' as const, salary: '$120k – $155k', atsScore: 94, time: '1 hr ago', resume: 'Sarah_Johnson_Resume.pdf', coverLetter: 'Cover_Letter_Microsoft.pdf', source: 'LinkedIn' },
+  { id: '5', user: 'Carlos Rodriguez', userInitials: 'CR', company: 'Amazon', companyInitials: 'AM', role: 'Cloud Engineer', location: 'Austin, TX', type: 'Full-time', level: 'Senior', status: 'pending' as const, salary: '$135k – $175k', atsScore: 83, time: '1 hr ago', resume: 'Carlos_Rodriguez_Resume.pdf', coverLetter: '', source: 'Lever' },
+  { id: '6', user: 'Aisha Davis', userInitials: 'AD', company: 'Meta', companyInitials: 'ME', role: 'Backend Engineer', location: 'Menlo Park, CA', type: 'Full-time', level: 'Senior', status: 'submitted' as const, salary: '$150k – $195k', atsScore: 89, time: '2 hr ago', resume: 'Aisha_Davis_Resume.pdf', coverLetter: 'Cover_Letter_Meta.pdf', source: 'Ashby' },
+  { id: '7', user: 'James Brown', userInitials: 'JB', company: 'Apple', companyInitials: 'AP', role: 'iOS Developer', location: 'Cupertino, CA', type: 'Full-time', level: 'Mid', status: 'failed' as const, salary: '$130k – $165k', atsScore: 65, time: '2 hr ago', resume: 'James_Brown_Resume.pdf', coverLetter: '', source: 'LinkedIn', failReason: 'Job posting closed before application could be submitted' },
+  { id: '8', user: 'Hannah Lee', userInitials: 'HL', company: 'Netflix', companyInitials: 'NE', role: 'Data Scientist', location: 'Los Angeles, CA', type: 'Full-time', level: 'Senior', status: 'submitted' as const, salary: '$155k – $200k', atsScore: 91, time: '3 hr ago', resume: 'Hannah_Lee_Resume.pdf', coverLetter: 'Cover_Letter_Netflix.pdf', source: 'Greenhouse' },
+  { id: '9', user: 'David Martinez', userInitials: 'DM', company: 'Stripe', companyInitials: 'ST', role: 'Full Stack Engineer', location: 'San Francisco, CA', type: 'Full-time', level: 'Senior', status: 'submitted' as const, salary: '$145k – $190k', atsScore: 88, time: '3 hr ago', resume: 'David_Martinez_Resume.pdf', coverLetter: 'Cover_Letter_Stripe.pdf', source: 'LinkedIn' },
+  { id: '10', user: 'Priya Patel', userInitials: 'PP', company: 'Shopify', companyInitials: 'SH', role: 'Frontend Engineer', location: 'Toronto, Canada', type: 'Full-time', level: 'Mid', status: 'pending' as const, salary: 'CAD $110k – $140k', atsScore: 80, time: '4 hr ago', resume: 'Priya_Patel_Resume.pdf', coverLetter: '', source: 'Workday' },
 ]
 
-const STATUS_COLORS: Record<string, string> = {
-  submitted: 'bg-emerald-50 text-emerald-700',
-  pending: 'bg-amber-50 text-amber-700',
-  failed: 'bg-red-50 text-red-600',
+const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
+  submitted: { bg: 'bg-emerald-50', text: 'text-emerald-700', label: 'Applied' },
+  pending: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'Pending' },
+  failed: { bg: 'bg-red-50', text: 'text-red-600', label: 'Failed' },
 }
 
 const JOB_BOARDS = [
@@ -48,11 +46,25 @@ const BOARD_STATUS: Record<string, string> = {
   down: 'bg-red-50 text-red-600',
 }
 
+function AtsBadge({ score }: { score: number }) {
+  const color = score >= 85 ? 'bg-emerald-50 text-emerald-700' : score >= 70 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+  return (
+    <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold', color)}>
+      ATS {score}
+    </span>
+  )
+}
+
 export default function AdminAutoApply() {
   const [tab, setTab] = useState<'overview' | 'jobs' | 'settings'>('overview')
-  const [period, setPeriod] = useState<TimePeriod>('12m')
-  const [selectedRow, setSelectedRow] = useState<typeof RECENT_APPLICATIONS[number] | null>(null)
-  const { sortKey, sortDirection, toggleSort, sorted } = useSort({ data: RECENT_APPLICATIONS })
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+
+  const filtered = APPLICATIONS.filter(a =>
+    `${a.user} ${a.company} ${a.role}`.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const selected = APPLICATIONS.find(a => a.id === selectedId) || null
 
   return (
     <div className="space-y-6">
@@ -60,15 +72,14 @@ export default function AdminAutoApply() {
         title="Auto-Apply"
         subtitle="Automated job application engine — monitor performance and configuration"
         actions={[{ label: 'New Application', icon: Plus }]}
-        period={period}
-        onPeriodChange={setPeriod}
-        tabs={[{ key: 'overview', label: 'Overview' }, { key: 'jobs', label: 'Jobs' }, { key: 'settings', label: 'Settings' }]}
+        tabs={[{ key: 'overview', label: 'Overview' }, { key: 'jobs', label: 'Job Boards' }, { key: 'settings', label: 'Settings' }]}
         activeTab={tab}
         onTabChange={v => setTab(v as typeof tab)}
       />
 
       {tab === 'overview' && (
         <>
+          {/* Stats */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
             {[
               { label: 'Total Applications', value: AUTO_APPLY_STATS.totalApplications.toLocaleString(), icon: Zap, change: '+18.2%' },
@@ -91,43 +102,184 @@ export default function AdminAutoApply() {
             ))}
           </div>
 
-          <div className="lf-panel p-6">
-            <p className="lf-card-title mb-4">Recent Applications</p>
-            <div className="overflow-x-auto">
-              <table className="lf-table">
-                <thead className="lf-table-head">
-                  <tr>
-                    <SortableHeader label="User" sortKey="user" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
-                    <SortableHeader label="Company" sortKey="company" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
-                    <SortableHeader label="Role" sortKey="role" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden md:table-cell" />
-                    <SortableHeader label="ATS Score" sortKey="atsScore" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
-                    <SortableHeader label="Status" sortKey="status" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} />
-                    <SortableHeader label="Time" sortKey="time" activeSortKey={sortKey} sortDirection={sortDirection} onToggleSort={toggleSort} className="hidden sm:table-cell" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {sorted.map(app => (
-                    <tr key={app.id} className="lf-table-row cursor-pointer" onClick={() => setSelectedRow(app)}>
-                      <td className="lf-table-cell font-medium text-foreground">{app.user}</td>
-                      <td className="lf-table-cell">{app.company}</td>
-                      <td className="lf-table-cell hidden md:table-cell text-muted-foreground">{app.role}</td>
-                      <td className="lf-table-cell">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-12 rounded-full bg-muted overflow-hidden">
-                            <div className={`h-full rounded-full ${app.atsScore >= 85 ? 'bg-emerald-500' : app.atsScore >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${app.atsScore}%` }} />
-                          </div>
-                          <span className="text-xs font-semibold tabular-nums">{app.atsScore}</span>
+          {/* Applications list + detail panel */}
+          <div className="flex flex-col gap-4 lg:flex-row">
+            <div className="flex-1 min-w-0">
+              {/* Search */}
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search by user, company, or role..."
+                  className="lf-input pl-9"
+                />
+              </div>
+
+              {/* Application list */}
+              <div className="lf-panel">
+                <div className="divide-y divide-border/60">
+                  {filtered.map(app => {
+                    const st = STATUS_CONFIG[app.status]
+                    return (
+                      <div
+                        key={app.id}
+                        onClick={() => setSelectedId(selectedId === app.id ? null : app.id)}
+                        className={cn(
+                          'flex cursor-pointer items-start gap-3 p-4 transition-colors hover:bg-muted/30',
+                          selectedId === app.id && 'bg-primary/5',
+                        )}
+                      >
+                        {/* Company initials */}
+                        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                          {app.companyInitials}
                         </div>
-                      </td>
-                      <td className="lf-table-cell">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[app.status]}`}>{app.status}</span>
-                      </td>
-                      <td className="lf-table-cell hidden sm:table-cell text-xs text-muted-foreground">{app.time}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+                        {/* Details */}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-semibold text-foreground">{app.role}</p>
+                            <AtsBadge score={app.atsScore} />
+                          </div>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {app.company} · {app.location} · {app.type} · {app.level}
+                          </p>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            <span>{app.salary}</span>
+                            <span>{app.source}</span>
+                            <span>{app.time}</span>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Applicant: <span className="font-medium text-foreground">{app.user}</span>
+                          </p>
+                        </div>
+
+                        {/* Status */}
+                        <span className={cn('flex-shrink-0 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold', st.bg, st.text)}>
+                          {st.label}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
+
+            {/* Detail panel */}
+            {selected && (
+              <div className="w-full flex-shrink-0 rounded-xl border border-border bg-white lg:w-80 lg:sticky lg:top-4 lg:max-h-[calc(100vh-180px)] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-start justify-between border-b border-border p-4 pb-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">{selected.role}</h3>
+                    <p className="text-xs text-muted-foreground">{selected.company} · {selected.location}</p>
+                  </div>
+                  <button onClick={() => setSelectedId(null)} className="ml-2 flex-shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="p-4">
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    <span className={cn('rounded-full px-2.5 py-1 text-xs font-semibold', STATUS_CONFIG[selected.status].bg, STATUS_CONFIG[selected.status].text)}>
+                      {STATUS_CONFIG[selected.status].label}
+                    </span>
+                    <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">{selected.salary}</span>
+                    <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">{selected.level}</span>
+                  </div>
+
+                  {/* Applicant */}
+                  <div className="mb-4">
+                    <p className="text-xs font-semibold text-foreground mb-1">Applicant</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
+                        {selected.userInitials}
+                      </div>
+                      <span className="text-xs text-foreground">{selected.user}</span>
+                    </div>
+                  </div>
+
+                  {/* Job Listing */}
+                  <div className="mb-3">
+                    <p className="text-xs font-semibold text-foreground mb-1">Job Listing</p>
+                    <a href="#" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                      <ExternalLink className="h-3 w-3" /> View on {selected.source}
+                    </a>
+                  </div>
+
+                  {/* Resume Used */}
+                  <div className="mb-3">
+                    <p className="text-xs font-semibold text-foreground mb-1">Resume Used</p>
+                    <a href="#" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                      <FileText className="h-3 w-3" /> {selected.resume}
+                    </a>
+                  </div>
+
+                  {/* Cover Letter */}
+                  {selected.coverLetter && (
+                    <div className="mb-4">
+                      <p className="text-xs font-semibold text-foreground mb-1">Cover Letter</p>
+                      <a href="#" className="flex items-center gap-1 text-xs text-primary hover:underline">
+                        <FileText className="h-3 w-3" /> {selected.coverLetter}
+                      </a>
+                    </div>
+                  )}
+
+                  {/* ATS Score */}
+                  <div className="mb-4 rounded-lg bg-muted/40 p-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-foreground">ATS Score</p>
+                      <span className={cn('text-lg font-bold', selected.atsScore >= 85 ? 'text-emerald-600' : selected.atsScore >= 70 ? 'text-amber-600' : 'text-red-600')}>
+                        {selected.atsScore}
+                      </span>
+                    </div>
+                    <div className="mt-2 h-1.5 w-full rounded-full bg-border overflow-hidden">
+                      <div
+                        className={cn('h-full rounded-full', selected.atsScore >= 85 ? 'bg-emerald-500' : selected.atsScore >= 70 ? 'bg-amber-500' : 'bg-red-500')}
+                        style={{ width: `${selected.atsScore}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Failed reason */}
+                  {selected.status === 'failed' && selected.failReason && (
+                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                      <p className="text-xs font-semibold text-red-700">Why it failed</p>
+                      <p className="mt-1 text-xs leading-5 text-red-700">{selected.failReason}</p>
+                    </div>
+                  )}
+
+                  {/* Activity Log */}
+                  <div className="mb-4">
+                    <p className="text-xs font-semibold text-foreground mb-2">Activity Log</p>
+                    <div className="space-y-1.5">
+                      {(selected.status === 'failed'
+                        ? ['Opened job page', 'Filled available fields', 'Uploaded tailored resume', `Blocked: ${selected.failReason}`]
+                        : selected.status === 'pending'
+                        ? ['Opened job page', 'Filling application form...']
+                        : ['Opened job page', 'Filled application form', 'Uploaded tailored resume', 'Submitted application']
+                      ).map((step, i, arr) => (
+                        <div key={step} className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className={cn(
+                            'h-1.5 w-1.5 rounded-full flex-shrink-0',
+                            selected.status === 'failed' && i === arr.length - 1 ? 'bg-red-500' : 'bg-emerald-500',
+                          )} />
+                          {step}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Action */}
+                  {selected.status === 'failed' && (
+                    <button className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">
+                      Retry Application
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}
@@ -160,7 +312,7 @@ export default function AdminAutoApply() {
           <p className="lf-card-title">Auto-Apply Configuration</p>
           {[
             { label: 'Auto-Apply Enabled', desc: 'Allow users to auto-apply to matching jobs', checked: true },
-            { label: 'Stealth Mode', desc: 'Hide application踪迹 from employers', checked: true },
+            { label: 'Stealth Mode', desc: 'Hide application traces from employers', checked: true },
             { label: 'Smart Matching', desc: 'Use AI to match user profile to job requirements', checked: true },
             { label: 'Daily Application Limit', desc: 'Max applications per user per day', value: '50' },
             { label: 'Minimum ATS Score', desc: 'Only apply to jobs with ATS score above threshold', value: '70' },
@@ -180,20 +332,6 @@ export default function AdminAutoApply() {
             </div>
           ))}
         </div>
-      )}
-      {selectedRow && (
-        <AdminDetailModal
-          title={`${selectedRow.company} Application`}
-          subtitle={selectedRow.user}
-          onClose={() => setSelectedRow(null)}
-          fields={[
-            { label: 'Role', value: selectedRow.role },
-            { label: 'ATS Score', value: selectedRow.atsScore },
-            { label: 'Status', value: selectedRow.status },
-            { label: 'Time', value: selectedRow.time },
-            { label: 'Recommended Action', value: selectedRow.status === 'failed' ? 'Review blocker and retry' : selectedRow.status === 'pending' ? 'Monitor submission' : 'No action needed' },
-          ]}
-        />
       )}
     </div>
   )
