@@ -303,15 +303,13 @@ export default function AdminAnalytics() {
 
   return (
     <div className="space-y-6">
-      {/* Sticky header + period filter */}
-      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 bg-white border-b border-border mb-6 pt-6 pb-4">
-        <AdminPageHeader
-          title="Analytics"
-          subtitle="Platform performance metrics and trends"
-          period={period}
-          onPeriodChange={setPeriod}
-        />
-      </div>
+      {/* Header + period filter */}
+      <AdminPageHeader
+        title="Analytics"
+        subtitle="Platform performance metrics and trends"
+        period={period}
+        onPeriodChange={setPeriod}
+      />
 
       {/* Key Metrics */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
