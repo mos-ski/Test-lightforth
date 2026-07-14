@@ -609,6 +609,7 @@ function SupportSection() {
 
 function InterviewTypes() {
   const [activeTab, setActiveTab] = useState(0)
+  const [tabProgress, setTabProgress] = useState(0)
   const [pillsInView, setPillsInView] = useState(false)
   const [pillsScattered, setPillsScattered] = useState(false)
   const productSectionRef = useRef<HTMLElement | null>(null)
@@ -616,14 +617,36 @@ function InterviewTypes() {
   const scrollTimer = useRef<number | null>(null)
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setActiveTab((current) => (current + 1) % interviewTabs.length)
-    }, 3000)
+    function updateFromScroll() {
+      const section = productSectionRef.current
+      if (!section) return
+
+      const rect = section.getBoundingClientRect()
+      const triggerLine = 96
+      const progressRange = Math.max(1, rect.height - Math.min(window.innerHeight * 0.35, 280))
+      const totalProgress = Math.min(1, Math.max(0, (triggerLine - rect.top) / progressRange))
+      const tabPosition = totalProgress * interviewTabs.length
+      const nextTab = Math.min(interviewTabs.length - 1, Math.floor(tabPosition))
+      const nextProgress = totalProgress >= 1 ? 1 : Math.min(1, Math.max(0.04, tabPosition - nextTab))
+
+      setActiveTab(nextTab)
+      setTabProgress(nextProgress)
+      tabListRef.current?.children[nextTab]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      })
+    }
+
+    updateFromScroll()
+    window.addEventListener('scroll', updateFromScroll, { passive: true })
+    window.addEventListener('resize', updateFromScroll)
 
     return () => {
-      window.clearTimeout(timer)
+      window.removeEventListener('scroll', updateFromScroll)
+      window.removeEventListener('resize', updateFromScroll)
     }
-  }, [activeTab])
+  }, [])
 
   useEffect(() => {
     const section = productSectionRef.current
@@ -645,6 +668,7 @@ function InterviewTypes() {
 
   function selectTab(index: number) {
     setActiveTab(index)
+    setTabProgress(1)
     tabListRef.current?.children[index]?.scrollIntoView({
       behavior: 'smooth',
       block: 'nearest',
@@ -693,7 +717,7 @@ function InterviewTypes() {
               onClick={() => selectTab(index)}
               className="relative h-[45px] min-w-[213.33px] shrink-0 overflow-hidden border-r border-[#d5d5d5] px-5 text-center text-[14px] font-normal leading-[17px] text-[#171717]"
             >
-              {activeTab === index ? <span key={activeTab} className="lf-tab-loader" aria-hidden="true" /> : null}
+              {activeTab === index ? <span className="lf-tab-loader" style={{ transform: `scaleX(${tabProgress})` }} aria-hidden="true" /> : null}
               <span className="relative z-10">{tab.label}</span>
             </button>
           ))}

@@ -191,11 +191,10 @@
 .lf-tab-loader {
   position: absolute;
   inset: 0 auto 0 0;
-  width: 122px;
+  width: 100%;
   max-width: 100%;
   background: #8ec8ff;
   transform-origin: left center;
-  animation: lfTabLoader 3s linear forwards;
 }
 
 .lf-copilot-panel-image {
@@ -1380,15 +1379,6 @@
   display: block;
   width: 20px;
   height: 20px;
-}
-
-@keyframes lfTabLoader {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
 }
 
 @keyframes lfPanelFade {
