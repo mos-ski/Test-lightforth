@@ -612,63 +612,34 @@ function InterviewTypes() {
   const [pillsInView, setPillsInView] = useState(false)
   const [pillsScattered, setPillsScattered] = useState(false)
   const productSectionRef = useRef<HTMLElement | null>(null)
-  const productStickyRef = useRef<HTMLDivElement | null>(null)
   const tabListRef = useRef<HTMLDivElement | null>(null)
   const scrollTimer = useRef<number | null>(null)
-  const autoPauseUntil = useRef(0)
-  const autoRetryTimer = useRef<number | null>(null)
 
   useEffect(() => {
-    function advanceWhenReady() {
-      const pauseRemaining = autoPauseUntil.current - Date.now()
-      if (pauseRemaining > 0) {
-        autoRetryTimer.current = window.setTimeout(advanceWhenReady, pauseRemaining + 120)
-        return
-      }
-
+    const timer = window.setTimeout(() => {
       setActiveTab((current) => (current + 1) % interviewTabs.length)
-    }
-
-    const timer = window.setTimeout(advanceWhenReady, 3000)
+    }, 3000)
 
     return () => {
       window.clearTimeout(timer)
-      if (autoRetryTimer.current) window.clearTimeout(autoRetryTimer.current)
     }
   }, [activeTab])
 
   useEffect(() => {
-    function updateFromScroll() {
-      const section = productSectionRef.current
-      if (!section) return
+    const section = productSectionRef.current
+    if (!section) return
 
-      const sectionTop = section.getBoundingClientRect().top + window.scrollY
-      const scrollRange = Math.max(1, section.offsetHeight - window.innerHeight)
-      const progress = Math.min(1, Math.max(0, (window.scrollY - sectionTop) / scrollRange))
-      const nextTab = Math.min(interviewTabs.length - 1, Math.floor(progress * interviewTabs.length))
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setPillsInView(entry.isIntersecting)
+      },
+      { threshold: 0.35 },
+    )
 
-      const isPinned = section.getBoundingClientRect().top <= 80 && section.getBoundingClientRect().bottom >= window.innerHeight * 0.55
-
-      setPillsInView(isPinned)
-
-      if (isPinned) {
-        autoPauseUntil.current = Date.now() + 900
-        setActiveTab(nextTab)
-        tabListRef.current?.children[nextTab]?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'center',
-        })
-      }
-    }
-
-    updateFromScroll()
-    window.addEventListener('scroll', updateFromScroll, { passive: true })
-    window.addEventListener('resize', updateFromScroll)
+    observer.observe(section)
 
     return () => {
-      window.removeEventListener('scroll', updateFromScroll)
-      window.removeEventListener('resize', updateFromScroll)
+      observer.disconnect()
     }
   }, [])
 
@@ -705,7 +676,7 @@ function InterviewTypes() {
 
   return (
     <section id="product" ref={productSectionRef} className="lf-product-scroll-scene bg-white">
-      <div ref={productStickyRef} className="lf-product-sticky mx-auto max-w-[1280px] overflow-hidden">
+      <div className="lf-product-sticky mx-auto max-w-[1280px] overflow-hidden">
         <div
           ref={tabListRef}
           onScroll={handleTabScroll}

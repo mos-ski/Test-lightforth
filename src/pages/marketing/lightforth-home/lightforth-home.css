@@ -168,12 +168,11 @@
 }
 
 .lf-product-scroll-scene {
-  min-height: calc(701px + 280vh);
+  min-height: 0;
 }
 
 .lf-product-sticky {
-  position: sticky;
-  top: max(64px, calc((100vh - 701px) / 2));
+  position: relative;
 }
 
 .lf-tab-scroller {
