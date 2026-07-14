@@ -473,6 +473,94 @@ function speakerColor(name: string): string {
   return SPEAKER_COLORS[hash % SPEAKER_COLORS.length]
 }
 
+function transparentSurface(hex: string, transparency: number, minAlpha = 0) {
+  const normalized = hex.replace('#', '')
+  const r = parseInt(normalized.slice(0, 2), 16)
+  const g = parseInt(normalized.slice(2, 4), 16)
+  const b = parseInt(normalized.slice(4, 6), 16)
+  const alpha = Math.max(minAlpha, (100 - transparency) / 100)
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+function MiniSliderControl({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string
+  value: number
+  min: number
+  max: number
+  onChange: (value: number) => void
+}) {
+  const progress = ((value - min) / (max - min)) * 100
+
+  return (
+    <label className="flex items-center gap-[6px] text-[10.5px] font-medium leading-[21px] text-[#6d727c]">
+      <span className="whitespace-nowrap">{label}</span>
+      <span className="relative block h-4 w-[58px] shrink-0">
+        <span className="absolute left-0 top-1/2 h-[4px] w-full -translate-y-1/2 rounded-full bg-white/75" />
+        <span
+          className="absolute left-0 top-1/2 h-[4px] -translate-y-1/2 rounded-full bg-[#2563d8]"
+          style={{ width: `${progress}%` }}
+        />
+        <span
+          className="pointer-events-none absolute top-1/2 size-[15px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_1px_4px_rgba(0,0,0,0.25)]"
+          style={{ left: `${progress}%` }}
+        />
+        <input
+          aria-label={label}
+          type="range"
+          min={min}
+          max={max}
+          value={value}
+          onInput={(event) => onChange(Number(event.currentTarget.value))}
+          onChange={(event) => onChange(Number(event.target.value))}
+          className="absolute inset-y-0 left-0 h-4 w-[58px] cursor-pointer opacity-0"
+        />
+      </span>
+      <span className="w-3 whitespace-nowrap text-left">{value}</span>
+    </label>
+  )
+}
+
+function TranscriptMessage({
+  speaker,
+  text,
+  kind,
+  transparency,
+  fontSize = 12,
+}: {
+  speaker: string
+  text: string
+  kind: 'speaker' | 'ai'
+  transparency: number
+  fontSize?: number
+}) {
+  const isAI = kind === 'ai'
+  const background = isAI
+    ? transparentSurface('#0C1B2B', transparency, 0.42)
+    : `rgba(255, 255, 255, ${Math.max(0.1, (100 - transparency) / 100 * 0.1)})`
+  const border = isAI ? '1px solid rgba(74, 158, 255, 0.52)' : '1px solid rgba(255, 255, 255, 0.08)'
+
+  return (
+    <div className="flex w-full flex-col items-start gap-[7.5px] rounded-[4.5px] p-[9px] text-left" style={{ background, border }}>
+      <p className="w-full truncate font-mono text-[6.75px] font-bold leading-[10.125px] text-white">
+        {speaker}
+      </p>
+      <p
+        className={cn('w-full whitespace-pre-wrap break-words leading-[18px]', isAI ? 'text-slate-100' : 'text-white')}
+        style={{ fontSize }}
+      >
+        {text}
+      </p>
+    </div>
+  )
+}
+
 /** Cuts text at the nearest word boundary around `ratio` through the string — used to show a question trailing off when another speaker interrupts it. */
 function truncateAtWord(text: string, ratio: number): string {
   const target = Math.round(text.length * ratio)
@@ -509,16 +597,21 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
   const [fontSize, setFontSize] = useState(14)
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [autoRespond, setAutoRespond] = useState(false)
-  const [showAI, setShowAI] = useState(true)
+  const [showAI, setShowAI] = useState(false)
 
   const statusRef = useRef(copilotStatus)
   const qIndexRef = useRef(questionIndex)
   const panelRef = useRef<HTMLDivElement>(null)
   const stickToBottomRef = useRef(true)
+  const scrollAnimationRef = useRef<number | null>(null)
   useEffect(() => { statusRef.current = copilotStatus }, [copilotStatus])
   useEffect(() => { qIndexRef.current = questionIndex }, [questionIndex])
 
   useEffect(() => { const id = setInterval(() => setElapsed(e => e + 1), 1000); return () => clearInterval(id) }, [])
+
+  useEffect(() => () => {
+    if (scrollAnimationRef.current !== null) cancelAnimationFrame(scrollAnimationRef.current)
+  }, [])
 
   // Only auto-scroll to the newest line if the user hasn't scrolled up to read
   // earlier transcript — otherwise this would fight every manual scroll attempt.
@@ -532,10 +625,29 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
     return () => el.removeEventListener('scroll', handleScroll)
   }, [])
   useEffect(() => {
-    if (panelRef.current && stickToBottomRef.current && 'scrollTo' in panelRef.current) {
-      panelRef.current.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' })
+    const el = panelRef.current
+    if (!el || !stickToBottomRef.current) return
+
+    if (scrollAnimationRef.current !== null) cancelAnimationFrame(scrollAnimationRef.current)
+
+    const start = el.scrollTop
+    const end = el.scrollHeight - el.clientHeight
+    const distance = end - start
+    if (Math.abs(distance) < 1) return
+
+    const duration = 700 - ((scrollSpeed - 1) * 120)
+    const startedAt = performance.now()
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - startedAt) / duration)
+      el.scrollTop = start + distance * easeOutCubic(progress)
+      if (progress < 1) scrollAnimationRef.current = requestAnimationFrame(step)
+      else scrollAnimationRef.current = null
     }
-  }, [qDisplayed, aDisplayed, copilotStatus])
+
+    scrollAnimationRef.current = requestAnimationFrame(step)
+  }, [qDisplayed, aDisplayed, copilotStatus, history.length, scrollSpeed])
 
   const advance = () => {
     const cur = statusRef.current
@@ -610,9 +722,17 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
 
   const statusText: Record<CopilotStatus, string> = { listening: 'Listening...', processing: 'Processing...', answering: 'Answering...' }
   const speakerLabel = bank[questionIndex].speaker
+  const canvasBg = transparentSurface('#0A1628', transparency)
+  const topBarBg = transparentSurface('#0A1628', transparency)
+  const toolbarBg = transparentSurface('#0F2340', transparency)
+  const liveHeaderBg = transparentSurface('#101D2B', transparency, 0.34)
+  const liveBodyBg = transparentSurface('#0C121C', transparency, 0.26)
+  const panelBg = transparentSurface('#0D1929', transparency)
+  const glassBorder = 'rgba(255, 255, 255, 0.24)'
+  const glassDivider = 'rgba(255, 255, 255, 0.16)'
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col" style={{ background: '#0A1628' }}>
+    <div className="relative flex flex-1 min-h-0 flex-col" style={{ background: canvasBg }}>
       <style>{`
         @keyframes glowPulse { 0%,100%{box-shadow:0 0 6px rgba(34,197,94,0.3),0 0 14px rgba(34,197,94,0.1)}50%{box-shadow:0 0 12px rgba(34,197,94,0.45),0 0 24px rgba(34,197,94,0.15)} }
         @keyframes processingDot { 0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-5px);opacity:1} }
@@ -663,16 +783,16 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
         </div>
       )}
 
-      <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: '#0A1628' }}>
+      <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: topBarBg }}>
         <div className="flex items-center gap-2 text-sm text-slate-300">
           <button onClick={onBack} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Back to use case selection">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />{TITLE_TEXT[useCaseId](primaryLabel)}</div>
+          {TITLE_TEXT[useCaseId](primaryLabel)}</div>
         <div className="flex items-center gap-3"><span className="font-mono text-sm text-slate-300">{formatTime(elapsed)}</span><button onClick={() => onEnd(elapsed, history)} className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600">End Session</button></div>
       </div>
 
-      <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-2" style={{ background: '#0F2340' }}>
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-2" style={{ background: toolbarBg }}>
         <div className="flex items-center gap-5 text-xs">
           <div className="flex items-center gap-2">
             <div className="flex items-end gap-[3px]">{[5,8,11,14].map((h,i) => <div key={i} className="w-[3px] rounded-sm bg-green-400" style={{height:h}} />)}</div>
@@ -681,95 +801,114 @@ export function LiveCanvas({ useCaseId, primaryLabel, onEnd, onBack, transparenc
           <span className="italic text-slate-400">{statusText[copilotStatus]}</span>
         </div>
         <div className="flex items-center gap-4 text-xs text-slate-300">
-          <button
-            onClick={() => setShowAI(a => !a)}
-            className={cn(
-              'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors',
-              showAI ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-white/10',
-            )}
-          >
-            <Sparkles className="h-3 w-3" /> AI Assistant
-          </button>
-          <label className="flex items-center gap-2">
-            Auto scroll
-            <input type="range" min={1} max={5} value={scrollSpeed} onChange={e => setScrollSpeed(Number(e.target.value))} className="w-20 accent-primary" />
-            <span className="w-3 text-slate-500">{scrollSpeed}</span>
-          </label>
-          <label className="flex items-center gap-2">
-            Font size
-            <input type="range" min={12} max={20} value={fontSize} onChange={e => setFontSize(Number(e.target.value))} className="w-20 accent-primary" />
-            <span className="w-5 text-slate-500">{fontSize}</span>
-          </label>
+          <MiniSliderControl label="Auto scroll" min={1} max={5} value={scrollSpeed} onChange={setScrollSpeed} />
+          <MiniSliderControl label="Font size" min={12} max={20} value={fontSize} onChange={setFontSize} />
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden p-2 gap-2">
+      <div className={cn(
+        'grid flex-1 min-h-0 overflow-hidden p-2 gap-2',
+        showAI ? 'grid-cols-[minmax(0,1fr)_minmax(260px,0.42fr)]' : 'grid-cols-1',
+      )}>
         <div className={cn(
-          'flex min-h-0 flex-col overflow-hidden rounded-xl transition-all duration-500',
-          showAI ? 'w-full lg:w-[65%]' : 'w-full',
-        )} style={{ background: '#0D1929', border: copilotStatus === 'listening' ? '1px solid #22c55e' : '1px solid #1E2D45', ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
-          <div className="flex flex-shrink-0 items-center justify-between border-b px-4 py-3" style={{ borderColor: '#1E2D45' }}>
-            <div className="flex items-center gap-2 text-sm font-medium text-white">Live Response<div className="h-2 w-2 rounded-full bg-red-500" /></div>
-            <button data-testid="open-settings" onClick={() => setShowSettings(true)}><Settings className="h-4 w-4 text-slate-400 hover:text-white transition-colors" /></button>
+          'flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[6px] transition-all duration-500',
+        )} style={{ background: panelBg, border: `1px solid ${glassBorder}`, ...(copilotStatus === 'listening' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}) }}>
+          <div
+            className="flex flex-shrink-0 items-center justify-between rounded-t-[6px] px-[15px] py-[10px]"
+            style={{ background: liveHeaderBg }}
+          >
+            <div className="flex w-[417.125px] max-w-[calc(100%-44px)] items-center gap-[6px]">
+              <span className="relative block size-[5.25px] shrink-0">
+                <span className="absolute inset-[-50%]">
+                  <img src="/live-response-dot.svg" alt="" className="block size-full" />
+                </span>
+              </span>
+              <p className="truncate text-[12px] font-medium leading-[21px] text-white">Live Interview Response</p>
+            </div>
+            <button
+              data-testid="open-settings"
+              onClick={() => setShowSettings(true)}
+              className="relative size-[18px] shrink-0 opacity-90 transition hover:opacity-100"
+              aria-label="Open live response settings"
+            >
+              <img src="/live-response-settings.svg" alt="" className="absolute inset-0 size-full" />
+            </button>
           </div>
-          <div ref={panelRef} className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
-            {history.map((item, i) => (
-              <div key={i} className="space-y-3">
-                <div>
-                  <p className="mb-1 text-xs font-semibold" style={{ color: speakerColor(item.speaker) }}>{item.speaker}</p>
-                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
-                    <p className="text-sm text-white">{questionTextFor(item)}{item.interjection && '…'}</p>
-                  </div>
+          <div
+            className="flex min-h-0 flex-1 items-start rounded-b-[6px] border border-black px-6"
+            style={{ background: liveBodyBg }}
+          >
+            <div ref={panelRef} className="min-h-0 flex-1 space-y-[19.5px] overflow-y-auto overflow-x-hidden py-6">
+              {history.map((item, i) => (
+                <div key={i} className="space-y-[19.5px]">
+                  <TranscriptMessage speaker={item.speaker} text={`${questionTextFor(item)}${item.interjection ? '...' : ''}`} kind="speaker" transparency={transparency} fontSize={fontSize} />
+                  {item.interjection && (
+                    <div className="ml-4 flex items-start gap-1.5 border-l-2 pl-3" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
+                      <CornerDownRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-slate-500" />
+                      <p className="text-xs leading-relaxed text-slate-300">
+                        <span className="font-semibold" style={{ color: speakerColor(item.interjection.speaker) }}>{item.interjection.speaker}</span>
+                        {' '}{item.interjection.text}
+                      </p>
+                    </div>
+                  )}
+                  <TranscriptMessage speaker="Lightforth AI" text={item.a} kind="ai" transparency={transparency} fontSize={fontSize} />
                 </div>
-                {item.interjection && (
+              ))}
+              <div className="space-y-[19.5px]">
+                {qDisplayed && (
+                  <TranscriptMessage
+                    speaker={speakerLabel}
+                    text={`${qDisplayed}${bank[questionIndex].interjection && qDisplayed.length >= questionTextFor(bank[questionIndex]).length ? '...' : ''}${!bank[questionIndex].interjection && copilotStatus === 'listening' && qDisplayed.length < bank[questionIndex].q.length ? '|' : ''}`}
+                    kind="speaker"
+                    transparency={transparency}
+                    fontSize={fontSize}
+                  />
+                )}
+                {interjectionDisplayed && bank[questionIndex].interjection && (
                   <div className="ml-4 flex items-start gap-1.5 border-l-2 pl-3" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
                     <CornerDownRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-slate-500" />
                     <p className="text-xs leading-relaxed text-slate-300">
-                      <span className="font-semibold" style={{ color: speakerColor(item.interjection.speaker) }}>{item.interjection.speaker}</span>
-                      {' '}{item.interjection.text}
+                      <span className="font-semibold" style={{ color: speakerColor(bank[questionIndex].interjection!.speaker) }}>{bank[questionIndex].interjection!.speaker}</span>
+                      {' '}{interjectionDisplayed}
+                      {copilotStatus === 'listening' && interjectionDisplayed.length < bank[questionIndex].interjection!.text.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}
                     </p>
                   </div>
                 )}
-                <p className="text-sm leading-relaxed text-slate-200">{item.a}</p>
+                {copilotStatus === 'processing' && <div className="flex items-center gap-1.5 py-1">{[0,1,2].map(i => <div key={i} className="h-2 w-2 rounded-full bg-slate-500" style={{ animation: 'processingDot 0.9s ease-in-out infinite', animationDelay: `${i * 0.18}s` }} />)}</div>}
+                {copilotStatus === 'answering' && aDisplayed && (
+                  <TranscriptMessage
+                    speaker="Lightforth AI"
+                    text={`${aDisplayed}${aDisplayed.length < bank[questionIndex].a.length ? '|' : ''}`}
+                    kind="ai"
+                    transparency={transparency}
+                    fontSize={fontSize}
+                  />
+                )}
+                {!qDisplayed && history.length === 0 && <p className="text-xs italic text-slate-600">{autoRespond ? 'Auto Respond is on — listening automatically...' : 'Press Space to start the simulation...'}</p>}
               </div>
-            ))}
-            <div className="space-y-3">
-              {qDisplayed && (
-                <div>
-                  <p className="mb-1 text-xs font-semibold" style={{ color: speakerColor(speakerLabel) }}>{speakerLabel}</p>
-                  <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
-                    <p className="text-sm text-white">
-                      {qDisplayed}
-                      {bank[questionIndex].interjection && qDisplayed.length >= questionTextFor(bank[questionIndex]).length && '…'}
-                      {!bank[questionIndex].interjection && copilotStatus === 'listening' && qDisplayed.length < bank[questionIndex].q.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {interjectionDisplayed && bank[questionIndex].interjection && (
-                <div className="ml-4 flex items-start gap-1.5 border-l-2 pl-3" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
-                  <CornerDownRight className="mt-0.5 h-3 w-3 flex-shrink-0 text-slate-500" />
-                  <p className="text-xs leading-relaxed text-slate-300">
-                    <span className="font-semibold" style={{ color: speakerColor(bank[questionIndex].interjection!.speaker) }}>{bank[questionIndex].interjection!.speaker}</span>
-                    {' '}{interjectionDisplayed}
-                    {copilotStatus === 'listening' && interjectionDisplayed.length < bank[questionIndex].interjection!.text.length && <span style={{ animation: 'blink 0.5s ease-in-out infinite' }}>|</span>}
-                  </p>
-                </div>
-              )}
-              {copilotStatus === 'processing' && <div className="flex items-center gap-1.5 py-1">{[0,1,2].map(i => <div key={i} className="h-2 w-2 rounded-full bg-slate-500" style={{ animation: 'processingDot 0.9s ease-in-out infinite', animationDelay: `${i * 0.18}s` }} />)}</div>}
-              {copilotStatus === 'answering' && aDisplayed && <p className="leading-relaxed text-slate-200" style={{ fontSize }}>{aDisplayed}{aDisplayed.length < bank[questionIndex].a.length && <span className="ml-px inline-block w-[2px] bg-primary align-middle" style={{ height: '1em', animation: 'blink 0.45s ease-in-out infinite' }} />}</p>}
-              {!qDisplayed && history.length === 0 && <p className="text-xs italic text-slate-600">{autoRespond ? 'Auto Respond is on — listening automatically...' : 'Press Space to start the simulation...'}</p>}
             </div>
           </div>
         </div>
 
         {/* AI Assistant Panel */}
         {showAI && (
-          <div className="hidden lg:flex lg:min-w-[260px] lg:max-w-[300px]">
-            <AIAssistantPanel context={primaryLabel} onClose={() => setShowAI(false)} />
+          <div className="hidden min-h-0 min-w-0 lg:flex">
+            <AIAssistantPanel context={primaryLabel} transparency={transparency} onClose={() => setShowAI(false)} />
           </div>
         )}
       </div>
+
+      {!showAI && (
+        <button
+          type="button"
+          aria-label="Open AI assistant"
+          title="Open AI assistant"
+          onClick={() => setShowAI(true)}
+          className="absolute bottom-4 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-[#6bb6ff] bg-[#0494fc] shadow-lg shadow-[#0494fc]/25 transition hover:bg-[#168bff]"
+        >
+          <img src="/ai-assistant-icon.svg" alt="" className="h-6 w-6 brightness-0 invert" />
+        </button>
+      )}
     </div>
   )
 }
@@ -855,9 +994,15 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
   }
 
   const current = bank[index]
+  const canvasBg = transparentSurface('#0A1628', transparency)
+  const topBarBg = transparentSurface('#0A1628', transparency)
+  const toolbarBg = transparentSurface('#0F2340', transparency)
+  const panelBg = transparentSurface('#0D1929', transparency)
+  const codeBg = transparentSurface('#0A1628', transparency, 0.3)
+  const glassBorder = 'rgba(255, 255, 255, 0.24)'
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col" style={{ background: '#0A1628' }}>
+    <div className="flex flex-1 min-h-0 flex-col" style={{ background: canvasBg }}>
       <style>{`
         @keyframes processingDot { 0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-5px);opacity:1} }
       `}</style>
@@ -896,7 +1041,7 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
         </div>
       )}
 
-      <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: '#0A1628' }}>
+      <div className="flex flex-shrink-0 items-center justify-between px-5 py-3" style={{ background: topBarBg }}>
         <div className="flex items-center gap-2 text-sm text-slate-300">
           <button onClick={onBack} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Back to use case selection">
             <ArrowLeft className="h-4 w-4" />
@@ -910,7 +1055,7 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
         </div>
       </div>
 
-      <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-2" style={{ background: '#0F2340' }}>
+      <div className="flex flex-shrink-0 items-center justify-between border-b border-white/10 px-5 py-2" style={{ background: toolbarBg }}>
         <span className="text-xs italic text-slate-400">{statusText[status]}</span>
         <div className="flex items-center gap-4 text-xs text-slate-300">
           <label className="flex items-center gap-2">
@@ -923,12 +1068,12 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
       </div>
 
       <div className="flex flex-1 min-h-0 overflow-hidden p-2">
-        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl" style={{ background: '#0D1929', border: '1px solid #1E2D45' }}>
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-xl" style={{ background: panelBg, border: `1px solid ${glassBorder}` }}>
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
             {history.map((item, i) => (
               <div key={i} className="space-y-2 border-b border-white/5 pb-4">
                 <p className="text-sm text-white">{item.q}</p>
-                <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: '#0A1628' }}><code>{item.a}</code></pre>
+                <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: codeBg }}><code>{item.a}</code></pre>
               </div>
             ))}
 
@@ -942,7 +1087,7 @@ export function ScreenshotCanvas({ useCaseId, primaryLabel, onEnd, onBack, trans
               <div className="space-y-2">
                 <p className="text-sm text-white">{current.q}</p>
                 <div className="relative">
-                  <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: '#0A1628' }}><code>{current.a}</code></pre>
+                  <pre className="overflow-x-auto rounded-lg p-3 text-xs text-green-300" style={{ background: codeBg }}><code>{current.a}</code></pre>
                   <button
                     onClick={() => { navigator.clipboard?.writeText(current.a); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
                     className="absolute right-2 top-2 rounded-md px-2 py-1 text-[10px] font-semibold text-white/70 hover:text-white"

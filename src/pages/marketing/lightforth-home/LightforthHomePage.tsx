@@ -66,13 +66,51 @@ const supportCards = [
 ]
 
 const interviewTabs = [
-  { label: 'Behavioral', image: '/Container.png' },
-  { label: 'Technical', image: '/Container.png' },
-  { label: 'Situation Test', image: '/Container.png' },
-  { label: 'Case Study', image: '/Container.png' },
-  { label: 'Coding', image: '/Container.png' },
-  { label: 'Salary Negotiation', image: '/Container.png' },
+  {
+    label: 'Behavioral',
+    prompt: 'Tell me about a time you handled conflict on a team.',
+    response:
+      'I would use a concise STAR structure here. At FinCart, two teams disagreed on launch scope, so I brought them around the customer impact, proposed a smaller release, and kept the timeline intact.',
+    bullets: ['Situation: cross-functional conflict', 'Action: aligned on customer risk', 'Result: shipped on time'],
+  },
+  {
+    label: 'Technical',
+    prompt: 'How would you design a reliable notification system?',
+    response:
+      'Start with events, queues, retries, and idempotency. I would separate delivery channels from business logic, add dead-letter queues, and track message state so failures are recoverable.',
+    bullets: ['Queue-backed delivery', 'Idempotent workers', 'Retry + dead-letter path'],
+  },
+  {
+    label: 'Situation Test',
+    prompt: 'A key stakeholder changes direction two days before launch. What do you do?',
+    response:
+      'I would quickly clarify the business reason, quantify the launch risk, and offer two options: a narrow change now or a follow-up release. That keeps momentum without ignoring the stakeholder.',
+    bullets: ['Clarify urgency', 'Surface trade-offs', 'Protect launch scope'],
+  },
+  {
+    label: 'Case Study',
+    prompt: 'Revenue is flat even though signups are growing. Walk me through the diagnosis.',
+    response:
+      'I would split the funnel by acquisition source, activation, conversion, and retention. If signups are growing but revenue is flat, I would look first for lower-intent traffic or pricing-plan mismatch.',
+    bullets: ['Segment the funnel', 'Find conversion drop-off', 'Prioritize highest leverage test'],
+  },
+  {
+    label: 'Coding',
+    prompt: 'Return the first repeated value in an array.',
+    response:
+      'Use a Set while scanning once. If the current value already exists, return it immediately. That gives O(n) time and O(n) space, with no nested loop.',
+    bullets: ['const seen = new Set()', 'if (seen.has(n)) return n', 'seen.add(n)'],
+  },
+  {
+    label: 'Salary Negotiation',
+    prompt: 'The offer is lower than expected. How do you respond?',
+    response:
+      'I would stay appreciative, restate excitement, then anchor on market data and scope. I would ask whether they can close the gap on base or improve equity/signing bonus.',
+    bullets: ['Thank them first', 'Anchor on scope + market', 'Ask for flexible levers'],
+  },
 ]
+
+type InterviewScenario = (typeof interviewTabs)[number]
 
 const copilotPills = [
   { label: 'Practice Mode', icon: Headphones },
@@ -475,6 +513,35 @@ function ProductMockup({ compact = false }: { compact?: boolean }) {
   )
 }
 
+function InterviewScenarioMockup({ scenario }: { scenario: InterviewScenario }) {
+  return (
+    <div className="lf-scenario-stage">
+      <div key={scenario.label} className="lf-scenario-window" aria-label={`${scenario.label} interview copilot response preview`}>
+        <div className="lf-scenario-dots" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+
+        <div className="lf-scenario-card lf-scenario-question">
+          <span>Interviewer:</span>
+          <p>{scenario.prompt}</p>
+        </div>
+
+        <div className="lf-scenario-card lf-scenario-answer">
+          <span>Lightforth AI</span>
+          <p>{scenario.response}</p>
+          <ul>
+            {scenario.bullets.map((bullet) => (
+              <li key={bullet}>{bullet}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Hero() {
   return (
     <section className="lf-hero-wave relative overflow-hidden bg-white pb-16 pt-20 sm:pt-24">
@@ -663,12 +730,7 @@ function InterviewTypes() {
 
         <div className="grid min-h-[656px] bg-white lg:grid-cols-[704px_576px]">
           <div className="min-h-[430px] overflow-hidden bg-[#c0d4ee] lg:min-h-[656px]">
-            <img
-              key={activePanel.label}
-              src={activePanel.image}
-              alt={`${activePanel.label} interview copilot response preview`}
-              className="lf-copilot-panel-image h-full min-h-[430px] w-full object-cover lg:min-h-[656px]"
-            />
+            <InterviewScenarioMockup scenario={activePanel} />
           </div>
 
           <div className="relative min-h-[560px] overflow-hidden bg-white px-8 py-14 lg:min-h-[656px] lg:px-[72px] lg:py-[60px]">
@@ -1234,11 +1296,11 @@ function FinalCta() {
 
             <p className="text-[16px] font-medium leading-[24px] text-[rgba(245,245,245,0.69)]">Coming Soon</p>
 
-            <div className="flex flex-wrap items-center gap-4">
-              <img src="/badges/soc2-type1.svg" alt="SOC 2 Type 1" className="h-10 w-auto" />
-              <img src="/badges/soc2-type2.svg" alt="SOC 2 Type 2" className="h-10 w-auto" />
-              <img src="/badges/ccpa.svg" alt="CCPA" className="h-10 w-auto" />
-              <img src="/badges/gdpr.svg" alt="GDPR" className="h-10 w-auto" />
+            <div className="lf-final-badges">
+              <img src="/badges/soc2-type1.svg" alt="SOC 2 Type 1" />
+              <img src="/badges/soc2-type2.svg" alt="SOC 2 Type 2" />
+              <img src="/badges/ccpa.svg" alt="CCPA" />
+              <img src="/badges/gdpr.svg" alt="GDPR" />
             </div>
           </div>
         </div>

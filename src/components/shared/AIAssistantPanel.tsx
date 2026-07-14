@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Sparkles, Send, ArrowUpRight, X } from 'lucide-react'
+import { Send, ArrowUpRight, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // ---------------------------------------------------------------------------
@@ -23,8 +23,6 @@ const PROMPTS: Record<PanelVariant, string[]> = {
     'How well am I doing so far?',
     'Suggest follow-up questions',
     'What was discussed in the last two minutes?',
-    'Key action items from this conversation',
-    'What topics haven\'t been covered yet?',
   ],
 }
 
@@ -65,17 +63,34 @@ interface AIAssistantPanelProps {
   context?: string
   /** Compact mode — smaller font, tighter spacing */
   compact?: boolean
+  /** Window transparency percentage inherited from the desktop copilot shell */
+  transparency?: number
   /** Callback to close the panel (shows close button) */
   onClose?: () => void
 }
 
-export default function AIAssistantPanel({ context, compact, onClose }: AIAssistantPanelProps) {
+function transparentSurface(hex: string, transparency = 0, minAlpha = 0) {
+  const normalized = hex.replace('#', '')
+  const r = parseInt(normalized.slice(0, 2), 16)
+  const g = parseInt(normalized.slice(2, 4), 16)
+  const b = parseInt(normalized.slice(4, 6), 16)
+  const alpha = Math.max(minAlpha, (100 - transparency) / 100)
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+export default function AIAssistantPanel({ context, compact, transparency = 0, onClose }: AIAssistantPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const prompts = PROMPTS.default
+  const panelBg = transparentSurface('#0D1929', transparency)
+  const bubbleBg = transparentSurface('#1A2F4A', transparency, 0.28)
+  const inputBg = transparentSurface('#0A1628', transparency, 0.24)
+  const glassBorder = transparency > 0 ? 'rgba(255, 255, 255, 0.24)' : '#1E2D45'
+  const glassDivider = transparency > 0 ? 'rgba(255, 255, 255, 0.16)' : '#1E2D45'
 
   // Auto-scroll to bottom on new messages (scrollTo is absent in jsdom, hence the optional call)
   useEffect(() => {
@@ -108,13 +123,12 @@ export default function AIAssistantPanel({ context, compact, onClose }: AIAssist
 
   return (
     <div
-      className="flex flex-col overflow-hidden rounded-xl"
-      style={{ background: '#0D1929', border: '1px solid #1E2D45' }}
+      className="flex flex-col overflow-hidden rounded-[6px]"
+      style={{ background: panelBg, border: `1px solid ${glassBorder}` }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#1E2D45' }}>
-        <div className="flex items-center gap-2 text-sm font-medium text-white">
-          <Sparkles className="h-4 w-4 text-blue-400" />
+      <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: glassDivider }}>
+        <div className="flex items-center text-sm font-medium text-white">
           AI Assistant
         </div>
         {onClose && (
@@ -126,16 +140,6 @@ export default function AIAssistantPanel({ context, compact, onClose }: AIAssist
 
       {/* Chat messages */}
       <div ref={panelRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ minHeight: 0 }}>
-        {messages.length === 0 && !isTyping && (
-          <div className="flex flex-col items-center justify-center py-6 text-center">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full" style={{ background: 'rgba(96,165,250,0.15)' }}>
-              <Sparkles className="h-5 w-5 text-blue-400" />
-            </div>
-            <p className={cn('font-medium text-white', compact ? 'text-xs' : 'text-sm')}>Ask AI anything</p>
-            <p className={cn('mt-1 text-slate-500', compact ? 'text-[10px]' : 'text-xs')}>Get instant insights during your session</p>
-          </div>
-        )}
-
         {messages.map((msg, i) => (
           <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
             <div
@@ -146,7 +150,7 @@ export default function AIAssistantPanel({ context, compact, onClose }: AIAssist
                   ? 'bg-blue-600/20 text-blue-100'
                   : 'text-slate-200',
               )}
-              style={msg.role === 'assistant' ? { background: '#1A2F4A' } : undefined}
+              style={msg.role === 'assistant' ? { background: bubbleBg } : undefined}
             >
               <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
             </div>
@@ -155,7 +159,7 @@ export default function AIAssistantPanel({ context, compact, onClose }: AIAssist
 
         {isTyping && (
           <div className="flex justify-start">
-            <div className="rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
+            <div className="rounded-lg px-3 py-2" style={{ background: bubbleBg }}>
               <div className="flex items-center gap-1.5">
                 {[0, 1, 2].map(i => (
                   <div
@@ -176,16 +180,16 @@ export default function AIAssistantPanel({ context, compact, onClose }: AIAssist
       {/* Pre-text prompts (only show when no messages yet) */}
       {messages.length === 0 && (
         <div className="px-4 pb-2">
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-col gap-1.5">
             {prompts.map((prompt, i) => (
               <button
                 key={i}
                 onClick={() => handleSend(prompt)}
-                className="group flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
-                style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                className="group flex min-w-0 items-center gap-1 rounded-[3px] px-2.5 py-1 text-left text-[10px] font-medium text-slate-200/85 transition-colors hover:bg-white/10 hover:text-white"
+                style={{ border: '1px solid rgba(255,255,255,0.16)' }}
               >
-                <ArrowUpRight className="h-2.5 w-2.5 text-slate-600 group-hover:text-blue-400 transition-colors" />
-                {prompt}
+                <ArrowUpRight className="h-2.5 w-2.5 shrink-0 text-slate-300/70 transition-colors group-hover:text-blue-400" />
+                <span className="min-w-0 flex-1 truncate">{prompt}</span>
               </button>
             ))}
           </div>
@@ -193,8 +197,8 @@ export default function AIAssistantPanel({ context, compact, onClose }: AIAssist
       )}
 
       {/* Input */}
-      <div className="border-t px-3 py-2.5" style={{ borderColor: '#1E2D45' }}>
-        <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: '#0A1628', border: '1px solid #1E2D45' }}>
+      <div className="border-t px-3 py-2.5" style={{ borderColor: glassDivider }}>
+        <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: inputBg, border: `1px solid ${glassBorder}` }}>
           <input
             ref={inputRef}
             value={input}
@@ -202,7 +206,7 @@ export default function AIAssistantPanel({ context, compact, onClose }: AIAssist
             onKeyDown={handleKeyDown}
             placeholder="Ask AI anything..."
             className={cn(
-              'flex-1 bg-transparent text-white placeholder:text-slate-600 outline-none',
+              'flex-1 bg-transparent text-white placeholder:text-slate-400 outline-none',
               compact ? 'text-xs' : 'text-sm',
             )}
           />
@@ -213,7 +217,7 @@ export default function AIAssistantPanel({ context, compact, onClose }: AIAssist
               'flex h-7 w-7 items-center justify-center rounded-md transition-colors',
               input.trim() && !isTyping
                 ? 'bg-blue-600 text-white hover:bg-blue-500'
-                : 'text-slate-600',
+                : 'text-slate-400',
             )}
           >
             <Send className="h-3.5 w-3.5" />

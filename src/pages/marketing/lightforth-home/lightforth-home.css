@@ -204,6 +204,132 @@
   filter: drop-shadow(0 18px 40px rgba(43, 70, 110, 0.14));
 }
 
+.lf-scenario-stage {
+  display: flex;
+  min-height: 430px;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(32px, 7vw, 96px);
+  background:
+    radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.34), transparent 34%),
+    linear-gradient(135deg, #90abda 0%, #c5ddf8 100%);
+  animation: lfPanelFade 420ms ease both;
+}
+
+.lf-scenario-window {
+  width: min(500px, 100%);
+  min-height: 376px;
+  padding: 18px;
+  background: #161717;
+  color: #f7fbff;
+  box-shadow: 0 22px 48px rgba(40, 68, 112, 0.18);
+}
+
+.lf-scenario-dots {
+  display: flex;
+  gap: 9px;
+  padding: 4px 0 16px 1px;
+}
+
+.lf-scenario-dots span {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: #a7bee0;
+}
+
+.lf-scenario-card {
+  border-radius: 4px;
+  font-family: "Kumbh Sans", sans-serif;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: lfScenarioCardIn 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.lf-scenario-card > span {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 10px;
+}
+
+.lf-scenario-card p {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.lf-scenario-question {
+  min-height: 66px;
+  padding: 10px 12px;
+  background: #313131;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.lf-scenario-question > span {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.lf-scenario-answer {
+  margin-top: 14px;
+  min-height: 214px;
+  border: 1px solid #0862a8;
+  padding: 12px;
+  background: #061c2d;
+  color: rgba(255, 255, 255, 0.92);
+  animation-delay: 180ms;
+}
+
+.lf-scenario-answer > span {
+  color: #4a9eff;
+}
+
+.lf-scenario-answer p {
+  max-width: 100%;
+}
+
+.lf-scenario-answer ul {
+  margin-top: 14px;
+  display: grid;
+  gap: 9px;
+}
+
+.lf-scenario-answer li {
+  position: relative;
+  padding-left: 15px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  color: #4a9eff;
+  opacity: 0;
+  transform: translateX(-8px);
+  animation: lfScenarioLineIn 420ms ease forwards;
+}
+
+.lf-scenario-answer li:nth-child(1) {
+  animation-delay: 520ms;
+}
+
+.lf-scenario-answer li:nth-child(2) {
+  animation-delay: 680ms;
+}
+
+.lf-scenario-answer li:nth-child(3) {
+  animation-delay: 840ms;
+}
+
+.lf-scenario-answer li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
 .lf-pill-field {
   pointer-events: auto;
 }
@@ -1087,6 +1213,22 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.lf-final-badges {
+  display: flex;
+  max-width: 260px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.lf-final-badges img {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  opacity: 0.92;
+}
+
 .lf-footer {
   padding: 0 0 48px;
   color: #111827;
@@ -1261,6 +1403,20 @@
   }
 }
 
+@keyframes lfScenarioCardIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lfScenarioLineIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes lfPillDrop {
   0% {
     opacity: 0;
@@ -1387,6 +1543,65 @@
   .lf-copilot-panel-image {
     min-height: 280px !important;
     object-position: center top;
+  }
+
+  .lf-scenario-stage {
+    min-height: 280px;
+    padding: 24px 18px;
+  }
+
+  .lf-scenario-window {
+    min-height: 238px;
+    padding: 12px;
+  }
+
+  .lf-scenario-dots {
+    gap: 7px;
+    padding-bottom: 10px;
+  }
+
+  .lf-scenario-dots span {
+    width: 8px;
+    height: 8px;
+  }
+
+  .lf-scenario-card > span {
+    margin-bottom: 5px;
+    font-size: 6px;
+    line-height: 8px;
+  }
+
+  .lf-scenario-card p {
+    font-size: 9px;
+    line-height: 13px;
+  }
+
+  .lf-scenario-question {
+    min-height: 50px;
+    padding: 8px;
+  }
+
+  .lf-scenario-answer {
+    margin-top: 10px;
+    min-height: 128px;
+    padding: 8px;
+  }
+
+  .lf-scenario-answer ul {
+    margin-top: 8px;
+    gap: 5px;
+  }
+
+  .lf-scenario-answer li {
+    padding-left: 10px;
+    font-size: 8px;
+    line-height: 11px;
+  }
+
+  .lf-scenario-answer li::before {
+    top: 5px;
+    width: 4px;
+    height: 4px;
   }
 
   .lf-product-sticky > .grid > div:last-child {
