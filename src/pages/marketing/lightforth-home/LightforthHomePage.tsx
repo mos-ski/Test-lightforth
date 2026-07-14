@@ -896,10 +896,15 @@ function CodingCopilotFeature() {
         </div>
 
         <div className="lf-coding-feature-media">
-          <img
-            src="/Image%20-%20Animation%20showing%20a%20user%20switching%20between%20Excel,%20market%20data,%20private%20market%20data,%20and%20AI%20chat%20to%20manually%20research%20revenue%20data.png"
-            alt="Coding copilot response with code, explanation, and complexity notes"
+          <video
+            src="/codingg.mp4"
             className="lf-coding-feature-image"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            aria-label="Coding copilot response with code, explanation, and complexity notes"
           />
         </div>
       </div>
