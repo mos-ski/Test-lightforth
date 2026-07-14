@@ -217,6 +217,15 @@ const POSITION_SUGGESTIONS = [
   'UX Researcher', 'Engineering Manager', 'Marketing Manager', 'Sales Representative',
 ]
 
+const CODING_LANGUAGES = [
+  'JavaScript', 'TypeScript', 'Python', 'Java', 'C', 'C++', 'C#', 'Go', 'Rust', 'Ruby',
+  'PHP', 'Swift', 'Kotlin', 'Dart', 'Scala', 'R', 'SQL', 'HTML', 'CSS', 'Sass',
+  'Shell', 'Bash', 'PowerShell', 'Objective-C', 'Objective-C++', 'MATLAB', 'Julia',
+  'Elixir', 'Erlang', 'Clojure', 'Haskell', 'F#', 'OCaml', 'Perl', 'Lua', 'Groovy',
+  'Visual Basic', 'VBA', 'Assembly', 'Solidity', 'Move', 'GraphQL', 'NoSQL', 'MongoDB',
+  'PostgreSQL', 'MySQL', 'SQLite', 'Redis', 'Pseudocode',
+]
+
 const JD_SUGGESTION = "We're looking for a talented individual to join our growing team. You'll collaborate cross-functionally to deliver innovative solutions."
 
 /** Plain text input with a click-to-pick dropdown of suggestions underneath. */
@@ -279,7 +288,7 @@ export function RegularSetupScreen({ email, onBack, onContinue, unlockedUseCases
   const contextDocs = resolveContextDocs(email ?? '')
 
   const primaryLabel = activeTab === 'interview' ? jobTitle : activeTab === 'meeting' ? meetingTitle : language
-  const canContinue = activeTab === 'coding' ? true : primaryLabel.trim().length > 0
+  const canContinue = primaryLabel.trim().length > 0
 
   return (
     <div className="flex flex-1 flex-col min-h-0" style={{ background: BG }}>
@@ -365,13 +374,12 @@ export function RegularSetupScreen({ email, onBack, onContinue, unlockedUseCases
 
             {activeTab === 'coding' && (
               <div className="mb-5">
-                <label className="mb-2 block text-sm font-semibold text-white">Language <span className="font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>(optional)</span></label>
-                <input
+                <label className="mb-2 block text-sm font-semibold text-white">Select language</label>
+                <SuggestInput
                   value={language}
-                  onChange={e => setLanguage(e.target.value)}
-                  placeholder="Leave blank to auto-detect"
-                  className="w-full rounded-xl px-4 py-2.5 text-sm placeholder:text-white/30"
-                  style={inputStyle}
+                  onChange={setLanguage}
+                  placeholder="Search language..."
+                  suggestions={CODING_LANGUAGES}
                 />
               </div>
             )}
@@ -407,26 +415,34 @@ export function RegularSetupScreen({ email, onBack, onContinue, unlockedUseCases
               </>
             )}
 
-            <div className="mb-6">
-              <div className="mb-2 flex items-center justify-between">
-                <label className="text-sm font-semibold text-white">Select Audio</label>
-                {audioConnected && <span className="text-xs font-semibold text-green-400">Connected</span>}
+            {activeTab !== 'coding' && (
+              <div className="mb-6">
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-sm font-semibold text-white">Select Audio</label>
+                  {audioConnected && <span className="text-xs font-semibold text-green-400">Connected</span>}
+                </div>
+                <button onClick={() => setAudioConnected(true)} className="flex h-10 w-full items-center justify-between rounded-xl px-4 text-sm text-white/80 hover:bg-white/10 transition-colors" style={{ border: `1px solid ${INPUT_BD}`, background: INPUT_BG }}>
+                  <span className="flex items-center gap-2"><Mic className="h-4 w-4 text-white/50" />{audioConnected ? "Default - Adewale' Airpod Pro" : 'No audio device selected'}</span>
+                  <ChevronDown className="h-4 w-4 text-white/50" />
+                </button>
               </div>
-              <button onClick={() => setAudioConnected(true)} className="flex h-10 w-full items-center justify-between rounded-xl px-4 text-sm text-white/80 hover:bg-white/10 transition-colors" style={{ border: `1px solid ${INPUT_BD}`, background: INPUT_BG }}>
-                <span className="flex items-center gap-2"><Mic className="h-4 w-4 text-white/50" />{audioConnected ? "Default - Adewale' Airpod Pro" : 'No audio device selected'}</span>
-                <ChevronDown className="h-4 w-4 text-white/50" />
-              </button>
-            </div>
+            )}
 
-            <label className="mb-5 flex cursor-pointer select-none items-center gap-3">
-              <div className={cn('h-5 w-5 flex-shrink-0 rounded flex items-center justify-center', dontAskAgain ? 'bg-blue-500' : 'border border-white/30')} onClick={() => setDontAskAgain(a => !a)}>
-                {dontAskAgain && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
-              </div>
-              <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Don't ask again</span>
-            </label>
+            {activeTab !== 'coding' && (
+              <label className="mb-5 flex cursor-pointer select-none items-center gap-3">
+                <div className={cn('h-5 w-5 flex-shrink-0 rounded flex items-center justify-center', dontAskAgain ? 'bg-blue-500' : 'border border-white/30')} onClick={() => setDontAskAgain(a => !a)}>
+                  {dontAskAgain && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+                </div>
+                <span className="text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>Don't ask again</span>
+              </label>
+            )}
 
             <button
-              onClick={() => { if (canContinue) setShowPreference(true) }}
+              onClick={() => {
+                if (!canContinue) return
+                if (activeTab === 'coding') onContinue(activeTab, primaryLabel)
+                else setShowPreference(true)
+              }}
               className="h-11 w-full rounded-xl text-sm font-bold text-white transition-opacity"
               style={{ background: BLUE, opacity: canContinue ? 1 : 0.45 }}
             >

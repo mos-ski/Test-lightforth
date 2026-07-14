@@ -12,20 +12,32 @@ describe('RegularSetupScreen', () => {
     expect(screen.getByText('Position')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Coding' }))
-    expect(screen.getByText(/Language/)).toBeInTheDocument()
+    expect(screen.getByText(/select language/i)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Search language...')).toBeInTheDocument()
+    expect(screen.queryByText('Select Audio')).not.toBeInTheDocument()
     expect(screen.queryByText('Position')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Meeting' }))
     expect(screen.getByText('Meeting title')).toBeInTheDocument()
-    expect(screen.queryByText(/Language/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/select language/i)).not.toBeInTheDocument()
   })
 
-  it('requires a label for Interview and Meeting, but Continue is always enabled for Coding', () => {
+  it('requires a label for Interview, Coding, and Meeting before continuing', () => {
     render(<RegularSetupScreen onBack={() => {}} onContinue={() => {}} unlockedUseCases={['interview', 'coding', 'meeting']} />)
     expect(screen.getByText('Continue')).toHaveStyle({ opacity: 0.45 })
 
     fireEvent.click(screen.getByRole('button', { name: 'Coding' }))
+    expect(screen.getByText('Continue')).toHaveStyle({ opacity: 0.45 })
+    fireEvent.change(screen.getByPlaceholderText('Search language...'), { target: { value: 'Python' } })
     expect(screen.getByText('Continue')).not.toHaveStyle({ opacity: 0.45 })
+  })
+
+  it('lets Coding users search and select from the language dropdown', () => {
+    render(<RegularSetupScreen onBack={() => {}} onContinue={() => {}} unlockedUseCases={['interview', 'coding', 'meeting']} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Coding' }))
+    fireEvent.change(screen.getByPlaceholderText('Search language...'), { target: { value: 'rust' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Rust' }))
+    expect(screen.getByDisplayValue('Rust')).toBeInTheDocument()
   })
 
   it('calls onContinue with the active tab id and label after confirming preference', () => {
@@ -222,11 +234,11 @@ describe('DesktopCopilotPreview end to end', () => {
 
     expect(screen.queryByRole('button', { name: 'Meeting' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Coding' }))
-    expect(screen.getByText(/Language/)).toBeInTheDocument()
+    expect(screen.getByText(/select language/i)).toBeInTheDocument()
     expect(screen.queryByText('Position')).not.toBeInTheDocument()
 
+    fireEvent.change(screen.getByPlaceholderText('Search language...'), { target: { value: 'JavaScript' } })
     fireEvent.click(screen.getByText('Continue'))
-    fireEvent.click(screen.getByText('Confirm'))
     expect(screen.getAllByText(/Watching your screen/).length).toBeGreaterThan(0)
   })
 

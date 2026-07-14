@@ -634,11 +634,21 @@ function InterviewTypes() {
 
   function selectTab(index: number) {
     setActiveTab(index)
+    const prefersDirectScroll =
+      typeof window !== 'undefined' &&
+      (window.matchMedia('(hover: none), (pointer: coarse)').matches ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+
     tabListRef.current?.children[index]?.scrollIntoView({
-      behavior: 'smooth',
+      behavior: prefersDirectScroll ? 'auto' : 'smooth',
       block: 'nearest',
       inline: 'center',
     })
+  }
+
+  function scatterPillsForPointer(pointerType?: string) {
+    if (pointerType === 'touch') return
+    setPillsScattered(true)
   }
 
   const activePanel = interviewTabs[activeTab]
@@ -680,9 +690,9 @@ function InterviewTypes() {
 
             <div
               className={`lf-pill-field group absolute bottom-[58px] left-1/2 h-[280px] w-[432px] max-w-[calc(100%-32px)] -translate-x-1/2 lg:left-[72px] lg:translate-x-0 ${pillsInView ? 'lf-pill-field-active' : ''} ${pillsScattered ? 'lf-pill-field-scattered' : ''}`}
-              onMouseEnter={() => setPillsScattered(true)}
+              onMouseEnter={() => scatterPillsForPointer('mouse')}
               onMouseLeave={() => setPillsScattered(false)}
-              onPointerMove={() => setPillsScattered(true)}
+              onPointerMove={(event) => scatterPillsForPointer(event.pointerType)}
             >
               {copilotPills.map((pill, index) => (
                 <button

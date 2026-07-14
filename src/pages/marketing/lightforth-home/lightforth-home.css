@@ -178,6 +178,7 @@
 .lf-tab-scroller {
   scrollbar-width: none;
   scroll-snap-type: x mandatory;
+  touch-action: pan-x pan-y;
 }
 
 .lf-tab-scroller::-webkit-scrollbar {
@@ -329,6 +330,7 @@
 
 .lf-pill-field {
   pointer-events: auto;
+  touch-action: pan-y;
 }
 
 .lf-skill-pill {
@@ -781,14 +783,21 @@
   overflow: hidden;
   border-radius: 16px;
   background: #f6f7f8;
+  padding: 52px 0;
 }
 
 .lf-coding-feature-image {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: min(78%, 504px);
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: 2144 / 2160;
+  overflow: hidden;
+  border-radius: 12px;
   object-fit: cover;
   object-position: center;
+  background: #d7dce4;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
 }
 
 .lf-meeting-feature {
@@ -1614,6 +1623,43 @@
     bottom: 22px;
     height: 210px;
     max-width: calc(100% - 20px);
+  }
+
+  .lf-pill-field {
+    pointer-events: none;
+  }
+
+  .lf-pill-field .lf-skill-pill,
+  .lf-pill-field-active .lf-skill-pill {
+    opacity: 1;
+    translate: 0 0;
+    animation: none;
+    transition: none;
+  }
+
+  .lf-pill-field:hover .lf-skill-pill-0,
+  .lf-pill-field-scattered .lf-skill-pill-0 {
+    transform: rotate(13deg);
+  }
+
+  .lf-pill-field:hover .lf-skill-pill-1,
+  .lf-pill-field-scattered .lf-skill-pill-1 {
+    transform: translateY(18px) rotate(-10deg);
+  }
+
+  .lf-pill-field:hover .lf-skill-pill-2,
+  .lf-pill-field-scattered .lf-skill-pill-2 {
+    transform: rotate(48deg);
+  }
+
+  .lf-pill-field:hover .lf-skill-pill-3,
+  .lf-pill-field-scattered .lf-skill-pill-3 {
+    transform: translateY(26px) rotate(2deg);
+  }
+
+  .lf-pill-field:hover .lf-skill-pill-4,
+  .lf-pill-field-scattered .lf-skill-pill-4 {
+    transform: translateY(10px) rotate(-7deg);
   }
 
   .lf-stat-card {
