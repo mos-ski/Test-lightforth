@@ -55,11 +55,13 @@ it('opens and closes the selected Google Drive quick demo', () => {
 
   const dialog = screen.getByRole('dialog', { name: 'Lightforth quick demo' })
   const player = within(dialog).getByTitle('Lightforth quick demo video')
+  const playerFrame = within(dialog).getByTestId('quick-demo-player')
 
   expect(player).toHaveAttribute(
     'src',
     'https://drive.google.com/file/d/118_lmiPcoUBvDzsglUGqZc2uZDDmIJQs/preview',
   )
+  expect(playerFrame).toHaveAttribute('data-mobile-layout', 'fullscreen')
   expect(within(dialog).getByTestId('drive-popout-mask')).toBeInTheDocument()
 
   fireEvent.click(within(dialog).getByRole('button', { name: 'Close quick demo' }))

@@ -1517,7 +1517,7 @@ function QuickDemoModal({ open, onClose }: { open: boolean; onClose: () => void 
         <button type="button" className="lf-quick-demo-modal-close" onClick={onClose} aria-label="Close quick demo">
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
-        <div className="lf-quick-demo-player">
+        <div className="lf-quick-demo-player" data-testid="quick-demo-player" data-mobile-layout="fullscreen">
           <iframe
             src="https://drive.google.com/file/d/118_lmiPcoUBvDzsglUGqZc2uZDDmIJQs/preview"
             title="Lightforth quick demo video"
