@@ -9,19 +9,15 @@ import {
   BriefcaseBusiness,
   CheckCircle2,
   ChevronDown,
-  Droplet,
   FileCheck2,
   FileText,
-  Headphones,
+  Mail,
   Menu,
-  Mic2,
   MonitorPlay,
   Power,
   Radar,
   Settings,
-  Sparkles,
   Target,
-  ThumbsUp,
   X,
 } from 'lucide-react'
 
@@ -113,11 +109,11 @@ const interviewTabs = [
 type InterviewScenario = (typeof interviewTabs)[number]
 
 const copilotPills = [
-  { label: 'Practice Mode', icon: Headphones },
-  { label: 'Resume-Aware Answers', icon: Sparkles },
-  { label: 'Live Transcription', icon: Mic2 },
-  { label: 'Speech Clarity', icon: ThumbsUp },
-  { label: 'Undetectable Overlay', icon: Droplet },
+  { label: 'Practice Mode', iconSrc: '/comparison/icon-practice.svg' },
+  { label: 'Resume-Aware Answers', iconSrc: '/comparison/icon-resume.svg' },
+  { label: 'Live Transcription', iconSrc: '/lightforth-home/images/tagicon1.svg' },
+  { label: 'Speech Clarity', iconSrc: '/lightforth-home/images/tagicon2.svg' },
+  { label: 'Undetectable Overlay', iconSrc: '/comparison/icon-undetectable.svg' },
 ]
 
 const statCards = [
@@ -310,17 +306,26 @@ function useLightforthMotion() {
 }
 
 function SocialProofSection() {
+  const logoTrack = [...socialProofLogos, ...socialProofLogos]
+
   return (
     <section className="lf-social-proof bg-white py-12">
       <div className="mx-auto flex max-w-[1280px] flex-col gap-8 px-8">
         <p className="text-center text-base font-medium text-[#475467]">Our candidates have landed offers at</p>
-        <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-6">
-          {socialProofLogos.map((company) => (
-            <div key={company.name} className="flex items-center" style={{ gap: `${company.gap}px` }}>
+        <div className="lf-social-logo-marquee">
+          <div className="lf-social-logo-track">
+            {logoTrack.map((company, index) => (
+            <div
+              key={`${company.name}-${index}`}
+              className="lf-social-logo-item flex items-center"
+              style={{ gap: `${company.gap}px` }}
+              aria-hidden={index >= socialProofLogos.length ? 'true' : undefined}
+            >
               <img src={company.mark} alt="" className="h-12 flex-none" style={{ width: `${company.markWidth}px` }} />
               <img src={company.text} alt={company.name} className="h-12 flex-none" style={{ width: `${company.textWidth}px` }} />
             </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -701,7 +706,7 @@ function InterviewTypes() {
                   className={`lf-skill-pill lf-skill-pill-${index}`}
                   aria-label={pill.label}
                 >
-                  <pill.icon className="lf-skill-pill-icon" aria-hidden="true" />
+                  <img src={pill.iconSrc} alt="" className="lf-skill-pill-icon" aria-hidden="true" />
                   <span>{pill.label}</span>
                 </button>
               ))}
@@ -1084,7 +1089,7 @@ function Comparison() {
   return (
     <section id="pricing" className="bg-white px-5 py-24 lg:px-0">
       <div className="mx-auto max-w-[1280px]">
-        <div className="lf-comparison-scroll overflow-x-auto">
+        <div className="lf-comparison-scroll lf-comparison-desktop overflow-x-auto">
           <div className="lf-comparison-table mx-auto">
             <div className="flex">
               <div className="lf-comparison-feature-col" />
@@ -1127,6 +1132,38 @@ function Comparison() {
                 </div>
               )
             })}
+          </div>
+        </div>
+
+        <div className="lf-comparison-mobile" aria-label="Lightforth comparison">
+          <div className="lf-comparison-mobile-features">
+            <div className="lf-comparison-mobile-head">Features</div>
+            {comparisonRows.map((row) => (
+              <div key={row.label} className="lf-comparison-mobile-feature">
+                {row.icon ? (
+                  <img src={row.icon} alt="" className="h-4 w-4 flex-none" />
+                ) : (
+                  <span className="flex h-4 w-4 flex-none items-center justify-center text-[11px] font-bold text-[#999]">A+</span>
+                )}
+                <span>{row.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="lf-comparison-mobile-scroll">
+            <div className="lf-comparison-mobile-values">
+              {['Lightforth', ...competitors.map((competitor) => competitor.name)].map((name, index) => (
+                <div key={name} className={`lf-comparison-mobile-brand-head ${index === 0 ? 'is-lightforth' : ''}`}>
+                  <span>{name}</span>
+                </div>
+              ))}
+              {comparisonRows.map((row) =>
+                row.values.map((value, index) => (
+                  <div key={`${row.label}-${index}`} className={`lf-comparison-mobile-status ${index === 0 ? 'is-lightforth' : ''}`}>
+                    <CellIcon value={value} />
+                  </div>
+                )),
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1323,10 +1360,7 @@ function Footer() {
               </p>
             </div>
             <a href="mailto:support@lightforth.org" className="lf-footer-contact-row">
-              <span className="lf-footer-mail-icon" aria-hidden="true">
-                <img src="/footer/mail-outer.svg" alt="" />
-                <img src="/footer/mail-inner.svg" alt="" />
-              </span>
+              <Mail className="lf-footer-contact-icon" aria-hidden="true" />
               <span>support@lightforth.org</span>
             </a>
           </div>
