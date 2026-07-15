@@ -1077,6 +1077,12 @@
   transform: translateY(-1px);
 }
 
+.lf-how-download,
+.lf-final-download {
+  border: 0;
+  cursor: pointer;
+}
+
 .lf-how-download-icons {
   display: inline-flex;
   align-items: center;
@@ -1228,6 +1234,183 @@
 
 .lf-final-pricing:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.lf-download-modal-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.38);
+  padding: 32px;
+  backdrop-filter: blur(10px);
+}
+
+.lf-download-modal {
+  position: relative;
+  width: min(100%, 1024px);
+  border-radius: 18px;
+  background: #fff;
+  padding: 64px;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.2);
+}
+
+.lf-download-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 64px;
+}
+
+.lf-download-modal-header h2 {
+  margin: 0;
+  color: #1a1a1a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 38px;
+}
+
+.lf-download-modal-close {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e1e1e2;
+  border-radius: 999px;
+  background: #fff;
+  color: rgba(26, 26, 26, 0.72);
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.lf-download-modal-close:hover {
+  background: #f6f7f9;
+  color: #1a1a1a;
+  transform: translateY(-1px);
+}
+
+.lf-download-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 284px));
+  gap: 12px;
+}
+
+.lf-download-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid #e1e1e2;
+  border-radius: 8px;
+  padding: 12px;
+  color: #1a1a1a;
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.lf-download-card:hover {
+  border-color: rgba(4, 148, 252, 0.42);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+  transform: translateY(-2px);
+}
+
+.lf-download-card-image {
+  display: block;
+  width: 100%;
+  height: 171px;
+  overflow: hidden;
+  background: #f1f6fe;
+}
+
+.lf-download-card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lf-download-card-body {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lf-download-card-title {
+  color: #1a1a1a;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.lf-download-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(26, 26, 26, 0.7);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.lf-download-card-meta svg {
+  width: 20px;
+  height: 20px;
+  color: #5f636b;
+}
+
+.lf-download-card-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.65;
+}
+
+.lf-download-card-button {
+  display: flex;
+  width: 100%;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(26, 26, 26, 0.12);
+  border-radius: 6px;
+  background: #0494fc;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+  text-align: center;
+}
+
+.lf-download-card-support {
+  min-height: 17px;
+  color: rgba(26, 26, 26, 0.7);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 17px;
+}
+
+.lf-download-modal-legal {
+  width: min(788px, 100%);
+  margin: 64px 0 0;
+  color: #000;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 23px;
 }
 
 .lf-final-badges {
@@ -1450,6 +1633,40 @@
 }
 
 @media (max-width: 640px) {
+  .lf-download-modal-shell {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .lf-download-modal {
+    padding: 24px;
+    border-radius: 14px;
+  }
+
+  .lf-download-modal-header {
+    margin-bottom: 28px;
+  }
+
+  .lf-download-modal-header h2 {
+    font-size: 17px;
+    line-height: 26px;
+  }
+
+  .lf-download-modal-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .lf-download-card-image {
+    height: 156px;
+  }
+
+  .lf-download-modal-legal {
+    margin-top: 28px;
+    font-size: 12px;
+    line-height: 20px;
+  }
+
   .lf-social-proof {
     overflow: hidden;
     padding-top: 40px;

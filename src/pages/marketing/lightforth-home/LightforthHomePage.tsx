@@ -108,6 +108,39 @@ const interviewTabs = [
 
 type InterviewScenario = (typeof interviewTabs)[number]
 
+const downloadOptions = [
+  {
+    title: 'Copilot Desktop App',
+    platform: 'Application',
+    extension: 'dmg',
+    cta: 'Desktop app for macOS',
+    meta: 'Silicon (M-series)',
+    image: '/lightforth-home/download-modal/mac-silicon.png',
+    icon: FaApple,
+    href: 'https://app.lightforth.ai/download?url=https%3A%2F%2Flightforth-copilot-downloads.nyc3.digitaloceanspaces.com%2FLightforth-Copilot-MacOS-Apple-Silicon.dmg&platform=mac-silicon',
+  },
+  {
+    title: 'Copilot Desktop App',
+    platform: 'Application',
+    extension: 'dmg',
+    cta: 'Desktop app for macOS',
+    meta: 'Intel • macOS 13+',
+    image: '/lightforth-home/download-modal/mac-intel.png',
+    icon: FaApple,
+    href: 'https://app.lightforth.ai/download?url=https%3A%2F%2Flightforth-copilot-downloads.nyc3.digitaloceanspaces.com%2FLightforth-Copilot-MacOS-Intel.dmg&platform=mac-intel',
+  },
+  {
+    title: 'Copilot Extension (Windows)',
+    platform: 'Application',
+    extension: 'exe',
+    cta: 'Desktop app for Windows',
+    meta: '',
+    image: '/lightforth-home/download-modal/windows.png',
+    icon: FaWindows,
+    href: 'https://app.lightforth.ai/download?url=https%3A%2F%2Flightforth-copilot-downloads.nyc3.digitaloceanspaces.com%2FLightforth-Copilot-Windows-Installer.exe&platform=windows',
+  },
+]
+
 const copilotPills = [
   { label: 'Practice Mode', iconSrc: '/comparison/icon-practice.svg' },
   { label: 'Resume-Aware Answers', iconSrc: '/comparison/icon-resume.svg' },
@@ -383,10 +416,21 @@ function Header() {
   )
 }
 
-function DownloadButton({ dark = false, hero = false, className = '' }: { dark?: boolean; hero?: boolean; className?: string }) {
+function DownloadButton({
+  dark = false,
+  hero = false,
+  className = '',
+  onClick,
+}: {
+  dark?: boolean
+  hero?: boolean
+  className?: string
+  onClick: () => void
+}) {
   return (
-    <a
-      href="/downloads"
+    <button
+      type="button"
+      onClick={onClick}
       className={`inline-flex h-12 items-center justify-center gap-2 font-bold transition ${
         dark ? 'bg-white text-[#071530] hover:bg-white/90' : 'bg-[#0c0f14] text-white hover:bg-[#20242b]'
       } ${hero ? 'rounded-lg px-8 text-[17px]' : 'rounded-full px-6 text-sm'} ${className}`}
@@ -396,7 +440,7 @@ function DownloadButton({ dark = false, hero = false, className = '' }: { dark?:
         <FaApple aria-hidden="true" />
         <FaWindows aria-hidden="true" />
       </span>
-    </a>
+    </button>
   )
 }
 
@@ -547,7 +591,7 @@ function InterviewScenarioMockup({ scenario }: { scenario: InterviewScenario }) 
   )
 }
 
-function Hero() {
+function Hero({ onDownload }: { onDownload: () => void }) {
   return (
     <section className="lf-hero-wave relative overflow-hidden bg-white pb-16 pt-20 sm:pt-24">
       <div className="mx-auto max-w-[1280px] px-5 lg:px-0">
@@ -561,7 +605,7 @@ function Hero() {
             <strong className="font-bold text-[#344054]">undetectable</strong>, on any call.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <DownloadButton hero className="w-full sm:w-[239px]" />
+            <DownloadButton hero className="w-full sm:w-[239px]" onClick={onDownload} />
             <a href="/auth/signup" className="inline-flex h-12 min-w-[167px] items-center justify-center whitespace-nowrap rounded-lg bg-[#2388ff] px-6 text-base font-medium leading-none text-white transition hover:bg-[#0879f2]">
               Sign Up for Free
             </a>
@@ -1017,7 +1061,7 @@ function StorySections() {
   )
 }
 
-function PrepSection() {
+function PrepSection({ onDownload }: { onDownload: () => void }) {
   const steps = [
     {
       number: '01',
@@ -1068,13 +1112,13 @@ function PrepSection() {
       </div>
 
       <div className="lf-how-cta-wrap">
-        <a href="/downloads" className="lf-how-download">
+        <button type="button" onClick={onDownload} className="lf-how-download">
           <span>Download Now</span>
           <span className="lf-how-download-icons">
             <FaApple aria-hidden="true" />
             <FaWindows aria-hidden="true" />
           </span>
-        </a>
+        </button>
       </div>
     </section>
   )
@@ -1258,7 +1302,7 @@ function FaqSection() {
   )
 }
 
-function FinalCta() {
+function FinalCta({ onDownload }: { onDownload: () => void }) {
   return (
     <section className="lf-final-section bg-white px-5 py-16 lg:px-0">
       <div className="lf-final-cta-new relative mx-auto max-w-[1280px] overflow-hidden bg-[#00053d]">
@@ -1272,13 +1316,13 @@ function FinalCta() {
             </h2>
 
             <div className="flex flex-wrap gap-[10px]">
-              <a href="/downloads" className="lf-final-download">
+              <button type="button" onClick={onDownload} className="lf-final-download">
                 Download Now
                 <span className="inline-flex items-center gap-[6px] text-base">
                   <FaApple aria-hidden="true" />
                   <FaWindows aria-hidden="true" />
                 </span>
-              </a>
+              </button>
               <a href="#pricing" className="lf-final-pricing">
                 See Pricing
                 <ArrowUpRight className="h-4 w-4" />
@@ -1376,13 +1420,78 @@ function Footer() {
   )
 }
 
+function DownloadModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useEffect(() => {
+    if (!open) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div className="lf-download-modal-shell" role="presentation" onMouseDown={onClose}>
+      <div className="lf-download-modal" role="dialog" aria-modal="true" aria-labelledby="download-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="lf-download-modal-header">
+          <h2 id="download-modal-title">Download Lightforth Copilot</h2>
+          <button type="button" className="lf-download-modal-close" onClick={onClose} aria-label="Close download modal">
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="lf-download-modal-grid">
+          {downloadOptions.map((option) => {
+            const PlatformIcon = option.icon
+
+            return (
+              <a key={`${option.title}-${option.meta || option.extension}`} href={option.href} className="lf-download-card">
+                <span className="lf-download-card-image">
+                  <img src={option.image} alt="" />
+                </span>
+                <span className="lf-download-card-body">
+                  <span className="lf-download-card-title">{option.title}</span>
+                  <span className="lf-download-card-meta">
+                    <PlatformIcon aria-hidden="true" />
+                    <span>{option.platform}</span>
+                    <span className="lf-download-card-dot" aria-hidden="true" />
+                    <span>{option.extension}</span>
+                  </span>
+                  <span className="lf-download-card-button">{option.cta}</span>
+                  {option.meta ? <span className="lf-download-card-support">{option.meta}</span> : null}
+                </span>
+              </a>
+            )
+          })}
+        </div>
+
+        <p className="lf-download-modal-legal">
+          By downloading a Lightforth application, you agree that our Terms of Service apply to your use of that application. If you have entered a different agreement with Lightforth that covers our applications, that agreement will apply instead.
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function LightforthHomePage() {
   useLightforthMotion()
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false)
 
   return (
     <div className="lf-home min-h-screen bg-white font-sans text-slate-950">
       <Header />
-      <Hero />
+      <Hero onDownload={() => setDownloadModalOpen(true)} />
       <SupportSection />
       <InterviewTypes />
       <StatsStrip />
@@ -1390,12 +1499,13 @@ export default function LightforthHomePage() {
       <InterviewCopilotFeature />
       <CodingCopilotFeature />
       <MeetingCopilotFeature />
-      <PrepSection />
+      <PrepSection onDownload={() => setDownloadModalOpen(true)} />
       <Comparison />
       <SocialProofSection />
       <FaqSection />
-      <FinalCta />
+      <FinalCta onDownload={() => setDownloadModalOpen(true)} />
       <Footer />
+      <DownloadModal open={downloadModalOpen} onClose={() => setDownloadModalOpen(false)} />
     </div>
   )
 }
