@@ -117,7 +117,7 @@ const downloadOptions = [
     meta: 'Silicon (M-series)',
     image: '/lightforth-home/download-modal/mac-silicon.png',
     icon: FaApple,
-    href: 'https://app.lightforth.ai/download?url=https%3A%2F%2Flightforth-copilot-downloads.nyc3.digitaloceanspaces.com%2FLightforth-Copilot-MacOS-Apple-Silicon.dmg&platform=mac-silicon',
+    href: 'https://lightforth-copilot-downloads.nyc3.digitaloceanspaces.com/Lightforth_Copilot_1.0.1_arm64.dmg',
   },
   {
     title: 'Copilot Desktop App',
@@ -127,7 +127,7 @@ const downloadOptions = [
     meta: 'Intel • macOS 13+',
     image: '/lightforth-home/download-modal/mac-intel.png',
     icon: FaApple,
-    href: 'https://app.lightforth.ai/download?url=https%3A%2F%2Flightforth-copilot-downloads.nyc3.digitaloceanspaces.com%2FLightforth-Copilot-MacOS-Intel.dmg&platform=mac-intel',
+    href: 'https://lightforth-copilot-downloads.nyc3.digitaloceanspaces.com/Lightforth_Copilot_1.0.1_x64.dmg',
   },
   {
     title: 'Copilot Extension (Windows)',
@@ -137,7 +137,7 @@ const downloadOptions = [
     meta: '',
     image: '/lightforth-home/download-modal/windows.png',
     icon: FaWindows,
-    href: 'https://app.lightforth.ai/download?url=https%3A%2F%2Flightforth-copilot-downloads.nyc3.digitaloceanspaces.com%2FLightforth-Copilot-Windows-Installer.exe&platform=windows',
+    href: 'https://lightforth-copilot-downloads.nyc3.digitaloceanspaces.com/Lightforth-Copilot-Windows-Installer.exe',
   },
 ]
 
@@ -841,7 +841,7 @@ function StatsStrip() {
   )
 }
 
-function InterviewPressureSection() {
+function InterviewPressureSection({ onWatchDemo }: { onWatchDemo: () => void }) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
   useEffect(() => {
@@ -871,10 +871,10 @@ function InterviewPressureSection() {
         <div className="lf-pressure-content">
           <h2>Even the sharpest candidates freeze.</h2>
           <p>&quot;I knew the answer. I just couldn&apos;t get it out in time &mdash; until I had something helping me say it.&quot;</p>
-          <a href="#interview-copilot" className="lf-pressure-demo-link">
+          <button type="button" className="lf-pressure-demo-link" onClick={onWatchDemo}>
             <img src="/figma-play-orange.svg" alt="" className="lf-pressure-demo-icon" />
             <span>Watch Quick Demo</span>
-          </a>
+          </button>
         </div>
       </div>
     </section>
@@ -1484,9 +1484,57 @@ function DownloadModal({ open, onClose }: { open: boolean; onClose: () => void }
   )
 }
 
+function QuickDemoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  useEffect(() => {
+    if (!open) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div className="lf-quick-demo-modal-shell" role="presentation" onMouseDown={onClose}>
+      <div
+        className="lf-quick-demo-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Lightforth quick demo"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button type="button" className="lf-quick-demo-modal-close" onClick={onClose} aria-label="Close quick demo">
+          <X className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <div className="lf-quick-demo-player">
+          <iframe
+            src="https://drive.google.com/file/d/118_lmiPcoUBvDzsglUGqZc2uZDDmIJQs/preview"
+            title="Lightforth quick demo video"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+          <span className="lf-drive-popout-mask" data-testid="drive-popout-mask" aria-hidden="true" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function LightforthHomePage() {
   useLightforthMotion()
   const [downloadModalOpen, setDownloadModalOpen] = useState(false)
+  const [quickDemoOpen, setQuickDemoOpen] = useState(false)
 
   return (
     <div className="lf-home min-h-screen bg-white font-sans text-slate-950">
@@ -1495,7 +1543,7 @@ export default function LightforthHomePage() {
       <SupportSection />
       <InterviewTypes />
       <StatsStrip />
-      <InterviewPressureSection />
+      <InterviewPressureSection onWatchDemo={() => setQuickDemoOpen(true)} />
       <InterviewCopilotFeature />
       <CodingCopilotFeature />
       <MeetingCopilotFeature />
@@ -1506,6 +1554,7 @@ export default function LightforthHomePage() {
       <FinalCta onDownload={() => setDownloadModalOpen(true)} />
       <Footer />
       <DownloadModal open={downloadModalOpen} onClose={() => setDownloadModalOpen(false)} />
+      <QuickDemoModal open={quickDemoOpen} onClose={() => setQuickDemoOpen(false)} />
     </div>
   )
 }

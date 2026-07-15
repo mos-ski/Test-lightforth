@@ -608,14 +608,17 @@
   justify-content: center;
   gap: 8px;
   margin-top: 16px;
+  border: 0;
   border-radius: 10px;
   background: #262626;
   padding: 12px 24px;
   color: #fff;
   font-size: 16px;
+  font-family: inherit;
   font-weight: 500;
   line-height: 24px;
   text-decoration: none;
+  cursor: pointer;
   transition:
     background-color 180ms ease,
     transform 180ms ease;
@@ -631,6 +634,79 @@
   width: 24px;
   height: 24px;
   flex: 0 0 auto;
+}
+
+.lf-quick-demo-modal-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: rgba(2, 8, 23, 0.82);
+  padding: 32px;
+  backdrop-filter: blur(10px);
+}
+
+.lf-quick-demo-modal {
+  position: relative;
+  width: min(100%, 1080px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: #050b18;
+  padding: 12px;
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.48);
+}
+
+.lf-quick-demo-modal-close {
+  position: absolute;
+  top: -18px;
+  right: 10px;
+  z-index: 3;
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  background: #fff;
+  color: #101828;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.lf-quick-demo-modal-close:hover {
+  background: #eef6ff;
+  transform: translateY(-1px);
+}
+
+.lf-quick-demo-player {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+  background: #000;
+}
+
+.lf-quick-demo-player iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.lf-drive-popout-mask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  background: #000;
+  cursor: default;
 }
 
 .lf-copilot-feature {
@@ -1633,6 +1709,21 @@
 }
 
 @media (max-width: 640px) {
+  .lf-quick-demo-modal-shell {
+    padding: 12px;
+  }
+
+  .lf-quick-demo-modal {
+    padding: 8px;
+  }
+
+  .lf-quick-demo-modal-close {
+    top: -12px;
+    right: 4px;
+    width: 36px;
+    height: 36px;
+  }
+
   .lf-download-modal-shell {
     align-items: flex-start;
     padding: 16px;
