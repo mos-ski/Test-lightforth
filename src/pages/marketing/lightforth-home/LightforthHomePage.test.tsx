@@ -67,3 +67,22 @@ it('opens and closes the selected Google Drive quick demo', () => {
   fireEvent.click(within(dialog).getByRole('button', { name: 'Close quick demo' }))
   expect(screen.queryByRole('dialog', { name: 'Lightforth quick demo' })).not.toBeInTheDocument()
 })
+
+it('groups the three copilot feature sections for scroll overlap', () => {
+  render(
+    <MemoryRouter>
+      <LightforthHomePage />
+    </MemoryRouter>,
+  )
+
+  const overlapGroup = screen.getByTestId('copilot-overlap-group')
+  const sections = ['interview-copilot', 'coding-copilot', 'meeting-copilot'].map((id) => document.getElementById(id))
+
+  expect(sections).toHaveLength(3)
+  sections.forEach((section, index) => {
+    expect(overlapGroup).toContainElement(section)
+    expect(section).toHaveClass('lf-overlap-section')
+    expect(section).toHaveAttribute('data-overlap-index', String(index))
+  })
+  expect(overlapGroup).not.toContainElement(document.getElementById('how-it-works'))
+})

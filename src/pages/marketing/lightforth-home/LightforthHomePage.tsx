@@ -889,7 +889,7 @@ function InterviewCopilotFeature() {
   }, [])
 
   return (
-    <section id="interview-copilot" className="bg-white px-5 py-6 lg:px-0">
+    <section id="interview-copilot" className="lf-overlap-section bg-white px-5 py-6 lg:px-0" data-overlap-index="0">
       <div className="lf-copilot-feature mx-auto max-w-[1280px]">
         <div className="lf-copilot-feature-copy">
           <p className="lf-copilot-eyebrow">INTERVIEW COPILOT</p>
@@ -931,7 +931,7 @@ function InterviewCopilotFeature() {
 
 function CodingCopilotFeature() {
   return (
-    <section id="coding-copilot" className="bg-white px-5 py-6 lg:px-0">
+    <section id="coding-copilot" className="lf-overlap-section bg-white px-5 py-6 lg:px-0" data-overlap-index="1">
       <div className="lf-coding-feature mx-auto max-w-[1280px]">
         <div className="lf-coding-feature-copy">
           <p className="lf-coding-eyebrow">CODING COPILOT</p>
@@ -979,7 +979,7 @@ function MeetingCopilotFeature() {
   }, [])
 
   return (
-    <section id="meeting-copilot" className="bg-white px-5 py-6 lg:px-0">
+    <section id="meeting-copilot" className="lf-overlap-section bg-white px-5 py-6 lg:px-0" data-overlap-index="2">
       <div className="lf-meeting-feature mx-auto max-w-[1280px]">
         <div className="lf-meeting-feature-media">
           <video
@@ -1544,9 +1544,11 @@ export default function LightforthHomePage() {
       <InterviewTypes />
       <StatsStrip />
       <InterviewPressureSection onWatchDemo={() => setQuickDemoOpen(true)} />
-      <InterviewCopilotFeature />
-      <CodingCopilotFeature />
-      <MeetingCopilotFeature />
+      <div className="lf-overlap-group" data-testid="copilot-overlap-group">
+        <InterviewCopilotFeature />
+        <CodingCopilotFeature />
+        <MeetingCopilotFeature />
+      </div>
       <PrepSection onDownload={() => setDownloadModalOpen(true)} />
       <Comparison />
       <SocialProofSection />

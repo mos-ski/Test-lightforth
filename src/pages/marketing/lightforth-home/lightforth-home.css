@@ -798,6 +798,40 @@
   background: #010818;
 }
 
+@media (min-width: 1024px) {
+  .lf-overlap-group {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .lf-overlap-group .lf-overlap-section {
+    position: sticky;
+    top: 64px;
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    box-shadow: 0 -1px 0 rgba(15, 23, 42, 0.06);
+  }
+
+  .lf-overlap-group #interview-copilot {
+    z-index: 10;
+  }
+
+  .lf-overlap-group #coding-copilot {
+    z-index: 11;
+  }
+
+  .lf-overlap-group #meeting-copilot {
+    z-index: 12;
+  }
+
+  .lf-overlap-group ~ section,
+  .lf-overlap-group ~ footer {
+    position: relative;
+    z-index: 20;
+  }
+}
+
 .lf-coding-feature {
   display: flex;
   align-items: center;
