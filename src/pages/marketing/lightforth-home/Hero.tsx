@@ -56,7 +56,7 @@ export function Hero({ onGetStarted }: { onGetStarted: () => void }) {
             className="inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-[#0380e0] hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98]"
           >
             <Sparkles className="h-5 w-5" />
-            Get Started for Free
+            Activate Pro for $10
           </button>
         </motion.div>
 

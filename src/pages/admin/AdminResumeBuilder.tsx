@@ -363,7 +363,7 @@ export default function AdminResumeBuilder() {
                   <span className={`absolute left-2 top-2 z-10 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide backdrop-blur ${
                     t.premium ? 'bg-amber-500/90 text-white' : 'bg-emerald-500/90 text-white'
                   }`}>
-                    {t.premium ? 'Premium' : 'Free'}
+                    {t.premium ? 'Premium' : 'Included'}
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                   <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between opacity-0 transition-opacity group-hover:opacity-100">
@@ -519,7 +519,7 @@ function TemplateDetailModal({ template, onClose }: { template: typeof TEMPLATES
                     <span className={`absolute left-2 top-2 z-10 inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide backdrop-blur ${
                       template.premium ? 'bg-amber-500/90 text-white' : 'bg-emerald-500/90 text-white'
                     }`}>
-                      {template.premium ? 'Premium' : 'Free'}
+                      {template.premium ? 'Premium' : 'Included'}
                     </span>
                   </div>
                 </div>

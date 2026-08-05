@@ -54,7 +54,7 @@ const STATUS_COLORS: Record<string, string> = {
 const REFERRAL_STATUS_COLORS: Record<string, string> = {
   converted: 'bg-emerald-50 text-emerald-700',
   active: 'bg-blue-50 text-blue-700',
-  trial: 'bg-amber-50 text-amber-700',
+  activation: 'bg-amber-50 text-amber-700',
   churned: 'bg-red-50 text-red-600',
 }
 

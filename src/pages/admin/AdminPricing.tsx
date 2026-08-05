@@ -41,7 +41,7 @@ const PLAN_FEATURES: PlanFeature[] = [
 
 const DEFAULT_PLANS: PlanConfig[] = [
   {
-    id: 'free', name: 'Free', slug: 'free', price: 0, ngnPrice: 0, interval: 'month', credits: 5, color: '#94a3b8', popular: false,
+    id: 'non_subscriber', name: 'Non-subscriber', slug: 'non-subscriber', price: 0, ngnPrice: 0, interval: 'month', credits: 5, color: '#94a3b8', popular: false,
     features: { atsCheck: true, resumeBuilder: '1', autoApply: false, copilot: false, interviewPrep: '3', meeting: false, export: false, priority: false, api: false, customDomain: false, team: false },
   },
   {
@@ -86,7 +86,7 @@ const CREDIT_COSTS = [
 
 const PRICING_SETTINGS = [
   { label: 'Annual Billing Discount', desc: 'Discount percentage for yearly plans', type: 'number' as const, value: '20' },
-  { label: 'Trial Period (days)', desc: 'Free trial length for new signups', type: 'number' as const, value: '14' },
+  { label: 'Activation Offer Price', desc: 'First-month Pro activation amount before renewal', type: 'number' as const, value: '10' },
   { label: 'Credit Rollover', desc: 'Allow unused credits to roll over to next month', type: 'toggle' as const, checked: true },
   { label: 'Proration', desc: 'Pro-rate charges on plan upgrades/downgrades', type: 'toggle' as const, checked: true },
   { label: 'Grace Period (days)', desc: 'Days after payment failure before suspension', type: 'number' as const, value: '7' },

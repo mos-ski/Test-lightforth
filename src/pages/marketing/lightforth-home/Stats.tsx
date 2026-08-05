@@ -69,7 +69,7 @@ export function Stats({ onGetStarted }: { onGetStarted: () => void }) {
           <div className="flex items-center justify-center gap-3">
             <img src="/lightforth-home/images/coin.png" alt="Coin" className="h-8 w-8" />
             <p className="text-base font-semibold text-slate-800">
-              <span className="text-[#0494fc]">Get 3 FREE Credits</span> When You Sign Up — Unlock Premium Features Instantly
+              <span className="text-[#0494fc]">Get 5 monthly credits</span> as a non-subscriber — explore Lightforth before choosing a plan
             </p>
           </div>
           <p className="mt-2 text-sm text-slate-600">Access premium features and apply to top roles with your available credits.</p>
@@ -80,7 +80,7 @@ export function Stats({ onGetStarted }: { onGetStarted: () => void }) {
             onClick={onGetStarted}
             className="inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-[#0380e0] hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98]"
           >
-            Join us for Free
+            Activate Pro for $10
           </button>
         </div>
       </div>

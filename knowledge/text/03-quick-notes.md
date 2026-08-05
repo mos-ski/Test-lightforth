@@ -11,7 +11,7 @@
 - Answer "isn't this cheating?" before they have to ask
 
 ### Closing
-- Propose the 14-day trial as the next step, not a future decision
+- Propose the $10 Pro activation offer as the next step when the user is eligible
 - "When would you like to start?" not "Would you like to start?"
 
 ---
@@ -42,6 +42,12 @@
 
 ## Pricing Quick Reference
 
+### Non-subscriber access
+5 credits/month to test or use limited product actions
+
+### Starter — $27/mo ($22/mo annual)
+15 credits/month · Resume builder + cover letter features + resume downloads
+
 ### Pro — $49/mo ($39/mo annual)
 50 credits/month · Interview + Coding Copilot
 
@@ -52,7 +58,7 @@
 5-9 seats: 15% off · 10-19 seats: 20% off · 20+ seats: 25% off
 
 ### Other Discounts
-Annual: 20% · Student (.edu): 15% · Referral: 1 month free (both sides)
+First-time Pro activation: $10 first month, then $49/mo · Annual: 20% · Student (.edu): 15% · Referral: 1 month free (both sides)
 
 ---
 
@@ -68,7 +74,7 @@ Annual: 20% · Student (.edu): 15% · Referral: 1 month free (both sides)
 → "What was missing?" — usually: nothing followed them into the real interview.
 
 ### "Need to think about it"
-→ "Trial's free, no card. Try it on your next real application instead."
+→ "Use the $10 Pro activation on your next real application, then decide before it renews at $49/month."
 
 ---
 
@@ -80,7 +86,7 @@ Annual: 20% · Student (.edu): 15% · Referral: 1 month free (both sides)
 
 **The moment:** "Watch this — suggested answer appears live, during the real interview, invisible to the interviewer."
 
-**Close:** "Want to start the trial now and tailor your resume for that posting?"
+**Close:** "Want to activate Pro for $10 now and tailor your resume for that posting?"
 
 ---
 

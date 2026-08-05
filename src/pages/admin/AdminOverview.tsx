@@ -138,7 +138,7 @@ function RevenueLineChart({ data }: { data: MonthlyData[] }) {
 }
 
 /* ─── Signups stacked bar chart ───
- * Segments now stack free→premium bottom-to-top (largest, most-common tier
+ * Segments now stack non-subscriber→premium bottom-to-top (largest, most-common tier
  * anchors the bar; the darkest, most-valuable tier caps it) instead of the
  * reverse, which left the lightest color dominating the top of every bar
  * and made the whole chart read as mostly-empty. A 2px surface gap now
@@ -154,7 +154,7 @@ function SignupsStackedBarChart({ data }: { data: MonthlyData[] }) {
   const [hover, setHover] = useState<number | null>(null)
 
   const order: { key: keyof MonthlyData['signupsByPlan']; label: string; color: string }[] = [
-    { key: 'free', label: 'Free', color: '#E2E8F0' },
+    { key: 'nonSubscriber', label: 'Non-subscriber', color: '#E2E8F0' },
     { key: 'starter', label: 'Starter', color: '#93C5FD' },
     { key: 'pro', label: 'Pro', color: '#60A5FA' },
     { key: 'premium', label: 'Premium', color: '#2563EB' },
@@ -443,7 +443,7 @@ export default function AdminOverview() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <StatCard label="Total Users" value={stats.totalUsers.toLocaleString()} change={`+${stats.userGrowthMoM}%`} icon={Users} />
           <StatCard label="Paid Users" value={stats.paidUsers.toLocaleString()} change="+12.3%" icon={UserCheck} />
-          <StatCard label="Trial Users" value={users.trial.toLocaleString()} change="+8.1%" icon={Activity} />
+          <StatCard label="Activation Users" value={users.activation.toLocaleString()} change="+8.1%" icon={Activity} />
           <StatCard label="Conversion Rate" value={`${stats.conversionRate}%`} change="+1.2%" hero icon={UserCheck} />
         </div>
       </section>
@@ -471,7 +471,7 @@ export default function AdminOverview() {
               <p className="lf-body text-xs">{stats.totalUsers.toLocaleString()} total users</p>
             </div>
             <div className="flex items-center gap-3 text-[11px]">
-              <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#E2E8F0] ring-1 ring-inset ring-border" /> Free</span>
+              <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#E2E8F0] ring-1 ring-inset ring-border" /> Non-subscriber</span>
               <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#93C5FD]" /> Starter</span>
               <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#60A5FA]" /> Pro</span>
               <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[#2563EB]" /> Premium</span>

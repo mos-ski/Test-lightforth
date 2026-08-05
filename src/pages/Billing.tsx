@@ -36,8 +36,8 @@ const creditRows = [
   ['Auto Apply', 'One successful job application', '1 Credit'],
   ['Interview Prep', 'One practice session started', '1 Credit'],
   ['Interview Copilot', 'One live session started', '1 Credit'],
-  ['ATS Scoring', 'Click "Score Resume"', 'Free'],
-  ['AI Suggester', 'Writes a phrase/statement better', 'Free'],
+  ['ATS Scoring', 'Click "Score Resume"', '0 credits'],
+  ['AI Suggester', 'Writes a phrase/statement better', '0 credits'],
 ]
 
 export default function Billing() {
@@ -89,7 +89,7 @@ export default function Billing() {
           </div>
           <Button variant="link" className="mt-5 px-0 text-violet-500">
             <Gift className="h-4 w-4" />
-            Get Free credits
+            Get bonus credits
           </Button>
         </section>
       </div>
@@ -163,7 +163,7 @@ export default function Billing() {
                 <tr key={feature} className="lf-table-row">
                   <td className="lf-table-cell font-semibold text-foreground">{feature}</td>
                   <td className="lf-table-cell text-muted-foreground">{trigger}</td>
-                  <td className={cn('lf-table-cell text-right font-semibold', deducted === 'Free' && 'text-emerald-600')}>
+                  <td className={cn('lf-table-cell text-right font-semibold', deducted === '0 credits' && 'text-emerald-600')}>
                     {deducted}
                   </td>
                 </tr>

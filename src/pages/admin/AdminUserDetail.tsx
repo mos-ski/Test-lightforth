@@ -105,13 +105,13 @@ export default function AdminUserDetail() {
   }
 
   const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase()
-  const isPaid = user.plan !== 'free'
+  const isPaid = user.plan !== 'non_subscriber'
 
   const planPrices: Record<string, string> = {
     premium: '$79',
     pro: '$49',
     starter: '$27',
-    free: '$0',
+    non_subscriber: '$0',
   }
 
   // Filter related data for this user

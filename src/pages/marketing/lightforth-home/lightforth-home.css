@@ -11,7 +11,7 @@
   margin-top: var(--lf-section-gap);
 }
 
-.lf-home :is(#stats, #interview-pressure, #interview-copilot, #coding-copilot, #meeting-copilot, #pricing) {
+.lf-home :is(#stats, #interview-pressure, #interview-copilot, #coding-copilot, #meeting-copilot, #comparison) {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }

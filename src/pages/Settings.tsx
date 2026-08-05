@@ -114,8 +114,8 @@ function ReferralTab() {
         <div className="mt-8 rounded-2xl bg-blue-50 p-4 sm:rounded-3xl sm:p-8">
           <div className="grid gap-8 lg:grid-cols-[1fr_260px]">
             <div>
-              <h3 className="text-2xl font-black leading-tight text-foreground">Earn 5 free credits</h3>
-              <p className="mt-4 text-sm text-muted-foreground">You get 5 free credit when your invite signs up and subscribe.</p>
+              <h3 className="text-2xl font-black leading-tight text-foreground">Earn 5 bonus credits</h3>
+              <p className="mt-4 text-sm text-muted-foreground">You get 5 bonus credits when your invite signs up and subscribes.</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 {['https://lifeforth-app-v2-dev-fronten...', 'Adedamolaios...'].map((value, index) => (
                   <div key={value} className="min-w-0 flex-1 rounded-md border border-violet-400 bg-white px-4 py-3 sm:min-w-52">
@@ -129,7 +129,7 @@ function ReferralTab() {
               </div>
               <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
                 <li>Invite a friend using your link</li>
-                <li>They sign up {'->'} you earn 5 free credits</li>
+                <li>They sign up {'->'} you earn 5 bonus credits</li>
                 <li>Refer 5 friends {'->'} unlock 25 credits + bonus tools</li>
               </ul>
             </div>

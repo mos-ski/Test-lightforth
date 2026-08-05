@@ -57,7 +57,7 @@ export default function ResumeMarketingPage() {
       <section className="py-16 bg-slate-50">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-3xl font-bold text-center text-slate-900">
-            Free AI Resume Builder with ATS compliant Templates.
+            AI Resume Builder with ATS-compliant templates.
           </h2>
           <div className="mt-10 grid gap-8 md:grid-cols-3">
             {[

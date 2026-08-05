@@ -2,8 +2,8 @@
 // Admin Mock Data — realistic, centralized, ready to swap for real API
 // ============================================================
 
-export type PlanTier = 'starter' | 'pro' | 'premium' | 'free'
-export type UserStatus = 'active' | 'suspended' | 'trial' | 'cancelled'
+export type PlanTier = 'starter' | 'pro' | 'premium' | 'non_subscriber'
+export type UserStatus = 'active' | 'suspended' | 'activation' | 'cancelled'
 export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed'
 export type TicketPriority = 'low' | 'medium' | 'high' | 'urgent'
 export type LogCategory = 'auth' | 'application' | 'payment' | 'admin' | 'system'
@@ -118,7 +118,7 @@ export interface MonthlyData {
   signups: number
   revenue: number
   activeUsers: number
-  signupsByPlan: { free: number; starter: number; pro: number; premium: number }
+  signupsByPlan: { nonSubscriber: number; starter: number; pro: number; premium: number }
   revenueUsd: number
   revenueNgn: number
 }
@@ -162,9 +162,9 @@ export const USERS: AdminUser[] = Array.from({ length: 50 }, (_, i) => {
   const firstName = firstNames[i % firstNames.length]
   const lastName = lastNames[i % lastNames.length]
   const cityIdx = i % cities.length
-  const plan: PlanTier = i < 5 ? 'premium' : i < 15 ? 'pro' : i < 30 ? 'starter' : 'free'
-  const status: UserStatus = i < 3 ? 'suspended' : i < 8 ? 'trial' : i < 45 ? 'active' : 'cancelled'
-  const credits = plan === 'premium' ? 100 : plan === 'pro' ? 50 : plan === 'starter' ? 15 : 0
+  const plan: PlanTier = i < 5 ? 'premium' : i < 15 ? 'pro' : i < 30 ? 'starter' : 'non_subscriber'
+  const status: UserStatus = i < 3 ? 'suspended' : i < 8 ? 'activation' : i < 45 ? 'active' : 'cancelled'
+  const credits = plan === 'premium' ? 100 : plan === 'pro' ? 50 : plan === 'starter' ? 15 : 5
   const creditsUsed = Math.floor(Math.random() * credits)
   const signupDate = randomDate(new Date('2025-09-01'), new Date('2026-06-30'))
 
@@ -273,17 +273,17 @@ export const BROADCASTS: Broadcast[] = [
   { id: '2', subject: 'Your July Credits Have Arrived', message: 'Your monthly credits have been refreshed. Time to land that dream job...', audience: 'Paid Users', channel: ['email'], recipients: 2880, openRate: 72.5, sentAt: '2026-07-01T08:00:00Z', status: 'sent' },
   { id: '3', subject: 'We Miss You - Come Back for 30% Off', message: 'It has been a while since your last login. Here is 30% off to come back...', audience: 'Inactive Users', channel: ['email', 'push'], recipients: 311, openRate: 45.1, sentAt: '2026-06-25T12:00:00Z', status: 'sent' },
   { id: '4', subject: 'System Maintenance Notice', message: 'Scheduled maintenance on July 15th from 2-4 AM EST...', audience: 'All Users', channel: ['in_app'], recipients: 9396, openRate: 34.8, sentAt: '2026-06-20T09:00:00Z', status: 'sent' },
-  { id: '5', subject: 'Resume Builder Tips & Tricks', message: 'Get the most out of our Resume Builder with these expert tips...', audience: 'Free Users', channel: ['email'], recipients: 2460, openRate: 52.3, sentAt: '2026-06-15T14:00:00Z', status: 'sent' },
+  { id: '5', subject: 'Resume Builder Tips & Tricks', message: 'Get the most out of our Resume Builder with these expert tips...', audience: 'Non-subscribers', channel: ['email'], recipients: 2460, openRate: 52.3, sentAt: '2026-06-15T14:00:00Z', status: 'sent' },
 ]
 
 export const MONTHLY_DATA: MonthlyData[] = [
-  { month: 'Jan 2026', signups: 1247, revenue: 18950, activeUsers: 3420, signupsByPlan: { free: 620, starter: 340, pro: 187, premium: 100 }, revenueUsd: 14200, revenueNgn: 7200000 },
-  { month: 'Feb 2026', signups: 1456, revenue: 22340, activeUsers: 4120, signupsByPlan: { free: 710, starter: 400, pro: 226, premium: 120 }, revenueUsd: 16800, revenueNgn: 8500000 },
-  { month: 'Mar 2026', signups: 1689, revenue: 28750, activeUsers: 5230, signupsByPlan: { free: 820, starter: 470, pro: 269, premium: 130 }, revenueUsd: 21600, revenueNgn: 11000000 },
-  { month: 'Apr 2026', signups: 1534, revenue: 26100, activeUsers: 5890, signupsByPlan: { free: 750, starter: 420, pro: 244, premium: 120 }, revenueUsd: 19700, revenueNgn: 10000000 },
-  { month: 'May 2026', signups: 1823, revenue: 32450, activeUsers: 6780, signupsByPlan: { free: 890, starter: 500, pro: 293, premium: 140 }, revenueUsd: 24500, revenueNgn: 12500000 },
-  { month: 'Jun 2026', signups: 2104, revenue: 38900, activeUsers: 7850, signupsByPlan: { free: 1020, starter: 580, pro: 344, premium: 160 }, revenueUsd: 29400, revenueNgn: 15000000 },
-  { month: 'Jul 2026', signups: 943, revenue: 17650, activeUsers: 9396, signupsByPlan: { free: 460, starter: 260, pro: 143, premium: 80 }, revenueUsd: 13300, revenueNgn: 6800000 },
+  { month: 'Jan 2026', signups: 1247, revenue: 18950, activeUsers: 3420, signupsByPlan: { nonSubscriber: 620, starter: 340, pro: 187, premium: 100 }, revenueUsd: 14200, revenueNgn: 7200000 },
+  { month: 'Feb 2026', signups: 1456, revenue: 22340, activeUsers: 4120, signupsByPlan: { nonSubscriber: 710, starter: 400, pro: 226, premium: 120 }, revenueUsd: 16800, revenueNgn: 8500000 },
+  { month: 'Mar 2026', signups: 1689, revenue: 28750, activeUsers: 5230, signupsByPlan: { nonSubscriber: 820, starter: 470, pro: 269, premium: 130 }, revenueUsd: 21600, revenueNgn: 11000000 },
+  { month: 'Apr 2026', signups: 1534, revenue: 26100, activeUsers: 5890, signupsByPlan: { nonSubscriber: 750, starter: 420, pro: 244, premium: 120 }, revenueUsd: 19700, revenueNgn: 10000000 },
+  { month: 'May 2026', signups: 1823, revenue: 32450, activeUsers: 6780, signupsByPlan: { nonSubscriber: 890, starter: 500, pro: 293, premium: 140 }, revenueUsd: 24500, revenueNgn: 12500000 },
+  { month: 'Jun 2026', signups: 2104, revenue: 38900, activeUsers: 7850, signupsByPlan: { nonSubscriber: 1020, starter: 580, pro: 344, premium: 160 }, revenueUsd: 29400, revenueNgn: 15000000 },
+  { month: 'Jul 2026', signups: 943, revenue: 17650, activeUsers: 9396, signupsByPlan: { nonSubscriber: 460, starter: 260, pro: 143, premium: 80 }, revenueUsd: 13300, revenueNgn: 6800000 },
 ]
 
 export const FEATURE_USAGE: FeatureUsage[] = [
@@ -311,13 +311,13 @@ export const OVERVIEW_STATS = {
   totalRevenue: 185140,
   totalUsers: 9396,
   paidUsers: 2880,
-  freeUsers: 6516,
+  nonSubscriberUsers: 6516,
   mrr: 38900,
   arr: 466800,
   churnRate: 3.2,
   conversionRate: 4.8,
   avgRevenuePerUser: 13.5,
-  trialToPaidRate: 24.6,
+  activationToProRenewalRate: 24.6,
   newSignupsToday: 47,
   activeUsersToday: 3245,
   revenueGrowthMoM: 12.4,
@@ -395,14 +395,14 @@ const ngNames = [
 const ngCities = ['Lagos', 'Lagos', 'Lagos', 'Abuja', 'Abuja', 'Ibadan', 'Port Harcourt', 'Kano', 'Enugu', 'Benin City', 'Lagos', 'Lagos', 'Abuja', 'Ibadan', 'Lagos', 'Port Harcourt', 'Abuja', 'Lagos', 'Ibadan', 'Enugu']
 
 export const NG_USERS: NgUser[] = ngNames.map((n, i) => {
-  const plan: PlanTier = i < 2 ? 'premium' : i < 6 ? 'pro' : i < 12 ? 'starter' : 'free'
+  const plan: PlanTier = i < 2 ? 'premium' : i < 6 ? 'pro' : i < 12 ? 'starter' : 'non_subscriber'
   const credits = plan === 'premium' ? 100 : plan === 'pro' ? 50 : plan === 'starter' ? 15 : 5
   return {
     id: `ng-${i + 1}`,
     name: `${n.first} ${n.last}`,
     email: `${n.first.toLowerCase()}.${n.last.toLowerCase()}@${randomFrom(['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'])}`,
     plan,
-    status: i < 17 ? 'active' : 'trial',
+    status: i < 17 ? 'active' : 'activation',
     credits,
     creditsUsed: Math.floor(Math.random() * credits),
     city: ngCities[i],
@@ -419,7 +419,7 @@ export const NG_TRANSACTIONS: NgTransaction[] = Array.from({ length: 30 }, (_, i
     premium: { ngn: 50000, usd: 79 },
     pro: { ngn: 20000, usd: 49 },
     starter: { ngn: 5000, usd: 27 },
-    free: { ngn: 0, usd: 0 },
+    non_subscriber: { ngn: 0, usd: 0 },
   }
   const amt = amounts[user.plan]
   return {
@@ -469,8 +469,8 @@ export const GLOBAL_REVENUE = {
   premiumUsers: USERS.filter(u => u.plan === 'premium').length,
   proUsers: USERS.filter(u => u.plan === 'pro').length,
   starterUsers: USERS.filter(u => u.plan === 'starter').length,
-  freeUsers: USERS.filter(u => u.plan === 'free').length,
-  conversionRate: Math.round((USERS.filter(u => u.plan !== 'free').length / USERS.length) * 100 * 10) / 10,
+  nonSubscriberUsers: USERS.filter(u => u.plan === 'non_subscriber').length,
+  conversionRate: Math.round((USERS.filter(u => u.plan !== 'non_subscriber').length / USERS.length) * 100 * 10) / 10,
   avgRevenuePerUser: Math.round(TRANSACTIONS.filter(t => t.status === 'completed').reduce((s, t) => s + t.amount, 0) / USERS.length),
 }
 
@@ -496,12 +496,12 @@ export function getUserStats() {
   return {
     total: USERS.length,
     active: USERS.filter(u => u.status === 'active').length,
-    trial: USERS.filter(u => u.status === 'trial').length,
+    activation: USERS.filter(u => u.status === 'activation').length,
     suspended: USERS.filter(u => u.status === 'suspended').length,
     cancelled: USERS.filter(u => u.status === 'cancelled').length,
     premium: USERS.filter(u => u.plan === 'premium').length,
     pro: USERS.filter(u => u.plan === 'pro').length,
     starter: USERS.filter(u => u.plan === 'starter').length,
-    free: USERS.filter(u => u.plan === 'free').length,
+    nonSubscriber: USERS.filter(u => u.plan === 'non_subscriber').length,
   }
 }

@@ -123,13 +123,13 @@ Lead with Lightforth's strengths, not just a competitor's weaknesses.
 ## General Objection Handling
 
 ### "I'm already using a free tool"
-"Totally fine to start free — the question is whether that free tool gets you through the ATS for THIS specific job, and whether it's with you once you're actually in the interview. Those are the two places most job searches actually stall."
+"Totally fine to use your 5 monthly credits to test Lightforth — the question is whether a basic tool gets you through the ATS for THIS specific job, and whether it's with you once you're actually in the interview. Those are the two places most job searches actually stall."
 
 ### "It's too expensive"
 "What's one job worth to you? If Premium gets you the offer two weeks sooner, it's already paid for itself. And it's month-to-month — no lock-in."
 
 ### "I need to think about it"
-"Totally fair — the 14-day trial is free and doesn't need a card. Would it make sense to try it on your next real application instead of deciding in the abstract?"
+"Totally fair — the $10 Pro activation is designed so you can try it on your next real application instead of deciding in the abstract. It renews at $49/month unless you cancel before renewal."
 
 ---
 

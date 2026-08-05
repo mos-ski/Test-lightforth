@@ -54,7 +54,7 @@ export default function AdminBroadcast() {
               <select value={audience} onChange={e => setAudience(e.target.value)} className="lf-select">
                 <option value="all">All Users (9,396)</option>
                 <option value="paid">Paid Users (2,880)</option>
-                <option value="free">Free Users (6,516)</option>
+                <option value="non_subscriber">Non-subscribers (6,516)</option>
                 <option value="inactive">Inactive — 30+ days (311)</option>
               </select>
             </div>

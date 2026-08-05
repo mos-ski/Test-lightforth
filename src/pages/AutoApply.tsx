@@ -1851,7 +1851,7 @@ export default function AutoApply() {
 
   const handleNext = () => {
     if (setupStep < 4) {
-      if (setupStep === 3 && user?.plan === 'free') {
+      if (setupStep === 3 && user?.plan === 'non_subscriber') {
         setView('paywall')
         return
       }

@@ -11,7 +11,7 @@ export interface User {
   name: string
   email: string
   avatarUrl?: string
-  plan: 'free' | 'starter' | 'pro' | 'premium'
+  plan: 'non_subscriber' | 'starter' | 'pro' | 'premium'
   credits: number
   creditsUsed: number
 }

@@ -1,72 +1,176 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { ArrowRight, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { PLANS, annualMonthlyEquivalent, type BillingCycle, type PlanId } from '@/pages/desktopCopilot/plans'
 import { MarketingLayout } from '../MarketingLayout'
 
+const OFFER_SECONDS = 10 * 60
+
 const PLAN_BULLETS: Record<PlanId, string[]> = {
-  starter: ['Resume builder', 'Cover letter features', '15 credits / month'],
-  pro: ['Everything in Starter', 'Auto-Apply & AI Interview prep', 'Interview & Coding Copilot', '50 credits / month'],
-  premium: ['Everything in Pro, plus Meeting Copilot', '100 credits / month', 'Priority response speed'],
+  starter: ['Resume Builder', 'Cover letter tools', 'Resume downloads', '15 credits / month'],
+  pro: ['Everything in Starter', 'Auto-Apply', 'AI Interview Prep', 'Interview & Coding Copilot', '50 credits / month'],
+  premium: ['Everything in Pro', 'Meeting Copilot', 'Priority response speed', '100 credits / month'],
 }
 
-const CREDIT_USES = [
-  { coin: '1', title: 'AI Resume Tailoring', desc: 'Optimize your resume for any job description with AI-powered matching' },
-  { coin: '1', title: 'Interview Prep', desc: 'Practice with voice-enabled AI mock interviews and get real-time feedback' },
-  { coin: '1', title: 'Interview Copilot', desc: 'Get live AI assistance during your actual interviews for confident answers' },
-  { coin: '1', title: 'Auto-Apply', desc: 'Automatically submit tailored applications to matching jobs across platforms' },
+const PLAN_SUMMARIES: Record<PlanId, string> = {
+  starter: 'For light resume and cover letter work.',
+  pro: 'For active job seekers applying and interviewing every week.',
+  premium: 'For high-volume searches and heavier interview seasons.',
+}
+
+type FeatureValue = boolean | string
+
+const FEATURE_GROUPS: { label: string; rows: [string, FeatureValue, FeatureValue, FeatureValue][] }[] = [
+  {
+    label: 'Core access',
+    rows: [
+      ['Monthly credits', '15', '50', '100'],
+      ['Resume Builder', true, true, true],
+      ['Cover letter tools', true, true, true],
+      ['Resume downloads', true, true, true],
+    ],
+  },
+  {
+    label: 'Job search automation',
+    rows: [
+      ['Auto-Apply', false, true, true],
+      ['AI Interview Prep', false, true, true],
+      ['Interview Copilot', false, true, true],
+      ['Coding Copilot', false, true, true],
+    ],
+  },
+  {
+    label: 'Advanced support',
+    rows: [
+      ['Meeting Copilot', false, false, true],
+      ['Priority response speed', false, false, true],
+      ['Best for', 'Light use', 'Active search', 'Heavy search'],
+    ],
+  },
 ]
+
+const FEATURE_VALUE_INDEX: Record<PlanId, 1 | 2 | 3> = {
+  starter: 1,
+  pro: 2,
+  premium: 3,
+}
+
+function FeatureMark({ value }: { value: FeatureValue }) {
+  if (value === true) return <Check className="mx-auto h-5 w-5 text-emerald-500" aria-label="Included" />
+  if (value === false) return <X className="mx-auto h-5 w-5 text-slate-300" aria-label="Not included" />
+  return <span className="text-sm font-semibold text-slate-700">{value}</span>
+}
+
+function formatOfferTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+}
 
 export default function PricingPage() {
   const navigate = useNavigate()
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
+  const [selectedMobilePlan, setSelectedMobilePlan] = useState<PlanId>('pro')
+  const [offerSecondsLeft, setOfferSecondsLeft] = useState(OFFER_SECONDS)
+  const [showOfferModal, setShowOfferModal] = useState(false)
+  const [offerDismissed, setOfferDismissed] = useState(false)
   const isAnnual = billingCycle === 'annual'
+  const offerExpired = offerSecondsLeft === 0
   const priceFor = (monthlyPrice: number) => (isAnnual ? annualMonthlyEquivalent(monthlyPrice) : monthlyPrice)
+  const selectedPlan = PLANS.find((plan) => plan.id === selectedMobilePlan) ?? PLANS[1]
+  const claimOffer = () => {
+    if (!offerExpired) navigate('/checkout/pro')
+  }
+
+  useEffect(() => {
+    const countdown = window.setInterval(() => {
+      setOfferSecondsLeft((seconds) => Math.max(0, seconds - 1))
+    }, 1000)
+
+    return () => window.clearInterval(countdown)
+  }, [])
+
+  useEffect(() => {
+    const modalDelay = window.setTimeout(() => {
+      if (!offerDismissed) setShowOfferModal(true)
+    }, 120000)
+
+    return () => window.clearTimeout(modalDelay)
+  }, [offerDismissed])
 
   return (
     <MarketingLayout>
-      <section className="pt-24 pb-16 bg-gradient-to-b from-[#f0f7ff] to-white">
-        <div className="mx-auto max-w-6xl px-6 text-center">
-          <h1 className="text-4xl font-bold text-slate-900 md:text-5xl">Pricing Plans</h1>
-          <h2 className="mt-3 text-2xl font-bold text-slate-700">Choose Your Plan</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-slate-600">
-            Flexible credit-based pricing. Use credits for AI Resume Tailoring, Interview Prep, Interview Copilot, or Auto-Apply.
-          </p>
-
-          <div className="mt-8 flex justify-center">
+      <section className="border-b border-slate-800 bg-slate-950 pt-16 text-white">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-3">
+            <span className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">Today only</span>
+            <p className="text-sm font-semibold">
+              Start Pro for <span className="text-sky-300">$10 today</span>, then renew at $49/month.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full border border-sky-300/40 bg-white/10 px-3 py-1 text-sm font-bold text-sky-100">
+              Ends in {formatOfferTime(offerSecondsLeft)}
+            </span>
             <button
-              onClick={() => setBillingCycle((c) => (c === 'monthly' ? 'annual' : 'monthly'))}
-              className="flex items-center gap-2.5 text-sm font-semibold text-slate-700"
+              type="button"
+              onClick={claimOffer}
+              disabled={offerExpired}
+              className="inline-flex h-9 items-center rounded-full bg-white px-4 text-sm font-bold text-slate-950 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <span className={cn('relative flex h-5 w-9 items-center rounded-full px-0.5 transition-colors', isAnnual ? 'bg-primary' : 'bg-slate-300')}>
-                <span className={cn('h-4 w-4 rounded-full bg-white shadow transition-transform', isAnnual ? 'translate-x-4' : 'translate-x-0')} />
-              </span>
-              Monthly / Yearly <span className="text-emerald-600">(20% off)</span>
+              {offerExpired ? 'Offer ended' : 'Claim Pro offer'}
+              <ArrowRight className="ml-2 h-4 w-4" />
             </button>
           </div>
         </div>
       </section>
 
-      <section id="pricing" className="py-16">
+      <section className="bg-[#f6fbff] pt-16 pb-14">
+        <div className="mx-auto max-w-6xl px-6 text-center">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#0494fc]">Pricing</p>
+          <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-black leading-tight text-slate-950 md:text-6xl">
+            Compare Lightforth plans
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+            Choose the level of resume, application, interview, and live Copilot support you need.
+          </p>
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <button
+              onClick={() => setBillingCycle((c) => (c === 'monthly' ? 'annual' : 'monthly'))}
+              className="inline-flex h-11 items-center gap-2.5 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm"
+            >
+              <span className={cn('relative flex h-5 w-9 items-center rounded-full px-0.5 transition-colors', isAnnual ? 'bg-primary' : 'bg-slate-300')}>
+                <span className={cn('h-4 w-4 rounded-full bg-white shadow transition-transform', isAnnual ? 'translate-x-4' : 'translate-x-0')} />
+              </span>
+              {isAnnual ? 'Yearly billing' : 'Monthly billing'}
+              <span className="text-emerald-600">20% yearly discount</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing" className="bg-white py-12">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-6 sm:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3">
             {PLANS.map((plan) => (
               <article
                 key={plan.id}
                 className={cn(
-                  'flex flex-col rounded-2xl border bg-white p-7',
-                  plan.popular ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10' : 'border-slate-200',
+                  'flex min-h-full flex-col rounded-xl border bg-white p-7 shadow-sm',
+                  plan.id === 'pro' ? 'border-[#0494fc] shadow-blue-100' : 'border-slate-200',
                 )}
               >
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-black text-slate-900">{plan.label}</h3>
-                  {plan.popular && <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">Most popular</span>}
+                  {plan.id === 'pro' && <span className="rounded-full bg-[#0494fc] px-3 py-1 text-xs font-bold text-white">Popular</span>}
                 </div>
-                <p className="mt-5 text-3xl font-black text-slate-900">
-                  ${priceFor(plan.monthlyPrice)} <span className="text-sm font-medium text-slate-500">/mo</span>
+                <p className="mt-5 text-4xl font-black text-slate-900">
+                  ${priceFor(plan.monthlyPrice)} <span className="text-sm font-semibold text-slate-500">/mo</span>
                 </p>
+                {isAnnual && <p className="mt-1 text-sm font-medium text-slate-500">${priceFor(plan.monthlyPrice) * 12}/year billed yearly</p>}
+                <p className="mt-4 min-h-[48px] text-sm leading-6 text-slate-600">{PLAN_SUMMARIES[plan.id]}</p>
                 <ul className="mt-6 space-y-3 text-sm text-slate-600">
                   {PLAN_BULLETS[plan.id].map((b) => (
                     <li key={b} className="flex items-start gap-2.5">
@@ -76,36 +180,167 @@ export default function PricingPage() {
                   ))}
                 </ul>
                 <p className="mt-6 text-sm italic text-slate-500">{plan.bestForNote}</p>
-                <Button size="lg" variant={plan.popular ? 'default' : 'outline'} className="mt-6" onClick={() => navigate(`/checkout/${plan.id}`)}>
+                <Button size="lg" variant={plan.id === 'pro' ? 'default' : 'outline'} className="mt-6" onClick={() => navigate(`/checkout/${plan.id}`)}>
                   Get {plan.label}
                 </Button>
               </article>
             ))}
           </div>
-          <p className="mt-6 text-center text-sm text-slate-500">Cancel anytime. No questions asked.</p>
         </div>
       </section>
 
-      <section className="py-16 bg-slate-50">
-        <div className="mx-auto max-w-4xl px-6">
-          <h2 className="text-2xl font-bold text-center text-slate-900">How Credits Work</h2>
-          <p className="text-center mt-2 text-slate-600">One credit equals one action. Use them flexibly across all features to accelerate your job search.</p>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            {CREDIT_USES.map((c) => (
-              <div key={c.title} className="flex items-start gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700 font-bold text-sm">
-                  {c.coin}
+      <section className="bg-white py-10">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="hidden md:block sticky top-16 z-30 overflow-x-auto rounded-t-xl border border-slate-200 bg-slate-950 shadow-[0_14px_30px_rgba(15,23,42,0.16)]">
+            <div className="min-w-[760px]">
+              <div className="grid grid-cols-[1.35fr_repeat(3,1fr)] text-white">
+                <div className="px-6 py-4">
+                  <p className="text-sm font-bold">Feature access</p>
+                  <p className="mt-1 text-xs font-medium text-slate-300">Compare plan access</p>
                 </div>
-                <div>
-                  <h3 className="font-bold text-slate-900">{c.title}</h3>
-                  <p className="text-sm text-slate-600">{c.desc}</p>
-                </div>
+                {PLANS.map((plan) => (
+                  <div key={plan.id} className={cn('px-4 py-4 text-center', plan.id === 'pro' && 'bg-[#0494fc]')}>
+                    <p className="text-sm font-bold">{plan.label}</p>
+                    <p className="mt-1 text-2xl font-black leading-none">
+                      ${priceFor(plan.monthlyPrice)}
+                      <span className="ml-1 text-xs font-semibold text-white/75">/mo</span>
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-          <p className="mt-6 text-center text-sm text-slate-500">Flexibility is key: Mix and match credits across any feature based on your current job search needs</p>
+          <div className="hidden overflow-x-auto rounded-b-xl border-x border-b border-slate-200 bg-white md:block">
+            <div className="min-w-[760px]">
+              {FEATURE_GROUPS.map((group) => (
+                <div key={group.label}>
+                  <div className="border-b border-slate-100 bg-blue-50 px-6 py-3 text-xs font-bold uppercase tracking-[0.16em] text-[#0494fc]">
+                    {group.label}
+                  </div>
+                  {group.rows.map(([feature, starter, pro, premium]) => (
+                    <div key={feature} className="grid grid-cols-[1.35fr_repeat(3,1fr)] border-b border-slate-100 last:border-b-0">
+                      <div className="px-6 py-4 text-sm font-semibold text-slate-700">{feature}</div>
+                      <div className="flex items-center justify-center px-4 py-4 text-center"><FeatureMark value={starter} /></div>
+                      <div className="flex items-center justify-center bg-blue-50/50 px-4 py-4 text-center"><FeatureMark value={pro} /></div>
+                      <div className="flex items-center justify-center px-4 py-4 text-center"><FeatureMark value={premium} /></div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="md:hidden">
+            <div className="sticky top-16 z-30 rounded-xl border border-slate-200 bg-slate-950 p-3 shadow-[0_14px_30px_rgba(15,23,42,0.16)]">
+              <div className="mb-3 px-1 text-white">
+                <p className="text-sm font-bold">Feature access</p>
+                <p className="mt-1 text-xs font-medium text-slate-300">Choose a plan to compare</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {PLANS.map((plan) => {
+                  const active = plan.id === selectedMobilePlan
+                  return (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => setSelectedMobilePlan(plan.id)}
+                      className={cn(
+                        'min-w-0 rounded-lg px-2 py-3 text-center text-white transition',
+                        active ? 'bg-[#0494fc]' : 'bg-white/10 hover:bg-white/15',
+                      )}
+                    >
+                      <span className="block truncate text-xs font-bold">{plan.label}</span>
+                      <span className="mt-1 block text-xl font-black leading-none">
+                        ${priceFor(plan.monthlyPrice)}
+                        <span className="ml-0.5 text-[10px] font-semibold text-white/75">/mo</span>
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
+              <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0494fc]">{selectedPlan.label}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-700">{PLAN_SUMMARIES[selectedPlan.id]}</p>
+              </div>
+              {FEATURE_GROUPS.map((group) => (
+                <div key={group.label}>
+                  <div className="border-b border-slate-100 bg-blue-50 px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] text-[#0494fc]">
+                    {group.label}
+                  </div>
+                  {group.rows.map((row) => {
+                    const [feature] = row
+                    const value = row[FEATURE_VALUE_INDEX[selectedMobilePlan]]
+                    return (
+                      <div key={feature} className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-slate-100 px-5 py-4 last:border-b-0">
+                        <span className="min-w-0 text-sm font-semibold text-slate-700">{feature}</span>
+                        <FeatureMark value={value} />
+                      </div>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
+
+      <section className="bg-white py-6">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-center">
+            <p className="text-sm font-semibold leading-6 text-slate-700">
+              Credits are simple: <span className="text-slate-950">1 credit = 1 completed action.</span> Start for free with 5 credits to try Lightforth.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {showOfferModal && offerSecondsLeft > 0 ? (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/60 px-5 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="pro-offer-title">
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => {
+                setShowOfferModal(false)
+                setOfferDismissed(true)
+              }}
+              className="absolute right-4 top-4 rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+              aria-label="Close offer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0494fc]">Limited-time Pro offer</p>
+            <h2 id="pro-offer-title" className="mt-3 text-3xl font-black leading-tight text-slate-950">
+              Take the Pro plan for just $10 if you start today.
+            </h2>
+            <p className="mt-4 text-sm leading-6 text-slate-600">
+              Use Pro for the first month at $10, then continue at $49/month. The offer window closes when the countdown ends.
+            </p>
+            <div className="mt-5 rounded-xl bg-slate-950 px-5 py-4 text-center text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-300">Offer ends in</p>
+              <p className="mt-1 text-4xl font-black tabular-nums">{formatOfferTime(offerSecondsLeft)}</p>
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Button size="lg" className="flex-1 rounded-full" onClick={claimOffer}>
+                Claim Pro offer
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="flex-1 rounded-full"
+                onClick={() => {
+                  setShowOfferModal(false)
+                  setOfferDismissed(true)
+                }}
+              >
+                Not now
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <section className="py-16">
         <div className="mx-auto max-w-3xl px-6">
@@ -114,6 +349,7 @@ export default function PricingPage() {
             {[
               { q: 'What happens when I run out of credits?', a: 'You can upgrade to a higher plan anytime or purchase additional credits as needed. Your credits renew monthly.' },
               { q: 'Can I cancel my subscription?', a: 'Yes, you can cancel anytime. Your subscription will remain active until the end of your billing period.' },
+              { q: 'Do you have a free plan?', a: 'No. Non-subscribers receive 5 credits per month to test or use limited product actions.' },
               { q: 'Do unused credits roll over?', a: 'No, credits reset each month based on your plan. We recommend using them within your billing cycle to maximize value.' },
             ].map((item) => (
               <div key={item.q} className="rounded-xl border border-slate-200 bg-white p-4">

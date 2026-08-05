@@ -10,7 +10,7 @@ Lightforth is an AI-powered career  platform designed to help job seekers in the
 
 **Core promise: "Let's get you hired."**
 
-Lightforth is a web-based product available at lightforth.ai. It operates on a freemium model with a free tier and a paid Pro plan.
+Lightforth is a web-based product available at lightforth.ai. It operates on a subscription model with Starter ($27/month), Pro ($49/month), and Premium ($79/month). Non-subscribers receive 5 credits per month to test or use limited product actions, and first-time users may be offered a $10 first-month Pro activation that renews at $49/month.
 
 ---
 
@@ -106,9 +106,11 @@ Real-time AI support during a live interview. The candidate shares their intervi
 
 | Tier    | Description                                                                             |
 | ------- | --------------------------------------------------------------------------------------- |
-| Free    | New users get a limited number of credits to try Lightforth — no commitment required    |
-| Pro     | Subscribers unlock full access to all features, higher usage, and priority capabilities |
-| Credits | Actions across the platform consume credits, giving users transparency and control      |
+| Non-subscriber | Users receive 5 credits per month to test or use limited product actions         |
+| Starter | $27/month for light resume, cover letter, and download workflows                         |
+| Pro     | $49/month for active job seekers who need Auto-Apply, Interview Prep, and Copilot        |
+| Premium | $79/month for high-volume applicants and intensive interview seasons                     |
+| Credits | Actions across the platform consume credits, giving users transparency and control       |
 
 
 ---

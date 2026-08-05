@@ -96,7 +96,7 @@ function TransactionTable({ rows }: { rows: { id: string; type: string; amount: 
             { label: 'Premium', count: GLOBAL_REVENUE.premiumUsers, color: '#8b5cf6' },
             { label: 'Pro', count: GLOBAL_REVENUE.proUsers, color: '#3b82f6' },
             { label: 'Starter', count: GLOBAL_REVENUE.starterUsers, color: '#2dd4bf' },
-            { label: 'Free', count: GLOBAL_REVENUE.freeUsers, color: '#94a3b8' },
+            { label: 'Non-subscriber', count: GLOBAL_REVENUE.nonSubscriberUsers, color: '#94a3b8' },
           ].map(p => (
             <div key={p.label} className="flex items-center gap-2 rounded-lg border border-border bg-white p-2.5">
               <div className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />

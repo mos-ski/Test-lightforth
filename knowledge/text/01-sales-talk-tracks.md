@@ -2,7 +2,7 @@
 
 ## Opening Talk Tracks
 
-### Inbound Trial Signup Follow-Up
+### Inbound Activation Follow-Up
 "Hi [Name], welcome to Lightforth! Quick question before you dive in — where are you in your search right now, just starting or already interviewing?"
 
 ### Inbound Demo Request
@@ -38,8 +38,8 @@
 
 ## Closing Talk Tracks
 
-### Trial Close
-"The 14-day trial is free, no card needed. Want to start it now and tailor your resume for that job you sent me?"
+### Activation Offer Close
+"You can activate Pro for $10 for your first month, then it renews at $49/month unless you cancel before renewal. Want to start now and tailor your resume for that job you sent me?"
 
 ### Direct Close
 "Would Pro or Premium make more sense for you — are you also doing coding or panel-style interviews where Meeting Copilot would help?"
@@ -61,17 +61,17 @@
 "What was missing?" — then listen. Most of the time it's that the other tool never followed them into the actual live interview.
 
 ### Timing
-"Totally fair. The trial's free and doesn't need a card — want to just try it on your next real application instead of deciding in the abstract?"
+"Totally fair. The $10 Pro activation lets you try it on your next real application instead of deciding in the abstract."
 
 ---
 
 ## Follow-Up Talk Tracks
 
 ### Post-Demo
-"Thanks for your time today. What questions came up after we hung up? I'll send the trial link either way."
+"Thanks for your time today. What questions came up after we hung up? I'll send the activation link either way."
 
-### Stalled Trial
-"Hey [Name], noticed you haven't tailored a resume yet in your trial — want to hop on for 10 minutes and do it together on a real posting?"
+### Stalled Activation
+"Hey [Name], noticed you haven't tailored a resume yet after activating — want to hop on for 10 minutes and do it together on a real posting?"
 
 ---
 

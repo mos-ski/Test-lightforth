@@ -118,7 +118,7 @@ export default function TopNav({ onMenuClick }: { onMenuClick?: () => void }) {
           </div>
           <Button className="mt-4 h-10 w-full rounded-lg bg-gradient-to-r from-blue-500 to-violet-500 text-sm font-bold shadow-sm">
             <Gift className="h-5 w-5" />
-            Get Free credits
+            Get more credits
           </Button>
         </DropdownMenuContent>
       </DropdownMenu>

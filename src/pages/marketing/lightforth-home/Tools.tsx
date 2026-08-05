@@ -3,11 +3,11 @@ import { motion } from 'framer-motion'
 const tools = [
   {
     tag: 'AI Resume',
-    title: 'Free AI Resume Builder with ATS-compliant Templates.',
+    title: 'AI Resume Builder with ATS-compliant templates.',
     description: 'Create a polished, ATS-friendly resume in minutes with our AI-powered builder, tailored to highlight your skills and impress employers.',
     image: '/lightforth-home/images/aiSuggestion.gif',
     cta: 'Create a resume',
-    secondaryCta: 'Free ATS Checker',
+    secondaryCta: 'ATS Checker',
     secondaryHref: '/ats-checker',
   },
   {

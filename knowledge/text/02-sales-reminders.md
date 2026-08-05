@@ -3,18 +3,18 @@
 ## Daily Reminders
 
 ### Morning Prep
-- [ ] Check trial signups from the last 24 hours
-- [ ] Review any stalled trials (signed up, no resume tailored yet)
+- [ ] Check new activations from the last 24 hours
+- [ ] Review any stalled activations (activated, no resume tailored yet)
 - [ ] Check Copilot suggestions from yesterday's demo calls for gaps
 
 ### Before Each Call
 - [ ] Ask for (or find) a real job posting the person is targeting
 - [ ] Review relevant objection responses for their likely concerns
-- [ ] Have the trial link ready to send immediately after
+- [ ] Have the $10 activation link ready to send immediately after
 
 ### After Each Call
 - [ ] Log notes
-- [ ] Send trial link / next step within the hour, not end of day
+- [ ] Send activation link / next step within the hour, not end of day
 - [ ] Note any knowledge base gaps the copilot didn't cover well
 
 ---
@@ -22,11 +22,11 @@
 ## Weekly Reminders
 
 ### Monday: Pipeline Review
-- Review active trials and stalled ones
+- Review active subscriptions, activation offers, and stalled activations
 - Plan the week's outreach (individuals + bundle prospects)
 
 ### Wednesday: Mid-Week Check
-- Review trial-to-paid conversion for the week so far
+- Review activation-to-Pro renewal conversion for the week so far
 - Follow up on any demo calls without a next step booked
 
 ### Friday: Week-End Review
@@ -36,7 +36,7 @@
 ---
 
 ## Monthly Reminders
-- Review month's trial-to-paid conversion rate
+- Review month's activation-to-Pro renewal conversion rate
 - Update knowledge base with any new competitor moves or pricing changes
 - Review bundle pipeline (coaches/bootcamps in conversation)
 
@@ -56,7 +56,7 @@
 ---
 
 ## Key Metrics to Track
-- **Trial-to-paid conversion rate**
+- **Activation-to-Pro renewal conversion rate**
 - **Time from signup to first tailored resume**
 - **Bundle pipeline:** organizations in conversation, seats under discussion
 - **Objection frequency:** which objection comes up most, so talk tracks stay sharp

@@ -25,7 +25,7 @@ const navLinks = [
   { label: 'Solutions', href: '#solutions' },
   { label: 'Product', href: '#product' },
   { label: 'Resources', href: '#faq' },
-  { label: 'Pricing', href: '#pricing' },
+  { label: 'Pricing', href: '/pricing' },
 ]
 
 const supportCards = [
@@ -607,7 +607,7 @@ function Hero({ onDownload }: { onDownload: () => void }) {
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <DownloadButton hero className="w-full sm:w-[239px]" onClick={onDownload} />
             <a href="/auth/signup" className="inline-flex h-12 min-w-[167px] items-center justify-center whitespace-nowrap rounded-lg bg-[#2388ff] px-6 text-base font-medium leading-none text-white transition hover:bg-[#0879f2]">
-              Sign Up for Free
+              Activate Pro for $10
             </a>
           </div>
         </div>
@@ -1131,7 +1131,7 @@ function CellIcon({ value }: { value: CellValue }) {
 
 function Comparison() {
   return (
-    <section id="pricing" className="bg-white px-5 py-24 lg:px-0">
+    <section id="comparison" className="bg-white px-5 py-24 lg:px-0" aria-label="Lightforth competitor comparison">
       <div className="mx-auto max-w-[1280px]">
         <div className="lf-comparison-scroll lf-comparison-desktop overflow-x-auto">
           <div className="lf-comparison-table mx-auto">
@@ -1230,7 +1230,7 @@ const faqItems = [
   },
   {
     q: 'Do you have a free plan?',
-    a: 'Yes. You can sign up and start using core features at no cost. Paid plans unlock unlimited live sessions, auto-apply, and the coding copilot.',
+    a: 'No. Lightforth does not have a free plan. Non-subscribers receive 5 credits per month to test or use limited product actions, and first-time users may be eligible to activate Pro for $10 for the first month before it renews at $49/month.',
   },
   {
     q: 'Is Lightforth a downloadable application?',
@@ -1323,7 +1323,7 @@ function FinalCta({ onDownload }: { onDownload: () => void }) {
                   <FaWindows aria-hidden="true" />
                 </span>
               </button>
-              <a href="#pricing" className="lf-final-pricing">
+              <a href="/pricing" className="lf-final-pricing">
                 See Pricing
                 <ArrowUpRight className="h-4 w-4" />
               </a>

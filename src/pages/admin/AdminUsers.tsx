@@ -39,13 +39,13 @@ const PLAN_COLORS: Record<string, string> = {
   premium: 'bg-purple-50 text-purple-700',
   pro: 'bg-primary/10 text-primary',
   starter: 'bg-violet-50 text-violet-700',
-  free: 'bg-muted text-muted-foreground',
+  non_subscriber: 'bg-muted text-muted-foreground',
 }
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'bg-emerald-50 text-emerald-700',
   suspended: 'bg-red-50 text-red-600',
-  trial: 'bg-amber-50 text-amber-700',
+  activation: 'bg-amber-50 text-amber-700',
   cancelled: 'bg-muted text-muted-foreground',
 }
 
@@ -54,9 +54,9 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'premium', label: 'Premium' },
   { key: 'pro', label: 'Pro' },
   { key: 'starter', label: 'Starter' },
-  { key: 'free', label: 'Free' },
+  { key: 'non_subscriber', label: 'Non-subscriber' },
   { key: 'active', label: 'Active' },
-  { key: 'trial', label: 'Trial' },
+  { key: 'activation', label: 'Activation' },
   { key: 'suspended', label: 'Suspended' },
 ]
 
@@ -148,14 +148,14 @@ export default function AdminUsers() {
   const [tab, setTab] = useState<TabKey>('all')
   const [period, setPeriod] = useState<TimePeriod>('12m')
   const [showInviteModal, setShowInviteModal] = useState(false)
-  const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'user' as 'user' | 'affiliate' | 'enterprise', plan: 'free' as 'free' | 'starter' | 'pro' | 'premium', message: '' })
+  const [inviteForm, setInviteForm] = useState({ name: '', email: '', role: 'user' as 'user' | 'affiliate' | 'enterprise', plan: 'non_subscriber' as 'non_subscriber' | 'starter' | 'pro' | 'premium', message: '' })
   const { data, isLoading } = useUsers()
 
   const stats = data?.stats
   const allUsers = data?.users ?? []
 
   const filteredUsers = tab === 'all' ? allUsers :
-    ['premium', 'pro', 'starter', 'free'].includes(tab) ? allUsers.filter(u => u.plan === tab) :
+    ['premium', 'pro', 'starter', 'non_subscriber'].includes(tab) ? allUsers.filter(u => u.plan === tab) :
     allUsers.filter(u => u.status === tab)
 
   return (
@@ -173,7 +173,7 @@ export default function AdminUsers() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Total Users" value={stats?.total.toLocaleString() ?? '...'} change={`+${8.7}%`} />
         <StatCard label="Active" value={stats?.active.toLocaleString() ?? '...'} change="+12.3%" />
-        <StatCard label="On Trial" value={stats?.trial.toLocaleString() ?? '...'} change="+5.1%" />
+        <StatCard label="Activation Offer" value={stats?.activation.toLocaleString() ?? '...'} change="+5.1%" />
         <StatCard label="Suspended" value={stats?.suspended.toLocaleString() ?? '...'} change="+2" />
       </div>
 
@@ -250,7 +250,7 @@ export default function AdminUsers() {
                     onChange={e => setInviteForm(prev => ({ ...prev, plan: e.target.value as any }))}
                     className="lf-select w-full"
                   >
-                    <option value="free">Free</option>
+                    <option value="non_subscriber">Non-subscriber</option>
                     <option value="starter">Starter ($27/mo)</option>
                     <option value="pro">Pro ($49/mo)</option>
                     <option value="premium">Premium ($79/mo)</option>
@@ -270,7 +270,7 @@ export default function AdminUsers() {
                 <button
                   onClick={() => {
                     setShowInviteModal(false)
-                    setInviteForm({ name: '', email: '', role: 'user', plan: 'free', message: '' })
+                    setInviteForm({ name: '', email: '', role: 'user', plan: 'non_subscriber', message: '' })
                   }}
                   className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -279,7 +279,7 @@ export default function AdminUsers() {
                 <button
                   onClick={() => {
                     setShowInviteModal(false)
-                    setInviteForm({ name: '', email: '', role: 'user', plan: 'free', message: '' })
+                    setInviteForm({ name: '', email: '', role: 'user', plan: 'non_subscriber', message: '' })
                   }}
                   className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
                 >

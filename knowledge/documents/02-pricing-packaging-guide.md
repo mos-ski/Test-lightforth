@@ -3,7 +3,7 @@
 ## Pricing Philosophy
 
 Lightforth prices per person, not per seat-license bureaucracy. It's designed to be:
-- **Simple** — two plans, one clear upgrade path
+- **Simple** — three plans, one clear upgrade path
 - **Low-commitment** — monthly by default, cancel anytime
 - **Justifiable in one sentence** — cheaper than one hour of a career coach's time, and available every day
 
@@ -11,26 +11,31 @@ Lightforth prices per person, not per seat-license bureaucracy. It's designed to
 
 ## Plan Comparison
 
-| Feature | Pro | Premium |
-|---|---|---|
-| **Monthly Price** | $49/mo | $79/mo |
-| **Annual Price** | $39/mo (billed yearly) | $63/mo (billed yearly) |
-| **Credits/month** | 50 | 100 |
-| **Interview Copilot** | ✅ | ✅ |
-| **Coding Copilot** | ✅ | ✅ |
-| **Meeting Copilot** | ❌ | ✅ |
-| **Resume Builder** | ✅ | ✅ |
-| **Auto-Apply** | ✅ | ✅ |
-| **Interview Prep (mock interviews)** | ✅ | ✅ |
-| **Support** | Email | Email, priority queue |
+| Feature | Starter | Pro | Premium |
+|---|---|---|---|
+| **Monthly Price** | $27/mo | $49/mo | $79/mo |
+| **Annual Price** | $22/mo (billed yearly) | $39/mo (billed yearly) | $63/mo (billed yearly) |
+| **Credits/month** | 15 | 50 | 100 |
+| **Interview Copilot** | ❌ | ✅ | ✅ |
+| **Coding Copilot** | ❌ | ✅ | ✅ |
+| **Meeting Copilot** | ❌ | ❌ | ✅ |
+| **Resume Builder** | ✅ | ✅ | ✅ |
+| **Auto-Apply** | ❌ | ✅ | ✅ |
+| **Interview Prep (mock interviews)** | ❌ | ✅ | ✅ |
+| **Support** | Email | Email | Email, priority queue |
 
-Resume Builder, Auto-Apply, and Interview Prep exist on every Lightforth account with a free tier (limited credits); Pro and Premium raise those limits and unlock the live desktop Copilot.
+Lightforth does not have a free plan. Non-subscribers receive 5 credits per month so they can test or use limited parts of the product before choosing Starter, Pro, or Premium.
+
+### First-Time User Activation Offer
+- First-time users can activate Pro for $10 for the first month
+- The offer auto-renews to the standard Pro plan at $49/month unless canceled before renewal
+- Position this as an >80% discounted first-month Pro offer, not a free trial
 
 ---
 
 ## What "credits" mean
 
-A credit is roughly one AI action — one tailored resume rewrite, one Auto-Apply submission, one mock interview question, or one minute of live Copilot coaching. Most active job seekers use 30-60 credits/month; Premium's 100 gives real headroom for a heavy application season.
+A credit is roughly one AI action — one tailored resume rewrite, one Auto-Apply submission, one mock interview question, or one minute of live Copilot coaching. Non-subscribers get 5 credits per month. Most active job seekers use 30-60 credits/month; Premium's 100 gives real headroom for a heavy application season.
 
 ---
 
@@ -45,6 +50,7 @@ A credit is roughly one AI action — one tailored resume rewrite, one Auto-Appl
 ### Special Situations
 | Scenario | Discount | Approval Required |
 |---|---|---|
+| First-time user Pro activation | $10 first month, then renews at $49/month | None — active campaign offer |
 | Student (valid .edu email) | 15% off any plan | None — self-serve |
 | Referral (existing customer code) | 1 month free for both | None — self-serve |
 | Career coach / bootcamp bundle, 5-9 seats | 15% off per seat | Sales Lead |
@@ -79,7 +85,7 @@ Meeting Copilot (for informational interviews, panel interviews, and post-offer 
 Yes, anytime. Upgrades take effect immediately; downgrades take effect at the next billing cycle.
 
 ### "Is there a free trial?"
-Yes — 14 days, full feature access, no credit card required.
+No. Lightforth does not currently offer a free trial. Non-subscribers receive 5 credits per month, and first-time users can use the $10 Pro activation offer for their first month before renewal at $49/month.
 
 ### "What happens to my resumes/data if I cancel?"
 Everything is retained for 30 days after cancellation so you can export it, then deleted unless you reactivate.
@@ -111,23 +117,24 @@ For: [Name]
 Date: [Date]
 Prepared by: [Rep Name]
 
-PLAN: [Pro / Premium]
+PLAN: [Starter / Pro / Premium]
 ───────────────────────────────
-Monthly:  $[49/79]/mo
-Annual:   $[39/63]/mo (save 20%)
+Monthly:  $[27/49/79]/mo
+Annual:   $[22/39/63]/mo (save 20%)
+Offer:    $10 first month of Pro for eligible first-time users, then $49/mo
 ───────────────────────────────
 
 Included:
 ✅ Resume Builder — unlimited tailored versions
-✅ Auto-Apply
-✅ Interview Prep with performance reports
-✅ Interview Copilot [+ Coding, + Meeting if Premium]
+✅ Auto-Apply [Pro/Premium]
+✅ Interview Prep with performance reports [Pro/Premium]
+✅ Interview Copilot [+ Coding in Pro/Premium, + Meeting if Premium]
 
 Next Steps:
-1. Start your 14-day free trial today — no card required
+1. Activate Pro for $10 today if eligible for the first-time offer
 2. Tailor your first resume
 3. Run your first Auto-Apply batch
-4. Book a mock interview before your trial ends
+4. Book a mock interview before the first month renews
 ```
 
 ---

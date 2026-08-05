@@ -12,7 +12,7 @@ Active job seekers in the United States — recent grads, career changers, and p
 AI tailors your resume to a specific job description, automatically applies to matching positions (with your approval), simulates interview practice, and provides real-time coaching during the live interview itself.
 
 ### Is Lightforth free?
-There's a free tier with limited credits. Pro ($49/mo) and Premium ($79/mo) unlock higher usage and the live desktop Copilot.
+No. Lightforth does not have a free plan. Non-subscribers receive 5 credits per month to test or use limited product actions. Paid plans are Starter ($27/mo), Pro ($49/mo), and Premium ($79/mo).
 
 ---
 
@@ -103,6 +103,9 @@ Yes, anytime. Monthly plans end at the close of the current billing period; annu
 
 ### Do you offer refunds?
 14-day money-back guarantee on new subscriptions. See `knowledge-center/01-refund-policy.md`.
+
+### Do you offer a free trial?
+No. Lightforth does not currently offer a free trial. First-time users may be eligible to activate Pro for $10 for the first month, after which it renews at $49/month unless canceled before renewal.
 
 ### Can I change my plan mid-cycle?
 Yes — upgrades are immediate and prorated; downgrades take effect at the next billing cycle.

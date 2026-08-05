@@ -2,7 +2,7 @@
 
 ## Overview
 
-Lightforth is an AI-powered career platform: Resume Builder, Auto-Apply, Interview Prep, and Interview Copilot. This playbook covers how to position, demo, and close individual job seekers — and organizations buying seats on their behalf — on Lightforth Pro and Premium.
+Lightforth is an AI-powered career platform: Resume Builder, Auto-Apply, Interview Prep, and Interview Copilot. This playbook covers how to position, demo, and close individual job seekers — and organizations buying seats on their behalf — on Lightforth Starter, Pro, and Premium.
 
 ---
 
@@ -31,7 +31,7 @@ Lightforth is an AI-powered career platform: Resume Builder, Auto-Apply, Intervi
 - **Who:** Active job seekers — recent grads, career changers, people between roles, people trying to move up
 - **Pain:** Applications go into a black hole, interviews feel like guessing, no time to tailor a resume for every posting
 - **Goal:** Land more interviews, walk into interviews confident, get the offer faster
-- **What they care about:** "Will this actually get me hired," "is it worth $49-79/month," "is this cheating"
+- **What they care about:** "Will this actually get me hired," "is it worth $27-79/month," "is this cheating"
 
 ### Secondary: Coaches & Organizations Buying for Others
 - **Who:** Career coaches, coding/UX bootcamps, university career centers, outplacement/severance programs
@@ -70,9 +70,9 @@ Lightforth is an AI-powered career platform: Resume Builder, Auto-Apply, Intervi
 - Let the silence sit after the Copilot suggestion appears on screen — it's the moment that sells itself
 - If they ask "is this cheating," answer it head-on before they have to (see Objection Handling)
 
-### 3. Trial
-**Structure:** 14-day free trial, full feature access, no credit card required.
-**What to tell them to do:** Tailor one resume, run at least one Auto-Apply batch, complete one full mock interview before the trial ends — that's usually enough to see real value.
+### 3. Activation Offer
+**Structure:** First-time users can activate Pro for $10 for the first month, then auto-renew at the standard $49/month Pro price unless they cancel before renewal.
+**What to tell them to do:** Activate Pro, tailor one resume, run at least one Auto-Apply batch, and complete one full mock interview before the first month renews — that's usually enough to see real value.
 
 ### 4. Close
 
@@ -81,11 +81,20 @@ Lightforth is an AI-powered career platform: Resume Builder, Auto-Apply, Intervi
 - "I can write my own resume" → it's not about writing, it's about matching the exact keywords an ATS is scanning for, for every single posting
 - "Isn't this cheating in the interview?" → answer directly, don't dodge it
 - "I already tried [Teal / Kickresume]" → they don't do live, real-time interview coaching — that's the actual gap
-- "I need to think about it" → propose the 14-day trial as the "thinking" step, not a separate decision later
+- "I need to think about it" → propose the $10 Pro activation offer as the lowest-friction way to try it on a real application
 
 ---
 
 ## Pricing Reference
+
+### Non-subscriber monthly credits
+- 5 credits/month
+- Best for: users who want to test the product before choosing a plan
+
+### Starter — $27/mo ($22/mo billed annually)
+- 15 credits/month
+- Resume Builder + cover letter features + resume downloads
+- Best for: light or occasional job applications
 
 ### Pro — $49/mo ($39/mo billed annually)
 - 50 credits/month
@@ -101,6 +110,11 @@ Lightforth is an AI-powered career platform: Resume Builder, Auto-Apply, Intervi
 - 5+ seats: 15% off list price per seat
 - 20+ seats: 25% off list price per seat, plus a shared admin view
 - Always billed annually, invoiced to the organization
+
+### First-Time User Offer
+- $10 activation offer for the first month of Pro
+- Auto-renews to Pro at $49/month unless canceled before renewal
+- Use this as the primary individual-user close when the offer is active
 
 See `documents/02-pricing-packaging-guide.md` for the full breakdown.
 
@@ -118,13 +132,13 @@ See `documents/02-pricing-packaging-guide.md` for the full breakdown.
 "What was missing?" — nine times out of ten it's that the other tool stopped at resume/prep and never followed them into the actual live interview. That's the one thing only Lightforth does.
 
 ### "I need to think about it"
-"Totally fair. The 14-day trial is free and doesn't need a card — would it make more sense to just try it on your next real application instead of deciding in the abstract?"
+"Totally fair. The easiest way to decide is to use it on a real application. The first-time Pro activation is $10 for the first month, then it renews at $49/month unless you cancel before renewal."
 
 ---
 
 ## Key Metrics to Track
 
-- **Trial-to-paid conversion rate**
+- **Activation-offer-to-Pro renewal conversion rate**
 - **Time from signup to first tailored resume** (target: under 15 minutes)
 - **Interviews booked per active user** (leading indicator of renewal)
 - **Reported outcome:** offer received, tracked via post-offer survey

@@ -145,7 +145,7 @@ export default function AdminMeeting() {
                   <span className="font-medium">289 triggers</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Premium gate shown (Starter/Free)</span>
+                  <span className="text-muted-foreground">Premium gate shown (Starter/Non-subscriber)</span>
                   <span className="font-medium">146 triggers</span>
                 </div>
               </div>

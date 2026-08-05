@@ -19,14 +19,14 @@
 
 | OBJECTIVE: Drive Consistent Revenue Growth |
 | :---- |
-| *Focus: \+35% MoM revenue, paid user growth, freemium→paid conversion, pay-as-you-go adoption* |
+| *Focus: \+35% MoM revenue, paid user growth, non-subscriber→paid conversion, pay-as-you-go adoption* |
 
-| WEIGHT 30% | REVENUE CONTRIBUTION RATIONALE: Revenue growth is the primary objective for Lightforth in Q2. A 40–60% MoM increase in total revenue (NGN \+ USD) and a 20–30% improvement in freemium-to-paid conversion are direct and measurable financial targets for the business. |
+| WEIGHT 30% | REVENUE CONTRIBUTION RATIONALE: Revenue growth is the primary objective for Lightforth in Q2. A 40–60% MoM increase in total revenue (NGN \+ USD) and a 20–30% improvement in non-subscriber-to-paid conversion are direct and measurable financial targets for the business. |
 | :---: | :---- |
 
 | Ref | Key Results | Timeline | Metrics | Objective |
 | :---: | ----- | :---: | ----- | ----- |
-| **01** | **Revenue Growth**• Increase total quarterly revenue by **35%** • Increase paid users from **281 → 500** • Improve freemium → paid conversion from **2.0% → 5.5%** • Increase recurring subscription revenue contribution from **28% → 40%** | *Q2 2026 Monthly tracking* | • Current MRR (NGN \+ USD): **NGN440,750 \+ $859** • Paid users count: **281** • Conversion rate (Free → Paid): **5.5%** • Revenue split (NG vs INT): **21% & 79%** • Renewal revenue contribution(INT vs NG): **18% \+ 3%** | Drive measurable revenue growth by converting more users and improving retention quality. |
+| **01** | **Revenue Growth**• Increase total quarterly revenue by **35%** • Increase paid users from **281 → 500** • Improve non-subscriber → paid conversion from **2.0% → 5.5%** • Increase recurring subscription revenue contribution from **28% → 40%** | *Q2 2026 Monthly tracking* | • Current MRR (NGN \+ USD): **NGN440,750 \+ $859** • Paid users count: **281** • Conversion rate (Non-subscriber → Paid): **5.5%** • Revenue split (NG vs INT): **21% & 79%** • Renewal revenue contribution(INT vs NG): **18% \+ 3%** | Drive measurable revenue growth by converting more users and improving retention quality. |
 
 | OBJECTIVE: Improve Activation & First Value Experience |
 | :---- |

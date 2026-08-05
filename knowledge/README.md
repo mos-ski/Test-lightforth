@@ -6,7 +6,7 @@ This is not a knowledge base about some other SaaS tool. It is Lightforth sellin
 
 ## Who the rep is talking to
 
-1. **Individual job seekers** buying Pro or Premium for their own job search.
+1. **Individual job seekers** buying Starter, Pro, or Premium for their own job search.
 2. **Coaches & organizations** (career coaches, bootcamps, university career centers, outplacement firms) buying a bundle of seats for the job seekers they support.
 
 ## Structure
@@ -27,10 +27,12 @@ knowledge/
 **Plans** (source of truth: `src/pages/desktopCopilot/plans.ts`):
 | Plan | Price | Credits | Unlocks |
 |---|---|---|---|
+| Non-subscriber access | $0/mo | 5/mo | Limited product testing/usage, not a free plan |
+| Starter | $27/mo ($22/mo billed annually) | 15/mo | Resume Builder + cover letter features + resume downloads |
 | Pro | $49/mo ($39/mo billed annually) | 50/mo | Interview + Coding Copilot |
 | Premium | $79/mo ($63/mo billed annually) | 100/mo | Interview + Coding + Meeting Copilot |
 
-Resume Builder, Auto-Apply, and Interview Prep are available on the core Lightforth account (freemium, with Pro/Premium raising usage limits); the live desktop Copilot (Interview/Coding/Meeting) is what Pro and Premium specifically unlock.
+Lightforth does not have a free plan. Non-subscribers receive 5 credits per month to test or use limited product actions; paid plans are Starter ($27/month), Pro ($49/month), and Premium ($79/month). The live desktop Copilot (Interview/Coding/Meeting) is unlocked by Pro and Premium, with Meeting Copilot reserved for Premium.
 
 ## Usage
 

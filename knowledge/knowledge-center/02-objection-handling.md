@@ -21,7 +21,7 @@ Proven responses to the objections a rep actually hears from job seekers (and fr
 **Framework:** Offer the real, immediate alternative.
 
 1. **Acknowledge:** "Totally understand — money's tight during a search."
-2. **Offer:** "Start with the free tier and Pro's 14-day trial — no card needed to try it."
+2. **Offer:** "Use your 5 monthly non-subscriber credits to test the product, or activate Pro for $10 for the first month if you're ready to apply seriously."
 3. **Reframe:** "If it helps you land something faster, it pays for itself out of your first paycheck."
 
 ### "Your competitor is cheaper"
@@ -64,12 +64,12 @@ Proven responses to the objections a rep actually hears from job seekers (and fr
 ### "I need to think about it"
 1. **Acknowledge:** "Totally fair, it's your money."
 2. **Uncover:** "What specifically do you want to think through?"
-3. **Redirect:** "The 14-day trial is free, no card needed — would it make more sense to just try it on your next real application instead of deciding in the abstract?"
+3. **Redirect:** "The $10 Pro activation is built for exactly that — try it on your next real application, then decide before it renews at $49/month."
 
 ### "I'm not actively job searching yet"
 1. **Understand:** "When are you planning to start?"
 2. **Create relevance:** "A tailored resume takes 10 minutes now — worth having ready before you need it?"
-3. **Offer:** "Start free, upgrade when you're actually applying."
+3. **Offer:** "Use your 5 monthly credits lightly now, then upgrade when you're actively applying."
 
 ---
 
@@ -87,7 +87,7 @@ Proven responses to the objections a rep actually hears from job seekers (and fr
 ### "I need to talk to my partner/family about the money"
 1. **Acknowledge:** "Makes sense, that's a real household decision."
 2. **Equip:** "Want me to send a one-pager on the plans and what's included so it's an easy conversation?"
-3. **Propose:** "The 14-day trial doesn't need a card, so there's no financial decision yet if you want to try it together first."
+3. **Propose:** "If the first-time offer is available, Pro starts at $10 for the first month and renews at $49/month unless you cancel before renewal."
 
 ---
 
@@ -112,7 +112,7 @@ Proven responses to the objections a rep actually hears from job seekers (and fr
 - **Don't dodge the "is this cheating" question** — answer it head-on, every time it comes up
 - **Don't lead with price** — lead with the actual gap (ATS matching, live interview support), then land on price
 - **Don't oversell Auto-Apply as "fully automatic"** — always mention the approval step, it builds trust
-- **Don't forget to propose the trial as the next step**, not a vague "let me know"
+- **Don't forget to propose the activation offer as the next step**, not a vague "let me know"
 
 ---
 

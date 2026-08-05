@@ -150,16 +150,18 @@ Job searching is episodic -- users may disappear for weeks. The goal is to stay 
 
 ### Theme 3: Increase Monetization (Get More Revenue Per User)
 
-#### 3.1 Tiered Feature Unlocking (Freemium Optimization)
+#### 3.1 Tiered Feature Unlocking (Non-Subscriber Activation)
 
-**The Problem:** Users on the free tier may not understand what they're missing, or the paywall may be too aggressive/too weak.
+**The Problem:** Non-subscribers receive 5 monthly credits, but may not understand what paid plans unlock or why the $10 first-month Pro activation offer is the fastest route to meaningful value.
 
 **What to Do:**
-- Audit the free vs. paid feature split. Current structure:
-  - Free: Resume builder (limited), basic interview prep
-  - Paid: Auto-apply, AI tailoring, interview copilot, unlimited resumes
-- Consider a "teaser" model: let free users experience one AI-tailored resume, then hit the paywall
-- Add a "credits earned" progress bar: "You've used 8 of 10 free credits. Upgrade to keep going."
+- Audit the non-subscriber vs. paid feature split. Current structure:
+  - Non-subscriber: 5 credits/month for limited testing and usage
+  - Starter: $27/month for light resume and cover letter workflows
+  - Pro: $49/month, with first-time $10 activation offer when active
+  - Premium: $79/month for high-volume users
+- Consider a "teaser" model: let non-subscribers experience one high-value AI action, then present the $10 Pro activation offer
+- Add a credit progress bar: "You've used 4 of 5 monthly credits. Activate Pro for $10 to keep going."
 - Offer a one-time "boost" purchase: "Need 50 more credits? ₦2,000 one-time"
 
 **Potential Win:**
@@ -374,7 +376,7 @@ Use this to decide what to build first:
 | Cover Letter Generator | Medium | Medium | Low | **P1** |
 | LinkedIn Profile Optimization | High | Medium | Medium | **P1** |
 | Success Stories & Social Proof | Medium | High | Low | **P1** |
-| Freemium Optimization | High | High | Medium | **P1** |
+| Non-Subscriber Activation | High | High | Medium | **P1** |
 | Salary Insights & Negotiation | High | High | High | **P2** |
 | Skill Gap Analysis | Medium | Medium | High | **P2** |
 | Networking/Referral Finder | High | High | High | **P2** |
@@ -396,7 +398,7 @@ Use this to decide what to build first:
 ### Month 2: Monetization & Feature Expansion
 - [ ] Cover letter generator
 - [ ] LinkedIn profile optimization
-- [ ] Freemium optimization (teaser model, micro-transactions)
+- [ ] Non-subscriber activation optimization (5-credit teaser, $10 Pro activation, micro-transactions)
 - [ ] Referral program 2.0
 
 ### Month 3: Trust & Growth
@@ -413,7 +415,7 @@ Use this to decide what to build first:
 |--------|---------|--------|----------------|
 | Activation Rate | ? | >40% | % of signups who complete their first resume or application |
 | Day-7 Retention | ? | >25% | % of users who return within 7 days |
-| Free-to-Paid Conversion | ? | >5% | % of free users who upgrade |
+| Non-subscriber-to-Paid Conversion | ? | >5% | % of non-subscribers who upgrade |
 | ARPU | ? | Increase | Average revenue per user |
 | Applications Per User | ? | >10 | How many jobs each user applies to |
 | NPS | ? | >40 | Net Promoter Score |

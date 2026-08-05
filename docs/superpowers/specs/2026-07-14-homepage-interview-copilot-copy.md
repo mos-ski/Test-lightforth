@@ -43,7 +43,7 @@ Ten directions drafted, spanning different angles:
 **Recommendation:** #3 or #9 (full-journey angle) — the one claim neither
 Final Round nor Parakeet can make, since both are interview-moment-only tools.
 
-CTAs: "Download Now" (desktop copilot) + "Get Started for Free"
+CTAs: "Download Now" (desktop copilot) + "Activate Pro for $10"
 
 ## Logo cloud — needs a decision
 
@@ -80,7 +80,7 @@ Original: "Guided by Doctors" (needs a real person, not a stock actor).
 **Body:** "Every question bank is written and reviewed by real hiring
 managers and senior engineers — not scraped from forums."
 
-Keep the mid-funnel "Get Started for Free" button.
+Keep the mid-funnel "Activate Pro for $10" button while the first-time user offer is active.
 
 ## 6-icon feature grid
 

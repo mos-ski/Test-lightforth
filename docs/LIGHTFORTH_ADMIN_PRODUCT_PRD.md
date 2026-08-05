@@ -368,7 +368,7 @@ The internal product includes the following areas:
 - Given plans are reviewed, then plan names, prices, credit allocations, and feature access are visible.
 - Given feature access is shown, then capabilities such as ATS Check, Resume Builder, Auto-Apply, Copilot, Interview Prep, Meeting, Export Downloads, Priority Support, API Access, Custom Domain, and Team Management are represented where applicable.
 - Given add-ons are shown, then price and status are visible.
-- Given billing settings are shown, then annual discount, trial period, credit rollover, proration, grace period, refund window, currency, and tax treatment are clear.
+- Given billing settings are shown, then annual discount, activation offer terms, credit rollover, proration, grace period, refund window, currency, and tax treatment are clear.
 - Given a plan is edited, then required fields are validated before save.
 - Given a pricing change could affect active customers, then the product requires confirmation and audit logging.
 

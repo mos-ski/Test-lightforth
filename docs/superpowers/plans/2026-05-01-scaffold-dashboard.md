@@ -452,7 +452,7 @@ vi.mock('../lib/api', () => ({
         id: '1',
         name: 'Test User',
         email: 'test@example.com',
-        plan: 'free' as const,
+        plan: 'non_subscriber' as const,
         credits: 3,
         creditsUsed: 0,
       },
@@ -520,7 +520,7 @@ export interface User {
   name: string
   email: string
   avatarUrl?: string
-  plan: 'free' | 'starter' | 'pro' | 'premium'
+  plan: 'non_subscriber' | 'starter' | 'pro' | 'premium'
   credits: number
   creditsUsed: number
 }

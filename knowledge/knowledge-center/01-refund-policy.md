@@ -13,7 +13,7 @@
 3. Processed within 5-7 business days, returned to the original payment method
 
 ### What Happens After Refund
-- Account downgraded to the free tier
+- Account returns to non-subscriber access with 5 monthly credits
 - Data retained 30 days (exportable), then deleted unless reactivated
 
 ---

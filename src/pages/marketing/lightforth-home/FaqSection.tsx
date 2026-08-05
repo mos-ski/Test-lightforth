@@ -12,7 +12,7 @@ const faqData = [
   },
   {
     q: 'How many resumes can I generate per month with LightResume?',
-    a: 'The number of resumes you can generate depends on your plan. Free users get 3 credits, Pro users get 50 credits, and Premium users get 100 credits per month.',
+    a: 'The number of resumes you can generate depends on your plan. Non-subscribers receive 5 credits per month, Starter users get 15 credits, Pro users get 50 credits, and Premium users get 100 credits per month.',
   },
   {
     q: 'Can LightResume be used by professionals in any industry?',

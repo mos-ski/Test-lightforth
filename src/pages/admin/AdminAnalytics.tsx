@@ -83,12 +83,12 @@ function getPeriodData(period: Period) {
     { label: 'Premium', value: Math.round(USERS.filter(u => u.plan === 'premium').length * f.active), color: '#8b5cf6' },
     { label: 'Pro', value: Math.round(USERS.filter(u => u.plan === 'pro').length * f.active), color: '#3b82f6' },
     { label: 'Starter', value: Math.round(USERS.filter(u => u.plan === 'starter').length * f.active), color: '#2dd4bf' },
-    { label: 'Free', value: Math.round(USERS.filter(u => u.plan === 'free').length * f.active), color: '#94a3b8' },
+    { label: 'Non-subscriber', value: Math.round(USERS.filter(u => u.plan === 'non_subscriber').length * f.active), color: '#94a3b8' },
   ]
 
   const statusDist = [
     { label: 'Active', value: Math.round(USERS.filter(u => u.status === 'active').length * f.active), color: '#22c55e' },
-    { label: 'Trial', value: Math.round(USERS.filter(u => u.status === 'trial').length * f.active), color: '#f59e0b' },
+    { label: 'Activation', value: Math.round(USERS.filter(u => u.status === 'activation').length * f.active), color: '#f59e0b' },
     { label: 'Suspended', value: Math.round(USERS.filter(u => u.status === 'suspended').length * f.active), color: '#ef4444' },
     { label: 'Cancelled', value: Math.round(USERS.filter(u => u.status === 'cancelled').length * f.active), color: '#94a3b8' },
   ]
@@ -286,7 +286,7 @@ export default function AdminAnalytics() {
     { metric: 'Active Users', value: periodData.latestActive.toLocaleString(), change: '+8.7%', positive: true, insight: 'Current active user base' },
     { metric: 'Top Feature', value: periodData.featureUsage[0]?.feature || '—', change: `${periodData.featureUsage[0]?.percentage || 0}%`, positive: true, insight: 'Most adopted product feature' },
     { metric: 'Top City', value: periodData.topCities[0]?.city || '—', change: `${periodData.topCities[0]?.users?.toLocaleString() || 0} users`, positive: true, insight: 'Strongest geographic market' },
-    { metric: 'Conversion Rate', value: `${OVERVIEW_STATS.conversionRate}%`, change: '+1.2%', positive: true, insight: 'Free → Paid conversion improving' },
+    { metric: 'Conversion Rate', value: `${OVERVIEW_STATS.conversionRate}%`, change: '+1.2%', positive: true, insight: 'Non-subscriber → paid conversion improving' },
     { metric: 'Churn Rate', value: `${OVERVIEW_STATS.churnRate}%`, change: '-0.3%', positive: true, insight: 'Retention efforts showing results' },
     { metric: 'Paid Users', value: OVERVIEW_STATS.paidUsers.toLocaleString(), change: '+12.5%', positive: true, insight: 'Growing paying customer base' },
   ], [periodData, period])

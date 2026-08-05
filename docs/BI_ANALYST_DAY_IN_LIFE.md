@@ -26,7 +26,7 @@ Based on the current infrastructure and Q2 2026 OKRs, a BI Analyst at Lightforth
 ---
 
 ## Core KPIs you own:
-1.  **Revenue**: MRR growth and Freemium-to-Paid conversion.
+1.  **Revenue**: MRR growth and non-subscriber-to-paid conversion.
 2.  **Activation**: TTFV and Onboarding completion.
 3.  **Efficiency**: CAC and Payment Success rates.
 4.  **Product Quality**: AI Latency and Platform Uptime impact on revenue.

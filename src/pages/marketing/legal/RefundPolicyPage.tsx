@@ -39,11 +39,11 @@ export default function RefundPolicyPage() {
               <li><strong>AI-powered Job Applications:</strong> Once our system begins applying to jobs on your behalf.</li>
               <li><strong>Interview Copilot Usage:</strong> If you've accessed or used the Interview Copilot.</li>
               <li><strong>Active Subscriptions:</strong> After your billing cycle starts.</li>
-              <li><strong>Free Trial Expiry:</strong> If your free trial has ended and billing has commenced.</li>
+              <li><strong>Activation Offer Renewal:</strong> After a discounted activation offer renews into a paid subscription.</li>
             </ul>
             <p>
-              We encourage users to evaluate the platform during the <strong>free trial period</strong> before
-              upgrading to a paid plan.
+              We encourage non-subscribers to use their 5 monthly credits to evaluate the platform before
+              choosing a paid plan.
             </p>
 
             <h2 className="text-xl font-bold text-slate-900 mt-8">1.2 Service Access and Digital Usage</h2>

@@ -82,7 +82,7 @@ export function Navbar({ onGetStarted }: { onGetStarted: () => void }) {
               </AnimatePresence>
             </div>
           ))}
-          <a href="#pricing" className="text-sm font-medium text-slate-700 hover:text-[#0494fc]">
+          <a href="/pricing" className="text-sm font-medium text-slate-700 hover:text-[#0494fc]">
             Pricing
           </a>
         </div>
@@ -141,7 +141,7 @@ export function Navbar({ onGetStarted }: { onGetStarted: () => void }) {
                   )}
                 </div>
               ))}
-              <a href="#pricing" className="block py-2 text-sm font-medium text-slate-700">
+              <a href="/pricing" className="block py-2 text-sm font-medium text-slate-700">
                 Pricing
               </a>
               <div className="flex gap-3 pt-2">

@@ -169,7 +169,7 @@ export function demoSeedOrg(adminEmail: string, adminName: string, orgName: stri
       { id: crypto.randomUUID(), name: 'Security & Compliance Overview.pdf', enabled: false },
     ],
     faqs: [
-      { id: crypto.randomUUID(), question: 'Do you offer a free trial?', answer: 'Yes — every new account gets a 14-day free trial with full feature access, no credit card required.', enabled: true },
+      { id: crypto.randomUUID(), question: 'Do you offer a free trial?', answer: 'No. Lightforth does not currently offer a free trial. Non-subscribers receive 5 credits per month, and eligible first-time users can activate Pro for $10 for the first month before it renews at $49/month.', enabled: true },
       { id: crypto.randomUUID(), question: "What's included in the Enterprise plan?", answer: 'Unlimited team seats, a dedicated knowledge base, priority support, and a named onboarding specialist.', enabled: true },
       { id: crypto.randomUUID(), question: 'Can we cancel anytime?', answer: 'Yes, monthly plans can be cancelled anytime with no penalty. Annual plans are billed upfront but cancel effective end of term.', enabled: true },
       { id: crypto.randomUUID(), question: 'Do you integrate with Salesforce?', answer: 'Yes — we have a native two-way Salesforce integration that syncs calls, notes, and deal stages automatically.', enabled: true },

@@ -621,6 +621,12 @@ function GoogleMeetMock() {
 // Live Interview Overlay
 // ---------------------------------------------------------------------------
 
+const INTERVIEWERS = [
+  { name: 'Interviewer 1', color: '#22c55e' },
+  { name: 'Interviewer 2', color: '#ec4899' },
+  { name: 'Interviewer 3', color: '#f97316' },
+]
+
 function LiveInterview({
   jobTitle,
   liveState,
@@ -646,24 +652,24 @@ function LiveInterview({
   const [questionIndex, setQuestionIndex] = useState(0)
   const [qDisplayed, setQDisplayed] = useState('')
   const [aDisplayed, setADisplayed] = useState('')
-  const [history, setHistory] = useState<{ q: string; a: string }[]>([])
+  const [history, setHistory] = useState<{ q: string; a: string; interviewerIdx: number }[]>([])
   const statusRef = useRef(copilotStatus)
   const qIndexRef = useRef(questionIndex)
+  const interviewerIdxRef = useRef(0)
   const panelRef = useRef<HTMLDivElement>(null)
   useEffect(() => { statusRef.current = copilotStatus }, [copilotStatus])
   useEffect(() => { qIndexRef.current = questionIndex }, [questionIndex])
 
-  // Auto-scroll panel to bottom as content grows
   useEffect(() => {
     panelRef.current?.scrollTo({ top: panelRef.current.scrollHeight, behavior: 'smooth' })
   }, [qDisplayed, aDisplayed, copilotStatus])
 
-  // Spacebar cycles: listening → processing → answering → (next Q) listening
   useEffect(() => {
     if (liveState !== 'interviewing') return
     setCopilotStatus('listening')
     setQuestionIndex(0)
     setHistory([])
+    interviewerIdxRef.current = 0
     const handleKey = (e: KeyboardEvent) => {
       if (e.code !== 'Space') return
       e.preventDefault()
@@ -675,7 +681,9 @@ function LiveInterview({
       } else if (cur === 'processing') {
         setCopilotStatus('answering')
       } else if (cur === 'answering') {
-        setHistory(h => [...h, { q: MOCK_QA[qi].q, a: MOCK_QA[qi].a }])
+        const iIdx = interviewerIdxRef.current
+        setHistory(h => [...h, { q: MOCK_QA[qi].q, a: MOCK_QA[qi].a, interviewerIdx: iIdx }])
+        interviewerIdxRef.current = (iIdx + 1) % INTERVIEWERS.length
         setQuestionIndex(i => (i + 1) % MOCK_QA.length)
         setCopilotStatus('listening')
       }
@@ -684,7 +692,6 @@ function LiveInterview({
     return () => window.removeEventListener('keydown', handleKey)
   }, [liveState])
 
-  // Question typewriter — medium speed, feels like live transcription
   useEffect(() => {
     if (copilotStatus !== 'listening' || liveState !== 'interviewing') return
     setQDisplayed('')
@@ -699,7 +706,6 @@ function LiveInterview({
     return () => clearInterval(id)
   }, [copilotStatus, questionIndex, liveState])
 
-  // Answer typewriter — fast stream
   useEffect(() => {
     if (copilotStatus !== 'answering' || liveState !== 'interviewing') return
     setADisplayed('')
@@ -720,37 +726,66 @@ function LiveInterview({
     paused:     { text: 'Paused...'     },
   }
 
+  const isListening = copilotStatus === 'listening' && liveState === 'interviewing'
+  const currentInterviewerIdx = interviewerIdxRef.current
+
   return (
     <>
-      {/* Top bar */}
-      <div className="flex min-h-14 flex-shrink-0 flex-col items-start justify-between gap-3 px-4 py-3 sm:flex-row sm:items-center sm:px-6" style={{ background: '#0A1628' }}>
-        <button className="flex min-w-0 items-center gap-2 text-sm text-slate-300 hover:text-white">
-          <ArrowLeft className="h-4 w-4 shrink-0" /> <span className="truncate">Interview for {jobTitle || 'Software Engineer'}</span>
-        </button>
-        <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-start">
+      <style>{`
+        @keyframes glowPulse {
+          0%, 100% { box-shadow: 0 0 0 1px rgba(34,197,94,0.55), 0 0 18px rgba(34,197,94,0.18); }
+          50%       { box-shadow: 0 0 0 1px rgba(34,197,94,1),    0 0 32px rgba(34,197,94,0.28); }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; } 50% { opacity: 0; }
+        }
+        @keyframes processingDot {
+          0%, 100% { transform: translateY(0); opacity: 0.35; }
+          50%       { transform: translateY(-5px); opacity: 1; }
+        }
+      `}</style>
+
+      {/* ── TOP BAR ─────────────────────────────────────────────────── */}
+      <div
+        className="flex flex-shrink-0 items-center justify-between px-5 py-3"
+        style={{ background: '#0A1628', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <button className="flex-shrink-0 text-slate-400 transition-colors hover:text-white">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-red-500" />
+            <span className="truncate text-sm font-medium text-white">
+              Interview for {jobTitle || 'Software Engineer'}
+            </span>
+          </div>
+        </div>
+
+        <div className="ml-4 flex flex-shrink-0 items-center gap-3">
           {liveState === 'interviewing' && (
             <>
-              <div className="flex items-center gap-1.5 text-sm text-slate-300">
-                <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                {formatTime(elapsed)}
-              </div>
+              <span className="tabular-nums text-sm font-medium text-slate-300">{formatTime(elapsed)}</span>
               <button
                 onClick={onEnd}
-                className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-600"
+                className="rounded-lg bg-red-500 px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-red-600"
               >
-                End Interview
+                End Session
               </button>
             </>
           )}
           {liveState === 'waiting' && (
-            <button className="rounded-lg border border-slate-600 px-4 py-1.5 text-sm font-medium text-slate-300">
-              Start Interview
+            <button
+              onClick={() => setLiveState('sharing')}
+              className="rounded-lg border border-slate-600 px-4 py-1.5 text-sm font-medium text-slate-300 transition-colors hover:border-slate-400 hover:text-white"
+            >
+              Share Screen
             </button>
           )}
           {liveState === 'sharing' && (
             <button
               onClick={() => setLiveState('interviewing')}
-              className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white hover:bg-primary/90"
+              className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
             >
               Start Interview
             </button>
@@ -758,133 +793,112 @@ function LiveInterview({
         </div>
       </div>
 
-      {/* Status bar */}
-      <style>{`
-        @keyframes audioBar {
-          0%, 100% { transform: scaleY(0.35); opacity: 0.5; }
-          50% { transform: scaleY(1); opacity: 1; }
-        }
-        @keyframes glowPulse {
-          0%, 100% { box-shadow: 0 0 6px rgba(34,197,94,0.3), 0 0 14px rgba(34,197,94,0.1); }
-          50% { box-shadow: 0 0 12px rgba(34,197,94,0.45), 0 0 24px rgba(34,197,94,0.15); }
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
-        }
-        @keyframes processingDot {
-          0%, 100% { transform: translateY(0); opacity: 0.35; }
-          50% { transform: translateY(-5px); opacity: 1; }
-        }
-      `}</style>
-      <div className="flex flex-col gap-3 border-b border-white/10 px-4 py-2 lg:flex-row lg:items-center lg:justify-between" style={{ background: '#0F2340' }}>
-        {/* Left: Network + Audio */}
-        <div className="flex flex-wrap items-center gap-5 text-xs text-slate-300">
-          {/* Network strength */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-end gap-[3px]">
-              {[5, 8, 11, 14].map((h, i) => (
-                <div
-                  key={i}
-                  className="w-[3px] rounded-sm"
-                  style={{ height: h, background: i < 4 ? '#22c55e' : '#334155' }}
-                />
-              ))}
-            </div>
-            <span className="text-green-400">Strong</span>
+      {/* ── STATUS BAR ──────────────────────────────────────────────── */}
+      <div
+        className="flex flex-shrink-0 flex-wrap items-center justify-between gap-3 px-5 py-2"
+        style={{
+          background: '#0F2340',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          boxShadow: 'inset 0px -1px 6px 0px rgba(34,197,94,0.14)',
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <div className="flex items-end gap-[3px]">
+            {[5, 8, 11, 14].map((h, i) => (
+              <div key={i} className="w-[3px] rounded-sm bg-green-400" style={{ height: h }} />
+            ))}
           </div>
-
-          {/* Audio indicator */}
-          <div className="flex items-center gap-2">
-            {liveState === 'interviewing' ? (
-              <span className="italic text-slate-400">{statusConfig[copilotStatus].text}</span>
-            ) : liveState === 'sharing' ? (
-              <span className="italic text-slate-500">Connecting...</span>
-            ) : (
-              <span className="italic text-slate-600">Idle...</span>
-            )}
-          </div>
+          <span className="text-sm font-medium text-green-400">Strong</span>
+          <span className="text-sm italic text-slate-400">
+            {liveState === 'interviewing'
+              ? statusConfig[copilotStatus].text
+              : liveState === 'sharing'
+              ? 'Connecting...'
+              : 'Idle...'}
+          </span>
         </div>
 
-        {/* Right: Auto scroll + Font size + AI toggle */}
-        <div className="flex items-center gap-5 text-xs text-slate-300">
+        <div className="flex items-center gap-4">
           <button
             onClick={() => setShowAI(a => !a)}
             className={cn(
-              'flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors',
-              showAI ? 'bg-blue-600/20 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-white/10',
+              'flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all',
+              showAI
+                ? 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/40'
+                : 'text-slate-400 hover:bg-white/10 hover:text-white',
             )}
           >
-            <Sparkles className="h-3 w-3" /> AI Assistant
+            <Sparkles className="h-3.5 w-3.5" /> AI Assistant
           </button>
-          <label className="flex items-center gap-2">
+          <label className="flex items-center gap-1.5 text-xs text-slate-400">
             Auto scroll
             <input
-              type="range"
-              min="1"
-              max="5"
-              value={scrollSpeed}
-              onChange={(e) => setScrollSpeed(Number(e.target.value))}
-              className="w-24 accent-primary"
+              type="range" min="1" max="5" value={scrollSpeed}
+              onChange={e => setScrollSpeed(Number(e.target.value))}
+              className="w-20 accent-primary"
             />
-            <span className="w-3 text-slate-400">{scrollSpeed}</span>
+            <span className="w-3 text-center">{scrollSpeed}</span>
           </label>
-          <label className="flex items-center gap-2">
+          <label className="flex items-center gap-1.5 text-xs text-slate-400">
             Font size
             <input
-              type="range"
-              min="12"
-              max="20"
-              value={fontSize}
-              onChange={(e) => setFontSize(Number(e.target.value))}
-              className="w-24 accent-primary"
+              type="range" min="12" max="20" value={fontSize}
+              onChange={e => setFontSize(Number(e.target.value))}
+              className="w-20 accent-primary"
             />
-            <span className="w-5 text-slate-400">{fontSize}</span>
+            <span className="w-4 text-center">{fontSize}</span>
           </label>
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto p-3 lg:flex-row lg:min-h-0 lg:overflow-hidden">
-        {/* Left: Live Interview Response */}
+      {/* ── MAIN CONTENT: 2-panel ────────────────────────────────────── */}
+      <div className="flex flex-1 gap-3 overflow-hidden p-3">
+
+        {/* Live Response panel */}
         <div
-          className={cn(
-            'flex min-h-[420px] flex-col overflow-hidden rounded-xl transition-all duration-300 lg:min-h-0',
-            showAI ? 'w-full lg:w-[50%]' : 'w-full lg:w-[70%]',
-          )}
+          className="flex flex-1 flex-col overflow-hidden rounded-xl transition-all duration-300"
           style={{
             background: '#0D1929',
-            border: copilotStatus === 'listening' && liveState === 'interviewing' ? '1px solid #22c55e' : '1px solid #1E2D45',
-            ...(copilotStatus === 'listening' && liveState === 'interviewing' ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}),
+            border: isListening ? '1px solid #22c55e' : '1px solid #1E2D45',
+            ...(isListening ? { animation: 'glowPulse 2s ease-in-out infinite' } : {}),
           }}
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#1E2D45' }}>
-            <div className="flex items-center gap-2 text-sm font-medium text-white">
-              Live Interview Response
+          {/* Panel header */}
+          <div
+            className="flex flex-shrink-0 items-center justify-between border-b px-4 py-3"
+            style={{ borderColor: '#1E2D45' }}
+          >
+            <div className="flex items-center gap-2 text-sm font-semibold text-white">
+              Live Response
               <div className="h-2 w-2 rounded-full bg-red-500" />
             </div>
             <div className="relative">
-              <button onClick={() => setShowSettings(s => !s)}>
-                <Settings className={cn('h-4 w-4 transition-colors', showSettings ? 'text-white' : 'text-slate-400 hover:text-white')} />
+              <button
+                onClick={() => setShowSettings(s => !s)}
+                aria-label="Session settings"
+              >
+                <Settings
+                  className={cn('h-4 w-4 transition-colors', showSettings ? 'text-white' : 'text-slate-400 hover:text-white')}
+                />
               </button>
               {showSettings && (
-                <div className="absolute right-0 top-7 z-20 w-60 rounded-xl p-4 shadow-2xl" style={{ background: '#0A1628', border: '1px solid #1E2D45' }}>
+                <div
+                  className="absolute right-0 top-7 z-20 w-64 rounded-xl p-4 shadow-2xl"
+                  style={{ background: '#0A1628', border: '1px solid #1E2D45' }}
+                >
                   <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Session Preferences</p>
                   <div className="mb-4 space-y-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-slate-500">Role</span>
-                      <span className="text-slate-200 font-medium truncate max-w-[120px]">{jobTitle || 'Not set'}</span>
+                      <span className="max-w-[140px] truncate font-medium text-slate-200">{jobTitle || 'Not set'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Resume</span>
-                      <span className="text-slate-200 font-medium">Lightforth Resume</span>
+                      <span className="font-medium text-slate-200">Lightforth Resume</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Skip setup</span>
-                      <span className="text-green-400 font-medium">On</span>
+                      <span className="font-medium text-green-400">On</span>
                     </div>
                   </div>
                   <div className="border-t border-white/10 pt-3">
@@ -901,29 +915,30 @@ function LiveInterview({
             </div>
           </div>
 
-          <div ref={panelRef} className="flex-1 overflow-y-auto p-5 space-y-6">
+          {/* Scrollable conversation */}
+          <div ref={panelRef} className="flex-1 space-y-6 overflow-y-auto p-5">
             {liveState === 'interviewing' ? (
               <>
-                {/* Completed Q&A history */}
-                {history.map((item, i) => (
-                  <div key={i} className="space-y-3">
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Interviewer</p>
-                      <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
+                {history.map((item, i) => {
+                  const iv = INTERVIEWERS[item.interviewerIdx]
+                  return (
+                    <div key={i} className="space-y-2">
+                      <p className="text-xs font-semibold" style={{ color: iv.color }}>{iv.name}</p>
+                      <div className="inline-block rounded-xl px-3 py-2" style={{ background: '#1A2F4A' }}>
                         <p className="text-sm text-white">{item.q}</p>
                       </div>
+                      <p className="leading-relaxed text-slate-200" style={{ fontSize }}>{item.a}</p>
                     </div>
-                    <p className="text-sm leading-relaxed text-slate-200" style={{ fontSize }}>{item.a}</p>
-                  </div>
-                ))}
+                  )
+                })}
 
-                {/* Current exchange */}
-                <div className="space-y-3">
-                  {/* Question bubble */}
+                <div className="space-y-2">
                   {qDisplayed && (
-                    <div>
-                      <p className="text-xs text-slate-500 mb-1">Interviewer</p>
-                      <div className="inline-block rounded-lg px-3 py-2" style={{ background: '#1A2F4A' }}>
+                    <>
+                      <p className="text-xs font-semibold" style={{ color: INTERVIEWERS[currentInterviewerIdx].color }}>
+                        {INTERVIEWERS[currentInterviewerIdx].name}
+                      </p>
+                      <div className="inline-block rounded-xl px-3 py-2" style={{ background: '#1A2F4A' }}>
                         <p className="text-sm text-white">
                           {qDisplayed}
                           {copilotStatus === 'listening' && qDisplayed.length < MOCK_QA[questionIndex].q.length && (
@@ -931,23 +946,19 @@ function LiveInterview({
                           )}
                         </p>
                       </div>
-                    </div>
+                    </>
                   )}
-
-                  {/* Processing dots */}
                   {copilotStatus === 'processing' && (
                     <div className="flex items-center gap-1.5 py-1">
                       {[0, 1, 2].map(i => (
                         <div
                           key={i}
                           className="h-2 w-2 rounded-full bg-slate-500"
-                          style={{ animation: `processingDot 0.9s ease-in-out infinite`, animationDelay: `${i * 0.18}s` }}
+                          style={{ animation: 'processingDot 0.9s ease-in-out infinite', animationDelay: `${i * 0.18}s` }}
                         />
                       ))}
                     </div>
                   )}
-
-                  {/* Answer streaming */}
                   {copilotStatus === 'answering' && aDisplayed && (
                     <p className="leading-relaxed text-slate-200" style={{ fontSize }}>
                       {aDisplayed}
@@ -963,80 +974,26 @@ function LiveInterview({
               </>
             ) : (
               <div className="flex h-full items-center justify-center">
-                <p className="text-center text-sm text-slate-500">Lightforth will analyze the interview questions and give target responses...</p>
+                <p className="max-w-[260px] text-center text-sm leading-relaxed text-slate-500">
+                  {liveState === 'sharing'
+                    ? 'Connecting to audio...'
+                    : 'Lightforth will analyze your interview questions and generate target responses in real time.'}
+                </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right: Your Interview + Your Transcript */}
-        <div className={cn(
-          'flex min-w-0 flex-1 flex-col gap-2 transition-all duration-300',
-          showAI ? 'lg:min-w-[200px] lg:max-w-[250px]' : 'lg:min-w-[280px]',
-        )}>
-          {/* Your Interview */}
-          <div className="flex flex-col overflow-hidden rounded-xl" style={{ height: '66%', background: '#0D1929', border: '1px solid #1E2D45' }}>
-            <div className="px-4 py-3 border-b text-sm font-medium text-white" style={{ borderColor: '#1E2D45' }}>
-              Your Interview
-            </div>
-            <div className="flex-1 relative overflow-hidden">
-              {liveState === 'waiting' && (
-                <div className="flex h-full flex-col items-center justify-center p-4 text-center">
-                  <p className="text-xs text-slate-400 mb-3">Share your interview tab to get started</p>
-                  <button
-                    onClick={() => setLiveState('sharing')}
-                    className="flex items-center gap-1.5 rounded-lg border border-slate-600 px-3 py-2 text-xs font-medium text-slate-300 hover:border-slate-400 hover:text-white mb-3"
-                  >
-                    <Upload className="h-3.5 w-3.5" /> Share Interview Screen
-                  </button>
-                  <div className="w-full rounded-lg p-3 text-left text-xs" style={{ background: '#1A2F4A' }}>
-                    <div className="flex items-start justify-between mb-1">
-                      <p className="font-semibold text-white text-xs">1. Share your Screen</p>
-                      <button><X className="h-3.5 w-3.5 text-slate-400" /></button>
-                    </div>
-                    <p className="text-slate-300 leading-relaxed">Click here to share the browser tab where your interview is taking place. Share only the interview tab and not your entire screen. Make sure the interview tab is in this browser window</p>
-                  </div>
-                </div>
-              )}
-              {(liveState === 'sharing' || liveState === 'interviewing') && (
-                <div className="relative h-full">
-                  <div className="h-full w-full">
-                    <GoogleMeetMock />
-                  </div>
-                  {liveState === 'sharing' && (
-                    <div className="absolute right-2 top-2 w-44 rounded-lg p-3 text-xs shadow-lg" style={{ background: '#1E3A5F' }}>
-                      <div className="flex items-start justify-between mb-1">
-                        <p className="font-semibold text-white">2. Start Interview</p>
-                        <button><X className="h-3.5 w-3.5 text-slate-400" /></button>
-                      </div>
-                      <p className="text-slate-300">Click here to start your interview when you&apos;re ready.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Your Transcript */}
-          <div className="flex flex-col overflow-hidden rounded-xl" style={{ height: '34%', background: '#0D1929', border: '1px solid #1E2D45' }}>
-            <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#1E2D45' }}>
-              <span className="text-sm font-medium text-white">Your Transcript</span>
-              <button className="h-5 w-9 rounded-full bg-slate-600 flex items-center px-0.5">
-                <div className="h-4 w-4 rounded-full bg-white" />
-              </button>
-            </div>
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-xs text-slate-500">Your transcript will show here...</p>
-            </div>
+        {/* AI Assistant panel — collapses smoothly to zero width */}
+        <div
+          className="flex overflow-hidden transition-all duration-300 ease-in-out"
+          style={{ width: showAI ? 340 : 0, minWidth: 0, opacity: showAI ? 1 : 0, flexShrink: 0 }}
+        >
+          <div className="h-full w-[340px] flex-shrink-0">
+            <AIAssistantPanel context={jobTitle} onClose={() => setShowAI(false)} />
           </div>
         </div>
 
-        {/* AI Assistant Panel */}
-        {showAI && (
-          <div className="hidden lg:flex lg:min-w-[280px] lg:max-w-[320px]">
-            <AIAssistantPanel context={jobTitle} onClose={() => setShowAI(false)} />
-          </div>
-        )}
       </div>
     </>
   )
