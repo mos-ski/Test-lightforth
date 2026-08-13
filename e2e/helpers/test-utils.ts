@@ -22,7 +22,7 @@ export const URLS = {
 };
 
 export async function waitForPageReady(page: Page) {
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 }
 
 export async function expectVisible(locator: Locator) {
