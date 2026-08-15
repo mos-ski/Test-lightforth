@@ -55,6 +55,10 @@ const config: Config = {
           DEFAULT: 'var(--lf-brand-bar)',
           text: 'var(--lf-brand-bar-text)',
         },
+        'brand-mark': {
+          DEFAULT: 'var(--lf-brand-mark)',
+          accent: 'var(--lf-brand-mark-accent)',
+        },
         live: {
           canvas: 'var(--lf-live-canvas)',
           header: 'var(--lf-live-header)',

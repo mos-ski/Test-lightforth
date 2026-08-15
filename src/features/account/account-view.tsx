@@ -134,7 +134,7 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
             <p className="mb-6 mt-1 text-sm text-ink-muted">Renews Sep 1, 2026</p>
             <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
               <Button variant="secondary">Manage Plan</Button>
-              <a href="/v3/billing/payment" className="text-sm font-semibold text-accent-text underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus hover:underline">
+              <a href="/v3/billing/payment" className="text-sm font-semibold text-accent underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus hover:underline">
                 Manage Payment Method
               </a>
             </div>
@@ -142,7 +142,7 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
           <section className="rounded-panel border border-border bg-surface p-6 shadow-control">
             <div className="flex items-start justify-between">
               <h2 className="font-bold">Credits</h2>
-              <a href="/v3/billing/usage" className="text-sm font-semibold text-accent-text underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus hover:underline">
+              <a href="/v3/billing/usage" className="text-sm font-semibold text-accent underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus hover:underline">
                 View usage details
               </a>
             </div>
@@ -151,7 +151,7 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
             <div className="mt-3 h-2 overflow-hidden rounded-pill bg-surface-subtle">
               <div className="h-full w-[91%] rounded-pill bg-accent" />
             </div>
-            <a href="/v3/billing/bonus" className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <a href="/v3/billing/bonus" className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               <Gift aria-hidden="true" className="size-4" />
               Get bonus credits
             </a>
@@ -206,7 +206,7 @@ function SettingsTabs({ activeTab }: { readonly activeTab: SettingsTab }) {
   return (
     <nav aria-label="Settings tabs" className="flex gap-6 overflow-x-auto border-b border-border">
       {tabs.map((tab) => (
-        <a key={tab.value} href={tab.href} aria-current={activeTab === tab.value ? 'page' : undefined} className={cn('shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', activeTab === tab.value ? 'border-accent text-accent-text' : 'border-transparent text-ink-muted')}>
+        <a key={tab.value} href={tab.href} aria-current={activeTab === tab.value ? 'page' : undefined} className={cn('shrink-0 border-b-2 px-1 pb-3 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', activeTab === tab.value ? 'border-accent text-accent' : 'border-transparent text-ink-muted')}>
           {tab.label}
         </a>
       ))}

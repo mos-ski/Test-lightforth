@@ -98,7 +98,7 @@ export const SourcePicker = forwardRef<HTMLDivElement, SourcePickerProps>(
         ) : null}
 
         {historyLink ? (
-          <a href={historyLink.href} className="mt-6 text-sm font-semibold text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          <a href={historyLink.href} className="mt-6 text-sm font-semibold text-accent underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             {historyLink.label}
           </a>
         ) : null}

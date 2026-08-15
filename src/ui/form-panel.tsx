@@ -255,7 +255,7 @@ export const DocumentDropAction = forwardRef<HTMLElement, DocumentDropActionProp
           <h2 id="document-drop-title" className="text-sm font-medium leading-5 text-ink">
             {label} <span className="font-normal text-ink-muted">(optional)</span>
           </h2>
-          <a href={actionHref} className="inline-flex min-h-8 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          <a href={actionHref} className="inline-flex min-h-8 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <Plus aria-hidden="true" className="size-5" />
             {actionLabel}
           </a>

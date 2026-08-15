@@ -101,14 +101,18 @@ export const reportSteps: readonly InterviewReportStep[] = [
   { id: 'feedback', label: 'Generating coaching feedback', status: 'active' },
 ]
 
-export const interviewHistoryRows: readonly InterviewHistoryRow[] = Array.from({ length: 10 }, (_, index) => ({
-  id: `interview-history-${index + 1}`,
-  title: index % 3 === 0 ? 'Product Manager' : index % 3 === 1 ? 'Senior Product Designer' : 'Growth Product Lead',
-  company: index % 2 === 0 ? 'Amazon Inc.' : 'Google',
-  score: 88,
-  duration: '34m',
-  dateTime: 'August 13th 2026, 12:49 pm',
-}))
+export const interviewHistoryRows: readonly InterviewHistoryRow[] = [
+  { id: 'interview-history-1', title: 'Product Manager', company: 'Amazon Inc.', score: 88, duration: '34m', dateTime: 'August 13th 2026, 12:49 pm' },
+  { id: 'interview-history-2', title: 'Senior Product Designer', company: 'Google', score: 76, duration: '22m', dateTime: 'August 10th 2026, 3:18 pm' },
+  { id: 'interview-history-3', title: 'Growth Product Lead', company: 'Notion', score: 93, duration: '48m', dateTime: 'August 6th 2026, 8:44 am' },
+  { id: 'interview-history-4', title: 'Backend Engineer, Payments', company: 'Stripe', score: 68, duration: '17m', dateTime: 'August 2nd 2026, 11:05 am' },
+  { id: 'interview-history-5', title: 'UX Researcher', company: 'Spotify', score: 84, duration: '39m', dateTime: 'July 28th 2026, 5:23 pm' },
+  { id: 'interview-history-6', title: 'Recruiter Screen - Compliance Analyst', company: 'Goldman Sachs', score: 71, duration: '14m', dateTime: 'July 23rd 2026, 9:52 am' },
+  { id: 'interview-history-7', title: 'Data Analyst', company: 'Airbnb', score: 89, duration: '31m', dateTime: 'July 18th 2026, 1:37 pm' },
+  { id: 'interview-history-8', title: 'Marketing Manager, Lifecycle', company: 'HubSpot', score: 62, duration: '26m', dateTime: 'July 13th 2026, 4:09 pm' },
+  { id: 'interview-history-9', title: 'Director of Product', company: 'Lightforth', score: 95, duration: '52m', dateTime: 'July 8th 2026, 10:47 am' },
+  { id: 'interview-history-10', title: 'Head of Product', company: 'DeeXoptions', score: 79, duration: '20m', dateTime: 'July 2nd 2026, 6:15 pm' },
+]
 
 export const interviewReport: InterviewReport = {
   title: 'Recruiter Screen - Product Designer',

@@ -96,11 +96,15 @@ export const resumeTemplates: readonly ResumeTemplate[] = [
   { id: 'premium-modern', name: 'Premium Modern', description: 'Contemporary two-column design with strong visual hierarchy.' },
 ]
 
-export const resumeHistoryRows: readonly ResumeHistoryRow[] = Array.from({ length: 10 }, (_, index) => ({
-  id: `resume-history-${index + 1}`,
-  title: 'Product Manager',
-  company: 'Amazon Inc.',
-  atsScore: 88,
-  duration: '34m',
-  createdAtLabel: 'August 13th 2026, 12:49 pm',
-}))
+export const resumeHistoryRows: readonly ResumeHistoryRow[] = [
+  { id: 'resume-history-1', title: 'Product Manager', company: 'Amazon Inc.', atsScore: 88, duration: '34m', createdAtLabel: 'August 13th 2026, 12:49 pm' },
+  { id: 'resume-history-2', title: 'Senior Backend Engineer', company: 'Stripe', atsScore: 74, duration: '19m', createdAtLabel: 'August 11th 2026, 9:02 am' },
+  { id: 'resume-history-3', title: 'UX Researcher', company: 'Airbnb', atsScore: 91, duration: '41m', createdAtLabel: 'August 8th 2026, 4:37 pm' },
+  { id: 'resume-history-4', title: 'Data Analyst', company: 'Coinbase', atsScore: 65, duration: '12m', createdAtLabel: 'August 4th 2026, 11:15 am' },
+  { id: 'resume-history-5', title: 'Marketing Manager, Lifecycle', company: 'HubSpot', atsScore: 82, duration: '27m', createdAtLabel: 'July 30th 2026, 2:54 pm' },
+  { id: 'resume-history-6', title: 'Staff Software Engineer, Payments Infrastructure', company: 'Deutsche Bank', atsScore: 96, duration: '58m', createdAtLabel: 'July 24th 2026, 8:19 am' },
+  { id: 'resume-history-7', title: 'Product Designer', company: 'Figma', atsScore: 79, duration: '23m', createdAtLabel: 'July 19th 2026, 6:41 pm' },
+  { id: 'resume-history-8', title: 'Growth Marketing Lead', company: 'Nubank', atsScore: 70, duration: '15m', createdAtLabel: 'July 14th 2026, 10:08 am' },
+  { id: 'resume-history-9', title: 'Head of Compliance Operations', company: 'Goldman Sachs', atsScore: 87, duration: '46m', createdAtLabel: 'July 9th 2026, 1:26 pm' },
+  { id: 'resume-history-10', title: 'Associate Product Manager', company: 'Nazza', atsScore: 61, duration: '9m', createdAtLabel: 'July 3rd 2026, 5:52 pm' },
+]

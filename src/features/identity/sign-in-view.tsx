@@ -42,7 +42,7 @@ export function SignInView({ emailValue, passwordValue, onSubmit, onGoogleSignIn
 
             <p className="mt-7 flex flex-wrap items-center justify-center gap-1 text-base font-medium text-ink-muted">
               <span>Don&apos;t have an account?</span>
-              <a className="font-semibold text-accent-text underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus" href={createAccountHref}>
+              <a className="font-semibold text-accent underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus" href={createAccountHref}>
                 Create new
               </a>
             </p>

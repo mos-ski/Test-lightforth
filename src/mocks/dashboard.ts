@@ -3,7 +3,7 @@ import type { DashboardAction, DashboardInstallPrompt, DashboardNavItem } from '
 export const dashboardNavItems: readonly DashboardNavItem[] = [
   { label: 'Dashboard', href: '/v3/app', active: true },
   { label: 'My Documents', href: '/v3/resume/history' },
-  { label: 'Auto-Apply', href: '/v3/auto-apply/applied' },
+  { label: 'Auto-Apply', href: '/v3/auto-apply/jobs' },
   { label: 'Interview Prep', href: '/v3/interview-prep/history' },
   { label: 'Interview Co-Pilot', href: '/v3/interview-copilot/history' },
   { label: 'Knowledge Base', href: '/v3/documents' },
@@ -47,7 +47,7 @@ export const dashboardActions: readonly DashboardAction[] = [
 
 export const dashboardInstallPrompt: DashboardInstallPrompt = {
   title: 'For coding interview and stealth version.',
-  qrSrc: '/v3-assets/dashboard-qr.png',
+  qrSrc: '/v3-assets/Barcode.png',
   desktopHref: '/v3/downloads/desktop',
   mobileHref: '/v3/downloads/mobile',
 }

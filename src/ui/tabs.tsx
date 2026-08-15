@@ -41,7 +41,7 @@ export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
         value={value}
         data-slot="tabs-trigger"
         className={cn(
-          'shrink-0 whitespace-nowrap border-b-2 border-transparent pb-2 text-sm font-medium text-ink-muted transition-colors duration-normal ease-default hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus data-[selected]:border-accent data-[selected]:text-accent-text',
+          'shrink-0 whitespace-nowrap border-b-2 border-transparent pb-2 text-sm font-medium text-ink-muted transition-colors duration-normal ease-default hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus data-[selected]:border-accent data-[selected]:text-accent',
           className,
         )}
         {...props}

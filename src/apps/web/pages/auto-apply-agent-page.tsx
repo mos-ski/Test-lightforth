@@ -1,4 +1,3 @@
-import { autoApplyActivities, autoApplyAgentStatuses, autoApplyMetrics } from '@/mocks/auto-apply'
 import { AutoApplyAgentView } from '@/features/auto-apply/auto-apply-view'
 
 export function AutoApplyAgentPage() {
@@ -9,9 +8,6 @@ export function AutoApplyAgentPage() {
       agentHref="/v3/auto-apply/agent"
       jobsHref="/v3/auto-apply/jobs"
       appliedHref="/v3/auto-apply/applied"
-      metrics={autoApplyMetrics}
-      statuses={autoApplyAgentStatuses}
-      activities={autoApplyActivities}
     />
   )
 }

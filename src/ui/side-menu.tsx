@@ -42,12 +42,12 @@ export const SideMenu = forwardRef<HTMLElement, SideMenuProps>(
                 aria-current={item.active ? 'page' : undefined}
               >
                 <span
-                  className={cn('size-5 shrink-0 [&>svg]:size-5 [&>img]:size-5', item.active ? 'text-accent-text' : 'text-ink')}
+                  className={cn('size-5 shrink-0 [&>svg]:size-5 [&>img]:size-5', item.active ? 'text-accent' : 'text-ink')}
                   aria-hidden="true"
                 >
                   {item.icon}
                 </span>
-                <span className={cn('min-w-0 flex-1 truncate text-sm', item.active ? 'text-accent-text' : 'text-ink')}>{item.label}</span>
+                <span className={cn('min-w-0 flex-1 truncate text-sm', item.active ? 'text-accent' : 'text-ink')}>{item.label}</span>
               </a>
             </div>
           ))}

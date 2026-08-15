@@ -8,7 +8,7 @@ export function DashboardPage() {
   const [params] = useSearchParams()
   const dropdownParam = params.get('dropdown')
   const creditParam = params.get('credit')
-  const activeDropdown = dropdownParam === 'help' || dropdownParam === 'credits' ? dropdownParam : undefined
+  const activeDropdown = dropdownParam === 'help' || dropdownParam === 'credits' || dropdownParam === 'profile' ? dropdownParam : undefined
   const creditNotice = creditParam === 'low' || creditParam === 'empty' ? creditParam : undefined
   const creditBalance = activeDropdown === 'credits' || creditNotice === 'empty' ? 0 : creditNotice === 'low' ? 5 : 20
   const user = candidateSession.status === 'authenticated' ? candidateSession.user : {

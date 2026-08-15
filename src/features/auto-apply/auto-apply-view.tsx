@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from 'react'
-import { ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, Search, Send, X, Zap } from 'lucide-react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, RefreshCw, Search, Send, X, Zap } from 'lucide-react'
 
-import type { AutoApplyActivity, AutoApplyAgentStatus, AutoApplyApplication, AutoApplyJob, AutoApplyMetric, AutoApplySetup } from '@/contracts/auto-apply.draft'
+import type { AutoApplyApplication, AutoApplyJob, AutoApplySetup } from '@/contracts/auto-apply.draft'
 import { cn, FormField, FormPanel, FormPanelFooter, FormTextArea, ReviewSummaryList, ShellBar, SourcePicker } from '@/ui'
+import { useAgentSession, type AgentSession, type FeedEvent, type FeedLink } from '@/hooks/useAgentSession'
 
 export type AutoApplyUploadViewProps = {
   readonly homeHref: string
@@ -32,9 +33,6 @@ export type AutoApplyAgentViewProps = {
   readonly agentHref: string
   readonly jobsHref: string
   readonly appliedHref: string
-  readonly metrics: readonly AutoApplyMetric[]
-  readonly statuses: readonly AutoApplyAgentStatus[]
-  readonly activities: readonly AutoApplyActivity[]
 }
 
 export type AutoApplyJobsViewProps = {
@@ -234,7 +232,7 @@ function AppShell({
                   aria-current={active === tab.key ? 'page' : undefined}
                   className={cn(
                     'min-h-11 border-b-2 px-1 pb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-                    active === tab.key ? 'border-accent text-accent-text' : 'border-transparent text-ink-muted',
+                    active === tab.key ? 'border-accent text-accent' : 'border-transparent text-ink-muted',
                   )}
                 >
                   {tab.label}
@@ -249,13 +247,16 @@ function AppShell({
   )
 }
 
-const agentStatusTone: Record<AutoApplyAgentStatus['status'], string> = {
+// ─── Agent View (live animation via useAgentSession) ──────────────────────────
+
+const agentStatusTone: Record<string, string> = {
   running: 'bg-positive-surface text-positive',
+  working: 'bg-warning-surface text-warning',
   complete: 'bg-accent-subtle text-accent-text',
   idle: 'bg-surface-subtle text-ink-muted',
 }
 
-const activityActorIcon: Record<string, typeof Search> = {
+const agentIcon: Record<string, typeof Search> = {
   scout: Search,
   filter: Filter,
   tailor: PenLine,
@@ -263,102 +264,203 @@ const activityActorIcon: Record<string, typeof Search> = {
   system: Zap,
 }
 
-const activityFilters = ['All', 'Scout', 'Filter', 'Tailor', 'Driver'] as const
-type ActivityFilter = (typeof activityFilters)[number]
+type AgentTabValue = 'all' | 'scout' | 'filter' | 'tailor' | 'driver'
+const agentTabs: { value: AgentTabValue; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'scout', label: 'Scout' },
+  { value: 'filter', label: 'Filter' },
+  { value: 'tailor', label: 'Tailor' },
+  { value: 'driver', label: 'Driver' },
+]
 
-export function AutoApplyAgentView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, metrics, statuses, activities }: AutoApplyAgentViewProps) {
-  const [activeFilter, setActiveFilter] = useState<ActivityFilter>('All')
-  const visibleActivities =
-    activeFilter === 'All' ? activities : activities.filter((activity) => activity.actor.toLowerCase() === activeFilter.toLowerCase())
+function AgentStatsSummary({ stats }: { readonly stats: AgentSession['stats'] }) {
+  const items = [
+    { label: 'Found', value: stats.found },
+    { label: 'Matched', value: stats.matched },
+    { label: 'Tailored', value: stats.tailored },
+    { label: 'Applied', value: stats.applied },
+  ]
+  return (
+    <div className="grid gap-3 lg:grid-cols-4">
+      {items.map((item) => (
+        <div key={item.label} className="rounded-lg border border-border bg-surface p-4 shadow-control">
+          <p className="text-xs font-semibold uppercase tracking-[0.3px] text-ink-muted">{item.label}</p>
+          <p className="mt-1 text-2xl font-bold text-ink">{item.value}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AgentStatusCards({ agents }: { readonly agents: AgentSession['agents'] }) {
+  return (
+    <div className="grid gap-3 lg:grid-cols-4">
+      {agents.filter((a) => a.name !== 'system').map((agent) => (
+        <article key={agent.name} className="rounded-lg border border-border bg-surface p-4 shadow-control">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-[0.3px] text-ink">{agent.label}</h2>
+            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', agentStatusTone[agent.status] ?? agentStatusTone.idle)}>
+              {agent.status}
+            </span>
+          </div>
+          <p className="mt-3 text-sm text-ink">{agent.currentTask}</p>
+        </article>
+      ))}
+    </div>
+  )
+}
+
+function AgentFeed({ events }: { readonly events: FeedEvent[] }) {
+  const [activeTab, setActiveTab] = useState<AgentTabValue>('all')
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  const filtered = activeTab === 'all' ? events : events.filter((e) => e.agent === activeTab)
+
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [events.length])
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-border bg-surface shadow-control">
+      <div className="flex items-center justify-between border-b border-border px-4">
+        <nav className="flex" aria-label="Filter activity by agent">
+          {agentTabs.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setActiveTab(tab.value)}
+              aria-current={activeTab === tab.value ? 'true' : undefined}
+              className={cn(
+                'border-b-2 px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                activeTab === tab.value ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink',
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+        <span className="flex items-center gap-1.5 text-xs font-medium text-positive">
+          <span className="size-1.5 rounded-full bg-positive" aria-hidden="true" />
+          Live
+        </span>
+      </div>
+      <div className="max-h-[480px] overflow-y-auto px-4 py-3">
+        {filtered.map((event, i) => {
+          const Icon = agentIcon[event.agent] ?? Zap
+          const isLast = i === filtered.length - 1
+          const isTopLevel = activeTab !== 'all' || event.agent === 'scout' || event.agent === 'system'
+          return (
+            <div key={event.id} className={cn('flex gap-3', !isTopLevel && 'ml-5')}>
+              <div className="flex flex-col items-center pt-0.5">
+                <Icon className="size-3.5 shrink-0 text-ink-muted" aria-hidden="true" />
+                {!isLast && <span className="mt-1 w-px flex-1 bg-border" />}
+              </div>
+              <div className={cn('min-w-0 pb-4', isLast && 'pb-1')}>
+                <div className="mb-0.5 flex items-center gap-2">
+                  {event.agent !== 'system' && (
+                    <span className={cn('text-xs font-semibold capitalize', isTopLevel ? 'text-ink' : 'text-ink-muted')}>
+                      {event.agent}
+                    </span>
+                  )}
+                  <span className="text-xs text-ink-muted">
+                    {event.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                  </span>
+                </div>
+                <p className={cn('text-sm leading-relaxed', isTopLevel ? 'text-ink' : 'text-ink-muted')}>{event.message}</p>
+                {event.thought && <p className="mt-1 text-xs italic text-ink-muted">{event.thought}</p>}
+                {event.links && event.links.length > 0 && (
+                  <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+                    {event.links.map((link: FeedLink) => (
+                      <span key={link.label} className="text-xs text-accent underline underline-offset-4">
+                        {link.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+        <div ref={bottomRef} />
+      </div>
+    </section>
+  )
+}
+
+export function AutoApplyAgentView({ homeHref, setupHref, agentHref, jobsHref, appliedHref }: AutoApplyAgentViewProps) {
+  const session = useAgentSession('auto-apply')
 
   return (
     <AppShell homeHref={homeHref} title="Agents" active="agent" setupHref={setupHref} agentHref={agentHref} jobsHref={jobsHref} appliedHref={appliedHref}>
       <div className="pt-5">
-        <div className="grid gap-3 lg:grid-cols-4">
-          {metrics.map((metric) => (
-            <div key={metric.label} className="rounded-lg border border-border bg-surface p-4 shadow-control">
-              <p className="text-xs font-semibold uppercase tracking-[0.3px] text-ink-muted">{metric.label}</p>
-              <p className="mt-1 text-2xl font-bold text-ink">{metric.value}</p>
-            </div>
-          ))}
+        <AgentStatsSummary stats={session.stats} />
+        <div className="mt-4">
+          <AgentStatusCards agents={session.agents} />
         </div>
-        <div className="mt-4 grid gap-3 lg:grid-cols-4">
-          {statuses.map((status) => (
-            <article key={status.name} className="rounded-lg border border-border bg-surface p-4 shadow-control">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-[0.3px] text-ink">{status.name}</h2>
-                <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', agentStatusTone[status.status])}>
-                  {status.status}
-                </span>
-              </div>
-              <p className="mt-3 text-sm text-ink">{status.description}</p>
-            </article>
-          ))}
+        <div className="mt-6">
+          <AgentFeed events={session.events} />
         </div>
-        <section className="mt-6 overflow-hidden rounded-lg border border-border bg-surface shadow-control">
-          <div className="flex items-center justify-between border-b border-border px-4">
-            <nav className="flex gap-4" aria-label="Filter activity by agent">
-              {activityFilters.map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => setActiveFilter(filter)}
-                  aria-current={activeFilter === filter ? 'true' : undefined}
-                  className={cn(
-                    'border-b-2 px-2 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-                    activeFilter === filter ? 'border-accent-text text-accent-text' : 'border-transparent text-ink-muted hover:text-ink',
-                  )}
-                >
-                  {filter}
-                </button>
-              ))}
-            </nav>
-            <span className="flex items-center gap-1.5 text-xs font-medium text-positive">
-              <span className="size-1.5 rounded-full bg-positive" aria-hidden="true" />
-              Live
-            </span>
-          </div>
-          <div className="grid gap-5 p-5">
-            {visibleActivities.map((activity) => {
-              const Icon = activityActorIcon[activity.actor.toLowerCase()] ?? Zap
-              return (
-                <article key={activity.id} className="grid grid-cols-[14px_1fr] gap-x-3 border-b border-border pb-5 last:border-b-0 last:pb-0">
-                  <Icon className="mt-0.5 size-3.5 text-ink-muted" aria-hidden="true" />
-                  <div className="grid gap-2">
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="font-semibold capitalize text-ink">{activity.actor}</span>
-                      <span className="text-ink-muted">{activity.time}</span>
-                    </div>
-                    <p className={cn('text-sm', activity.tone === 'muted' ? 'text-ink-muted' : 'text-ink')}>{activity.message}</p>
-                    <p className="text-xs italic text-ink-muted">{activity.detail}</p>
-                    <div className="flex flex-wrap gap-3">
-                      {activity.links.map((link) => (
-                        <a key={link} href={jobsHref} className="text-xs text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                          {link}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        </section>
       </div>
     </AppShell>
   )
 }
 
-function JobList({ jobs, selectedJob, getJobHref }: { readonly jobs: readonly AutoApplyJob[]; readonly selectedJob?: AutoApplyJob; readonly getJobHref: (job: AutoApplyJob) => string }) {
+// ─── Jobs View ────────────────────────────────────────────────────────────────
+
+function JobSearch({ onRefresh }: { readonly onRefresh?: () => void }) {
   return (
-    <div className="grid gap-7 pt-7">
+    <div>
+      <div className="flex gap-2">
+        <label className="relative block flex-1">
+          <span className="sr-only">Search by title or company</span>
+          <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2 text-ink-muted" />
+          <input className="min-h-11 w-full rounded-lg border border-input bg-surface py-2 pe-3 ps-10 text-base text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus" placeholder="Search by title or company" />
+        </label>
+        {onRefresh ? (
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            aria-label="Refresh job list"
+          >
+            <RefreshCw aria-hidden="true" className="size-4" />
+            Refresh
+          </button>
+        ) : null}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {['Location', 'Experience Level', 'Job Type', 'Date Posted'].map((filter) => (
+          <button key={filter} type="button" className="inline-flex min-h-9 items-center gap-1 rounded-full border border-input bg-surface px-3 text-sm text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            {filter}
+            <ChevronDown aria-hidden="true" className="size-4" />
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function JobList({
+  jobs,
+  selectedJob,
+  onSelectJob,
+}: {
+  readonly jobs: readonly AutoApplyJob[]
+  readonly selectedJob?: AutoApplyJob
+  readonly onSelectJob: (job: AutoApplyJob) => void
+}) {
+  return (
+    <div className="grid gap-1 pt-5">
       {jobs.map((job) => (
-        <a
+        <button
           key={job.id}
-          href={getJobHref(job)}
+          type="button"
+          onClick={() => onSelectJob(job)}
           className={cn(
-            'flex min-h-12 items-center gap-5 px-5 py-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-            selectedJob?.id === job.id ? 'bg-surface' : 'bg-surface',
+            'flex w-full items-center gap-5 rounded-lg px-5 py-4 text-left transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+            selectedJob?.id === job.id && 'bg-surface-subtle ring-1 ring-accent',
           )}
         >
           <span
@@ -372,7 +474,7 @@ function JobList({ jobs, selectedJob, getJobHref }: { readonly jobs: readonly Au
           <span className="min-w-0 flex-1">
             <span className="flex flex-wrap items-center gap-2">
               <span className="font-semibold text-ink">{job.title}</span>
-              <span className="rounded px-2 py-0.5 text-[10px] font-bold text-positive bg-positive-surface">{job.matchPercent}% EXCELLENT MATCH</span>
+              <span className="rounded px-2 py-0.5 text-[10px] font-bold text-positive bg-positive-surface">{job.matchPercent}% MATCH</span>
             </span>
             <span className="mt-1 block text-xs text-ink-muted">
               {job.company} - {job.location} - {job.type}
@@ -382,227 +484,239 @@ function JobList({ jobs, selectedJob, getJobHref }: { readonly jobs: readonly Au
             </span>
           </span>
           {job.status === 'applied' ? (
-            <span className="rounded-lg bg-accent-subtle px-4 py-2 text-base font-medium text-accent-text">Applied</span>
+            <span className="shrink-0 rounded-lg bg-accent-subtle px-4 py-2 text-sm font-medium text-accent-text">Applied</span>
           ) : (
-            <span className="rounded-lg bg-accent px-4 py-2 text-base font-medium text-on-accent">Apply</span>
+            <span className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent">Apply</span>
           )}
-        </a>
+        </button>
       ))}
-    </div>
-  )
-}
-
-function JobSearch() {
-  return (
-    <div>
-      <label className="relative block">
-        <span className="sr-only">Search by title or company</span>
-        <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2 text-ink-muted" />
-        <input className="min-h-11 w-full rounded-lg border border-input bg-surface py-2 pe-3 ps-10 text-base text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus" placeholder="Search by title or company" />
-      </label>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {['Location', 'Experience Level', 'Job Type', 'Date Posted'].map((filter) => (
-          <button key={filter} type="button" className="inline-flex min-h-9 items-center gap-1 rounded-full border border-input bg-surface px-3 text-sm text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            {filter}
-            <ChevronDown aria-hidden="true" className="size-4" />
-          </button>
-        ))}
-      </div>
     </div>
   )
 }
 
 function JobPreview({
   job,
-  jobsHref,
-  appliedHref,
-  resumeHistoryHref,
+  onClose,
   applied = false,
 }: {
   readonly job: AutoApplyJob
-  readonly jobsHref: string
-  readonly appliedHref: string
-  readonly resumeHistoryHref: string
+  readonly onClose: () => void
   readonly applied?: boolean
 }) {
   return (
-    <aside className="w-full shrink-0 border border-border bg-surface shadow-control lg:w-[30rem]">
-      <div className="max-h-[52rem] overflow-y-auto p-8">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-base font-bold">{job.title}</h2>
-            <p className="mt-1 text-sm text-ink-muted">{job.company} {job.location ? `- ${job.location}` : ''}</p>
-          </div>
-          <a href={jobsHref} aria-label="Close job preview" className="grid size-10 place-items-center rounded-lg text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <X aria-hidden="true" className="size-5" />
-          </a>
+    <aside className="w-full shrink-0 border-l border-border bg-surface p-8 shadow-control lg:w-[30rem]">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-base font-bold">{job.title}</h2>
+          <p className="mt-1 text-sm text-ink-muted">{job.company} {job.location ? `- ${job.location}` : ''}</p>
         </div>
-        <div className="mt-4 flex items-center gap-2">
-          <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', applied ? 'bg-positive text-on-accent' : 'bg-warning-surface text-warning')}>{applied ? 'Applied' : 'NEW'}</span>
-          <span className="text-sm text-ink-muted">{applied ? 'JUL 12 2026' : 'Aug 14, 2026'}</span>
-        </div>
-        <section className="mt-4 grid gap-4 border-t border-border pt-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Job Listing</h3>
-          <a href={job.listingUrl} className="flex min-w-0 items-center gap-2 text-sm text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
-            <span className="truncate">{job.listingUrl}</span>
-          </a>
-        </section>
-        <section className="mt-4 grid gap-4 border-t border-border pt-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Resume Used</h3>
-          <a href={resumeHistoryHref} className="flex min-w-0 items-center gap-2 text-sm text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <FileText aria-hidden="true" className="size-4 shrink-0" />
-            <span className="truncate">{job.resumeFileName}</span>
-          </a>
-        </section>
-        {!applied ? (
-          <>
-            <section className="mt-4 rounded-lg border border-positive bg-positive-surface p-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wide text-positive">Excellent Match</h3>
-                <p className="text-2xl font-bold text-positive">{job.matchPercent}%</p>
-              </div>
-            </section>
-            <div className="mt-4 flex flex-wrap gap-2">{job.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
-            <section className="mt-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">About the role</h3>
-              <p className="mt-2 max-h-28 overflow-hidden text-sm leading-6 text-ink-muted">{job.description}</p>
-            </section>
-            <div className="mt-4 rounded-lg border border-border bg-surface-subtle p-3">
-              <p className="text-sm font-semibold">{job.creditsRemaining}/{job.creditsTotal} Credit Left</p>
-              <p className="mt-1 text-xs text-ink-muted">Lightforth will only deduct credit for successful applications</p>
-            </div>
-          </>
-        ) : null}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close job preview"
+          className="grid size-10 place-items-center rounded-lg text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          <X aria-hidden="true" className="size-5" />
+        </button>
       </div>
+      <div className="mt-4 flex items-center gap-2">
+        <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', applied ? 'bg-positive text-on-accent' : 'bg-warning-surface text-warning')}>{applied ? 'Applied' : 'NEW'}</span>
+        <span className="text-sm text-ink-muted">{applied ? 'JUL 12 2026' : job.dateLabel}</span>
+      </div>
+      <section className="mt-4 grid gap-4 border-t border-border pt-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Job Listing</h3>
+        <a href={job.listingUrl} className="flex min-w-0 items-center gap-2 text-sm text-accent underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
+          <span className="truncate">{job.listingUrl}</span>
+        </a>
+      </section>
+      <section className="mt-4 grid gap-4 border-t border-border pt-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Resume Used</h3>
+        <span className="flex min-w-0 items-center gap-2 text-sm text-ink">
+          <FileText aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+          <span className="truncate">{job.resumeFileName}</span>
+        </span>
+      </section>
       {!applied ? (
-        <div className="flex items-center justify-between border-t border-border px-6 py-4">
-          <a href={jobsHref} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <ArrowLeft aria-hidden="true" className="size-4" />
-            Back
-          </a>
-          <a href={appliedHref} className="inline-flex min-h-11 min-w-36 items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            Apply
-          </a>
-        </div>
+        <>
+          <section className="mt-4 rounded-lg border border-positive bg-positive-surface p-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wide text-positive">Excellent Match</h3>
+              <p className="text-2xl font-bold text-positive">{job.matchPercent}%</p>
+            </div>
+          </section>
+          <div className="mt-4 flex flex-wrap gap-2">{job.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
+          <section className="mt-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">About the role</h3>
+            <p className="mt-2 max-h-28 overflow-hidden text-sm leading-6 text-ink-muted">{job.description}</p>
+          </section>
+          <div className="mt-4 rounded-lg border border-border bg-surface-subtle p-3">
+            <p className="text-sm font-semibold">{job.creditsRemaining}/{job.creditsTotal} Credits Left</p>
+            <p className="mt-1 text-xs text-ink-muted">Lightforth will only deduct credit for successful applications</p>
+          </div>
+        </>
       ) : null}
     </aside>
   )
 }
 
-export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, selectedJob }: AutoApplyJobsViewProps) {
+export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, selectedJob: initialSelectedJob }: AutoApplyJobsViewProps) {
+  const [selectedJob, setSelectedJob] = useState<AutoApplyJob | undefined>(initialSelectedJob)
+  const [search, setSearch] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const filtered = jobs.filter(
+    (j) =>
+      j.title.toLowerCase().includes(search.toLowerCase()) ||
+      j.company.toLowerCase().includes(search.toLowerCase()),
+  )
+
   return (
     <Workspace>
       <Header homeHref={homeHref} />
-      <section className="flex flex-col gap-8 p-4 lg:flex-row lg:p-8">
-        <div className="min-w-0 flex-1 bg-surface shadow-panel">
-          <div className="border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Jobs</h1>
-          </div>
-          <div className="p-8">
-            <nav aria-label="Auto apply sections" className="flex gap-6 border-b border-border text-sm font-medium">
-              <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>
-              <a href={agentHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Agent</a>
-              <a href={jobsHref} aria-current="page" className="min-h-11 border-b-2 border-accent px-1 pb-2 text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Jobs</a>
-              <a href={appliedHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Applied</a>
-            </nav>
-            <div className="pt-5">
-              <JobSearch />
-              <JobList jobs={jobs} selectedJob={selectedJob} getJobHref={(job) => `${jobsHref}/${job.id}`} />
-              <div className="mt-5 flex items-center justify-center gap-4 text-sm text-ink-muted">
-                <span className="inline-flex items-center gap-1 text-ink-muted"><ChevronLeft aria-hidden="true" className="size-4" />Previous</span>
-                <span>Page 1 of 43</span>
-                <span className="inline-flex items-center gap-1 text-ink">Next<ChevronRight aria-hidden="true" className="size-4" /></span>
+      <section className="p-4 lg:p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="min-h-[56rem] bg-surface shadow-panel">
+            <div className="border-b border-border px-8 py-8">
+              <h1 className="text-xl font-medium">Jobs</h1>
+            </div>
+            <div className="p-8">
+              <div className="flex items-center justify-between border-b border-border">
+                <nav aria-label="Auto apply sections" className="flex gap-6 text-sm font-medium">
+                  <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>
+                  <a href={agentHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Agent</a>
+                  <a href={jobsHref} aria-current="page" className="min-h-11 border-b-2 border-accent px-1 pb-2 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Jobs</a>
+                  <a href={appliedHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Applied</a>
+                </nav>
+                <a href={setupHref} className="mb-2 inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                  Update Preference
+                </a>
+              </div>
+              <div className="flex gap-6 pt-5">
+                <div className={cn('min-w-0 transition-all duration-300', selectedJob ? 'flex-1' : 'w-full')}>
+                  <div className="mb-3 flex gap-2">
+                    <label className="relative block flex-1">
+                      <span className="sr-only">Search by title or company</span>
+                      <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2 text-ink-muted" />
+                      <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="min-h-11 w-full rounded-lg border border-input bg-surface py-2 pe-3 ps-10 text-base text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus"
+                        placeholder="Search by title or company"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setRefreshKey((k) => k + 1)}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                      aria-label="Refresh job list"
+                    >
+                      <RefreshCw aria-hidden="true" className="size-4" />
+                      Refresh
+                    </button>
+                  </div>
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {['Location', 'Experience Level', 'Job Type', 'Date Posted'].map((filter) => (
+                      <button key={filter} type="button" className="inline-flex min-h-9 items-center gap-1 rounded-full border border-input bg-surface px-3 text-sm text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                        {filter}
+                        <ChevronDown aria-hidden="true" className="size-4" />
+                      </button>
+                    ))}
+                  </div>
+                  <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
+                  <div className="mt-5 flex items-center justify-center gap-4 text-sm text-ink-muted">
+                    <span className="inline-flex items-center gap-1 text-ink-muted"><ChevronLeft aria-hidden="true" className="size-4" />Previous</span>
+                    <span>Page 1 of 43</span>
+                    <span className="inline-flex items-center gap-1 text-ink">Next<ChevronRight aria-hidden="true" className="size-4" /></span>
+                  </div>
+                </div>
+                {selectedJob ? (
+                  <div className="hidden w-[30rem] shrink-0 animate-slide-in-right lg:block">
+                    <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} />
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
         </div>
-        {selectedJob ? <JobPreview job={selectedJob} jobsHref={jobsHref} appliedHref={appliedHref} resumeHistoryHref={resumeHistoryHref} /> : null}
       </section>
     </Workspace>
   )
 }
 
+// ─── Applied View ─────────────────────────────────────────────────────────────
+
 export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, application }: AutoApplyAppliedViewProps) {
+  const [selectedJob, setSelectedJob] = useState<AutoApplyJob | undefined>(application.job)
+  const [search, setSearch] = useState('')
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const allJobs = jobs.map((job) => (job.id === application.job.id ? application.job : job))
+  const filtered = allJobs.filter(
+    (j) =>
+      j.title.toLowerCase().includes(search.toLowerCase()) ||
+      j.company.toLowerCase().includes(search.toLowerCase()),
+  )
+
   return (
     <Workspace>
       <Header homeHref={homeHref} />
-      <section className="flex flex-col gap-8 p-4 lg:flex-row lg:p-8">
-        <div className="min-w-0 flex-1 bg-surface shadow-panel">
-          <div className="border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Applied</h1>
-          </div>
-          <div className="p-8">
-            <nav aria-label="Auto apply sections" className="flex gap-6 border-b border-border text-sm font-medium">
-              <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>
-              <a href={agentHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Agent</a>
-              <a href={jobsHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Jobs</a>
-              <a href={appliedHref} aria-current="page" className="min-h-11 border-b-2 border-accent px-1 pb-2 text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Applied</a>
-            </nav>
-            <div className="pt-5">
-              <JobSearch />
-              <JobList jobs={jobs.map((job) => (job.id === application.job.id ? application.job : job))} selectedJob={application.job} getJobHref={(job) => `${jobsHref}/${job.id}`} />
+      <section className="p-4 lg:p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="min-h-[56rem] bg-surface shadow-panel">
+            <div className="border-b border-border px-8 py-8">
+              <h1 className="text-xl font-medium">Applied</h1>
+            </div>
+            <div className="p-8">
+              <div className="flex items-center justify-between border-b border-border">
+                <nav aria-label="Auto apply sections" className="flex gap-6 text-sm font-medium">
+                  <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>
+                  <a href={agentHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Agent</a>
+                  <a href={jobsHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Jobs</a>
+                  <a href={appliedHref} aria-current="page" className="min-h-11 border-b-2 border-accent px-1 pb-2 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Applied</a>
+                </nav>
+                <a href={setupHref} className="mb-2 inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                  Update Preference
+                </a>
+              </div>
+              <div className="flex gap-6 pt-5">
+                <div className={cn('min-w-0 transition-all duration-300', selectedJob ? 'flex-1' : 'w-full')}>
+                  <div className="mb-3 flex gap-2">
+                    <label className="relative block flex-1">
+                      <span className="sr-only">Search applied jobs</span>
+                      <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2 text-ink-muted" />
+                      <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="min-h-11 w-full rounded-lg border border-input bg-surface py-2 pe-3 ps-10 text-base text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus"
+                        placeholder="Search applied jobs"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setRefreshKey((k) => k + 1)}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                      aria-label="Refresh applied list"
+                    >
+                      <RefreshCw aria-hidden="true" className="size-4" />
+                      Refresh
+                    </button>
+                  </div>
+                  <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
+                </div>
+                {selectedJob ? (
+                  <div className="hidden w-[30rem] shrink-0 animate-slide-in-right lg:block">
+                    <JobPreview
+                      job={selectedJob}
+                      onClose={() => setSelectedJob(undefined)}
+                      applied={selectedJob.id === application.job.id}
+                    />
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
-        <aside className="w-full shrink-0 border border-border bg-surface p-8 shadow-control lg:w-[30rem]">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold">{application.job.title}</h2>
-              <p className="mt-1 text-sm text-ink-muted">{application.job.company}</p>
-            </div>
-            <a href={jobsHref} aria-label="Close applied detail" className="grid size-10 place-items-center rounded-lg text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <X aria-hidden="true" className="size-5" />
-            </a>
-          </div>
-          <div className="mt-4 flex items-center gap-2 border-b border-border pb-4">
-            <span className="rounded-full bg-positive px-3 py-1 text-xs font-semibold text-on-accent">Applied</span>
-            <span className="text-sm text-ink-muted">{application.appliedDate}</span>
-          </div>
-          <section className="border-b border-border py-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Job Listing</h3>
-            <a href={application.job.listingUrl} className="mt-2 flex min-w-0 items-center gap-2 text-sm text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <LinkIcon aria-hidden="true" className="size-4 shrink-0" />
-              <span className="truncate">{application.job.listingUrl}</span>
-            </a>
-          </section>
-          <section className="border-b border-border py-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Resume Used</h3>
-            <a href={resumeHistoryHref} className="mt-2 flex min-w-0 items-center gap-2 text-sm text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <FileText aria-hidden="true" className="size-4 shrink-0" />
-              <span className="truncate">{application.job.resumeFileName}</span>
-            </a>
-          </section>
-          <section className="border-b border-border py-4">
-            <p className="text-xs font-semibold text-ink-muted">JUL 12</p>
-            <div className="mt-3 grid gap-3">
-              {application.events.map((event) => (
-                <div key={event.label} className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-2 text-sm text-ink">
-                    <span className="grid size-5 place-items-center rounded-full bg-positive-surface"><span className="size-2 rounded-full bg-positive" /></span>
-                    {event.label}
-                  </span>
-                  <span className="text-xs text-ink-muted">{event.time}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-          <section className="py-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Activity Log</h3>
-            <ul className="mt-3 grid gap-2 text-sm text-ink-muted">
-              {application.activityLog.map((item) => (
-                <li key={item} className="flex items-center gap-2">
-                  <Check aria-hidden="true" className="size-4 text-positive" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <Play aria-hidden="true" className="size-4" />
-              See Replay
-            </button>
-          </section>
-        </aside>
       </section>
     </Workspace>
   )

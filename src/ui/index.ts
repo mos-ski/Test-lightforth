@@ -1,3 +1,4 @@
+export { LightforthMark } from './brand-mark'
 export { Badge } from './badge'
 export type { BadgeProps, BadgeSize, BadgeVariant } from './badge'
 export { Button } from './button'

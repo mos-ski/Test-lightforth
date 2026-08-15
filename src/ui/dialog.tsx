@@ -31,28 +31,35 @@ export const DialogBackdrop = forwardRef<HTMLDivElement, DialogBackdropProps>(
     return (
       <BaseDialog.Backdrop
         ref={ref}
-        className={cn('fixed inset-0 z-modal bg-overlay backdrop-blur-sm', className)}
+        className={cn(
+          'fixed inset-0 z-modal bg-overlay opacity-100 backdrop-blur-sm transition-opacity duration-normal ease-default data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 motion-reduce:transition-none',
+          className,
+        )}
         {...props}
       />
     )
   },
 )
 
-export type DialogPopupProps = HTMLAttributes<HTMLDivElement>
+export type DialogPopupPlacement = 'center' | 'start'
+
+export type DialogPopupProps = HTMLAttributes<HTMLDivElement> & {
+  readonly placement?: DialogPopupPlacement
+}
+
+const popupPlacements: Record<DialogPopupPlacement, string> = {
+  center:
+    'fixed left-1/2 top-1/2 z-modal w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-panel border border-border bg-surface p-6 shadow-xl transition-[opacity,transform] duration-normal ease-default focus-visible:outline-none data-[ending-style]:-translate-y-[calc(50%-0.5rem)] data-[ending-style]:opacity-0 data-[starting-style]:-translate-y-[calc(50%-0.5rem)] data-[starting-style]:opacity-0 motion-reduce:transition-none',
+  start:
+    '-translate-x-full fixed inset-y-0 start-0 z-modal h-full w-72 max-w-[85vw] overflow-y-auto border-e border-border bg-surface shadow-xl transition-transform duration-normal ease-default focus-visible:outline-none data-[open]:translate-x-0 rtl:translate-x-full rtl:data-[open]:translate-x-0 motion-reduce:transition-none',
+}
 
 export const DialogPopup = forwardRef<HTMLDivElement, DialogPopupProps>(
-  function DialogPopup({ className, children, ...props }, ref) {
+  function DialogPopup({ className, children, placement = 'center', ...props }, ref) {
     return (
       <BaseDialog.Portal>
-        <BaseDialog.Backdrop className="fixed inset-0 z-modal bg-overlay backdrop-blur-sm" />
-        <BaseDialog.Popup
-          ref={ref}
-          className={cn(
-            'fixed left-1/2 top-1/2 z-modal w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-panel border border-border bg-surface p-6 shadow-xl focus-visible:outline-none',
-            className,
-          )}
-          {...props}
-        >
+        <DialogBackdrop />
+        <BaseDialog.Popup ref={ref} className={cn(popupPlacements[placement], className)} {...props}>
           {children}
         </BaseDialog.Popup>
       </BaseDialog.Portal>
