@@ -30,3 +30,17 @@ All source color values live in `src/tokens/theme.css` and `src/tokens/tokens.ts
 | `overlay` | Modal scrim. | `rgba(16, 24, 40, 0.48)` | `rgba(2, 6, 23, 0.72)` |
 | `brand-bar` | Auth hero/header field. | `#134abe` | `#123f9f` |
 | `brand-bar-text` | Text on the brand header field. | `#ffffff` | `#ffffff` |
+| `live-canvas` | Dedicated dark background for real-time interview and copilot session workspaces. | `#0a1628` | `#0a1628` |
+| `live-header` | Header surface for real-time session workspaces. | `#0a1628` | `#0a1628` |
+| `live-strip` | Connection status strip in live session workspaces. | `#0f2340` | `#0f2340` |
+| `live-panel` | Simulator and chat panel surface in live session workspaces. | `#0d1929` | `#0d1929` |
+| `live-border` | Panel dividers inside live session workspaces. | `#1e2d45` | `#1e2d45` |
+| `live-message` | Secondary chat bubble surface in live session workspaces. | `#172536` | `#172536` |
+| `live-scrim` | Text overlay on participant thumbnails. | `rgba(0, 0, 0, 0.45)` | `rgba(0, 0, 0, 0.45)` |
+| `live-avatar-neutral` | Neutral portrait backdrop for live session participant tiles. | `#cfd4c6` | `#cfd4c6` |
+| `live-avatar-warm` | Warm portrait backdrop for live session participant tiles. | `#e9dcbb` | `#e9dcbb` |
+| `live-workspace` | Deep outer workspace behind live copilot response panels. | `#001231` | `#001231` |
+| `live-divider` | Splitter rails and subtle separators in live copilot workspaces. | `rgba(255, 255, 255, 0.1)` | `rgba(255, 255, 255, 0.1)` |
+| `live-panel-header` | Slightly recessed header fill inside live copilot panels. | `rgba(0, 0, 0, 0.1)` | `rgba(0, 0, 0, 0.1)` |
+| `live-control-border` | Low-contrast borders for compact AI assistant controls. | `rgba(255, 255, 255, 0.16)` | `rgba(255, 255, 255, 0.16)` |
+| `shadow-popover` | Floating menus and transient option pickers. | `0 4px 6.3px rgba(0, 0, 0, 0.15)` | `0 4px 6.3px rgba(0, 0, 0, 0.42)` |

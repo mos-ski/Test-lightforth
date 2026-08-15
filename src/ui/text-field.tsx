@@ -21,7 +21,7 @@ export function TextField({ className, id, label, error, ...props }: TextFieldPr
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
         className={cn(
-          'min-h-11 rounded-lg border border-input bg-surface px-3 py-2 text-base text-ink shadow-control outline-none transition-colors placeholder:text-muted focus:border-focus focus:ring-2 focus:ring-focus sm:text-sm',
+          'min-h-11 rounded-lg border border-input bg-surface px-3 py-2.5 text-sm leading-6 text-ink shadow-control outline-none transition-colors placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus',
           className,
         )}
         {...props}

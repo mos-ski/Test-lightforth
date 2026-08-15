@@ -24,6 +24,24 @@ For this UI slice, these fields are modeled as app fixture data in `src/mocks/bi
 
 These are currently UI review fixtures. Production should decide whether dashboard navigation stays static in app code or comes from an entitlement-aware backend contract.
 
+## Documents Draft Contract
+
+`src/contracts/documents.draft.ts` defines temporary flat UI contracts for uploaded or linked context documents:
+
+- `ContextDocumentRow` for document/context table rows, including name, type, size or URL, and added date.
+
+Production should replace this with a backend-owned document library contract. Dates are display strings in this UI slice; backend contracts should expose ISO timestamps plus formatted presentation values if needed.
+
+## Account Utility Draft Contract
+
+`src/contracts/account.draft.ts` defines temporary flat UI contracts for account utility pages:
+
+- `DownloadItem` for desktop app download options, including platform metadata, CTA copy, support notes, and artwork.
+- `BillingPlanCard` and `CreditUsageRow` for subscription cards and credit history tables.
+- `SettingsProfile` and `ReferralRow` for account settings and referral history.
+
+Production should replace these with backend-owned account, download, billing, settings, and referral contracts. Dates are display strings in this UI slice; backend contracts should expose ISO timestamps plus formatted presentation values if needed.
+
 ## Resume Builder Draft Contract
 
 `src/contracts/resume.draft.ts` defines temporary flat UI contracts for the resume builder:

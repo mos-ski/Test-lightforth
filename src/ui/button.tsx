@@ -12,8 +12,8 @@ const variants: Record<ButtonVariant, string> = {
 }
 
 const sizes: Record<ButtonSize, string> = {
-  md: 'min-h-11 px-4 py-2 text-sm',
-  lg: 'min-h-11 px-5 py-2 text-base',
+  md: 'min-h-11 px-4 py-2.5 text-base leading-6',
+  lg: 'min-h-11 px-5 py-2.5 text-base leading-6',
 }
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

@@ -18,6 +18,71 @@ const appRoutes = [
     description: 'Signed-in web app shell with sidebar navigation, action cards, and install prompts.',
   },
   {
+    href: '/v3/app?state=loading',
+    label: 'Dashboard loading',
+    description: 'Dashboard skeleton with header, sidebar, and action-card placeholders.',
+  },
+  {
+    href: '/v3/app?dropdown=help',
+    label: 'Dashboard help dropdown',
+    description: 'Top-nav support dropdown with updates, browser support, help center, feedback, tutorial, and email actions.',
+  },
+  {
+    href: '/v3/app?dropdown=credits',
+    label: 'Dashboard credits dropdown',
+    description: 'Credit popover with upgrade action, remaining/allocated rows, progress, used count, and free-credits CTA.',
+  },
+  {
+    href: '/v3/app?credit=empty',
+    label: 'Dashboard empty credits',
+    description: 'Centered red credit notification banner for zero remaining credits.',
+  },
+  {
+    href: '/v3/app?credit=low',
+    label: 'Dashboard low credits',
+    description: 'Centered blue credit notification banner for low remaining credits.',
+  },
+  {
+    href: '/v3/documents',
+    label: 'Documents',
+    description: 'Add-context document table with search, add-document action, type badges, row actions, and pagination.',
+  },
+  {
+    href: '/v3/documents/add',
+    label: 'Add documents',
+    description: 'Document source picker with upload, URL scrape, and manual input paths.',
+  },
+  {
+    href: '/v3/documents/manual',
+    label: 'Manual context',
+    description: 'Manual context form for adding notes, role details, and company research.',
+  },
+  {
+    href: '/v3/downloads',
+    label: 'Download apps',
+    description: 'Modal-derived Copilot download picker for Mac Apple Silicon, Mac Intel, and Windows desktop app.',
+  },
+  {
+    href: '/v3/billing',
+    label: 'Billing',
+    description: 'Current plan, credit balance, plan upgrade cards, and credit usage table.',
+  },
+  {
+    href: '/v3/settings',
+    label: 'Settings profile',
+    description: 'Profile settings tab with account fields and photo upload action.',
+  },
+  {
+    href: '/v3/settings?tab=security',
+    label: 'Settings security',
+    description: 'Password, two-step verification, and delete-account controls.',
+  },
+  {
+    href: '/v3/settings?tab=referral',
+    label: 'Settings referral',
+    description: 'Referral credits card and previous referrals table.',
+  },
+  {
     href: '/v3/resume',
     label: 'Resume upload',
     description: 'Build-a-resume entry with upload and Lightforth resume choices.',
@@ -73,6 +138,11 @@ const appRoutes = [
     description: 'Dark live simulator with participant video cards, signal status, timer, and chat.',
   },
   {
+    href: '/v3/interview-prep/session?state=loading',
+    label: 'Live interview loading',
+    description: 'Skeleton state for the live simulator, chat panel, media cards, and controls.',
+  },
+  {
     href: '/v3/interview-prep/complete',
     label: 'Interview complete',
     description: 'Completion confirmation and report handoff.',
@@ -91,6 +161,11 @@ const appRoutes = [
     href: '/v3/interview-prep/report',
     label: 'Interview report',
     description: 'Coaching report with summary score, scorecard, recording strip, transcript, and retry actions.',
+  },
+  {
+    href: '/v3/interview-prep/report?state=loading',
+    label: 'Interview report loading',
+    description: 'Report document skeleton with hero, summary, scorecard, recording, and transcript placeholders.',
   },
   {
     href: '/v3/interview-copilot',
@@ -121,6 +196,11 @@ const appRoutes = [
     href: '/v3/interview-copilot/session',
     label: 'Copilot live session',
     description: 'Dark live-response surface with screen preview, AI prompts, and composer.',
+  },
+  {
+    href: '/v3/interview-copilot/session?state=loading',
+    label: 'Copilot live loading',
+    description: 'Skeleton state for the live response panel, screen preview, AI prompts, and composer.',
   },
   {
     href: '/v3/interview-copilot/complete',

@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
-import { Check, ChevronDown, ChevronRight, Download, FileText, Home, Minus, Plus, Search, Send, Sparkles, Upload, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, Minus, Plus, Search, Send, Sparkles, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
-import { cn, TextField } from '@/ui'
+import { AiSuggestionAction, cn, DataTable, FormField, FormPanel, FormPanelFooter, FormTextArea, ShellBar, SourcePicker } from '@/ui'
 
 export type ResumeUploadViewProps = {
   readonly homeHref: string
@@ -52,26 +52,13 @@ function BuilderHeader({
   readonly action?: 'download'
 }) {
   return (
-    <header className="flex min-h-14 items-center justify-between border-b border-border bg-surface px-4 text-sm">
-      <nav aria-label="Breadcrumb" className="flex items-center gap-3 font-semibold text-ink">
-        <a href={homeHref} className="inline-flex min-h-11 items-center gap-2 rounded-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          <Home aria-hidden="true" className="size-4" />
-          Go Home
-        </a>
-        <ChevronRight aria-hidden="true" className="size-4 text-muted" />
-        <span aria-current="page">{current}</span>
-      </nav>
-      {action === 'download' ? (
-        <a href="/v3/resume/download" className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          <Download aria-hidden="true" className="size-4" />
-          Download
-        </a>
-      ) : (
-        <a href={homeHref} aria-label="Close resume builder" className="grid size-11 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          <X aria-hidden="true" className="size-4" />
-        </a>
-      )}
-    </header>
+    <ShellBar
+      homeHref={homeHref}
+      current={current}
+      closeHref={action === 'download' ? undefined : homeHref}
+      closeLabel="Close resume builder"
+      action={action === 'download' ? { label: 'Download', href: '/v3/resume/download' } : undefined}
+    />
   )
 }
 
@@ -102,34 +89,17 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref }: Resum
       <BuilderHeader homeHref={homeHref} current="Build a Resume" />
       <section className="px-4 py-8 lg:py-10">
         <PaperShell>
-          <div className="flex min-h-[48rem] flex-col items-center justify-center">
-            <h1 className="text-lg font-semibold">Upload a resume</h1>
-            <div className="mt-4 w-full max-w-lg rounded-panel border border-border bg-surface px-6 py-4 text-center">
-              <div className="mx-auto grid size-10 place-items-center rounded-lg border border-border bg-surface-raised shadow-control">
-                <Upload aria-hidden="true" className="size-5 text-ink-muted" />
-              </div>
-              <p className="mt-3 text-sm text-ink-muted">
-                <a href={configureHref} className="font-semibold text-accent-text underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                  Click to upload
-                </a>{' '}
-                or drag and drop
-              </p>
-              <p className="mt-1 text-xs text-ink-muted">PDF, DOC, DOCX or TXT</p>
-            </div>
-            <div className="mt-0 w-full max-w-xs rounded-lg border border-focus bg-surface shadow-panel">
-              <a href={configureHref} className="flex min-h-11 items-center gap-3 px-3 text-sm font-medium text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Upload aria-hidden="true" className="size-4 text-ink-muted" />
-                Upload a Resume
-              </a>
-              <a href={configureHref} className="flex min-h-11 items-center gap-3 px-3 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Sparkles aria-hidden="true" className="size-4 text-accent" />
-                Use Lightforth Resume
-              </a>
-            </div>
-            <a href={historyHref} className="mt-6 text-sm font-semibold text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              View past resumes
-            </a>
-          </div>
+          <SourcePicker
+            title="Upload a resume"
+            actionLabel="Click to upload"
+            idleText="or drag and drop"
+            meta="PDF, DOC, DOCX or TXT"
+            options={[
+              { label: 'Upload a Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-upload.svg' },
+              { label: 'Use Lightforth Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-lightforth.svg', emphasis: 'strong' },
+            ]}
+            historyLink={{ label: 'View past resumes', href: historyHref }}
+          />
         </PaperShell>
       </section>
     </Workspace>
@@ -141,45 +111,19 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="Build a Resume" />
       <section className="px-4 py-9">
-        <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
-          <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Configure your Resume</h1>
-            <span className="text-sm text-muted">1/2</span>
+        <FormPanel
+          title="Configure your Resume"
+          step="1/2"
+          uploadedFile={{ fileName: session.uploadedFileName, changeHref: uploadHref }}
+          footer={<FormPanelFooter backHref={uploadHref} nextHref={editorHref} />}
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <FormField id="resume-name" label="Resume Name" defaultValue={session.resumeName} />
+            <FormField id="company-name" label="Company Name" defaultValue={session.companyName} />
           </div>
-          <div className="mx-auto flex w-[calc(100%-4rem)] items-center justify-between rounded-b-lg bg-accent-subtle px-4 py-1.5 text-xs text-ink-muted">
-            <span className="inline-flex min-w-0 items-center gap-2">
-              <FileText aria-hidden="true" className="size-4 text-danger" />
-              <span className="truncate">{session.uploadedFileName}</span>
-            </span>
-            <a href={uploadHref} className="font-semibold text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              Change
-            </a>
-          </div>
-          <div className="grid gap-4 p-8">
-            <div className="grid gap-6 sm:grid-cols-2">
-              <TextField id="resume-name" label="Resume Name" defaultValue={session.resumeName} />
-              <TextField id="company-name" label="Company Name" defaultValue={session.companyName} />
-            </div>
-            <label className="grid gap-1.5 text-sm font-medium text-ink">
-              Enter Job Description
-              <textarea
-                className="min-h-40 rounded-lg border border-input bg-surface px-3 py-3 text-sm text-ink shadow-control outline-none placeholder:text-muted focus:border-focus focus:ring-2 focus:ring-focus"
-                defaultValue={session.jobDescription}
-              />
-            </label>
-            <div className="flex justify-end">
-              <AiSuggestionLabel />
-            </div>
-          </div>
-          <div className="flex items-center justify-between border-t border-border px-6 py-4">
-            <a href={uploadHref} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              Back
-            </a>
-            <a href={editorHref} className="inline-flex min-h-11 w-36 items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              Continue
-            </a>
-          </div>
-        </form>
+          <FormTextArea id="resume-job-description" label="Enter Job Description" defaultValue={session.jobDescription} />
+          <AiSuggestionAction />
+        </FormPanel>
       </section>
     </Workspace>
   )
@@ -512,58 +456,25 @@ export function ResumeHistoryView({ homeHref, createHref, rows }: ResumeHistoryV
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="History" />
       <section className="px-4 py-8 lg:px-60">
-        <div className="min-h-[56rem] bg-surface shadow-panel">
-          <div className="border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Past Resumes</h1>
-          </div>
-          <div className="p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <label className="relative block w-full max-w-sm">
-                <span className="sr-only">Search past resumes</span>
-                <Search aria-hidden="true" className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-                <input className="min-h-10 w-full rounded-md border border-input bg-surface ps-9 text-sm text-ink outline-none placeholder:text-muted focus:border-focus focus:ring-2 focus:ring-focus" placeholder="Search" />
-              </label>
-              <a href={createHref} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Plus aria-hidden="true" className="size-4" />
-                Create New
-              </a>
-            </div>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[52rem] border-collapse text-sm">
-                <thead className="bg-surface-subtle text-ink-muted">
-                  <tr>
-                    <th className="w-12 px-3 py-3 text-start"><span className="sr-only">Select</span></th>
-                    <th className="px-3 py-3 text-start font-semibold">Title</th>
-                    <th className="px-3 py-3 text-start font-semibold">ATS Score</th>
-                    <th className="px-3 py-3 text-start font-semibold">Company</th>
-                    <th className="px-3 py-3 text-start font-semibold">Duration</th>
-                    <th className="px-3 py-3 text-start font-semibold">Date &amp; Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr key={row.id} className="border-b border-border">
-                      <td className="px-3 py-3"><FileText aria-hidden="true" className="size-4 text-muted" /></td>
-                      <td className="px-3 py-3 font-medium">{row.title}</td>
-                      <td className="px-3 py-3"><span className="rounded-pill bg-positive-surface px-2.5 py-1 text-xs font-bold text-positive">{row.atsScore}</span></td>
-                      <td className="px-3 py-3">{row.company}</td>
-                      <td className="px-3 py-3">{row.duration}</td>
-                      <td className="px-3 py-3">{row.createdAtLabel}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex items-center gap-6 text-sm font-medium">
-              <p>Showing items 1 - 10 of 146</p>
-              <div className="flex items-center gap-4">
-                <ChevronRight aria-hidden="true" className="size-4 rotate-180 text-muted" />
-                <span>1</span>
-                <ChevronRight aria-hidden="true" className="size-4" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <DataTable
+          title="Past Resumes"
+          searchLabel="Search past resumes"
+          action={{ label: 'Create New', href: createHref }}
+          rows={rows}
+          itemLabel={(row) => row.title}
+          columns={[
+            { key: 'title', label: 'Title', className: 'w-[18rem]', render: (row) => <span className="font-medium">{row.title}</span> },
+            {
+              key: 'ats-score',
+              label: 'ATS Score',
+              className: 'w-[9rem]',
+              render: (row) => <span className="rounded-pill bg-positive-surface px-2.5 py-0.5 text-xs font-bold leading-4 text-positive">{row.atsScore}</span>,
+            },
+            { key: 'company', label: 'Company', className: 'w-[13rem]', render: (row) => row.company },
+            { key: 'duration', label: 'Duration', className: 'w-[8rem]', render: (row) => row.duration },
+            { key: 'created-at', label: 'Date & Time', className: 'w-[16rem]', render: (row) => row.createdAtLabel },
+          ]}
+        />
       </section>
     </Workspace>
   )

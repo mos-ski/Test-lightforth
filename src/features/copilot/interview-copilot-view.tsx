@@ -1,8 +1,23 @@
 import type { ReactNode } from 'react'
-import { ArrowLeft, Check, ChevronRight, FileText, Home, MessageSquare, Mic, MonitorUp, Plus, Search, Send, Settings, Sparkles, Upload, X } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Send, Settings, X } from 'lucide-react'
 
 import type { CopilotHistoryRow, CopilotLiveSession, CopilotPermissionStep, CopilotResponseLength, CopilotResponseMode, CopilotSetup } from '@/contracts/copilot.draft'
-import { cn, TextField } from '@/ui'
+import {
+  AiSuggestionAction,
+  cn,
+  DataTable,
+  DocumentDropAction,
+  ExampleResponseCard,
+  FormChoiceGroup,
+  FormField,
+  FormPanel,
+  FormPanelFooter,
+  FormSelectField,
+  FormTextArea,
+  PermissionSteps,
+  ShellBar,
+  SourcePicker,
+} from '@/ui'
 
 export type CopilotUploadViewProps = {
   readonly homeHref: string
@@ -36,6 +51,7 @@ export type CopilotPermissionViewProps = {
 export type CopilotLiveViewProps = {
   readonly completeHref: string
   readonly session: CopilotLiveSession
+  readonly isLoading?: boolean
 }
 
 export type CopilotCompleteViewProps = {
@@ -60,27 +76,13 @@ function CopilotHeader({
   readonly historyHref?: string
 }) {
   return (
-    <header className="flex min-h-14 items-center justify-between border-b border-border bg-surface px-4 text-sm">
-      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-3 font-semibold text-ink">
-        <a href={homeHref} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          <Home aria-hidden="true" className="size-4" />
-          Go Home
-        </a>
-        <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted" />
-        <span className="truncate" aria-current="page">{current}</span>
-      </nav>
-      <div className="flex items-center gap-4">
-        {historyHref ? (
-          <a href={historyHref} className="hidden min-h-11 items-center gap-2 rounded-soft px-2 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
-            <FileText aria-hidden="true" className="size-4" />
-            History
-          </a>
-        ) : null}
-        <a href={homeHref} aria-label="Close interview copilot" className="grid size-11 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          <X aria-hidden="true" className="size-4" />
-        </a>
-      </div>
-    </header>
+    <ShellBar
+      homeHref={homeHref}
+      current={current}
+      closeHref={homeHref}
+      closeLabel="Close interview copilot"
+      secondaryAction={historyHref ? { label: 'History', href: historyHref, iconSrc: '/v3-assets/figma/topnav-history.svg' } : undefined}
+    />
   )
 }
 
@@ -112,31 +114,17 @@ export function CopilotUploadView({ homeHref, configureHref, historyHref }: Copi
       <CopilotHeader homeHref={homeHref} historyHref={historyHref} />
       <section className="px-4 py-8 lg:py-10">
         <PaperShell>
-          <div className="flex min-h-[48rem] flex-col items-center justify-center">
-            <h1 className="text-lg font-semibold">Upload a resume</h1>
-            <div className="mt-4 w-full max-w-lg rounded-panel border border-border bg-surface px-6 py-4 text-center">
-              <div className="mx-auto grid size-10 place-items-center rounded-lg border border-border bg-surface-raised shadow-control">
-                <Upload aria-hidden="true" className="size-5 text-ink-muted" />
-              </div>
-              <p className="mt-3 text-sm text-ink-muted">
-                <a href={configureHref} className="font-semibold text-accent-text underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                  Click to upload
-                </a>{' '}
-                or drag and drop
-              </p>
-              <p className="mt-1 text-xs text-ink-muted">SVG, PNG, JPG or GIF (max. 800x400px)</p>
-            </div>
-            <div className="mt-0 w-full max-w-xs rounded-lg border border-focus bg-surface shadow-panel">
-              <a href={configureHref} className="flex min-h-11 items-center gap-3 px-3 text-sm font-medium text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Upload aria-hidden="true" className="size-4 text-ink-muted" />
-                Upload a Resume
-              </a>
-              <a href={configureHref} className="flex min-h-11 items-center gap-3 px-3 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Sparkles aria-hidden="true" className="size-4 text-accent" />
-                Use Lightforth Resume
-              </a>
-            </div>
-          </div>
+          <SourcePicker
+            title="Upload a resume"
+            actionLabel="Click to upload"
+            idleText="or drag and drop"
+            meta="PDF, DOC, DOCX or TXT"
+            options={[
+              { label: 'Upload a Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-upload.svg' },
+              { label: 'Use Lightforth Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-lightforth.svg', emphasis: 'strong' },
+            ]}
+            historyLink={{ label: 'View copilot history', href: historyHref }}
+          />
         </PaperShell>
       </section>
     </Workspace>
@@ -148,67 +136,42 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
     <Workspace>
       <CopilotHeader homeHref={homeHref} />
       <section className="px-4 py-9">
-        <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
-          <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Configure your interview</h1>
-            <span className="text-sm text-muted">1/3</span>
+        <FormPanel
+          title="Configure your interview"
+          step="1/3"
+          uploadedFile={{ fileName: setup.uploadedFileName, changeHref: uploadHref }}
+          footer={<FormPanelFooter backHref={uploadHref} nextHref={preferencesHref} />}
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+              <FormSelectField
+                id="copilot-interview-type"
+                label="Interview type"
+                defaultValue={setup.interviewType.toLowerCase()}
+                options={[
+                  { label: 'Introductory', value: 'introductory' },
+                  { label: 'Behavioral', value: 'behavioral' },
+                  { label: 'Product case', value: 'product case' },
+                ]}
+              />
+              <FormSelectField
+                id="copilot-difficulty"
+                label="Difficulty"
+                defaultValue={setup.difficulty.toLowerCase()}
+                options={[
+                  { label: 'Easy', value: 'easy' },
+                  { label: 'Medium', value: 'medium' },
+                  { label: 'Hard', value: 'hard' },
+                ]}
+              />
+              <FormField id="copilot-target-role" label="Target Role" defaultValue={setup.targetRole} />
+              <FormField id="copilot-company" label="Company Name" defaultValue={setup.companyName} />
           </div>
-          <div className="mx-auto flex w-[calc(100%-4rem)] items-center justify-between rounded-b-lg bg-accent-subtle px-4 py-1.5 text-xs text-ink-muted">
-            <span className="inline-flex min-w-0 items-center gap-2">
-              <FileText aria-hidden="true" className="size-4 text-danger" />
-              <span className="truncate">{setup.uploadedFileName}</span>
-            </span>
-            <a href={uploadHref} className="font-semibold text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Change</a>
-          </div>
-          <div className="grid gap-4 p-8">
-            <div className="grid gap-6 sm:grid-cols-2">
-              <TextField id="copilot-interview-type" label="Interview type" defaultValue={setup.interviewType} />
-              <TextField id="copilot-difficulty" label="Difficulty" defaultValue={setup.difficulty} />
-              <TextField id="copilot-target-role" label="Target Role" defaultValue={setup.targetRole} />
-              <TextField id="copilot-company" label="Company Name" defaultValue={setup.companyName} />
-            </div>
-            <section className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium">Documents <span className="font-normal text-ink-muted">(optional)</span></h2>
-                <button type="button" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                  <Plus aria-hidden="true" className="size-4" />
-                  Add Documents
-                </button>
-              </div>
-              <div className="rounded-lg border border-dashed border-border bg-surface-subtle px-4 py-6 text-center text-sm text-ink-muted">Add context, notes, or other docs</div>
-            </section>
-            <label className="grid gap-1.5 text-sm font-medium text-ink">
-              Additional context
-              <textarea className="min-h-40 rounded-lg border border-input bg-surface px-3 py-3 text-sm text-ink shadow-control outline-none placeholder:text-muted focus:border-focus focus:ring-2 focus:ring-focus" defaultValue={setup.additionalContext} />
-            </label>
-            <div className="flex justify-end text-sm font-semibold text-accent-text">
-              <Sparkles aria-hidden="true" className="me-1 size-4" />
-              AI Suggestion
-            </div>
-          </div>
-          <FooterActions backHref={uploadHref} nextHref={preferencesHref} nextLabel="Continue" />
-        </form>
+          <DocumentDropAction actionHref="/v3/documents/add" />
+          <FormTextArea id="copilot-additional-context" label="Additional context" defaultValue={setup.additionalContext} />
+          <AiSuggestionAction />
+        </FormPanel>
       </section>
     </Workspace>
-  )
-}
-
-function RadioGroup<T extends string>({ label, values, selected }: { readonly label: string; readonly values: readonly T[]; readonly selected: T }) {
-  return (
-    <section className="grid gap-3">
-      <h2 className="text-xs font-medium text-ink-muted">{label}</h2>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {values.map((value) => (
-          <label key={value} className={cn('flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border-2 px-3 text-sm font-medium focus-within:ring-2 focus-within:ring-focus', value === selected ? 'border-focus bg-accent-subtle text-accent-text' : 'border-border text-ink')}>
-            <input type="radio" name={label} className="sr-only" defaultChecked={value === selected} />
-            <span className={cn('grid size-4 place-items-center rounded-full border-2', value === selected ? 'border-accent' : 'border-muted')}>
-              {value === selected ? <span className="size-2 rounded-full bg-accent" /> : null}
-            </span>
-            {value[0].toUpperCase()}{value.slice(1)}
-          </label>
-        ))}
-      </div>
-    </section>
   )
 }
 
@@ -217,119 +180,205 @@ export function CopilotPreferencesView({ homeHref, configureHref, shareHref, set
     <Workspace>
       <CopilotHeader homeHref={homeHref} />
       <section className="px-4 py-9">
-        <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
-          <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Set Preference</h1>
-            <span className="text-sm text-muted">2/3</span>
-          </div>
-          <div className="grid gap-6 p-8">
-            <RadioGroup<CopilotResponseMode> label="Select Response Type" values={['default', 'headlines', 'coaching']} selected={setup.responseMode} />
-            <blockquote className="rounded-lg border border-border bg-surface-subtle p-4 text-sm leading-7">
+        <FormPanel
+          title="Set Preference"
+          step="2/3"
+          footer={<FormPanelFooter backHref={configureHref} nextHref={shareHref} />}
+        >
+            <FormChoiceGroup<CopilotResponseMode>
+              label="Select Response Type"
+              name="copilot-response-type"
+              options={[
+                { label: 'Default', value: 'default' },
+                { label: 'Headlines', value: 'headlines' },
+                { label: 'Coaching', value: 'coaching' },
+              ]}
+              selected={setup.responseMode}
+            />
+            <ExampleResponseCard helperText="Best for candidates who want a direct, no-frills answer">
               "I redesigned a <strong>vehicle maintenance app</strong> that had low engagement. Led a team to identify pain points, improved UI, and introduced a personalized dashboard. <strong>Engagement increased by 30% in 3 months</strong>, and customer satisfaction improved significantly."
-            </blockquote>
-            <p className="text-xs text-ink-muted">Best for candidates who want a direct, no-frills answer</p>
-            <RadioGroup<CopilotResponseLength> label="Select Response Type" values={['short', 'medium', 'long']} selected={setup.responseLength} />
-          </div>
-          <FooterActions backHref={configureHref} nextHref={shareHref} nextLabel="Continue" />
-        </form>
+            </ExampleResponseCard>
+            <FormChoiceGroup<CopilotResponseLength>
+              label="Select Response Length"
+              name="copilot-response-length"
+              options={[
+                { label: 'Short', value: 'short' },
+                { label: 'Medium', value: 'medium' },
+                { label: 'Long', value: 'long' },
+              ]}
+              selected={setup.responseLength}
+            />
+        </FormPanel>
       </section>
     </Workspace>
   )
 }
 
 export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, previewSrc, actionLabel }: CopilotPermissionViewProps) {
+  const permissionSteps = steps.map((step) => ({
+    ...step,
+    iconSrc: step.id === 'screen' ? '/v3-assets/figma/form-screen.svg' : '/v3-assets/figma/form-mic.svg',
+  }))
+
   return (
     <Workspace>
       <CopilotHeader homeHref={homeHref} />
       <section className="px-4 py-9">
-        <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
-          <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Share your screen</h1>
-            <span className="text-sm text-muted">3/3</span>
-          </div>
-          <div className="grid gap-7 p-8">
-            {steps.map((step, index) => (
-              <section key={step.id} className="grid gap-3">
-                <div className="flex items-center gap-3">
-                  <span className={cn('grid size-8 place-items-center rounded-full text-xs font-bold', step.status === 'complete' ? 'bg-surface-subtle text-positive' : 'bg-accent-subtle text-accent-text')}>
-                    {step.status === 'complete' ? <Check aria-hidden="true" className="size-4" /> : index + 1}
-                  </span>
-                  <span>
-                    <span className="block text-sm font-semibold">{step.title}</span>
-                    <span className="block text-xs text-ink-muted">{step.description}</span>
-                  </span>
-                </div>
-                {previewSrc && step.id === 'screen' ? <img src={previewSrc} alt="" className="h-56 w-full rounded-b-lg object-cover" /> : null}
-                {step.status !== 'complete' ? (
-                  <a href={nextHref} aria-disabled={step.status === 'disabled'} className={cn('inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', step.status === 'disabled' ? 'pointer-events-none bg-muted text-on-accent opacity-40' : 'bg-accent text-on-accent')}>
-                    {step.id === 'screen' ? <MonitorUp aria-hidden="true" className="size-4" /> : <Mic aria-hidden="true" className="size-4" />}
-                    {step.actionLabel}
-                  </a>
-                ) : null}
-              </section>
-            ))}
-            {previewSrc ? (
-              <a href={nextHref} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                {actionLabel}
-                <ChevronRight aria-hidden="true" className="size-4" />
-              </a>
-            ) : null}
-          </div>
-          {!previewSrc ? <FooterActions backHref={backHref} nextHref={nextHref} nextLabel="Continue" /> : null}
-        </form>
+        <FormPanel
+          title="Share your screen"
+          step="3/3"
+          footer={previewSrc ? undefined : <FormPanelFooter backHref={backHref} nextHref={nextHref} />}
+        >
+          <PermissionSteps
+            steps={permissionSteps}
+            actionHref={nextHref}
+            previewSrc={previewSrc ?? undefined}
+            startHref={previewSrc ? nextHref : undefined}
+            startLabel={actionLabel}
+          />
+        </FormPanel>
       </section>
     </Workspace>
   )
 }
 
-export function CopilotLiveView({ completeHref, session }: CopilotLiveViewProps) {
+function CopilotLiveLoadingBar({ className }: { readonly className?: string }) {
+  return <span aria-hidden="true" className={cn('block animate-pulse rounded-lg bg-[var(--lf-live-message)] motion-reduce:animate-none', className)} />
+}
+
+function LiveSignal({ label }: { readonly label: string }) {
   return (
-    <main className="min-h-screen bg-brand-bar text-brand-bar-text">
-      <header className="flex min-h-14 items-center justify-between border-b border-accent px-5">
-        <h1 className="text-sm font-semibold">{session.title}</h1>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-brand-bar-text">{session.timer}</span>
-          <a href={completeHref} className="inline-flex min-h-10 items-center rounded-lg bg-danger px-4 text-sm font-semibold text-on-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">End Session</a>
+    <span className="inline-flex items-end gap-1 text-positive" aria-label={label}>
+      <span aria-hidden="true" className="h-1.5 w-1 rounded-soft bg-positive" />
+      <span aria-hidden="true" className="h-2 w-1 rounded-soft bg-positive" />
+      <span aria-hidden="true" className="h-3 w-1 rounded-soft bg-positive" />
+      <span aria-hidden="true" className="h-4 w-1 rounded-soft bg-positive" />
+    </span>
+  )
+}
+
+function CopilotLiveLoadingView() {
+  return (
+    <main className="min-h-screen bg-[var(--lf-live-workspace)] text-brand-bar-text">
+      <div role="status" aria-label="Loading copilot session" className="sr-only">
+        Loading copilot session
+      </div>
+      <header className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-divider)] bg-[var(--lf-live-header)] px-5 py-3">
+        <CopilotLiveLoadingBar className="h-5 w-56 max-w-[50vw]" />
+        <div className="flex items-center gap-4">
+          <CopilotLiveLoadingBar className="h-5 w-14" />
+          <CopilotLiveLoadingBar className="h-9 w-28" />
         </div>
       </header>
-      <div className="flex items-center justify-between border-b border-accent bg-brand-bar px-5 py-2 text-sm">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-end gap-0.5 text-positive"><span className="h-1 w-1 rounded bg-positive" /><span className="h-2 w-1 rounded bg-positive" /><span className="h-3 w-1 rounded bg-positive" /><span className="h-4 w-1 rounded bg-positive" /></span>
-          <span className="font-medium text-positive">{session.signalLabel}</span>
-          <span className="text-brand-bar-text opacity-80">{session.activityLabel}</span>
-        </div>
-        <span className="inline-flex items-center gap-2"><Settings aria-hidden="true" className="size-4" /> Settings</span>
+      <div className="flex min-h-10 items-center justify-between border-b border-[var(--lf-live-divider)] bg-[var(--lf-live-strip)] px-5">
+        <CopilotLiveLoadingBar className="h-5 w-36" />
+        <CopilotLiveLoadingBar className="h-5 w-24" />
       </div>
-      <section className="grid min-h-[calc(100vh-6.5rem)] gap-3 p-3 xl:grid-cols-[1fr_28rem]">
-        <article className="rounded-panel border border-accent bg-brand-bar p-4">
-          <h2 className="inline-flex items-center gap-2 text-sm font-semibold">
-            Live Response
-            <span className="size-2 rounded-full bg-danger" />
-          </h2>
-          <div className="grid min-h-[70vh] place-items-center text-center text-sm text-brand-bar-text opacity-80">
-            Lightforth will analyze your interview questions and generate target responses in real time.
+      <section className="grid gap-3 overflow-hidden p-3 xl:h-[calc(100vh-6.0625rem)] xl:grid-cols-[minmax(0,1fr)_6px_28.5rem]">
+        <article className="min-h-[38rem] overflow-hidden rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
+          <div className="flex min-h-[57px] items-center border-b border-[var(--lf-live-border)] px-4 py-3">
+            <CopilotLiveLoadingBar className="h-5 w-32" />
+          </div>
+          <div className="grid min-h-[32rem] place-items-center p-5 xl:h-[calc(100vh-12.4375rem)]">
+            <CopilotLiveLoadingBar className="h-16 w-64" />
           </div>
         </article>
-        <aside className="grid gap-3">
-          <section className="overflow-hidden rounded-panel bg-brand-bar shadow-panel">
-            <h2 className="px-5 py-3 text-lg font-medium">Your Interview</h2>
-            <img src={session.screenPreviewSrc} alt="" className="h-72 w-full object-cover" />
+        <div className="hidden h-full bg-[var(--lf-live-divider)] xl:block" />
+        <aside className="grid min-h-[42rem] gap-3 xl:min-h-0 xl:grid-rows-[auto_6px_minmax(0,1fr)]">
+          <section className="overflow-hidden rounded-panel bg-[var(--lf-live-panel)]">
+            <CopilotLiveLoadingBar className="h-[24rem] w-full rounded-none" />
           </section>
-          <section className="flex min-h-80 flex-col rounded-panel border border-accent bg-brand-bar">
-            <h2 className="border-b border-accent px-4 py-3 text-sm font-medium">AI Assistant</h2>
-            <div className="mt-auto grid gap-2 px-4 py-3">
+          <div className="hidden h-1.5 bg-[var(--lf-live-divider)] xl:block" />
+          <section className="grid min-h-0 grid-rows-[auto_1fr_auto] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
+            <div className="border-b border-[var(--lf-live-border)] px-4 py-3">
+              <CopilotLiveLoadingBar className="h-5 w-28" />
+            </div>
+            <div className="mt-auto grid gap-1.5 p-4">
+              {Array.from({ length: 4 }, (_, index) => (
+                <CopilotLiveLoadingBar key={index} className="h-7 w-full rounded-sm" />
+              ))}
+            </div>
+            <div className="border-t border-[var(--lf-live-border)] p-3">
+              <CopilotLiveLoadingBar className="h-11 w-full" />
+            </div>
+          </section>
+        </aside>
+      </section>
+    </main>
+  )
+}
+
+export function CopilotLiveView({ completeHref, session, isLoading = false }: CopilotLiveViewProps) {
+  if (isLoading) {
+    return <CopilotLiveLoadingView />
+  }
+
+  return (
+    <main className="min-h-screen bg-[var(--lf-live-workspace)] text-brand-bar-text">
+      <header className="flex min-h-[57px] flex-wrap items-center justify-between gap-3 border-b border-[var(--lf-live-divider)] bg-[var(--lf-live-header)] px-5 py-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <a href={completeHref} aria-label="Back from live copilot" className="grid size-7 shrink-0 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <ArrowLeft aria-hidden="true" className="size-4" />
+          </a>
+          <h1 className="truncate text-sm font-medium leading-5">{session.title}</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium leading-5 text-ink-muted">{session.timer}</span>
+          <a href={completeHref} className="inline-flex min-h-9 items-center rounded-lg bg-danger px-4 text-sm font-semibold text-on-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">End Session</a>
+        </div>
+      </header>
+      <div className="flex min-h-10 items-center justify-between border-b border-[var(--lf-live-divider)] bg-[var(--lf-live-strip)] px-5">
+        <div className="flex items-center gap-4">
+          <LiveSignal label={session.signalLabel} />
+          <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
+          <span className="text-sm italic leading-5 text-muted">{session.activityLabel}</span>
+        </div>
+        <button type="button" className="hidden min-h-8 items-center gap-3 rounded-soft px-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
+          <Settings aria-hidden="true" className="size-4" />
+          Settings
+        </button>
+      </div>
+      <section className="grid gap-3 overflow-hidden p-3 xl:h-[calc(100vh-6.0625rem)] xl:grid-cols-[minmax(0,1fr)_6px_28.5rem]">
+        <article className="min-h-[38rem] overflow-hidden rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
+          <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
+            <h2 className="inline-flex items-center gap-2 text-sm font-semibold leading-5">
+              Live Response
+              <span className="size-2 rounded-pill bg-danger" />
+            </h2>
+          </div>
+          <div className="grid min-h-[32rem] place-items-center p-5 xl:h-[calc(100vh-12.4375rem)]">
+            <p className="max-w-[16.25rem] text-center text-sm leading-[22.75px] text-muted">
+              Lightforth will analyze your interview questions and generate target responses in real time.
+            </p>
+          </div>
+        </article>
+        <div className="hidden h-full bg-[var(--lf-live-divider)] xl:block" />
+        <aside className="grid min-h-[42rem] gap-3 xl:min-h-0 xl:grid-rows-[auto_6px_minmax(0,1fr)]">
+          <section className="overflow-hidden rounded-panel bg-[var(--lf-live-panel)]">
+            <h2 className="bg-[var(--lf-live-panel-header)] px-5 py-[13px] text-[18.67px] font-medium leading-[37px]">Your Interview</h2>
+            <img src={session.screenPreviewSrc} alt="" className="h-[22.666rem] w-full rounded-b-lg object-cover" />
+          </section>
+          <div className="hidden h-1.5 bg-[var(--lf-live-divider)] xl:block" />
+          <section className="grid min-h-0 grid-rows-[auto_1fr_auto] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
+            <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
+              <h2 className="text-sm font-medium leading-5">AI Assistant</h2>
+              <button type="button" aria-label="Close AI assistant" className="grid size-8 place-items-center rounded-soft text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <X aria-hidden="true" className="size-4" />
+              </button>
+            </div>
+            <div className="flex min-h-0 flex-col justify-end gap-1.5 px-4 pb-2">
               {session.prompts.map((prompt) => (
-                <button key={prompt} type="button" className="inline-flex min-h-8 items-center gap-2 rounded border border-border px-3 text-start text-xs text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                  <Sparkles aria-hidden="true" className="size-3" />
-                  {prompt}
+                <button key={prompt} type="button" className="inline-flex min-h-[27px] items-center gap-1 rounded-[3px] border border-[var(--lf-live-control-border)] px-2.5 py-1 text-start text-[10px] font-medium leading-[15px] text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                  <ChevronRight aria-hidden="true" className="size-2.5" />
+                  <span className="truncate">{prompt}</span>
                 </button>
               ))}
             </div>
-            <label className="border-t border-accent p-3">
+            <label className="border-t border-[var(--lf-live-border)] p-3">
               <span className="sr-only">Ask AI anything</span>
-              <span className="flex min-h-11 items-center gap-2 rounded-lg border border-accent bg-brand-bar px-3">
-                <input className="min-w-0 flex-1 bg-transparent text-sm text-brand-bar-text outline-none placeholder:text-brand-bar-text" placeholder="Ask AI anything..." />
-                <Send aria-hidden="true" className="size-4" />
+              <span className="flex min-h-11 items-center gap-2 rounded-lg border border-[var(--lf-live-border)] bg-[var(--lf-live-header)] px-3 py-2">
+                <input className="min-w-0 flex-1 bg-transparent text-sm text-brand-bar-text outline-none placeholder:text-muted" placeholder="Ask AI anything..." />
+                <Send aria-hidden="true" className="size-4 text-muted" />
               </span>
             </label>
           </section>
@@ -362,54 +411,21 @@ export function CopilotHistoryView({ homeHref, createHref, rows }: CopilotHistor
     <Workspace>
       <CopilotHeader homeHref={homeHref} current="History" />
       <section className="px-4 py-8 lg:px-12 xl:px-24">
-        <article className="mx-auto min-h-[54rem] max-w-7xl bg-surface shadow-panel">
-          <div className="border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Past Copilot Sessions</h1>
-          </div>
-          <div className="p-8">
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-              <label className="relative w-full max-w-sm">
-                <span className="sr-only">Search copilot history</span>
-                <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-                <input className="min-h-11 w-full rounded-lg border border-input bg-surface ps-10 pe-3 text-sm text-ink shadow-control outline-none placeholder:text-muted focus:border-focus focus:ring-2 focus:ring-focus" placeholder="Search" />
-              </label>
-              <a href={createHref} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Plus aria-hidden="true" className="size-4" />
-                Create New
-              </a>
-            </div>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[58rem] border-collapse text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-surface-subtle text-ink-muted">
-                    <th className="w-12 px-3 py-3 text-start font-semibold"><span className="sr-only">Select</span></th>
-                    <th className="px-3 py-3 text-start font-semibold">Title</th>
-                    <th className="px-3 py-3 text-start font-semibold">Where</th>
-                    <th className="px-3 py-3 text-start font-semibold">Company</th>
-                    <th className="px-3 py-3 text-start font-semibold">Duration</th>
-                    <th className="px-3 py-3 text-start font-semibold">Date & Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr key={row.id} className="border-b border-border">
-                      <td className="px-3 py-3"><label className="grid size-11 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus"><span className="sr-only">{`Select ${row.title}`}</span><input type="checkbox" className="size-4 rounded border-input text-accent focus:ring-focus" /></label></td>
-                      <td className="px-3 py-3 font-medium">{row.title}</td>
-                      <td className="px-3 py-3">{row.where}</td>
-                      <td className="px-3 py-3">{row.company}</td>
-                      <td className="px-3 py-3">{row.duration}</td>
-                      <td className="px-3 py-3">{row.dateTime}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex flex-wrap items-center gap-6 text-sm font-medium">
-              <p>Showing items 1 - 10 of 146</p>
-              <div className="inline-flex items-center gap-4"><span aria-hidden="true">&lt;</span><span>1</span><span aria-hidden="true">&gt;</span></div>
-            </div>
-          </div>
-        </article>
+        <DataTable
+          title="Past Copilot Sessions"
+          searchLabel="Search copilot history"
+          action={{ label: 'Create New', href: createHref }}
+          rows={rows}
+          itemLabel={(row) => row.title}
+          className="mx-auto max-w-7xl"
+          columns={[
+            { key: 'title', label: 'Title', className: 'w-[15rem]', render: (row) => <span className="font-medium">{row.title}</span> },
+            { key: 'where', label: 'Where', className: 'w-[10rem]', render: (row) => row.where },
+            { key: 'company', label: 'Company', className: 'w-[13rem]', render: (row) => row.company },
+            { key: 'duration', label: 'Duration', className: 'w-[8rem]', render: (row) => row.duration },
+            { key: 'date-time', label: 'Date & Time', className: 'w-[16rem]', render: (row) => row.dateTime },
+          ]}
+        />
       </section>
     </Workspace>
   )

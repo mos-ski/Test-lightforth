@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react'
 
-import { Button, Divider, TextField } from '@/ui'
+import { FormDividerLabel, FormField, GoogleAuthButton } from '@/ui'
 
 export type SignInViewProps = {
   readonly emailValue: string
@@ -8,17 +8,6 @@ export type SignInViewProps = {
   readonly onSubmit: () => void
   readonly onGoogleSignIn: () => void
   readonly createAccountHref: string
-}
-
-function GoogleMark() {
-  return (
-    <span aria-hidden="true" className="relative block size-6 overflow-hidden">
-      <img className="absolute end-0 top-2.5 h-3 w-3" src="/v3-assets/google-blue.svg" alt="" />
-      <img className="absolute bottom-0 start-1 h-2.5 w-4" src="/v3-assets/google-green.svg" alt="" />
-      <img className="absolute start-0 top-1.5 h-3 w-1.5" src="/v3-assets/google-yellow.svg" alt="" />
-      <img className="absolute start-1 top-0 h-2.5 w-4" src="/v3-assets/google-red.svg" alt="" />
-    </span>
-  )
 }
 
 export function SignInView({ emailValue, passwordValue, onSubmit, onGoogleSignIn, createAccountHref }: SignInViewProps) {
@@ -39,23 +28,16 @@ export function SignInView({ emailValue, passwordValue, onSubmit, onGoogleSignIn
           <div className="mx-auto mt-12 flex w-full max-w-md flex-1 flex-col items-center">
             <h1 className="text-center text-2xl font-semibold leading-tight text-brand-bar-text">Log in to your Lightforth account</h1>
 
-            <form
-              onSubmit={handleSubmit}
-              className="mt-10 grid w-full gap-6 border border-input bg-surface p-8 shadow-panel"
-            >
-              <Button variant="secondary" onClick={onGoogleSignIn} leadingIcon={<GoogleMark />}>
-                Sign in with Google
-              </Button>
+            <form onSubmit={handleSubmit} className="mt-10 grid w-full gap-6 border border-border bg-surface p-8 shadow-panel">
+              <GoogleAuthButton onClick={onGoogleSignIn} />
 
-              <div className="flex items-center gap-3">
-                <Divider />
-                <span className="text-sm font-medium text-ink">OR</span>
-                <Divider />
-              </div>
+              <FormDividerLabel>OR</FormDividerLabel>
 
-              <TextField id="v3-auth-email" label="Email" type="email" value={emailValue} readOnly />
-              <TextField id="v3-auth-password" label="Password" type="password" value={passwordValue} readOnly />
-              <Button type="submit">Sign In</Button>
+              <FormField id="v3-auth-email" label="Email" type="email" value={emailValue} readOnly />
+              <FormField id="v3-auth-password" label="Password" type="password" value={passwordValue} readOnly />
+              <button type="submit" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                Sign In
+              </button>
             </form>
 
             <p className="mt-7 flex flex-wrap items-center justify-center gap-1 text-base font-medium text-ink-muted">

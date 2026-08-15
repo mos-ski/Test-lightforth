@@ -16,6 +16,7 @@ describe('v3 web auth flow', () => {
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/v3/auth/sign-in')
     expect(screen.getByRole('link', { name: 'Choose a plan' })).toHaveAttribute('href', '/v3/auth/choose-plan')
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('href', '/v3/app')
+    expect(screen.getByRole('link', { name: 'Documents' })).toHaveAttribute('href', '/v3/documents')
   })
 
   it('renders the sign-in screen with accessible auth controls', () => {
@@ -66,6 +67,7 @@ describe('v3 web auth flow', () => {
     expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Dashboard/ })).toHaveAttribute('href', '/v3/app')
     expect(screen.getByRole('link', { name: /Tailor my Resume/ })).toHaveAttribute('href', '/v3/resume')
+    expect(screen.getByRole('link', { name: /Tailor my Resume/ })).toHaveAttribute('data-variant', 'rest')
     expect(screen.getByRole('link', { name: /Practice For Interview/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Start Interview Copilot/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Apply for Jobs/ })).toBeInTheDocument()
@@ -75,12 +77,92 @@ describe('v3 web auth flow', () => {
     expect(screen.getByRole('link', { name: 'Install Mobile' })).toBeInTheDocument()
   })
 
+  it('renders reviewable loading states for core live surfaces', () => {
+    const loadingRoutes = [
+      { route: '/v3/app?state=loading', name: 'Loading dashboard' },
+      { route: '/v3/interview-prep/session?state=loading', name: 'Loading live interview session' },
+      { route: '/v3/interview-copilot/session?state=loading', name: 'Loading copilot session' },
+      { route: '/v3/interview-prep/report?state=loading', name: 'Loading interview report' },
+    ] as const
+
+    for (const item of loadingRoutes) {
+      const { unmount } = render(
+        <MemoryRouter initialEntries={[item.route]}>
+          <WebRoutes />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('status', { name: item.name })).toBeInTheDocument()
+      unmount()
+    }
+  })
+
+  it('renders dashboard nav dropdown and credit notification states from URL params', () => {
+    const cases = [
+      { route: '/v3/app?dropdown=help', name: 'Whats new?' },
+      { route: '/v3/app?dropdown=credits', name: 'Remaining Credits' },
+      { route: '/v3/app?credit=empty', name: '0 credits remaining today' },
+      { route: '/v3/app?credit=low', name: '5 More credits left!' },
+    ] as const
+
+    for (const item of cases) {
+      const { unmount } = render(
+        <MemoryRouter initialEntries={[item.route]}>
+          <WebRoutes />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByText(item.name)).toBeInTheDocument()
+      unmount()
+    }
+  })
+
+  it('renders the documents context table route', () => {
+    render(
+      <MemoryRouter initialEntries={['/v3/documents']}>
+        <WebRoutes />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('heading', { name: 'Add Context' })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Search')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Add Document' })).toHaveAttribute('href', '/v3/documents/add')
+    expect(screen.getAllByText('Darnell_Smith_Resume.pdf')).toHaveLength(6)
+  })
+
+  it('renders the document add and manual context form routes', () => {
+    const cases = [
+      {
+        route: '/v3/documents/add',
+        heading: 'Add Documents',
+        text: 'Input Manually',
+      },
+      {
+        route: '/v3/documents/manual',
+        heading: 'Input Context Manually',
+        text: 'Paste context',
+      },
+    ] as const
+
+    for (const item of cases) {
+      const { unmount } = render(
+        <MemoryRouter initialEntries={[item.route]}>
+          <WebRoutes />
+        </MemoryRouter>,
+      )
+
+      expect(screen.getByRole('heading', { name: item.heading })).toBeInTheDocument()
+      expect(screen.getByText(item.text)).toBeInTheDocument()
+      unmount()
+    }
+  })
+
   it('renders the resume builder upload, configure, editor, and history states', () => {
     const cases = [
       {
         route: '/v3/resume',
         heading: 'Upload a resume',
-        text: 'Use Lightforth Resume',
+        text: 'Click to upload',
       },
       {
         route: '/v3/resume/configure',
@@ -132,7 +214,7 @@ describe('v3 web auth flow', () => {
       {
         route: '/v3/interview-prep',
         heading: 'Upload a resume',
-        text: 'Use Lightforth Resume',
+        text: 'Click to upload',
       },
       {
         route: '/v3/interview-prep/configure',
@@ -189,7 +271,7 @@ describe('v3 web auth flow', () => {
       {
         route: '/v3/interview-copilot',
         heading: 'Upload a resume',
-        text: 'Use Lightforth Resume',
+        text: 'Click to upload',
       },
       {
         route: '/v3/interview-copilot/configure',
@@ -246,7 +328,7 @@ describe('v3 web auth flow', () => {
       {
         route: '/v3/auto-apply',
         heading: 'Upload a resume',
-        text: 'Use Lightforth Resume',
+        text: 'Click to upload',
       },
       {
         route: '/v3/auto-apply/contact',
@@ -301,5 +383,25 @@ describe('v3 web auth flow', () => {
       expect(screen.getByText(item.text)).toBeInTheDocument()
       unmount()
     }
+  })
+
+  it('opens upload source choices only after the upload target is clicked', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter initialEntries={['/v3/resume']}>
+        <WebRoutes />
+      </MemoryRouter>,
+    )
+
+    const uploadTarget = screen.getByRole('button', { name: /Click to upload/ })
+
+    expect(screen.queryByRole('link', { name: 'Upload a Resume' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Use Lightforth Resume' })).not.toBeInTheDocument()
+
+    await user.click(uploadTarget)
+
+    expect(screen.getByRole('link', { name: 'Upload a Resume' })).toHaveAttribute('href', '/v3/resume/configure')
+    expect(screen.getByRole('link', { name: 'Use Lightforth Resume' })).toHaveAttribute('href', '/v3/resume/configure')
   })
 })

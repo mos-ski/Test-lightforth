@@ -51,7 +51,7 @@ export const copilotLiveSession: CopilotLiveSession = {
   timer: '00:04',
   signalLabel: 'Strong',
   activityLabel: 'Idle...',
-  screenPreviewSrc: '/v3-assets/copilot-live-preview.png',
+  screenPreviewSrc: '/v3-assets/figma/copilot-live-interview-preview.png',
   prompts: [
     'Summarize the discussion so far',
     'How well am I doing so far?',

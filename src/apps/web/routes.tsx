@@ -10,6 +10,7 @@ import { AutoApplyJobsPage } from './pages/auto-apply-jobs-page'
 import { AutoApplyPreferencesPage } from './pages/auto-apply-preferences-page'
 import { AutoApplyReviewPage } from './pages/auto-apply-review-page'
 import { AutoApplyUploadPage } from './pages/auto-apply-upload-page'
+import { BillingPage } from './pages/billing-page'
 import { CopilotCompletePage } from './pages/copilot-complete-page'
 import { CopilotConfigurePage } from './pages/copilot-configure-page'
 import { CopilotHistoryPage } from './pages/copilot-history-page'
@@ -19,6 +20,10 @@ import { CopilotSessionPage } from './pages/copilot-session-page'
 import { CopilotShareScreenPage } from './pages/copilot-share-screen-page'
 import { CopilotUploadPage } from './pages/copilot-upload-page'
 import { DashboardPage } from './pages/dashboard-page'
+import { DocumentsAddPage } from './pages/documents-add-page'
+import { DocumentsManualPage } from './pages/documents-manual-page'
+import { DocumentsPage } from './pages/documents-page'
+import { DownloadsPage } from './pages/downloads-page'
 import { InterviewCompletePage } from './pages/interview-complete-page'
 import { InterviewConfigurePage } from './pages/interview-configure-page'
 import { InterviewHistoryPage } from './pages/interview-history-page'
@@ -32,6 +37,7 @@ import { ResumeEditorPage } from './pages/resume-editor-page'
 import { ResumeHistoryPage } from './pages/resume-history-page'
 import { ResumeUploadPage } from './pages/resume-upload-page'
 import { RouteIndexPage } from './pages/route-index-page'
+import { SettingsPage } from './pages/settings-page'
 
 export function WebRoutes() {
   const { pathname } = useLocation()
@@ -51,6 +57,30 @@ export function WebRoutes() {
 
   if (routePath === '/resume') {
     return <ResumeUploadPage />
+  }
+
+  if (routePath === '/documents/add') {
+    return <DocumentsAddPage />
+  }
+
+  if (routePath === '/documents/manual') {
+    return <DocumentsManualPage />
+  }
+
+  if (routePath === '/documents') {
+    return <DocumentsPage />
+  }
+
+  if (routePath === '/downloads') {
+    return <DownloadsPage />
+  }
+
+  if (routePath === '/billing') {
+    return <BillingPage />
+  }
+
+  if (routePath === '/settings') {
+    return <SettingsPage />
   }
 
   if (routePath === '/resume/configure') {

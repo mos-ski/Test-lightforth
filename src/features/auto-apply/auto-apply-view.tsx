@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
-import { ArrowLeft, BriefcaseBusiness, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Home, LinkIcon, Play, Search, Sparkles, Upload, X } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, LinkIcon, Play, Search, X } from 'lucide-react'
 
 import type { AutoApplyActivity, AutoApplyAgentStatus, AutoApplyApplication, AutoApplyJob, AutoApplyMetric, AutoApplySetup } from '@/contracts/auto-apply.draft'
-import { cn, TextField } from '@/ui'
+import { cn, FormField, FormPanel, FormPanelFooter, FormTextArea, ReviewSummaryList, ShellBar, SourcePicker } from '@/ui'
 
 export type AutoApplyUploadViewProps = {
   readonly homeHref: string
@@ -68,27 +68,13 @@ const tabs = [
 
 function Header({ homeHref, current = 'Auto Apply', actionHref }: { readonly homeHref: string; readonly current?: string; readonly actionHref?: string }) {
   return (
-    <header className="flex min-h-14 items-center justify-between border-b border-border bg-surface px-4 text-sm">
-      <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-3 font-semibold text-ink">
-        <a href={homeHref} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          <Home aria-hidden="true" className="size-4" />
-          Go Home
-        </a>
-        <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-muted" />
-        <span className="truncate" aria-current="page">{current}</span>
-      </nav>
-      <div className="flex items-center gap-4">
-        {actionHref ? (
-          <a href={actionHref} className="hidden min-h-11 items-center gap-2 rounded-soft px-2 font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
-            <BriefcaseBusiness aria-hidden="true" className="size-4" />
-            Update Preference
-          </a>
-        ) : null}
-        <a href={homeHref} aria-label="Close auto apply" className="grid size-11 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          <X aria-hidden="true" className="size-4" />
-        </a>
-      </div>
-    </header>
+    <ShellBar
+      homeHref={homeHref}
+      current={current}
+      closeHref={homeHref}
+      closeLabel="Close auto apply"
+      secondaryAction={actionHref ? { label: 'Update Preference', href: actionHref, iconSrc: '/v3-assets/figma/sidebar-briefcase.svg' } : undefined}
+    />
   )
 }
 
@@ -98,32 +84,6 @@ function Workspace({ children }: { readonly children: ReactNode }) {
 
 function PaperShell({ children }: { readonly children: ReactNode }) {
   return <article className="mx-auto min-h-[56rem] w-full max-w-[44rem] bg-surface p-8 shadow-panel">{children}</article>
-}
-
-function FileChip({ fileName, href }: { readonly fileName: string; readonly href: string }) {
-  return (
-    <div className="mx-auto flex w-[calc(100%-4rem)] items-center justify-between rounded-b-lg bg-accent-subtle px-4 py-1.5 text-xs text-ink-muted">
-      <span className="inline-flex min-w-0 items-center gap-2">
-        <FileText aria-hidden="true" className="size-4 text-danger" />
-        <span className="truncate">{fileName}</span>
-      </span>
-      <a href={href} className="font-semibold text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Change</a>
-    </div>
-  )
-}
-
-function FooterActions({ backHref, nextHref, nextLabel }: { readonly backHref: string; readonly nextHref: string; readonly nextLabel: string }) {
-  return (
-    <div className="flex items-center justify-between border-t border-border px-6 py-4">
-      <a href={backHref} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-        <ArrowLeft aria-hidden="true" className="size-4" />
-        Back
-      </a>
-      <a href={nextHref} className="inline-flex min-h-11 min-w-36 items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-        {nextLabel}
-      </a>
-    </div>
-  )
 }
 
 function Tag({ children }: { readonly children: ReactNode }) {
@@ -136,34 +96,17 @@ export function AutoApplyUploadView({ homeHref, contactHref, agentHref }: AutoAp
       <Header homeHref={homeHref} />
       <section className="px-4 py-8 lg:py-10">
         <PaperShell>
-          <div className="flex min-h-[48rem] flex-col items-center justify-center">
-            <h1 className="text-lg font-semibold">Upload a resume</h1>
-            <div className="mt-4 w-full max-w-lg rounded-panel border border-border bg-surface px-6 py-4 text-center">
-              <div className="mx-auto grid size-10 place-items-center rounded-lg border border-border bg-surface-raised shadow-control">
-                <Upload aria-hidden="true" className="size-5 text-ink-muted" />
-              </div>
-              <p className="mt-3 text-sm text-ink-muted">
-                <a href={contactHref} className="font-semibold text-accent-text underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                  Click to upload
-                </a>{' '}
-                or drag and drop
-              </p>
-              <p className="mt-1 text-xs text-ink-muted">SVG, PNG, JPG or GIF (max. 800x400px)</p>
-            </div>
-            <div className="mt-0 w-full max-w-xs rounded-lg border border-focus bg-surface shadow-panel">
-              <a href={contactHref} className="flex min-h-11 items-center gap-3 px-3 text-sm font-medium text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Upload aria-hidden="true" className="size-4 text-ink-muted" />
-                Upload a Resume
-              </a>
-              <a href={contactHref} className="flex min-h-11 items-center gap-3 px-3 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Sparkles aria-hidden="true" className="size-4 text-accent" />
-                Use Lightforth Resume
-              </a>
-            </div>
-            <a href={agentHref} className="mt-6 text-sm font-semibold text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              Continue to saved agent
-            </a>
-          </div>
+          <SourcePicker
+            title="Upload a resume"
+            actionLabel="Click to upload"
+            idleText="or drag and drop"
+            meta="PDF, DOC, DOCX or TXT"
+            options={[
+              { label: 'Upload a Resume', href: contactHref, iconSrc: '/v3-assets/figma/upload-option-upload.svg' },
+              { label: 'Use Lightforth Resume', href: contactHref, iconSrc: '/v3-assets/figma/upload-option-lightforth.svg', emphasis: 'strong' },
+            ]}
+            historyLink={{ label: 'Continue to saved agent', href: agentHref }}
+          />
         </PaperShell>
       </section>
     </Workspace>
@@ -181,67 +124,46 @@ export function AutoApplySetupStepView({ homeHref, backHref, nextHref, setup, st
     <Workspace>
       <Header homeHref={homeHref} />
       <section className="px-4 py-9">
-        <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
-          <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">{copy.title}</h1>
-            <span className="text-sm text-muted">{copy.count}</span>
-          </div>
-          {step === 'contact' ? <FileChip fileName={setup.uploadedFileName} href={backHref} /> : null}
-          <div className="grid gap-4 p-8">
+        <FormPanel
+          title={copy.title}
+          step={copy.count}
+          uploadedFile={step === 'contact' ? { fileName: setup.uploadedFileName, changeHref: backHref } : undefined}
+          footer={<FormPanelFooter backHref={backHref} nextHref={nextHref} />}
+        >
             {step === 'contact' ? (
-              <div className="grid gap-6 sm:grid-cols-2">
-                <TextField id="auto-name" label="Full name" defaultValue={setup.fullName} />
-                <TextField id="auto-email" label="Email" defaultValue={setup.email} />
-                <TextField id="auto-phone" label="Phone" defaultValue={setup.phone} />
-                <TextField id="auto-location" label="Location" defaultValue={setup.location} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <FormField id="auto-name" label="Full name" defaultValue={setup.fullName} />
+                <FormField id="auto-email" label="Email" defaultValue={setup.email} />
+                <FormField id="auto-phone" label="Phone" defaultValue={setup.phone} />
+                <FormField id="auto-location" label="Location" defaultValue={setup.location} />
                 <div className="sm:col-span-2">
-                  <TextField id="auto-linkedin" label="LinkedIn profile" defaultValue={setup.linkedInUrl} />
+                  <FormField id="auto-linkedin" label="LinkedIn profile" defaultValue={setup.linkedInUrl} />
                 </div>
               </div>
             ) : null}
             {step === 'preferences' ? (
               <>
-                <TextField id="auto-role" label="Target Role" defaultValue={setup.targetRoles.join(', ')} />
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <TextField id="auto-seniority" label="Seniority" defaultValue={setup.seniority} />
-                  <TextField id="auto-salary" label="Salary range" defaultValue={setup.salaryRange} />
-                  <TextField id="auto-job-type" label="Job Type" defaultValue={setup.jobTypes.join(', ')} />
-                  <TextField id="auto-work-mode" label="Work mode" defaultValue={setup.workModes.join(', ')} />
+                <FormField id="auto-role" label="Target Role" defaultValue={setup.targetRoles.join(', ')} />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <FormField id="auto-seniority" label="Seniority" defaultValue={setup.seniority} />
+                  <FormField id="auto-salary" label="Salary range" defaultValue={setup.salaryRange} />
+                  <FormField id="auto-job-type" label="Job Type" defaultValue={setup.jobTypes.join(', ')} />
+                  <FormField id="auto-work-mode" label="Work mode" defaultValue={setup.workModes.join(', ')} />
                 </div>
               </>
             ) : null}
             {step === 'additional' ? (
               <>
-                <TextField id="auto-work-authorization" label="Work authorization" defaultValue={setup.workAuthorization} />
-                <TextField id="auto-start-timeline" label="Start timeline" defaultValue={setup.startTimeline} />
-                <label className="grid gap-1.5 text-sm font-medium text-ink">
-                  Additional notes
-                  <textarea className="min-h-40 rounded-lg border border-input bg-surface px-3 py-3 text-sm text-ink shadow-control outline-none placeholder:text-muted focus:border-focus focus:ring-2 focus:ring-focus" defaultValue={setup.additionalNotes} />
-                </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <FormField id="auto-work-authorization" label="Work authorization" defaultValue={setup.workAuthorization} />
+                  <FormField id="auto-start-timeline" label="Start timeline" defaultValue={setup.startTimeline} />
+                </div>
+                <FormTextArea id="auto-additional-notes" label="Additional notes" defaultValue={setup.additionalNotes} />
               </>
             ) : null}
-          </div>
-          <FooterActions backHref={backHref} nextHref={nextHref} nextLabel="Continue" />
-        </form>
+        </FormPanel>
       </section>
     </Workspace>
-  )
-}
-
-function ReviewRow({ title, value }: { readonly title: string; readonly value: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between rounded-xl bg-surface-raised p-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="grid size-8 place-items-center rounded-lg bg-accent-subtle text-accent-text">
-          <FileText aria-hidden="true" className="size-4" />
-        </div>
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold uppercase text-ink">{title}</h2>
-          <div className="mt-0.5 truncate text-sm text-ink-muted">{value}</div>
-        </div>
-      </div>
-      <ChevronRight aria-hidden="true" className="size-5 text-ink-muted" />
-    </div>
   )
 }
 
@@ -250,26 +172,20 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
     <Workspace>
       <Header homeHref={homeHref} actionHref={contactHref} />
       <section className="px-4 py-9">
-        <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
-          <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Review Job Preference</h1>
-            <span className="text-sm text-muted">4/4</span>
-          </div>
-          <div className="grid gap-3 p-8">
-            <ReviewRow title="Resume" value={setup.uploadedFileName} />
-            <ReviewRow title="Contact Information" value={`${setup.fullName} - ${setup.email} - ${setup.location}`} />
-            <ReviewRow
-              title="Job Preferences"
-              value={
-                <span>
-                  {setup.targetRoles[0]}, {setup.seniority} - {setup.salaryRange}
-                </span>
-              }
-            />
-            <ReviewRow title="Additional Info" value={`${setup.startTimeline} - ${setup.jobTypes[0]}`} />
-          </div>
-          <FooterActions backHref={additionalHref} nextHref={agentHref} nextLabel="Save & Continue" />
-        </form>
+        <FormPanel
+          title="Review Job Preference"
+          step="4/4"
+          footer={<FormPanelFooter backHref={additionalHref} nextHref={agentHref} nextLabel="Save & Continue" />}
+        >
+          <ReviewSummaryList
+            rows={[
+              { id: 'resume', title: 'Resume', value: setup.uploadedFileName, iconSrc: '/v3-assets/figma/form-review-resume.svg', href: contactHref },
+              { id: 'contact', title: 'Contact Information', value: `${setup.fullName} - ${setup.email} - ${setup.location}`, iconSrc: '/v3-assets/figma/form-review-contact.svg', href: contactHref },
+              { id: 'preferences', title: 'Job Preferences', value: `${setup.targetRoles[0]}, ${setup.seniority} - ${setup.salaryRange}`, iconSrc: '/v3-assets/figma/form-review-briefcase.svg', href: '/v3/auto-apply/preferences' },
+              { id: 'additional', title: 'Additional Info', value: `${setup.startTimeline} - ${setup.jobTypes[0]}`, iconSrc: '/v3-assets/figma/form-review-info.svg', href: additionalHref },
+            ]}
+          />
+        </FormPanel>
       </section>
     </Workspace>
   )
@@ -387,17 +303,24 @@ export function AutoApplyAgentView({ homeHref, setupHref, agentHref, jobsHref, a
 
 function JobList({ jobs, selectedJob, getJobHref }: { readonly jobs: readonly AutoApplyJob[]; readonly selectedJob?: AutoApplyJob; readonly getJobHref: (job: AutoApplyJob) => string }) {
   return (
-    <div className="grid gap-2 pt-3">
+    <div className="grid gap-7 pt-7">
       {jobs.map((job) => (
         <a
           key={job.id}
           href={getJobHref(job)}
           className={cn(
-            'flex min-h-20 items-center gap-3 rounded-xl border px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-            selectedJob?.id === job.id ? 'border-focus bg-accent-subtle' : 'border-transparent bg-surface',
+            'flex min-h-12 items-center gap-5 px-5 py-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+            selectedJob?.id === job.id ? 'bg-surface' : 'bg-surface',
           )}
         >
-          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent-subtle text-xs font-bold text-accent-text">{job.company.slice(0, 2).toUpperCase()}</span>
+          <span
+            className={cn(
+              'grid size-10 shrink-0 place-items-center rounded-lg text-sm font-bold',
+              job.company.toLowerCase().includes('stripe') ? 'bg-accent-subtle text-accent-text' : 'bg-danger-surface text-danger',
+            )}
+          >
+            {job.company.slice(0, 2).toUpperCase()}
+          </span>
           <span className="min-w-0 flex-1">
             <span className="flex flex-wrap items-center gap-2">
               <span className="font-semibold text-ink">{job.title}</span>
@@ -410,7 +333,11 @@ function JobList({ jobs, selectedJob, getJobHref }: { readonly jobs: readonly Au
               {job.dateLabel} - {job.source}
             </span>
           </span>
-          {job.status === 'applied' ? <span className="text-sm font-semibold text-positive">Applied</span> : <span className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-on-accent">Apply</span>}
+          {job.status === 'applied' ? (
+            <span className="rounded-lg bg-accent-subtle px-4 py-2 text-base font-medium text-accent-text">Applied</span>
+          ) : (
+            <span className="rounded-lg bg-accent px-4 py-2 text-base font-medium text-on-accent">Apply</span>
+          )}
         </a>
       ))}
     </div>
