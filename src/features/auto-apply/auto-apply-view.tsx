@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react'
-import { ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, RefreshCw, Search, Send, X, Zap } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, RefreshCw, Search, Send, X, Zap, Trash2, Download, Mail } from 'lucide-react'
 
 import type { AutoApplyApplication, AutoApplyJob, AutoApplySetup } from '@/contracts/auto-apply.draft'
 import {
@@ -649,50 +649,121 @@ function JobList({
   jobs,
   selectedJob,
   onSelectJob,
+  selectedIds,
+  onSelectionChange,
 }: {
   readonly jobs: readonly AutoApplyJob[]
   readonly selectedJob?: AutoApplyJob
   readonly onSelectJob: (job: AutoApplyJob) => void
+  readonly selectedIds?: ReadonlySet<string>
+  readonly onSelectionChange?: (ids: ReadonlySet<string>) => void
 }) {
+  const [internalSelected, setInternalSelected] = useState<ReadonlySet<string>>(new Set())
+  const selected = selectedIds ?? internalSelected
+  const setSelected = onSelectionChange ?? setInternalSelected
+
+  function toggleRow(id: string) {
+    const next = new Set(selected)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setSelected(next)
+  }
+
+  function toggleAll() {
+    if (selected.size === jobs.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(jobs.map((j) => j.id)))
+    }
+  }
+
   return (
-    <div className="grid gap-1 pt-5">
-      {jobs.map((job) => (
-        <button
-          key={job.id}
-          type="button"
-          onClick={() => onSelectJob(job)}
-          className={cn(
-            'flex w-full items-center gap-5 rounded-lg px-5 py-4 text-left transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-            selectedJob?.id === job.id && 'bg-surface-subtle ring-1 ring-accent',
-          )}
-        >
-          <span
-            className={cn(
-              'grid size-10 shrink-0 place-items-center rounded-lg text-sm font-bold',
-              job.company.toLowerCase().includes('stripe') ? 'bg-accent-subtle text-accent-text' : 'bg-danger-surface text-danger',
-            )}
-          >
-            {job.company.slice(0, 2).toUpperCase()}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold text-ink">{job.title}</span>
-              <span className="rounded px-2 py-0.5 text-[10px] font-bold text-positive bg-positive-surface">{job.matchPercent}% MATCH</span>
-            </span>
-            <span className="mt-1 block text-xs text-ink-muted">
-              {job.company} - {job.location} - {job.type}
-            </span>
-            <span className="mt-1 block text-xs text-ink-muted">
-              {job.dateLabel} - {job.source}
-            </span>
-          </span>
-          {job.status === 'applied' ? (
-            <span className="shrink-0 rounded-lg bg-accent-subtle px-4 py-2 text-sm font-medium text-accent-text">Applied</span>
-          ) : (
-            <span className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent">Apply</span>
-          )}
-        </button>
-      ))}
+    <div>
+      <div className="grid gap-1 pt-5">
+        <div className="flex items-center gap-5 border-b border-border px-5 py-3">
+          <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">
+            <span className="sr-only">Select all jobs</span>
+            <input
+              type="checkbox"
+              className="size-3.5 rounded border-input text-accent focus:ring-focus"
+              checked={jobs.length > 0 && selected.size === jobs.length}
+              onChange={toggleAll}
+            />
+          </label>
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Job</span>
+        </div>
+        {jobs.map((job) => {
+          const isSelected = selected.has(job.id)
+          return (
+            <button
+              key={job.id}
+              type="button"
+              onClick={() => onSelectJob(job)}
+              className={cn(
+                'group/row flex w-full items-center gap-5 border-b border-border px-5 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                isSelected ? 'bg-accent/10' : 'hover:bg-surface-subtle',
+              )}
+            >
+              <label
+                className="grid size-7 shrink-0 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="sr-only">{`Select ${job.title}`}</span>
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={isSelected}
+                  onChange={() => toggleRow(job.id)}
+                />
+                {isSelected ? (
+                  <Check aria-hidden="true" className="size-3.5 text-accent" />
+                ) : (
+                  <>
+                    <FileText aria-hidden="true" className="size-3.5 text-ink-muted group-hover/row:hidden" />
+                    <span aria-hidden="true" className="hidden size-3.5 rounded border border-ink-muted group-hover/row:block" />
+                  </>
+                )}
+              </label>
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-ink">{job.title}</span>
+                  <span className="rounded px-2 py-0.5 text-[10px] font-bold text-positive bg-positive-surface">{job.matchPercent}% MATCH</span>
+                </span>
+                <span className="mt-1 block text-xs text-ink-muted">
+                  {job.company} - {job.location} - {job.type}
+                </span>
+                <span className="mt-1 block text-xs text-ink-muted">
+                  {job.dateLabel} - {job.source}
+                </span>
+              </span>
+              {job.status === 'applied' ? (
+                <span className="shrink-0 rounded-lg bg-accent-subtle px-4 py-2 text-sm font-medium text-accent-text">Applied</span>
+              ) : (
+                <span className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent">Apply</span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+      {selected.size > 0 ? (
+        <div className="flex items-center justify-between border-t border-border bg-accent/10 px-6 py-3">
+          <span className="text-sm font-semibold text-ink">{selected.size} job{selected.size > 1 ? 's' : ''} selected</span>
+          <div className="flex items-center gap-3">
+            <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <Download aria-hidden="true" className="size-4" />
+              Export
+            </button>
+            <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <Mail aria-hidden="true" className="size-4" />
+              Email
+            </button>
+            <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-danger bg-danger-surface px-4 text-sm font-medium text-danger transition-colors hover:bg-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <Trash2 aria-hidden="true" className="size-4" />
+              Delete
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
