@@ -264,9 +264,14 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                               checked={isSelected}
                               onChange={() => toggleRow(row.id)}
                             />
-                            <Check aria-hidden="true" className={cn('size-3.5 text-accent', isSelected ? 'block' : 'hidden')} />
-                            <span aria-hidden="true" className={cn('size-3.5 rounded border border-ink-muted group-hover/row:block', isSelected ? 'hidden' : 'block group-hover/row:hidden')} />
-                            <FileText aria-hidden="true" className={cn('size-3.5 text-ink-muted', isSelected ? 'hidden' : 'block group-hover/row:hidden')} />
+                            {isSelected ? (
+                              <Check aria-hidden="true" className="size-3.5 text-accent" />
+                            ) : (
+                              <>
+                                <FileText aria-hidden="true" className="size-3.5 text-ink-muted group-hover/row:hidden" />
+                                <span aria-hidden="true" className="hidden size-3.5 rounded border border-ink-muted group-hover/row:block" />
+                              </>
+                            )}
                           </label>
                         </td>
                       {columns.map((column) => (
