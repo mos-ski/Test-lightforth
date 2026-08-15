@@ -9,8 +9,14 @@ export type ShellBarAction = {
   readonly icon?: ReactNode
 }
 
+export type ShellBarCrumb = {
+  readonly label: string
+  readonly href: string
+}
+
 export type ShellBarProps = {
   readonly homeHref: string
+  readonly parent?: ShellBarCrumb
   readonly current: string
   readonly closeHref?: string
   readonly closeLabel?: string
@@ -21,7 +27,7 @@ export type ShellBarProps = {
 }
 
 export const ShellBar = forwardRef<HTMLElement, ShellBarProps>(
-  function ShellBar({ homeHref, current, closeHref, closeLabel = 'Close', action, secondaryAction, className, children, ...props }, ref) {
+  function ShellBar({ homeHref, parent, current, closeHref, closeLabel = 'Close', action, secondaryAction, className, children, ...props }, ref) {
     return (
       <header
         ref={ref}
@@ -34,6 +40,14 @@ export const ShellBar = forwardRef<HTMLElement, ShellBarProps>(
             <Home aria-hidden="true" className="size-5" />
             Go Home
           </a>
+          {parent ? (
+            <>
+              <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+              <a href={parent.href} className="shrink-0 truncate rounded-soft text-base font-semibold text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus hover:underline">
+                {parent.label}
+              </a>
+            </>
+          ) : null}
           <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
           <span className="truncate text-base font-semibold text-ink" aria-current="page">
             {current}

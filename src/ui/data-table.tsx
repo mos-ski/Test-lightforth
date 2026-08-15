@@ -1,5 +1,5 @@
-import { forwardRef, useState, type ReactNode } from 'react'
-import { Search, Plus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileText, ArrowUpDown } from 'lucide-react'
+import { forwardRef, useMemo, useState, type ReactNode } from 'react'
+import { Search, Plus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileText, ArrowUpDown, Check } from 'lucide-react'
 
 import { cn } from './cn'
 
@@ -11,6 +11,7 @@ export type DataTableColumn<TRow> = {
   readonly className?: string
   readonly headerClassName?: string
   readonly sortable?: boolean
+  readonly sortValue?: (row: TRow) => string | number
   readonly render: (row: TRow) => ReactNode
 }
 
@@ -37,14 +38,22 @@ export type DataTableProps<TRow extends { readonly id: string }> = {
   readonly columns: readonly DataTableColumn<TRow>[]
   readonly rows: readonly TRow[]
   readonly itemLabel: (row: TRow) => string
+  readonly filterRow?: (row: TRow, query: string) => boolean
   readonly sortColumn?: string
   readonly sortDirection?: DataTableSortDirection
   readonly onSort?: (column: string) => void
+  readonly selectedIds?: ReadonlySet<string>
+  readonly onSelectionChange?: (ids: ReadonlySet<string>) => void
   readonly loading?: boolean
   readonly pagination?: DataTablePagination
   readonly onPageChange?: (page: number) => void
   readonly className?: string
   readonly minTableWidthClassName?: string
+}
+
+function defaultFilterRow<TRow>(row: TRow, query: string): boolean {
+  const lower = query.toLowerCase()
+  return Object.values(row).some((val) => String(val).toLowerCase().includes(lower))
 }
 
 function SkeletonRow({ colSpan }: { readonly colSpan: number }) {
@@ -73,22 +82,78 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
     columns,
     rows,
     itemLabel,
+    filterRow,
     sortColumn,
     sortDirection,
     onSort,
+    selectedIds: controlledSelectedIds,
+    onSelectionChange,
     loading = false,
     pagination,
     onPageChange,
     className,
-    minTableWidthClassName = 'min-w-[72rem]',
+    minTableWidthClassName = 'min-w-[56rem]',
   }: DataTableProps<TRow>, ref) {
     const defaultPageSize = 8
     const [internalPage, setInternalPage] = useState(1)
-    const isSelfPaginated = !pagination && rows.length > defaultPageSize
+    const [internalSearch, setInternalSearch] = useState('')
+    const [internalSortColumn, setInternalSortColumn] = useState<string | null>(null)
+    const [internalSortDirection, setInternalSortDirection] = useState<DataTableSortDirection>('asc')
+    const [internalSelectedIds, setInternalSelectedIds] = useState<ReadonlySet<string>>(new Set())
+
+    const selectedIds = controlledSelectedIds ?? internalSelectedIds
+    const handleSelectionChange = onSelectionChange ?? setInternalSelectedIds
+
+    function toggleRow(id: string) {
+      const next = new Set(selectedIds)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      handleSelectionChange(next)
+    }
+
+    function toggleAll() {
+      if (selectedIds.size === visibleRows.length) {
+        handleSelectionChange(new Set())
+      } else {
+        handleSelectionChange(new Set(visibleRows.map((r) => r.id)))
+      }
+    }
+
+    const effectiveSearch = searchValue ?? internalSearch
+    const handleSearchChange = onSearchChange ?? setInternalSearch
+    const effectiveSortColumn = sortColumn ?? internalSortColumn
+    const effectiveSortDirection = sortDirection ?? internalSortDirection
+    const handleSort = onSort ?? ((column: string) => {
+      if (internalSortColumn === column) {
+        setInternalSortDirection((prev) => prev === 'asc' ? 'desc' : 'asc')
+      } else {
+        setInternalSortColumn(column)
+        setInternalSortDirection('asc')
+      }
+    })
+
+    const filteredRows = useMemo(() => {
+      if (!effectiveSearch) return rows
+      return rows.filter((row) => filterRow ? filterRow(row, effectiveSearch) : defaultFilterRow(row, effectiveSearch))
+    }, [rows, effectiveSearch, filterRow])
+
+    const sortedRows = useMemo(() => {
+      if (!effectiveSortColumn) return filteredRows
+      const column = columns.find((c) => c.key === effectiveSortColumn)
+      if (!column) return filteredRows
+      return [...filteredRows].sort((a, b) => {
+        const aVal = column.sortValue ? column.sortValue(a) : (a as Record<string, unknown>)[effectiveSortColumn]
+        const bVal = column.sortValue ? column.sortValue(b) : (b as Record<string, unknown>)[effectiveSortColumn]
+        const cmp = String(aVal).localeCompare(String(bVal), undefined, { numeric: true })
+        return effectiveSortDirection === 'asc' ? cmp : -cmp
+      })
+    }, [filteredRows, effectiveSortColumn, effectiveSortDirection, columns])
+
+    const isSelfPaginated = !pagination && sortedRows.length > defaultPageSize
     const effectivePagination: DataTablePagination | undefined = pagination ?? (isSelfPaginated
-      ? { page: internalPage, totalPages: Math.ceil(rows.length / defaultPageSize), totalItems: rows.length, pageSize: defaultPageSize }
+      ? { page: internalPage, totalPages: Math.ceil(sortedRows.length / defaultPageSize), totalItems: sortedRows.length, pageSize: defaultPageSize }
       : undefined)
-    const visibleRows = isSelfPaginated ? rows.slice((internalPage - 1) * defaultPageSize, internalPage * defaultPageSize) : rows
+    const visibleRows = isSelfPaginated ? sortedRows.slice((internalPage - 1) * defaultPageSize, internalPage * defaultPageSize) : sortedRows
     const handlePageChange = onPageChange ?? (isSelfPaginated ? setInternalPage : undefined)
 
     return (
@@ -103,8 +168,8 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
               <span className="sr-only">{searchLabel}</span>
               <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted" />
               <input
-                value={searchValue}
-                onChange={(e) => onSearchChange?.(e.target.value)}
+                value={effectiveSearch}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="min-h-10 w-full rounded-md border border-input bg-surface ps-9 pe-3 text-sm text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus"
                 placeholder={searchPlaceholder}
               />
@@ -121,14 +186,19 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
             ) : null}
           </div>
 
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-4">
             <table className={cn('w-full border-collapse text-sm', minTableWidthClassName)}>
               <thead>
                 <tr className="border-b border-border bg-surface-subtle text-ink-muted">
                   <th className="w-12 px-4 py-2.5 text-start font-semibold">
                     <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">
                       <span className="sr-only">Select all rows</span>
-                      <input type="checkbox" className="size-3.5 rounded border-input text-accent focus:ring-focus" />
+                      <input
+                        type="checkbox"
+                        className="size-3.5 rounded border-input text-accent focus:ring-focus"
+                        checked={visibleRows.length > 0 && selectedIds.size === visibleRows.length}
+                        onChange={toggleAll}
+                      />
                     </label>
                   </th>
                   {columns.map((column) => {
@@ -174,26 +244,39 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                     </td>
                   </tr>
                 ) : (
-                  visibleRows.map((row, index) => (
-                    <tr
-                      key={row.id}
-                      className="border-b border-border animate-ease-in-bottom"
-                      style={{ animationDelay: `${index * 40}ms` }}
-                    >
-                      <td className="px-4 py-2.5">
-                        <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">
-                          <span className="sr-only">{`Select ${itemLabel(row)}`}</span>
-                          <input type="checkbox" className="sr-only" />
-                          <FileText aria-hidden="true" className="size-3.5 text-ink-muted" />
-                        </label>
-                      </td>
+                  visibleRows.map((row, index) => {
+                    const isSelected = selectedIds.has(row.id)
+                    return (
+                      <tr
+                        key={row.id}
+                        className={cn(
+                          'group/row border-b border-border animate-ease-in-bottom',
+                          isSelected && 'bg-accent-subtle/50',
+                        )}
+                        style={{ animationDelay: `${index * 40}ms` }}
+                      >
+                        <td className="px-4 py-2.5">
+                          <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">
+                            <span className="sr-only">{`Select ${itemLabel(row)}`}</span>
+                            <input
+                              type="checkbox"
+                              className="sr-only"
+                              checked={isSelected}
+                              onChange={() => toggleRow(row.id)}
+                            />
+                            <Check aria-hidden="true" className={cn('size-3.5 text-accent', isSelected ? 'block' : 'hidden')} />
+                            <span aria-hidden="true" className={cn('size-3.5 rounded border border-ink-muted group-hover/row:block', isSelected ? 'hidden' : 'block group-hover/row:hidden')} />
+                            <FileText aria-hidden="true" className={cn('size-3.5 text-ink-muted', isSelected ? 'hidden' : 'block group-hover/row:hidden')} />
+                          </label>
+                        </td>
                       {columns.map((column) => (
-                        <td key={column.key} className={cn('px-4 py-2.5 leading-5', column.className)}>
+                        <td key={column.key} className={cn('max-w-0 truncate whitespace-nowrap px-4 py-2.5 leading-5', column.className)} title={String(itemLabel(row))}>
                           {column.render(row)}
                         </td>
                       ))}
                     </tr>
-                  ))
+                  )
+                  })
                 )}
               </tbody>
             </table>

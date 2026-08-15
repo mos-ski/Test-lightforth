@@ -1,4 +1,4 @@
-import type { BillingPlanCard, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile } from '@/contracts/account.draft'
+import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile } from '@/contracts/account.draft'
 
 export const downloadItems: readonly DownloadItem[] = [
   {
@@ -41,7 +41,7 @@ export const billingPlans: readonly BillingPlanCard[] = [
     cadence: 'per month',
     credits: '15 Credits',
     description: 'The budget tier to get your job hunt started with the essentials.',
-    features: ['15 credits per month', 'Resume builder', 'Cover letter features', 'Download resumes'],
+    features: ['15 credits per month', 'Resume builder', 'Download resumes'],
     note: 'Ideal for light or occasional job applications',
   },
   {
@@ -85,6 +85,20 @@ export const settingsProfile: SettingsProfile = {
   city: 'Agege',
   postalCode: '100216',
 }
+
+export const creditHistoryRows: readonly CreditHistoryRow[] = [
+  { id: '1', feature: 'Interview Copilot', description: 'Started live session — Senior PM interview at Amazon', dateTime: 'Aug 14, 2026, 4:12 pm', amount: -1, balanceAfter: 31 },
+  { id: '2', feature: 'Resume Builder', description: 'Tailored resume for Stripe — Backend Engineer', dateTime: 'Aug 12, 2026, 2:14 pm', amount: -1, balanceAfter: 32 },
+  { id: '3', feature: 'ATS Scoring', description: 'Scored resume against Airbnb — UX Researcher listing', dateTime: 'Aug 12, 2026, 2:09 pm', amount: 0, balanceAfter: 33 },
+  { id: '4', feature: 'Auto Apply', description: 'Applied to Coinbase — Data Analyst', dateTime: 'Aug 10, 2026, 9:47 am', amount: -1, balanceAfter: 33 },
+  { id: '5', feature: 'Auto Apply', description: 'Applied to HubSpot — Marketing Manager, Lifecycle', dateTime: 'Aug 9, 2026, 11:03 am', amount: -1, balanceAfter: 34 },
+  { id: '6', feature: 'Interview Prep', description: 'Practice session — Deutsche Bank system design round', dateTime: 'Aug 7, 2026, 6:40 pm', amount: -1, balanceAfter: 35 },
+  { id: '7', feature: 'Bonus Credits', description: 'Referral bonus — Jojo A subscribed', dateTime: 'Aug 3, 2026, 8:15 am', amount: 5, balanceAfter: 36 },
+  { id: '8', feature: 'Resume Builder', description: 'Tailored resume for Figma — Product Designer', dateTime: 'Jul 29, 2026, 3:52 pm', amount: -1, balanceAfter: 31 },
+  { id: '9', feature: 'AI Suggester', description: 'Rewrote bullet point for Nubank application', dateTime: 'Jul 27, 2026, 1:20 pm', amount: 0, balanceAfter: 32 },
+  { id: '10', feature: 'Interview Copilot', description: 'Started live session — Growth Marketing screen at Notion', dateTime: 'Jul 24, 2026, 10:05 am', amount: -1, balanceAfter: 32 },
+  { id: '11', feature: 'Monthly Renewal', description: 'Pro plan credits refreshed', dateTime: 'Jul 1, 2026, 12:00 am', amount: 50, balanceAfter: 33 },
+]
 
 export const referralRows: readonly ReferralRow[] = [
   { id: '1', name: 'Jojo A', email: 'anyimjosh1995@gmail.com', dateTime: '03/09/2026, 2:31 am', status: 'Not subscribed' },

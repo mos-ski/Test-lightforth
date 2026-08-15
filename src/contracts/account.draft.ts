@@ -30,6 +30,14 @@ export type CreditUsageRow = {
   readonly free?: boolean
 }
 
+export type CreditSummary = {
+  readonly remaining: number
+  readonly total: number
+  readonly resetDate: string
+  readonly bonusHref: string
+  readonly detailsHref: string
+}
+
 export type SettingsProfile = {
   readonly firstName: string
   readonly lastName: string
@@ -46,4 +54,13 @@ export type ReferralRow = {
   readonly email: string
   readonly dateTime: string
   readonly status: string
+}
+
+export type CreditHistoryRow = {
+  readonly id: string
+  readonly feature: string
+  readonly description: string
+  readonly dateTime: string
+  readonly amount: number
+  readonly balanceAfter: number
 }

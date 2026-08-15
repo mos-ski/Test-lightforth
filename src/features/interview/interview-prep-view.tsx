@@ -13,6 +13,7 @@ import {
   Play,
   Plus,
   Search,
+  Settings,
   Volume2,
   X,
 } from 'lucide-react'
@@ -84,11 +85,9 @@ export type InterviewReportViewProps = {
 function InterviewHeader({
   homeHref,
   current,
-  historyHref,
 }: {
   readonly homeHref: string
   readonly current: string
-  readonly historyHref?: string
 }) {
   return (
     <ShellBar
@@ -96,7 +95,6 @@ function InterviewHeader({
       current={current}
       closeHref={homeHref}
       closeLabel="Close interview prep"
-      secondaryAction={historyHref ? { label: 'History', href: historyHref, iconSrc: '/v3-assets/figma/topnav-history.svg' } : undefined}
     />
   )
 }
@@ -347,6 +345,12 @@ function InterviewSessionLoadingView() {
 
 export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {
   const [expandedMessageIds, setExpandedMessageIds] = useState<readonly string[]>([])
+  const [showSettings, setShowSettings] = useState(false)
+  const [settingsTab, setSettingsTab] = useState<'live' | 'session'>('live')
+  const [autoScroll, setAutoScroll] = useState(true)
+  const [scrollSpeed, setScrollSpeed] = useState(3)
+  const [fontSize, setFontSize] = useState(14)
+  const [responseMode, setResponseMode] = useState<'auto' | 'manual'>('auto')
 
   if (isLoading) {
     return <InterviewSessionLoadingView />
@@ -372,12 +376,16 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           </a>
         </div>
       </header>
-      <div className="flex min-h-10 items-center border-b border-[var(--lf-live-border)] bg-[var(--lf-live-strip)] px-5">
+      <div className="flex min-h-10 items-center justify-between border-b border-[var(--lf-live-border)] bg-[var(--lf-live-strip)] px-5">
         <div className="flex items-center gap-4">
           <SignalStrength label={session.signalLabel} />
           <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
           <span className="text-sm italic leading-5 text-ink-muted">{session.activityLabel}</span>
         </div>
+        <button type="button" onClick={() => setShowSettings(true)} className="min-h-8 items-center gap-3 rounded-soft px-2 text-sm font-medium text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
+          <Settings aria-hidden="true" className="size-4" />
+          Settings
+        </button>
       </div>
       <section className="grid gap-3 p-3 xl:grid-cols-[minmax(0,1fr)_28.5rem]">
         <section className="min-w-0 overflow-hidden rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
@@ -432,6 +440,150 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           </div>
         </aside>
       </section>
+
+      {showSettings ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setShowSettings(false)}>
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#1a2332] text-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+              <h2 className="text-lg font-semibold">Settings</h2>
+              <button type="button" onClick={() => setShowSettings(false)} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30" aria-label="Close settings">
+                <X aria-hidden="true" className="size-5" />
+              </button>
+            </div>
+            <div className="flex min-h-[28rem]">
+              <nav className="w-44 shrink-0 border-r border-white/10 p-4">
+                <button
+                  type="button"
+                  onClick={() => setSettingsTab('live')}
+                  className={cn(
+                    'w-full rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-colors',
+                    settingsTab === 'live' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white',
+                  )}
+                >
+                  Live Controls
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettingsTab('session')}
+                  className={cn(
+                    'mt-1 w-full rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-colors',
+                    settingsTab === 'session' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white',
+                  )}
+                >
+                  Session
+                </button>
+              </nav>
+              <div className="flex-1 p-6">
+                {settingsTab === 'live' ? (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold">Auto-scroll</p>
+                        <p className="mt-0.5 text-xs text-slate-400">Follows the latest answer; scroll up to pause</p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={autoScroll}
+                        onClick={() => setAutoScroll(!autoScroll)}
+                        className={cn('relative flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition-colors', autoScroll ? 'bg-green-500' : 'bg-white/20')}
+                      >
+                        <span className={cn('block h-5 w-5 rounded-full bg-white shadow transition-transform', autoScroll ? 'translate-x-5' : 'translate-x-0')} />
+                      </button>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold">Auto-scroll speed</p>
+                        <span className="text-sm text-slate-400">{scrollSpeed}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={5}
+                        value={scrollSpeed}
+                        onChange={(e) => setScrollSpeed(Number(e.target.value))}
+                        className="mt-2 w-full accent-[#3b82f6]"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold">Font size</p>
+                        <span className="text-sm text-slate-400">{fontSize}</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={12}
+                        max={20}
+                        value={fontSize}
+                        onChange={(e) => setFontSize(Number(e.target.value))}
+                        className="mt-2 w-full accent-[#3b82f6]"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Response</p>
+                      <div className="mt-2 flex items-center gap-3">
+                        <div className="flex rounded-lg border border-white/20">
+                          <button
+                            type="button"
+                            onClick={() => setResponseMode('auto')}
+                            className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', responseMode === 'auto' ? 'bg-[#3b82f6] text-white' : 'text-slate-400 hover:text-white')}
+                          >
+                            Auto
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setResponseMode('manual')}
+                            className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', responseMode === 'manual' ? 'bg-[#3b82f6] text-white' : 'text-slate-400 hover:text-white')}
+                          >
+                            Manual
+                          </button>
+                        </div>
+                        <span className="text-xs text-slate-400">{responseMode === 'auto' ? 'Answers automatically' : 'Press Space to answer'}</span>
+                      </div>
+                    </div>
+                    {responseMode === 'manual' ? (
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold">Response key</p>
+                          <p className="mt-0.5 text-xs text-slate-400">Press this key to get an answer</p>
+                        </div>
+                        <span className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium">Space</span>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-400">Role</span>
+                      <span className="text-sm font-semibold">{session.title}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-400">Resume</span>
+                      <span className="text-sm font-semibold">Lightforth Resume</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-400">Skip setup</span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={false}
+                        className="relative flex h-6 w-11 shrink-0 items-center rounded-full bg-white/20 px-0.5 transition-colors"
+                      >
+                        <span className="block h-5 w-5 rounded-full bg-white shadow translate-x-0 transition-transform" />
+                      </button>
+                    </div>
+                    <div className="border-t border-white/10 pt-4">
+                      <button type="button" className="w-full rounded-lg border border-white/20 px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+                        Reset — show setup next time
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   )
 }
@@ -506,16 +658,16 @@ export function InterviewHistoryView({ homeHref, createHref, rows }: InterviewHi
           itemLabel={(row) => row.title}
           className="mx-auto max-w-7xl"
           columns={[
-            { key: 'title', label: 'Title', className: 'w-[18rem]', render: (row) => <span className="font-medium">{row.title}</span> },
+            { key: 'title', label: 'Title', className: 'w-[14rem]', render: (row) => <span className="font-medium">{row.title}</span> },
             {
               key: 'score',
               label: 'Score',
-              className: 'w-[9rem]',
+              className: 'w-[6rem]',
               render: (row) => <span className="rounded-pill bg-positive-surface px-2.5 py-0.5 text-xs font-bold leading-4 text-positive">{row.score}</span>,
             },
-            { key: 'company', label: 'Company', className: 'w-[13rem]', render: (row) => row.company },
-            { key: 'duration', label: 'Duration', className: 'w-[8rem]', render: (row) => row.duration },
-            { key: 'date-time', label: 'Date & Time', className: 'w-[16rem]', render: (row) => row.dateTime },
+            { key: 'company', label: 'Company', className: 'w-[10rem]', render: (row) => row.company },
+            { key: 'duration', label: 'Duration', className: 'w-[6rem]', render: (row) => row.duration },
+            { key: 'date-time', label: 'Date & Time', className: 'w-[12rem]', render: (row) => row.dateTime },
           ]}
         />
       </section>

@@ -1,8 +1,20 @@
-import { Apple, Check, Copy, EyeOff, Gift, Monitor, Moon, Sun, Upload } from 'lucide-react'
+import { AlertTriangle, Apple, Check, ChevronDown, Copy, EyeOff, Gift, Monitor, Moon, Sun, Upload } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
-import type { BillingPlanCard, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile } from '@/contracts/account.draft'
-import { Button, cn, DataTable, ShellBar } from '@/ui'
+import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile } from '@/contracts/account.draft'
+import {
+  Button,
+  cn,
+  CreditCard,
+  DataTable,
+  Dialog,
+  DialogDescription,
+  DialogPopup,
+  DialogTitle,
+  DialogTrigger,
+  SelectField,
+  ShellBar,
+} from '@/ui'
 
 export type DownloadsViewProps = {
   readonly homeHref: string
@@ -13,6 +25,12 @@ export type BillingViewProps = {
   readonly homeHref: string
   readonly plans: readonly BillingPlanCard[]
   readonly usageRows: readonly CreditUsageRow[]
+}
+
+export type CreditHistoryViewProps = {
+  readonly homeHref: string
+  readonly billingHref: string
+  readonly rows: readonly CreditHistoryRow[]
 }
 
 export type SettingsTab = 'profile' | 'security' | 'referral'
@@ -114,6 +132,110 @@ function PlanCard({ plan }: { readonly plan: BillingPlanCard }) {
   )
 }
 
+const cancellationReasons: readonly { readonly label: string; readonly value: string }[] = [
+  { label: 'Select a reason', value: '' },
+  { label: 'Too expensive', value: 'too-expensive' },
+  { label: 'Not using it enough', value: 'not-using' },
+  { label: 'Missing features I need', value: 'missing-features' },
+  { label: 'Switching to another tool', value: 'competitor' },
+  { label: 'Other', value: 'other' },
+]
+
+function CancelSubscriptionDialog({ renewalLabel }: { readonly renewalLabel: string }) {
+  const [open, setOpen] = useState(false)
+  const [step, setStep] = useState<'warning' | 'reason' | 'confirmed'>('warning')
+  const [reason, setReason] = useState('')
+  const [notes, setNotes] = useState('')
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen)
+        if (nextOpen) {
+          setStep('warning')
+          setReason('')
+          setNotes('')
+        }
+      }}
+    >
+      <DialogTrigger
+        render={
+          <Button variant="danger" className="border border-danger bg-surface text-danger hover:bg-danger-surface">
+            Cancel Subscription
+          </Button>
+        }
+      />
+      <DialogPopup aria-label="Cancel subscription">
+        {step === 'confirmed' ? (
+          <>
+            <DialogTitle className="text-danger">Subscription scheduled to cancel</DialogTitle>
+            <DialogDescription>
+              You&apos;ll keep full access until {renewalLabel}. After that you&apos;ll move to the Free plan. You can renew anytime before then.
+            </DialogDescription>
+            <Button className="mt-6 w-full" onClick={() => setOpen(false)}>Done</Button>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-3">
+              <AlertTriangle aria-hidden="true" className="size-6 shrink-0 text-danger" />
+              <DialogTitle className="text-danger">Cancel Subscription</DialogTitle>
+            </div>
+            {step === 'warning' ? (
+              <>
+                <DialogDescription className="text-ink">
+                  If you cancel, you&apos;ll lose access to the following after your plan expires on {renewalLabel}:
+                </DialogDescription>
+                <ul className="mt-4 grid gap-2 text-sm text-ink-muted">
+                  {['Saved job applications', 'Resume & Cover Letter history', 'AI-generated interview insights', 'Personalized job recommendations', 'Auto-Apply progress'].map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <span aria-hidden="true" className="mt-2 size-1 shrink-0 rounded-pill bg-ink-muted" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <Button variant="secondary" onClick={() => setStep('reason')}>Continue to Cancel</Button>
+                  <Button onClick={() => setOpen(false)}>Keep My Plan</Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <DialogDescription className="text-ink">
+                  Your subscription will remain active until {renewalLabel}, even if you cancel now. Your membership will continue to be accessible until then. If you change your mind, you can easily renew your subscription at any time.
+                </DialogDescription>
+                <div className="mt-5 grid gap-4">
+                  <SelectField
+                    id="cancel-reason"
+                    label="Cancellation Reason"
+                    options={cancellationReasons}
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                  />
+                  <label className="grid gap-1.5">
+                    <span className="text-sm font-medium text-ink">Additional Information</span>
+                    <textarea
+                      value={notes}
+                      onChange={(event) => setNotes(event.target.value)}
+                      rows={4}
+                      placeholder="Tell us more (optional)"
+                      className="min-h-24 w-full resize-y rounded-lg border border-input bg-surface px-3 py-2 text-sm text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus"
+                    />
+                  </label>
+                </div>
+                <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <Button variant="danger" disabled={!reason} onClick={() => setStep('confirmed')}>Confirm Cancellation</Button>
+                  <Button onClick={() => setOpen(false)}>Stay Subscribed</Button>
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </DialogPopup>
+    </Dialog>
+  )
+}
+
 export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
   return (
     <AppWorkspace>
@@ -133,29 +255,19 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
             </div>
             <p className="mb-6 mt-1 text-sm text-ink-muted">Renews Sep 1, 2026</p>
             <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-              <Button variant="secondary">Manage Plan</Button>
+              <CancelSubscriptionDialog renewalLabel="September 1st, 2026" />
               <a href="/v3/billing/payment" className="text-sm font-semibold text-accent underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus hover:underline">
                 Manage Payment Method
               </a>
             </div>
           </section>
-          <section className="rounded-panel border border-border bg-surface p-6 shadow-control">
-            <div className="flex items-start justify-between">
-              <h2 className="font-bold">Credits</h2>
-              <a href="/v3/billing/usage" className="text-sm font-semibold text-accent underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus hover:underline">
-                View usage details
-              </a>
-            </div>
-            <p className="text-sm text-ink-muted">Resets on May 31, 2026</p>
-            <p className="mt-5 text-3xl font-black">31 <span className="text-base font-medium text-ink-muted">of 34 Left</span></p>
-            <div className="mt-3 h-2 overflow-hidden rounded-pill bg-surface-subtle">
-              <div className="h-full w-[91%] rounded-pill bg-accent" />
-            </div>
-            <a href="/v3/billing/bonus" className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <Gift aria-hidden="true" className="size-4" />
-              Get bonus credits
-            </a>
-          </section>
+          <CreditCard
+            remaining={31}
+            total={34}
+            resetDate="May 31, 2026"
+            bonusHref="/v3/billing/bonus"
+            detailsHref="/v3/billing/usage"
+          />
         </div>
         <section className="mt-6 rounded-panel border border-border bg-surface p-6 shadow-control">
           <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -182,6 +294,140 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
             ]}
           />
         </section>
+      </ContentShell>
+    </AppWorkspace>
+  )
+}
+
+const usageFeatureColors: Record<string, string> = {
+  'Resume Builder': 'bg-accent',
+  'Interview Prep': 'bg-positive',
+  'Interview Copilot': 'bg-warning',
+  'Auto Apply': 'bg-info',
+}
+
+const usageFeatureTextColors: Record<string, string> = {
+  'Resume Builder': 'text-accent',
+  'Interview Prep': 'text-positive',
+  'Interview Copilot': 'text-warning',
+  'Auto Apply': 'text-info',
+}
+
+function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
+  const chartFeatures = Object.keys(usageFeatureColors)
+  const usageRows = rows.filter((row) => row.amount < 0 && chartFeatures.includes(row.feature))
+  const totalUsed = usageRows.reduce((sum, row) => sum + Math.abs(row.amount), 0)
+
+  const days = new Map<string, Record<string, number>>()
+  for (const row of usageRows) {
+    const day = row.dateTime.split(',').slice(0, 2).join(',').split(',')[0].trim()
+    const bucket = days.get(day) ?? {}
+    bucket[row.feature] = (bucket[row.feature] ?? 0) + Math.abs(row.amount)
+    days.set(day, bucket)
+  }
+  const dayEntries = [...days.entries()].reverse()
+  const maxSingle = Math.max(1, ...dayEntries.flatMap(([, bucket]) => Object.values(bucket)))
+
+  return (
+    <article className="bg-surface shadow-panel">
+      <header className="flex min-h-[5rem] items-center border-b border-border px-8">
+        <h1 className="text-xl font-medium leading-5 text-ink">Usage Details</h1>
+      </header>
+      <div className="p-8">
+        <p className="text-3xl font-black">
+          {totalUsed} <span className="text-base font-medium text-ink-muted">credits used in last 30 days</span>
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <span className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control">
+            All features
+            <ChevronDown aria-hidden="true" className="size-4 text-ink-muted" />
+          </span>
+          <span className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control">
+            Last 30 days
+            <ChevronDown aria-hidden="true" className="size-4 text-ink-muted" />
+          </span>
+        </div>
+
+        {dayEntries.length === 0 ? (
+          <p className="mt-8 text-sm text-ink-muted">No credit usage in this period yet.</p>
+        ) : (
+          <div className="mt-8 flex h-40 items-end gap-1 overflow-x-auto px-1 pb-1">
+            {dayEntries.map(([day, bucket]) => (
+              <div key={day} className="group relative flex shrink-0 flex-col items-center gap-2 rounded-sm px-1.5 pt-2 hover:bg-surface-subtle">
+                <div className="flex items-end gap-0.5" style={{ blockSize: '128px' }}>
+                  {Object.entries(bucket).map(([feature, count]) => (
+                    <div
+                      key={feature}
+                      className={cn(usageFeatureColors[feature], 'w-2 rounded-t-sm')}
+                      style={{ blockSize: `${Math.max(4, (count / maxSingle) * 128)}px` }}
+                    />
+                  ))}
+                </div>
+                <span className="whitespace-nowrap text-xs text-ink-muted">{day}</span>
+                <div className="pointer-events-none absolute bottom-full start-1/2 z-tooltip mb-2 hidden w-max -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-start shadow-popover group-hover:block">
+                  <p className="text-sm font-semibold text-ink">{day}</p>
+                  <div className="mt-1 grid gap-0.5">
+                    {Object.entries(bucket).map(([feature, count]) => (
+                      <p key={feature} className={cn('text-xs font-medium', usageFeatureTextColors[feature])}>
+                        {feature}: {count}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4">
+          {chartFeatures.map((feature) => (
+            <span key={feature} className="inline-flex items-center gap-2 text-sm text-ink-muted">
+              <span aria-hidden="true" className={cn('size-2.5 rounded-pill', usageFeatureColors[feature])} />
+              {feature}
+            </span>
+          ))}
+        </div>
+      </div>
+    </article>
+  )
+}
+
+export function CreditHistoryView({ homeHref, billingHref, rows }: CreditHistoryViewProps) {
+  return (
+    <AppWorkspace>
+      <ShellBar
+        homeHref={homeHref}
+        parent={{ label: 'Billing & Subscription', href: billingHref }}
+        current="Usage details"
+        closeHref={billingHref}
+        closeLabel="Back to billing"
+      />
+      <ContentShell>
+        <UsageChart rows={rows} />
+        <div className="mt-6">
+          <DataTable
+            title="Credit History"
+            rows={rows}
+            itemLabel={(row) => row.feature}
+            minTableWidthClassName="min-w-[54rem]"
+            columns={[
+              { key: 'feature', label: 'Feature', className: 'w-[14rem]', render: (row) => <span className="font-semibold">{row.feature}</span> },
+              { key: 'description', label: 'Description', className: 'w-[22rem]', render: (row) => row.description },
+              { key: 'dateTime', label: 'Date & Time', className: 'w-[12rem]', render: (row) => row.dateTime },
+              {
+                key: 'amount',
+                label: 'Credits',
+                className: 'w-[7rem] text-end',
+                render: (row) => (
+                  <span className={cn('font-semibold', row.amount > 0 ? 'text-positive' : row.amount < 0 ? 'text-ink' : 'text-ink-muted')}>
+                    {row.amount > 0 ? `+${row.amount}` : row.amount}
+                  </span>
+                ),
+              },
+              { key: 'balanceAfter', label: 'Balance', className: 'w-[7rem] text-end', render: (row) => row.balanceAfter },
+            ]}
+          />
+        </div>
       </ContentShell>
     </AppWorkspace>
   )
