@@ -31,13 +31,35 @@ const config: Config = {
           foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'var(--lf-accent)',
+          foreground: 'var(--lf-on-accent)',
         },
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        canvas: 'var(--lf-canvas)',
+        surface: 'var(--lf-surface)',
+        'surface-raised': 'var(--lf-surface-raised)',
+        'surface-subtle': 'var(--lf-surface-subtle)',
+        ink: 'var(--lf-ink)',
+        'ink-muted': 'var(--lf-ink-muted)',
+        'accent-hover': 'var(--lf-accent-hover)',
+        'accent-subtle': 'var(--lf-accent-subtle)',
+        'accent-text': 'var(--lf-accent-text)',
+        'on-accent': 'var(--lf-on-accent)',
+        focus: 'var(--lf-focus)',
+        positive: 'var(--lf-positive)',
+        'positive-surface': 'var(--lf-positive-surface)',
+        warning: 'var(--lf-warning)',
+        'warning-surface': 'var(--lf-warning-surface)',
+        danger: 'var(--lf-danger)',
+        'danger-hover': 'var(--lf-danger-hover)',
+        'danger-surface': 'var(--lf-danger-surface)',
+        'on-danger': 'var(--lf-on-danger)',
+        overlay: 'var(--lf-overlay)',
+        'brand-bar': 'var(--lf-brand-bar)',
+        'brand-bar-text': 'var(--lf-brand-bar-text)',
         success: {
           DEFAULT: '#16A34A',
           foreground: '#FFFFFF',
@@ -47,6 +69,17 @@ const config: Config = {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+        soft: 'var(--lf-radius-soft)',
+        panel: 'var(--lf-radius-panel)',
+        pill: 'var(--lf-radius-pill)',
+      },
+      boxShadow: {
+        panel: 'var(--lf-shadow-panel)',
+        control: 'var(--lf-shadow-control)',
+      },
+      zIndex: {
+        shell: 'var(--lf-z-shell)',
+        overlay: 'var(--lf-z-overlay)',
       },
     },
   },
@@ -54,4 +87,3 @@ const config: Config = {
 }
 
 export default config
-

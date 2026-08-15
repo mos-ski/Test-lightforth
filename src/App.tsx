@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { AuthProvider, ProtectedRoute } from '@/hooks/useAuth'
@@ -26,6 +26,7 @@ const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview')
 const FigmaInteriorLanding = lazy(() => import('@/pages/marketing/FigmaInteriorLanding'))
 const RegularCheckoutPage = lazy(() => import('@/pages/marketing/checkout/RegularCheckoutPage'))
 const MobileAppPreview = lazy(() => import('@/pages/MobileAppPreview'))
+const V3WebRoutes = lazy(() => import('@/apps/web/routes').then((module) => ({ default: module.WebRoutes })))
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
 const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
 const AdminRevenue = lazy(() => import('@/pages/admin/AdminRevenue'))
@@ -104,7 +105,7 @@ export default function App() {
             <Route path="/privacy-policy" element={<Suspense fallback={null}><PrivacyPolicyPage /></Suspense>} />
             <Route path="/terms-condition" element={<Suspense fallback={null}><TermsPage /></Suspense>} />
             <Route path="/refund-policy" element={<Suspense fallback={null}><RefundPolicyPage /></Suspense>} />
-            <Route path="/auth/*" element={<Auth />} />
+            <Route path="/auth/*" element={<Navigate to="/v3/auth/sign-in" replace />} />
             <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
             <Route path="/app" element={<AppRoute><Dashboard /></AppRoute>} />
             <Route path="/documents" element={<AppRoute><Suspense fallback={null}><MyDocuments /></Suspense></AppRoute>} />
@@ -139,6 +140,7 @@ export default function App() {
             <Route path="/figma-interiors" element={<Suspense fallback={null}><FigmaInteriorLanding /></Suspense>} />
             <Route path="/checkout/:planId" element={<Suspense fallback={null}><RegularCheckoutPage /></Suspense>} />
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
+            <Route path="/v3/*" element={<Suspense fallback={null}><V3WebRoutes /></Suspense>} />
             <Route
               path="/admin"
               element={

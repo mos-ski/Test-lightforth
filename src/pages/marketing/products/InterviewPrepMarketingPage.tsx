@@ -15,7 +15,7 @@ export default function InterviewPrepMarketingPage() {
             Our system helps you prepare for interviews with tailored questions and expert feedback,
             giving you the confidence to answer with ease.
           </p>
-          <a href="https://app.lightforth.ai/auth/signup" className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-8 py-3.5 text-base font-semibold text-white shadow-lg transition hover:bg-[#0380e0]">
+          <a href="/v3/auth/sign-in" className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-8 py-3.5 text-base font-semibold text-white shadow-lg transition hover:bg-[#0380e0]">
             Get Started
           </a>
         </div>
@@ -39,7 +39,7 @@ export default function InterviewPrepMarketingPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0494fc]">{item.title}</p>
               <h3 className="text-2xl font-bold text-slate-900">{item.subtitle}</h3>
               <p className="text-slate-600">{item.desc}</p>
-              <a href="https://app.lightforth.ai/auth/signup" className="inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0380e0]">
+              <a href="/v3/auth/sign-in" className="inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0380e0]">
                 Get Started
               </a>
             </div>

@@ -16,7 +16,7 @@ export default function ResumeMarketingPage() {
             and designed to land you more interviews.
           </p>
           <div className="mt-6 flex items-center justify-center gap-4">
-            <a href="https://app.lightforth.ai/auth/signup" className="inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-8 py-3.5 text-base font-semibold text-white shadow-lg transition hover:bg-[#0380e0]">
+            <a href="/v3/auth/sign-in" className="inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-8 py-3.5 text-base font-semibold text-white shadow-lg transition hover:bg-[#0380e0]">
               Get Started
             </a>
             <a href="/ats-checker" className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-8 py-3.5 text-base font-semibold text-slate-700 transition hover:bg-slate-50">
@@ -43,7 +43,7 @@ export default function ResumeMarketingPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#0494fc]">{item.title}</p>
               <h3 className="text-2xl font-bold text-slate-900">{item.subtitle}</h3>
               <p className="text-slate-600">{item.desc}</p>
-              <a href="https://app.lightforth.ai/auth/signup" className="inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0380e0]">
+              <a href="/v3/auth/sign-in" className="inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0380e0]">
                 Get Started
               </a>
             </div>

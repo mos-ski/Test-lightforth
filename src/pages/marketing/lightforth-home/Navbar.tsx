@@ -88,7 +88,7 @@ export function Navbar({ onGetStarted }: { onGetStarted: () => void }) {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <a href="https://app.lightforth.ai/auth/login" className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+          <a href="/v3/auth/sign-in" className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
             Login
           </a>
           <button
@@ -145,7 +145,7 @@ export function Navbar({ onGetStarted }: { onGetStarted: () => void }) {
                 Pricing
               </a>
               <div className="flex gap-3 pt-2">
-                <a href="https://app.lightforth.ai/auth/login" className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
+                <a href="/v3/auth/sign-in" className="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-700">
                   Login
                 </a>
                 <button onClick={onGetStarted} className="rounded-full bg-[#0494fc] px-5 py-2 text-sm font-semibold text-white">
