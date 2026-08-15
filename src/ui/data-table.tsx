@@ -250,8 +250,8 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                       <tr
                         key={row.id}
                         className={cn(
-                          'group/row border-b border-border animate-ease-in-bottom',
-                          isSelected && 'bg-accent-subtle/50',
+                          'group/row border-b border-border animate-ease-in-bottom transition-colors',
+                          isSelected ? 'bg-accent-subtle/50' : 'hover:bg-surface-subtle',
                         )}
                         style={{ animationDelay: `${index * 40}ms` }}
                       >
