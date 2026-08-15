@@ -6,6 +6,7 @@ export function InterviewHistoryPage() {
     <InterviewHistoryView
       homeHref="/v3/app"
       createHref="/v3/interview-prep"
+      reportHref="/v3/interview-prep/report"
       rows={interviewHistoryRows}
     />
   )

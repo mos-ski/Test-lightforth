@@ -121,6 +121,40 @@ export const interviewReport: InterviewReport = {
   score: 82,
   summary:
     'You showed strong raw material: specific metrics, a grounded product story, and calm recovery when pressed. The main improvement area is sequencing. Lead with the concrete example earlier, then use the broader narrative as support.',
+  whatWentWell: [
+    'Used specific metrics (42% to 57% activation lift) to quantify impact',
+    'Showed genuine cross-functional partnership language with engineering',
+    'Calm recovery when pressed for specificity — adapted quickly',
+  ],
+  whatNeedsWork: [
+    'Lead with the concrete example earlier in your answer',
+    'Tighten the opening — too much framing before the core point',
+    'Explain how design decisions were made, not just what was built',
+  ],
+  knowledgeGaps: [
+    'Design process articulation lacked depth on research methods',
+    'No mention of user testing or validation approaches',
+    'Portfolio storytelling needs stronger problem framing',
+  ],
+  suggestedQuestions: [
+    'Tell me about a time you had to make a design decision with incomplete data. How did you approach it?',
+    'Describe your process for prioritizing competing design requirements from different stakeholders.',
+    'How do you measure the success of a design change after it ships?',
+    'Walk me through how you collaborate with engineers when a design requires technical trade-offs.',
+  ],
+  rubric: [
+    { element: 'Answer Structure', status: 'partial', notes: 'Lead with outcome, then context. The strongest examples arrived after the second prompt.' },
+    { element: 'Specificity', status: 'strong', notes: 'Metrics were credible. Put one measurable result in the first thirty seconds.' },
+    { element: 'Pace and Clarity', status: 'partial', notes: 'For recruiter screens, aim for concise answers with room for follow-up.' },
+    { element: 'Design Process Articulation', status: 'strong', notes: 'Clearly described research → wireframe → prototype → test cycle with concrete artifacts.' },
+    { element: 'Tool & Craft Depth', status: 'needs-work', notes: 'Mentioned Figma and prototyping but did not explain how design decisions were made or validated.' },
+    { element: 'Cross-Functional Collaboration', status: 'strong', notes: 'Designed with eng and PM from kickoff — language showed genuine partnership, not handoff.' },
+  ],
+  talkTime: {
+    youPercent: 47,
+    interviewerPercent: 53,
+    tip: 'For recruiter screens, aim for concise answers with room for follow-up.',
+  },
   metrics: [
     {
       id: 'structure',

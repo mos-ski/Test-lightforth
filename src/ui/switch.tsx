@@ -21,11 +21,12 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
         disabled={disabled}
         data-slot="switch"
         className={cn(
-          'group inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-surface-subtle transition-colors duration-normal ease-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50',
+          'group inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-muted transition-colors duration-normal ease-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50',
+          'group-data-[checked]:bg-accent',
           className,
         )}
       >
-        <BaseSwitch.Thumb className="pointer-events-none block size-5 rounded-full bg-surface shadow-sm ring-0 transition-transform duration-normal ease-default group-data-[checked]:translate-x-5 group-data-[unchecked]:translate-x-0" />
+        <BaseSwitch.Thumb className="pointer-events-none block size-5 rounded-full bg-surface shadow-sm ring-0 transition-transform duration-normal ease-default group-data-[checked]:translate-x-5 group-data-[checked]:bg-on-accent group-data-[unchecked]:translate-x-0" />
       </BaseSwitch.Root>
     )
 

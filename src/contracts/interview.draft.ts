@@ -75,12 +75,32 @@ export type InterviewTranscriptEntry = {
   readonly text: string;
 };
 
+export type InterviewRubricStatus = 'strong' | 'partial' | 'needs-work';
+
+export type InterviewRubricRow = {
+  readonly element: string;
+  readonly status: InterviewRubricStatus;
+  readonly notes: string;
+};
+
+export type InterviewTalkTime = {
+  readonly youPercent: number;
+  readonly interviewerPercent: number;
+  readonly tip: string;
+};
+
 export type InterviewReport = {
   readonly title: string;
   readonly subtitle: string;
   readonly interviewerImageSrc: string;
   readonly score: number;
   readonly summary: string;
+  readonly whatWentWell: readonly string[];
+  readonly whatNeedsWork: readonly string[];
+  readonly knowledgeGaps: readonly string[];
+  readonly suggestedQuestions: readonly string[];
+  readonly rubric: readonly InterviewRubricRow[];
+  readonly talkTime: InterviewTalkTime;
   readonly metrics: readonly InterviewScoreMetric[];
   readonly transcript: readonly InterviewTranscriptEntry[];
 };

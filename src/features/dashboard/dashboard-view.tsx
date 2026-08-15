@@ -32,7 +32,7 @@ const navIconByLabel: Record<string, ReactNode> = {
   'My Documents': <DocumentsIcon />,
   'Auto-Apply': <AutoApplyIcon />,
   'Interview Prep': <InterviewPrepIcon />,
-  'Interview Co-Pilot': <CopilotIcon />,
+  'Interviews & Meetings': <CopilotIcon />,
   'Knowledge Base': <KnowledgeBaseIcon />,
   'Download Apps': <DownloadIcon />,
   'Billing & subscription': <BillingIcon />,

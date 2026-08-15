@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from 'react'
-import { ArrowLeft, ChevronRight, Send, Settings, X } from 'lucide-react'
+import { ArrowLeft, Bookmark, Check, CheckCircle2, ChevronRight, Clock, Code2, MessageSquare, Pause, Play, Search, Send, Settings, Sparkles, Target, Users, Video, X } from 'lucide-react'
 
-import type { CopilotHistoryRow, CopilotLiveSession, CopilotPermissionStep, CopilotResponseLength, CopilotResponseMode, CopilotSetup } from '@/contracts/copilot.draft'
+import type { CopilotHistoryRow, CopilotLiveSession, CopilotMode, CopilotPermissionStep, CopilotReport, CopilotResponseLength, CopilotResponseMode, CopilotSetup } from '@/contracts/copilot.draft'
 import {
   AiSuggestionAction,
+  Badge,
   cn,
   DataTable,
   DocumentDropAction,
@@ -17,7 +18,35 @@ import {
   PermissionSteps,
   ShellBar,
   SourcePicker,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from '@/ui'
+
+const copilotModeMeta: Record<CopilotMode, { readonly label: string; readonly icon: ReactNode; readonly panelTitle: string; readonly badgeVariant: 'accent' | 'positive' | 'info' }> = {
+  interview: { label: 'Interview', icon: <Users aria-hidden="true" className="size-4" />, panelTitle: 'Configure your interview', badgeVariant: 'accent' },
+  coding: { label: 'Coding', icon: <Code2 aria-hidden="true" className="size-4" />, panelTitle: 'Configure your coding interview', badgeVariant: 'info' },
+  meeting: { label: 'Meeting', icon: <Video aria-hidden="true" className="size-4" />, panelTitle: 'Configure your meeting', badgeVariant: 'positive' },
+}
+
+function CopilotModeTabs({ mode, onModeChange }: { readonly mode: CopilotMode; readonly onModeChange: (mode: CopilotMode) => void }) {
+  return (
+    <Tabs value={mode} onValueChange={(value) => onModeChange(value as CopilotMode)}>
+      <TabsList className="border-b-0 gap-2">
+        {(Object.keys(copilotModeMeta) as CopilotMode[]).map((id) => (
+          <TabsTrigger
+            key={id}
+            value={id}
+            className="min-h-9 gap-1.5 rounded-pill border border-input px-3 pb-0 data-[selected]:border-accent data-[selected]:bg-accent-subtle"
+          >
+            {copilotModeMeta[id].icon}
+            {copilotModeMeta[id].label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
+  )
+}
 
 export type CopilotUploadViewProps = {
   readonly homeHref: string
@@ -63,12 +92,19 @@ export type CopilotCompleteViewProps = {
 export type CopilotHistoryViewProps = {
   readonly homeHref: string
   readonly createHref: string
+  readonly reportHref: string
   readonly rows: readonly CopilotHistoryRow[]
+}
+
+export type CopilotReportViewProps = {
+  readonly homeHref: string
+  readonly historyHref: string
+  readonly report: CopilotReport
 }
 
 function CopilotHeader({
   homeHref,
-  current = 'Interview Copilot',
+  current = 'Interviews & Meetings',
 }: {
   readonly homeHref: string
   readonly current?: string
@@ -132,6 +168,7 @@ const COPILOT_AI_SUGGESTION =
   ' Ask the interviewer how success is measured in the first 90 days, and be ready to walk through one metric you personally moved.'
 
 export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, setup }: CopilotConfigureViewProps) {
+  const [mode, setMode] = useState<CopilotMode>(setup.mode)
   const [additionalContext, setAdditionalContext] = useState(setup.additionalContext)
 
   return (
@@ -139,12 +176,14 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
       <CopilotHeader homeHref={homeHref} />
       <section className="px-4 py-9">
         <FormPanel
-          title="Configure your interview"
+          title={copilotModeMeta[mode].panelTitle}
           step="1/3"
           uploadedFile={{ fileName: setup.uploadedFileName, changeHref: uploadHref }}
           footer={<FormPanelFooter backHref={uploadHref} nextHref={preferencesHref} />}
         >
-          <div className="grid gap-3 sm:grid-cols-2">
+          <CopilotModeTabs mode={mode} onModeChange={setMode} />
+          {mode === 'interview' ? (
+            <div className="grid gap-3 sm:grid-cols-2">
               <FormSelectField
                 id="copilot-interview-type"
                 label="Interview type"
@@ -167,7 +206,41 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
               />
               <FormField id="copilot-target-role" label="Target Role" defaultValue={setup.targetRole} />
               <FormField id="copilot-company" label="Company Name" defaultValue={setup.companyName} />
-          </div>
+            </div>
+          ) : mode === 'coding' ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <FormSelectField
+                id="copilot-coding-language"
+                label="Language"
+                defaultValue={setup.codingLanguage ?? 'javascript'}
+                options={[
+                  { label: 'JavaScript / TypeScript', value: 'javascript' },
+                  { label: 'Python', value: 'python' },
+                  { label: 'Java', value: 'java' },
+                  { label: 'Go', value: 'go' },
+                  { label: 'C++', value: 'c++' },
+                ]}
+              />
+              <FormSelectField
+                id="copilot-difficulty-coding"
+                label="Difficulty"
+                defaultValue={setup.difficulty.toLowerCase()}
+                options={[
+                  { label: 'Easy', value: 'easy' },
+                  { label: 'Medium', value: 'medium' },
+                  { label: 'Hard', value: 'hard' },
+                ]}
+              />
+              <FormField id="copilot-target-role-coding" label="Target Role" defaultValue={setup.targetRole} />
+              <FormField id="copilot-company-coding" label="Company Name" defaultValue={setup.companyName} />
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              <FormField id="copilot-meeting-title" label="Meeting title" defaultValue={setup.meetingTitle ?? ''} />
+              <FormField id="copilot-meeting-company" label="Client / Team" defaultValue={setup.companyName} />
+              <FormTextArea id="copilot-meeting-agenda" label="Agenda" defaultValue={setup.meetingAgenda ?? ''} />
+            </div>
+          )}
           <DocumentDropAction actionHref="/v3/documents/add" />
           <FormTextArea
             id="copilot-additional-context"
@@ -312,6 +385,195 @@ function CopilotLiveLoadingView() {
         </aside>
       </section>
     </main>
+  )
+}
+
+const copilotRubricToneClasses: Record<string, string> = {
+  strong: 'bg-positive-surface text-positive',
+  partial: 'bg-warning-surface text-warning',
+  'needs-work': 'bg-danger-surface text-danger',
+}
+
+const copilotRubricLabel: Record<string, string> = {
+  strong: 'Strong',
+  partial: 'Partial',
+  'needs-work': 'Needs work',
+}
+
+type CopilotReportSectionId = 'summary' | 'scorecard' | 'questions' | 'rubric' | 'transcript'
+
+function CopilotReportSidebar({ active, onChange }: { readonly active: CopilotReportSectionId; readonly onChange: (id: CopilotReportSectionId) => void }) {
+  const sections: readonly { id: CopilotReportSectionId; label: string; icon: ReactNode }[] = [
+    { id: 'summary', label: 'Overall Summary', icon: <Sparkles className="size-5" aria-hidden="true" /> },
+    { id: 'scorecard', label: 'Scorecard', icon: <Target className="size-5" aria-hidden="true" /> },
+    { id: 'questions', label: 'Suggested Questions', icon: <MessageSquare className="size-5" aria-hidden="true" /> },
+    { id: 'rubric', label: 'Rubric Breakdown', icon: <Search className="size-5" aria-hidden="true" /> },
+    { id: 'transcript', label: 'Transcript', icon: <Bookmark className="size-5" aria-hidden="true" /> },
+  ]
+
+  return (
+    <nav aria-label="Report sections" className="flex w-[220px] shrink-0 flex-col gap-1 rounded-panel border border-border bg-surface p-3 shadow-control">
+      {sections.map((section) => (
+        <button
+          key={section.id}
+          type="button"
+          onClick={() => onChange(section.id)}
+          className={cn(
+            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+            active === section.id
+              ? 'bg-accent-subtle text-accent'
+              : 'text-ink-muted hover:bg-surface-subtle hover:text-ink',
+          )}
+          aria-current={active === section.id ? 'page' : undefined}
+        >
+          {section.icon}
+          <span>{section.label}</span>
+        </button>
+      ))}
+    </nav>
+  )
+}
+
+function CopilotScorecardSection({ title, items }: { readonly title: string; readonly items: readonly string[] }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <CheckCircle2 className="size-4 text-positive" aria-hidden="true" />
+        {title}
+      </h3>
+      <ul className="flex flex-col gap-2">
+        {items.map((item, index) => (
+          <li key={index} className="flex items-start gap-2 text-sm text-ink-muted">
+            <span className="mt-2 size-1 shrink-0 rounded-full bg-muted" aria-hidden="true" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+export function CopilotReportView({ homeHref, historyHref, report }: CopilotReportViewProps) {
+  const [activeSection, setActiveSection] = useState<CopilotReportSectionId>('summary')
+
+  return (
+    <Workspace>
+      <CopilotHeader homeHref={homeHref} current="Copilot" />
+      <section className="px-4 pb-16">
+        <div className="mx-auto flex max-w-[81.5rem] gap-6">
+          <CopilotReportSidebar active={activeSection} onChange={setActiveSection} />
+
+          <article className="flex-1 min-w-0 bg-surface px-8 py-12 shadow-panel sm:px-10 lg:px-12">
+            <a href={historyHref} className="inline-flex min-h-11 items-center gap-3 rounded-soft text-base font-bold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <ArrowLeft aria-hidden="true" className="size-4" />
+              Back to History
+            </a>
+
+            <header className="mt-8 flex flex-col gap-5 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center sm:justify-between lg:px-8">
+              <div>
+                <h1 className="text-3xl font-bold leading-10">{report.title}</h1>
+                <p className="mt-1 text-lg leading-7 text-ink-muted">{report.subtitle}</p>
+              </div>
+            </header>
+
+            {activeSection === 'summary' && (
+              <section className="mt-6 flex flex-col gap-6 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center lg:px-8">
+                <div className="grid size-32 shrink-0 place-items-center rounded-full bg-positive-surface text-5xl font-black text-positive">{report.score}</div>
+                <div>
+                  <h2 className="text-2xl font-bold leading-8">Overall Summary</h2>
+                  <p className="mt-4 text-lg leading-8 text-ink-muted">{report.summary}</p>
+                </div>
+              </section>
+            )}
+
+            {activeSection === 'scorecard' && (
+              <section className="mt-6 rounded-panel border border-border shadow-control">
+                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
+                  <Sparkles aria-hidden="true" className="size-6 text-accent" />
+                  Post-Session Scorecard
+                </h2>
+                <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 lg:px-8">
+                  <CopilotScorecardSection title="What Went Well" items={report.whatWentWell} />
+                  <CopilotScorecardSection title="What Needs Work" items={report.whatNeedsWork} />
+                  <CopilotScorecardSection title="Knowledge Gaps" items={report.knowledgeGaps} />
+                </div>
+              </section>
+            )}
+
+            {activeSection === 'questions' && (
+              <section className="mt-6 rounded-panel border border-border shadow-control">
+                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
+                  <MessageSquare aria-hidden="true" className="size-6 text-accent" />
+                  Suggested Questions for Future Sessions
+                </h2>
+                <ul className="flex flex-col gap-3 px-6 py-6 lg:px-8">
+                  {report.suggestedQuestions.map((question, i) => (
+                    <li key={i} className="flex items-start gap-3 text-base text-ink-muted">
+                      <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-accent-subtle text-xs font-bold text-accent">{i + 1}</span>
+                      <span>{question}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {activeSection === 'rubric' && (
+              <section className="mt-6 rounded-panel border border-border shadow-control">
+                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
+                  <Search aria-hidden="true" className="size-6 text-ink-muted" />
+                  Session Rubric Breakdown
+                </h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-surface-subtle text-xs font-semibold uppercase tracking-wide text-muted">
+                        <th className="px-4 py-3">Element</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.rubric.map((row) => (
+                        <tr key={row.element} className="border-b border-border-subtle transition-colors hover:bg-surface-subtle last:border-0">
+                          <td className="px-4 py-3 font-medium text-ink">{row.element}</td>
+                          <td className="px-4 py-3">
+                            <Badge tone={row.status === 'strong' ? 'positive' : row.status === 'partial' ? 'warning' : 'danger'} className={copilotRubricToneClasses[row.status]}>
+                              {copilotRubricLabel[row.status]}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-ink-muted">{row.notes}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+
+            {activeSection === 'transcript' && (
+              <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
+                <h2 className="inline-flex items-center gap-3 text-xl font-bold leading-8">
+                  <Bookmark aria-hidden="true" className="size-5 text-ink-muted" />
+                  Transcript
+                </h2>
+                <div className="mt-5 grid gap-3">
+                  {report.transcript.map((entry) => (
+                    <article key={entry.id} className="rounded-panel bg-surface-subtle p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className={cn('text-sm font-bold', entry.isUser ? 'text-accent-text' : 'text-ink')}>{entry.speaker}</h3>
+                        <p className="font-mono text-xs text-ink-muted">{entry.timestamp}</p>
+                      </div>
+                      <p className="mt-3 text-lg leading-8 text-ink-muted">{entry.text}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+          </article>
+        </div>
+      </section>
+    </Workspace>
   )
 }
 
@@ -613,7 +875,7 @@ export function CopilotCompleteView({ homeHref, sessionHref, historyHref }: Copi
   )
 }
 
-export function CopilotHistoryView({ homeHref, createHref, rows }: CopilotHistoryViewProps) {
+export function CopilotHistoryView({ homeHref, createHref, reportHref, rows }: CopilotHistoryViewProps) {
   return (
     <Workspace>
       <CopilotHeader homeHref={homeHref} current="History" />
@@ -626,7 +888,13 @@ export function CopilotHistoryView({ homeHref, createHref, rows }: CopilotHistor
           itemLabel={(row) => row.title}
           className="mx-auto max-w-7xl"
           columns={[
-            { key: 'title', label: 'Title', className: 'w-[12rem]', render: (row) => <span className="font-medium">{row.title}</span> },
+            { key: 'title', label: 'Title', className: 'w-[16rem]', render: (row) => <a href={`${reportHref}?id=${row.id}`} className="font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded">{row.title}</a> },
+            {
+              key: 'mode',
+              label: 'Type',
+              className: 'w-[7rem]',
+              render: (row) => <Badge variant={copilotModeMeta[row.mode].badgeVariant}>{copilotModeMeta[row.mode].label}</Badge>,
+            },
             { key: 'where', label: 'Where', className: 'w-[8rem]', render: (row) => row.where },
             { key: 'company', label: 'Company', className: 'w-[10rem]', render: (row) => row.company },
             { key: 'duration', label: 'Duration', className: 'w-[7rem]', render: (row) => row.duration },

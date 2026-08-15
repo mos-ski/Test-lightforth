@@ -6,6 +6,7 @@ export function CopilotHistoryPage() {
     <CopilotHistoryView
       homeHref="/v3/app"
       createHref="/v3/interview-copilot"
+      reportHref="/v3/interview-copilot/report"
       rows={copilotHistoryRows}
     />
   )

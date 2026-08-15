@@ -15,6 +15,7 @@ import { CreditHistoryPage } from './pages/credit-history-page'
 import { CopilotCompletePage } from './pages/copilot-complete-page'
 import { CopilotConfigurePage } from './pages/copilot-configure-page'
 import { CopilotHistoryPage } from './pages/copilot-history-page'
+import { CopilotReportPage } from './pages/copilot-report-page'
 import { CopilotPreferencesPage } from './pages/copilot-preferences-page'
 import { CopilotReadyPage } from './pages/copilot-ready-page'
 import { CopilotSessionPage } from './pages/copilot-session-page'
@@ -163,6 +164,10 @@ export function WebRoutes() {
 
   if (routePath === '/interview-copilot/history') {
     return <CopilotHistoryPage />
+  }
+
+  if (routePath === '/interview-copilot/report') {
+    return <CopilotReportPage />
   }
 
   if (routePath === '/auto-apply') {
