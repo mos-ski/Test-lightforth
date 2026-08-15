@@ -18,7 +18,6 @@ export const dashboardActions: readonly DashboardAction[] = [
     title: 'Tailor my Resume',
     description: 'Let Lightforth craft your perfect resume tailored to every role and optimized for results.',
     href: '/v3/resume',
-    iconSrc: '/v3-assets/dashboard-resume.svg',
     featured: true,
   },
   {
@@ -26,21 +25,18 @@ export const dashboardActions: readonly DashboardAction[] = [
     title: 'Practice For Interview',
     description: 'Practice with AI interviewers, get actionable feedback, and walk into interviews more confident than ever.',
     href: '/v3/interview-prep',
-    iconSrc: '/v3-assets/dashboard-monitor.svg',
   },
   {
     id: 'interview-copilot',
     title: 'Start Interview or Meeting',
     description: 'Live AI assistance for interviews, coding rounds, and meetings — real-time suggestions as the conversation happens.',
     href: '/v3/interview-copilot',
-    iconSrc: '/v3-assets/dashboard-copilot.svg',
   },
   {
     id: 'auto-apply',
     title: 'Apply for Jobs',
     description: 'Let Lightforth auto-apply to relevant roles based on your preferences no more job hunting stress.',
     href: '/v3/auto-apply',
-    iconSrc: '/v3-assets/dashboard-briefcase.svg',
     badge: 'BETA',
   },
 ]

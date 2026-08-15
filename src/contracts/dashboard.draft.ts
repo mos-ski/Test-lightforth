@@ -5,7 +5,6 @@ export type DashboardAction = {
   readonly title: string
   readonly description: string
   readonly href: string
-  readonly iconSrc: string
   readonly featured?: boolean
   readonly badge?: string
 }

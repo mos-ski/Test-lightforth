@@ -1,9 +1,10 @@
 import { Apple, ArrowRight, Bell, ChevronRight, CircleHelp, CreditCard, ExternalLink, Gift, LogOut, Mail, Menu, Monitor, Play, Settings, User, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-import type { DashboardAction, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
+import type { DashboardAction, DashboardActionId, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
 import type { UserIdentity } from '@/contracts/identity'
 import { cn, Dialog, DialogClose, DialogPopup, DialogTrigger, LightforthMark, SideMenu } from '@/ui'
+import { BriefcaseActionIcon, CopilotActionIcon, MonitorActionIcon, ResumeActionIcon } from './dashboard-action-icons'
 import {
   AutoApplyIcon,
   BillingIcon,
@@ -278,6 +279,13 @@ function DashboardHeader({
   )
 }
 
+const actionIconById: Record<DashboardActionId, ReactNode> = {
+  'resume-tailor': <ResumeActionIcon />,
+  'interview-practice': <MonitorActionIcon />,
+  'interview-copilot': <CopilotActionIcon />,
+  'auto-apply': <BriefcaseActionIcon />,
+}
+
 function ActionCard({ action }: { readonly action: DashboardAction }) {
   return (
     <a
@@ -289,7 +297,12 @@ function ActionCard({ action }: { readonly action: DashboardAction }) {
       )}
       aria-label={`${action.title}. ${action.description}`}
     >
-      <img aria-hidden="true" src={action.iconSrc} alt="" className="size-4 transition-transform duration-200 group-hover:scale-110 group-focus-visible:scale-110 motion-reduce:transition-none" />
+      <span
+        aria-hidden="true"
+        className="size-4 text-ink transition-transform duration-200 group-hover:scale-110 group-focus-visible:scale-110 motion-reduce:transition-none [&>svg]:size-4"
+      >
+        {actionIconById[action.id] ?? null}
+      </span>
       <div className="grid gap-1.5">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-bold tracking-normal text-ink transition-colors duration-200 group-hover:text-accent group-focus-visible:text-accent motion-reduce:transition-none">
