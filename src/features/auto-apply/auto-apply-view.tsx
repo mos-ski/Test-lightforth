@@ -688,38 +688,40 @@ function JobList({
               type="button"
               onClick={() => onSelectJob(job)}
               className={cn(
-                'group/row flex w-full items-center gap-5 border-b border-border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                'group/row flex w-full items-center gap-4 border-b border-border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
                 isSelected ? 'bg-accent/10' : 'hover:bg-surface-subtle',
               )}
             >
-              <label
-                className="grid size-6 shrink-0 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span className="sr-only">{`Select ${job.title}`}</span>
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={isSelected}
-                  onChange={() => toggleRow(job.id)}
-                />
-                {isSelected ? (
-                  <Check aria-hidden="true" className="size-3.5 text-accent" />
-                ) : (
-                  <>
-                    <FileText aria-hidden="true" className="size-3.5 text-ink-muted group-hover/row:hidden" />
-                    <span aria-hidden="true" className="hidden size-3.5 rounded border border-ink-muted group-hover/row:block" />
-                  </>
-                )}
-              </label>
-              <span
-                className={cn(
-                  'grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold',
-                  job.company.toLowerCase().includes('stripe') ? 'bg-accent-subtle text-accent-text' : 'bg-danger-surface text-danger',
-                )}
-              >
-                {job.company.slice(0, 2).toUpperCase()}
-              </span>
+              <div className="flex shrink-0 items-center gap-3">
+                <label
+                  className="grid size-6 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="sr-only">{`Select ${job.title}`}</span>
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={isSelected}
+                    onChange={() => toggleRow(job.id)}
+                  />
+                  {isSelected ? (
+                    <Check aria-hidden="true" className="size-3.5 text-accent" />
+                  ) : (
+                    <>
+                      <FileText aria-hidden="true" className="size-3.5 text-ink-muted group-hover/row:hidden" />
+                      <span aria-hidden="true" className="hidden size-3.5 rounded border border-ink-muted group-hover/row:block" />
+                    </>
+                  )}
+                </label>
+                <span
+                  className={cn(
+                    'grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold',
+                    job.company.toLowerCase().includes('stripe') ? 'bg-accent-subtle text-accent-text' : 'bg-danger-surface text-danger',
+                  )}
+                >
+                  {job.company.slice(0, 2).toUpperCase()}
+                </span>
+              </div>
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-ink">{job.title}</span>
