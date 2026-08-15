@@ -688,12 +688,12 @@ function JobList({
               type="button"
               onClick={() => onSelectJob(job)}
               className={cn(
-                'group/row flex w-full items-center gap-5 border-b border-border px-5 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                'group/row flex w-full items-center gap-5 border-b border-border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
                 isSelected ? 'bg-accent/10' : 'hover:bg-surface-subtle',
               )}
             >
               <label
-                className="grid size-7 shrink-0 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus"
+                className="grid size-6 shrink-0 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus"
                 onClick={(e) => e.stopPropagation()}
               >
                 <span className="sr-only">{`Select ${job.title}`}</span>
