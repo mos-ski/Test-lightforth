@@ -712,6 +712,14 @@ function JobList({
                   </>
                 )}
               </label>
+              <span
+                className={cn(
+                  'grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold',
+                  job.company.toLowerCase().includes('stripe') ? 'bg-accent-subtle text-accent-text' : 'bg-danger-surface text-danger',
+                )}
+              >
+                {job.company.slice(0, 2).toUpperCase()}
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-ink">{job.title}</span>
