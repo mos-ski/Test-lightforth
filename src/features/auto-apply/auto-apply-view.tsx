@@ -680,18 +680,6 @@ function JobList({
   return (
     <div>
       <div className="grid gap-1 pt-5">
-        <div className="flex items-center gap-5 border-b border-border px-5 py-3">
-          <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">
-            <span className="sr-only">Select all jobs</span>
-            <input
-              type="checkbox"
-              className="size-3.5 rounded border-input text-accent focus:ring-focus"
-              checked={jobs.length > 0 && selected.size === jobs.length}
-              onChange={toggleAll}
-            />
-          </label>
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Job</span>
-        </div>
         {jobs.map((job) => {
           const isSelected = selected.has(job.id)
           return (
