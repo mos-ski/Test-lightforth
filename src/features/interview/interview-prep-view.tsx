@@ -2,18 +2,21 @@ import { useState, type ReactNode } from 'react'
 import {
   ArrowLeft,
   BarChart3,
+  Bookmark,
   Check,
+  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Maximize2,
+  Clock,
   MessageSquare,
   Mic,
-  Minus,
+  Pause,
   Play,
-  Plus,
   Search,
   Settings,
+  Sparkles,
+  Target,
   Volume2,
   X,
 } from 'lucide-react'
@@ -24,9 +27,10 @@ import type {
   InterviewPrepSession,
   InterviewReport,
   InterviewReportStep,
+  InterviewRubricStatus,
   InterviewerVoice,
 } from '@/contracts/interview.draft'
-import { AiSuggestionAction, cn, DataTable, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, ShellBar, SourcePicker } from '@/ui'
+import { AiSuggestionAction, Badge, cn, DataTable, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, ShellBar, SourcePicker } from '@/ui'
 
 export type InterviewUploadViewProps = {
   readonly homeHref: string
@@ -71,6 +75,7 @@ export type InterviewPreparingReportViewProps = {
 export type InterviewHistoryViewProps = {
   readonly homeHref: string
   readonly createHref: string
+  readonly reportHref: string
   readonly rows: readonly InterviewHistoryRow[]
 }
 
@@ -645,7 +650,7 @@ export function InterviewPreparingReportView({ homeHref, completeHref, reportHre
   )
 }
 
-export function InterviewHistoryView({ homeHref, createHref, rows }: InterviewHistoryViewProps) {
+export function InterviewHistoryView({ homeHref, createHref, reportHref, rows }: InterviewHistoryViewProps) {
   return (
     <Workspace>
       <InterviewHeader homeHref={homeHref} current="History" />
@@ -658,7 +663,7 @@ export function InterviewHistoryView({ homeHref, createHref, rows }: InterviewHi
           itemLabel={(row) => row.title}
           className="mx-auto max-w-7xl"
           columns={[
-            { key: 'title', label: 'Title', className: 'w-[14rem]', render: (row) => <span className="font-medium">{row.title}</span> },
+            { key: 'title', label: 'Title', className: 'w-[14rem]', render: (row) => <a href={`${reportHref}?id=${row.id}`} className="font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded">{row.title}</a> },
             {
               key: 'score',
               label: 'Score',
@@ -748,7 +753,57 @@ function InterviewReportLoadingView({ homeHref }: { readonly homeHref: string })
   )
 }
 
+type ReportSectionId = 'summary' | 'scorecard' | 'questions' | 'rubric' | 'recording' | 'transcript'
+
+const rubricToneClasses: Record<InterviewRubricStatus, string> = {
+  strong: 'bg-positive-surface text-positive',
+  partial: 'bg-warning-surface text-warning',
+  'needs-work': 'bg-danger-surface text-danger',
+}
+
+const rubricLabel: Record<InterviewRubricStatus, string> = {
+  strong: 'Strong',
+  partial: 'Partial',
+  'needs-work': 'Needs work',
+}
+
+function ReportSidebar({ active, onChange }: { readonly active: ReportSectionId; readonly onChange: (id: ReportSectionId) => void }) {
+  const sections: readonly { id: ReportSectionId; label: string; icon: ReactNode }[] = [
+    { id: 'summary', label: 'Overall Summary', icon: <Sparkles className="size-5" aria-hidden="true" /> },
+    { id: 'scorecard', label: 'Scorecard', icon: <Target className="size-5" aria-hidden="true" /> },
+    { id: 'questions', label: 'Suggested Questions', icon: <MessageSquare className="size-5" aria-hidden="true" /> },
+    { id: 'rubric', label: 'Rubric Breakdown', icon: <Search className="size-5" aria-hidden="true" /> },
+    { id: 'recording', label: 'Call Recording', icon: <Clock className="size-5" aria-hidden="true" /> },
+    { id: 'transcript', label: 'Transcript', icon: <Bookmark className="size-5" aria-hidden="true" /> },
+  ]
+
+  return (
+    <nav aria-label="Report sections" className="flex w-[220px] shrink-0 flex-col gap-1 rounded-panel border border-border bg-surface p-3 shadow-control">
+      {sections.map((section) => (
+        <button
+          key={section.id}
+          type="button"
+          onClick={() => onChange(section.id)}
+          className={cn(
+            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+            active === section.id
+              ? 'bg-accent-subtle text-accent'
+              : 'text-ink-muted hover:bg-surface-subtle hover:text-ink',
+          )}
+          aria-current={active === section.id ? 'page' : undefined}
+        >
+          {section.icon}
+          <span>{section.label}</span>
+        </button>
+      ))}
+    </nav>
+  )
+}
+
 export function InterviewReportView({ homeHref, scenariosHref, practiceHref, report, isLoading = false }: InterviewReportViewProps) {
+  const [activeSection, setActiveSection] = useState<ReportSectionId>('summary')
+
   if (isLoading) {
     return <InterviewReportLoadingView homeHref={homeHref} />
   }
@@ -756,50 +811,121 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
   return (
     <Workspace>
       <InterviewHeader homeHref={homeHref} current="Interview Prep" />
-      <div className="sticky top-16 z-10 flex justify-end px-3 py-3">
-        <div className="inline-flex min-h-10 items-center gap-3 rounded-full border border-border bg-surface px-4 text-sm font-semibold text-ink-muted shadow-control">
-          <Minus aria-hidden="true" className="size-3" />
-          85%
-          <Plus aria-hidden="true" className="size-3" />
-        </div>
-      </div>
       <section className="px-4 pb-16">
-        <article className="mx-auto min-h-[82rem] w-full max-w-[81.5rem] bg-surface px-8 py-12 shadow-panel sm:px-10 lg:px-12">
-          <a href={scenariosHref} className="inline-flex min-h-11 items-center gap-3 rounded-soft text-base font-bold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <ArrowLeft aria-hidden="true" className="size-4" />
-            Back to Scenarios
-          </a>
-          <header className="mt-8 flex flex-col gap-5 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center sm:justify-between lg:px-8">
-            <div className="flex items-center gap-5">
-              <img src={report.interviewerImageSrc} alt="" className="size-20 rounded-full border-2 border-border object-cover shadow-control" />
-              <div>
-                <h1 className="text-3xl font-bold leading-10">{report.title}</h1>
-                <p className="mt-1 text-lg leading-7 text-ink-muted">{report.subtitle}</p>
-              </div>
-            </div>
-            <a href={practiceHref} className="inline-flex min-h-14 items-center justify-center gap-3 rounded-lg bg-accent px-6 text-lg font-bold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <Play aria-hidden="true" className="size-5" />
-              Practice Again
+        <div className="mx-auto flex max-w-[81.5rem] gap-6">
+          <ReportSidebar active={activeSection} onChange={setActiveSection} />
+
+          <article className="flex-1 min-w-0 bg-surface px-8 py-12 shadow-panel sm:px-10 lg:px-12">
+            <a href={scenariosHref} className="inline-flex min-h-11 items-center gap-3 rounded-soft text-base font-bold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <ArrowLeft aria-hidden="true" className="size-4" />
+              Back to Scenarios
             </a>
-          </header>
-          <section className="mt-6 flex flex-col gap-6 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center lg:px-8">
-            <div className="grid size-32 shrink-0 place-items-center rounded-full bg-positive-surface text-5xl font-black text-positive">{report.score}</div>
-            <div>
-              <h2 className="text-2xl font-bold leading-8">Overall Summary</h2>
-              <p className="mt-4 text-lg leading-8 text-ink-muted">{report.summary}</p>
-            </div>
-          </section>
-          <section className="mt-6 rounded-panel border border-border shadow-control">
-            <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
-              <BarChart3 aria-hidden="true" className="size-6 text-accent" />
-              Post-Interview Scorecard
-            </h2>
-            <div className="px-6 py-6 lg:px-8">
-              {report.metrics.map((metric) => (
-                <MetricRow key={metric.id} metric={metric} />
-              ))}
-              <section className="mt-8">
-                <h2 className="text-lg font-bold leading-7">Call Recording</h2>
+
+            <header className="mt-8 flex flex-col gap-5 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center sm:justify-between lg:px-8">
+              <div className="flex items-center gap-5">
+                <img src={report.interviewerImageSrc} alt="" className="size-20 rounded-full border-2 border-border object-cover shadow-control" />
+                <div>
+                  <h1 className="text-3xl font-bold leading-10">{report.title}</h1>
+                  <p className="mt-1 text-lg leading-7 text-ink-muted">{report.subtitle}</p>
+                </div>
+              </div>
+              <a href={practiceHref} className="inline-flex min-h-14 items-center justify-center gap-3 rounded-lg bg-accent px-6 text-lg font-bold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <Play aria-hidden="true" className="size-5" />
+                Practice Again
+              </a>
+            </header>
+
+            {activeSection === 'summary' && (
+              <section className="mt-6 flex flex-col gap-6 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center lg:px-8">
+                <div className="grid size-32 shrink-0 place-items-center rounded-full bg-positive-surface text-5xl font-black text-positive">{report.score}</div>
+                <div>
+                  <h2 className="text-2xl font-bold leading-8">Overall Summary</h2>
+                  <p className="mt-4 text-lg leading-8 text-ink-muted">{report.summary}</p>
+                </div>
+              </section>
+            )}
+
+            {activeSection === 'scorecard' && (
+              <section className="mt-6 rounded-panel border border-border shadow-control">
+                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
+                  <Sparkles aria-hidden="true" className="size-6 text-accent" />
+                  Post-Interview Scorecard
+                </h2>
+                <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 lg:px-8">
+                  <ScorecardSection title="What Went Well" items={report.whatWentWell} />
+                  <ScorecardSection title="What Needs Work" items={report.whatNeedsWork} />
+                  <ScorecardSection title="Knowledge Gaps" items={report.knowledgeGaps} />
+                </div>
+              </section>
+            )}
+
+            {activeSection === 'questions' && (
+              <section className="mt-6 rounded-panel border border-border shadow-control">
+                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
+                  <MessageSquare aria-hidden="true" className="size-6 text-accent" />
+                  Suggested Questions for Future Interviews
+                </h2>
+                <ul className="flex flex-col gap-3 px-6 py-6 lg:px-8">
+                  {report.suggestedQuestions.map((question, i) => (
+                    <li key={i} className="flex items-start gap-3 text-base text-ink-muted">
+                      <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-accent-subtle text-xs font-bold text-accent">{i + 1}</span>
+                      <span>{question}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {activeSection === 'rubric' && (
+              <>
+                <section className="mt-6 rounded-panel border border-border shadow-control">
+                  <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
+                    <Search aria-hidden="true" className="size-6 text-ink-muted" />
+                    Interview Rubric Breakdown
+                  </h2>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-border bg-surface-subtle text-xs font-semibold uppercase tracking-wide text-muted">
+                          <th className="px-4 py-3">Element</th>
+                          <th className="px-4 py-3">Status</th>
+                          <th className="px-4 py-3">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {report.rubric.map((row) => (
+                          <tr key={row.element} className="border-b border-border-subtle transition-colors hover:bg-surface-subtle last:border-0">
+                            <td className="px-4 py-3 font-medium text-ink">{row.element}</td>
+                            <td className="px-4 py-3">
+                              <Badge tone={row.status === 'strong' ? 'positive' : row.status === 'partial' ? 'warning' : 'danger'} className={rubricToneClasses[row.status]}>
+                                {rubricLabel[row.status]}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-3 text-ink-muted">{row.notes}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
+                  <h2 className="text-xl font-bold leading-8">Talk Time Ratio</h2>
+                  <div className="mt-4 flex items-center justify-between text-sm text-ink-muted">
+                    <span>You: {report.talkTime.youPercent}%</span>
+                    <span>Interviewer: {report.talkTime.interviewerPercent}%</span>
+                  </div>
+                  <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full bg-surface-subtle" role="img" aria-label={`You spoke ${report.talkTime.youPercent}% of the time`}>
+                    <div className="h-full bg-accent" style={{ width: `${report.talkTime.youPercent}%` }} />
+                  </div>
+                  <p className="mt-3 text-sm text-ink-muted">{report.talkTime.tip}</p>
+                </section>
+              </>
+            )}
+
+            {activeSection === 'recording' && (
+              <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
+                <h2 className="text-xl font-bold leading-7">Call Recording</h2>
                 <div className="mt-4 flex min-h-16 items-center gap-4 rounded-panel border border-border bg-surface-subtle p-3">
                   <button type="button" aria-label="Play recording" className="grid size-12 place-items-center rounded-lg bg-accent text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                     <Play aria-hidden="true" className="size-5" />
@@ -808,40 +934,65 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
                   <div className="h-1.5 flex-1 rounded-full bg-border">
                     <div className="h-full w-1/3 rounded-full bg-accent" />
                   </div>
-                  <ChevronDown aria-hidden="true" className="size-5 text-ink-muted" />
+                  <button type="button" aria-label="Pause recording" className="grid size-10 place-items-center rounded-lg text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                    <Pause aria-hidden="true" className="size-4" />
+                  </button>
                 </div>
               </section>
+            )}
+
+            {activeSection === 'transcript' && (
+              <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
+                <h2 className="inline-flex items-center gap-3 text-xl font-bold leading-8">
+                  <Bookmark aria-hidden="true" className="size-5 text-ink-muted" />
+                  Transcript
+                </h2>
+                <div className="mt-5 grid gap-3">
+                  {report.transcript.map((entry) => (
+                    <article key={entry.id} className="rounded-panel bg-surface-subtle p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className={cn('text-sm font-bold', entry.speaker === 'You' ? 'text-accent-text' : 'text-ink')}>{entry.speaker}</h3>
+                        <p className="font-mono text-xs text-ink-muted">{entry.timestamp}</p>
+                      </div>
+                      <p className="mt-3 text-lg leading-8 text-ink-muted">{entry.text}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <a href={scenariosHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-border bg-surface-subtle px-5 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <ArrowLeft aria-hidden="true" className="size-4" />
+                Back to Scenarios
+              </a>
+              <a href={practiceHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent px-5 text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <Play aria-hidden="true" className="size-4" />
+                Try Again
+              </a>
             </div>
-          </section>
-          <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
-            <h2 className="inline-flex items-center gap-3 text-xl font-bold leading-8">
-              <MessageSquare aria-hidden="true" className="size-5 text-accent" />
-              Transcript
-            </h2>
-            <div className="mt-5 grid gap-3">
-              {report.transcript.map((entry) => (
-                <article key={entry.id} className="rounded-panel bg-surface-subtle p-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className={cn('text-sm font-bold', entry.speaker === 'You' ? 'text-accent-text' : 'text-ink')}>{entry.speaker}</h3>
-                    <p className="font-mono text-xs text-ink-muted">{entry.timestamp}</p>
-                  </div>
-                  <p className="mt-3 text-lg leading-8 text-ink-muted">{entry.text}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <a href={scenariosHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-border bg-surface-subtle px-5 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <ArrowLeft aria-hidden="true" className="size-4" />
-              Back to Scenarios
-            </a>
-            <a href={practiceHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent px-5 text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <Play aria-hidden="true" className="size-4" />
-              Try Again
-            </a>
-          </div>
-        </article>
+          </article>
+        </div>
       </section>
     </Workspace>
+  )
+}
+
+function ScorecardSection({ title, items }: { readonly title: string; readonly items: readonly string[] }) {
+  return (
+    <section className="flex flex-col gap-3">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
+        <CheckCircle2 className="size-4 text-positive" aria-hidden="true" />
+        {title}
+      </h3>
+      <ul className="flex flex-col gap-2">
+        {items.map((item, index) => (
+          <li key={index} className="flex items-start gap-2 text-sm text-ink-muted">
+            <span className="mt-2 size-1 shrink-0 rounded-full bg-muted" aria-hidden="true" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
