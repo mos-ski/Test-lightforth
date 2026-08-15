@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ArrowLeft, ChevronRight, Send, Settings, X } from 'lucide-react'
 
 import type { CopilotHistoryRow, CopilotLiveSession, CopilotPermissionStep, CopilotResponseLength, CopilotResponseMode, CopilotSetup } from '@/contracts/copilot.draft'
@@ -131,7 +131,12 @@ export function CopilotUploadView({ homeHref, configureHref, historyHref }: Copi
   )
 }
 
+const COPILOT_AI_SUGGESTION =
+  ' Ask the interviewer how success is measured in the first 90 days, and be ready to walk through one metric you personally moved.'
+
 export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, setup }: CopilotConfigureViewProps) {
+  const [additionalContext, setAdditionalContext] = useState(setup.additionalContext)
+
   return (
     <Workspace>
       <CopilotHeader homeHref={homeHref} />
@@ -167,8 +172,13 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
               <FormField id="copilot-company" label="Company Name" defaultValue={setup.companyName} />
           </div>
           <DocumentDropAction actionHref="/v3/documents/add" />
-          <FormTextArea id="copilot-additional-context" label="Additional context" defaultValue={setup.additionalContext} />
-          <AiSuggestionAction />
+          <FormTextArea
+            id="copilot-additional-context"
+            label="Additional context"
+            value={additionalContext}
+            onChange={(event) => setAdditionalContext(event.target.value)}
+          />
+          <AiSuggestionAction onClick={() => setAdditionalContext((prev) => `${prev}${COPILOT_AI_SUGGESTION}`)} />
         </FormPanel>
       </section>
     </Workspace>
@@ -308,9 +318,37 @@ function CopilotLiveLoadingView() {
   )
 }
 
+const COPILOT_PROMPT_RESPONSES: Record<string, string> = {
+  'Summarize the discussion so far':
+    "So far the interviewer has asked about your background and your approach to a recent design decision. You've covered the vehicle maintenance app redesign, citing the 30% engagement lift.",
+  'How well am I doing so far?':
+    "You're doing well — your answers are specific and metric-driven. Consider slowing down slightly on the first sentence of each answer so the interviewer can follow the setup before the result.",
+  'Suggest follow-up questions':
+    'Try asking: "What does success look like for this role in the first 90 days?" or "How does the design team collaborate with engineering here?"',
+  'What was discussed in the last two minutes?':
+    'The conversation covered your experience leading cross-functional design reviews and how you handle conflicting stakeholder feedback.',
+}
+
+function copilotResponseFor(prompt: string): string {
+  return (
+    COPILOT_PROMPT_RESPONSES[prompt] ??
+    `Lightforth is analyzing "${prompt}" against the live transcript and will surface a response shortly.`
+  )
+}
+
 export function CopilotLiveView({ completeHref, session, isLoading = false }: CopilotLiveViewProps) {
+  const [liveResponse, setLiveResponse] = useState<string | null>(null)
+  const [draft, setDraft] = useState('')
+
   if (isLoading) {
     return <CopilotLiveLoadingView />
+  }
+
+  function handleSend() {
+    const trimmed = draft.trim()
+    if (!trimmed) return
+    setLiveResponse(copilotResponseFor(trimmed))
+    setDraft('')
   }
 
   return (
@@ -331,7 +369,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false }: Co
         <div className="flex items-center gap-4">
           <LiveSignal label={session.signalLabel} />
           <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
-          <span className="text-sm italic leading-5 text-muted">{session.activityLabel}</span>
+          <span className="text-sm italic leading-5 text-ink-muted">{session.activityLabel}</span>
         </div>
         <button type="button" className="hidden min-h-8 items-center gap-3 rounded-soft px-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
           <Settings aria-hidden="true" className="size-4" />
@@ -347,9 +385,13 @@ export function CopilotLiveView({ completeHref, session, isLoading = false }: Co
             </h2>
           </div>
           <div className="grid min-h-[32rem] place-items-center p-5 xl:h-[calc(100vh-12.4375rem)]">
-            <p className="max-w-[16.25rem] text-center text-sm leading-[22.75px] text-muted">
-              Lightforth will analyze your interview questions and generate target responses in real time.
-            </p>
+            {liveResponse ? (
+              <p className="max-w-[28rem] text-start text-sm leading-[22.75px] text-brand-bar-text">{liveResponse}</p>
+            ) : (
+              <p className="max-w-[16.25rem] text-center text-sm leading-[22.75px] text-ink-muted">
+                Lightforth will analyze your interview questions and generate target responses in real time.
+              </p>
+            )}
           </div>
         </article>
         <div className="hidden h-full bg-[var(--lf-live-divider)] xl:block" />
@@ -362,13 +404,18 @@ export function CopilotLiveView({ completeHref, session, isLoading = false }: Co
           <section className="grid min-h-0 grid-rows-[auto_1fr_auto] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
             <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
               <h2 className="text-sm font-medium leading-5">AI Assistant</h2>
-              <button type="button" aria-label="Close AI assistant" className="grid size-8 place-items-center rounded-soft text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <button type="button" aria-label="Close AI assistant" className="grid size-8 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 <X aria-hidden="true" className="size-4" />
               </button>
             </div>
             <div className="flex min-h-0 flex-col justify-end gap-1.5 px-4 pb-2">
               {session.prompts.map((prompt) => (
-                <button key={prompt} type="button" className="inline-flex min-h-[27px] items-center gap-1 rounded-[3px] border border-[var(--lf-live-control-border)] px-2.5 py-1 text-start text-[10px] font-medium leading-[15px] text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => setLiveResponse(copilotResponseFor(prompt))}
+                  className="inline-flex min-h-[27px] items-center gap-1 rounded-[3px] border border-[var(--lf-live-control-border)] px-2.5 py-1 text-start text-[10px] font-medium leading-[15px] text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                >
                   <ChevronRight aria-hidden="true" className="size-2.5" />
                   <span className="truncate">{prompt}</span>
                 </button>
@@ -377,8 +424,21 @@ export function CopilotLiveView({ completeHref, session, isLoading = false }: Co
             <label className="border-t border-[var(--lf-live-border)] p-3">
               <span className="sr-only">Ask AI anything</span>
               <span className="flex min-h-11 items-center gap-2 rounded-lg border border-[var(--lf-live-border)] bg-[var(--lf-live-header)] px-3 py-2">
-                <input className="min-w-0 flex-1 bg-transparent text-sm text-brand-bar-text outline-none placeholder:text-muted" placeholder="Ask AI anything..." />
-                <Send aria-hidden="true" className="size-4 text-muted" />
+                <input
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      handleSend()
+                    }
+                  }}
+                  className="min-w-0 flex-1 bg-transparent text-sm text-brand-bar-text outline-none placeholder:text-ink-muted"
+                  placeholder="Ask AI anything..."
+                />
+                <button type="button" onClick={handleSend} aria-label="Send question">
+                  <Send aria-hidden="true" className="size-4 text-ink-muted" />
+                </button>
               </span>
             </label>
           </section>

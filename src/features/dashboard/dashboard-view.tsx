@@ -1,8 +1,20 @@
 import { ArrowRight, Bell, CircleHelp, CreditCard, ExternalLink, Gift, Mail, Monitor, Play, X } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 import type { DashboardAction, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
 import type { UserIdentity } from '@/contracts/identity'
 import { cn, SideMenu } from '@/ui'
+import {
+  AutoApplyIcon,
+  BillingIcon,
+  CopilotIcon,
+  DashboardIcon,
+  DocumentsIcon,
+  DownloadIcon,
+  InterviewPrepIcon,
+  KnowledgeBaseIcon,
+  SettingsIcon,
+} from './dashboard-nav-icons'
 
 export type DashboardViewProps = {
   readonly user: UserIdentity
@@ -15,10 +27,23 @@ export type DashboardViewProps = {
   readonly creditNotice?: 'low' | 'empty'
 }
 
+const navIconByLabel: Record<string, ReactNode> = {
+  Dashboard: <DashboardIcon />,
+  'My Documents': <DocumentsIcon />,
+  'Auto-Apply': <AutoApplyIcon />,
+  'Interview Prep': <InterviewPrepIcon />,
+  'Interview Co-Pilot': <CopilotIcon />,
+  'Knowledge Base': <KnowledgeBaseIcon />,
+  'Download Apps': <DownloadIcon />,
+  'Billing & subscription': <BillingIcon />,
+  Settings: <SettingsIcon />,
+}
+
 function DashboardSidebar({ navItems }: { readonly navItems: readonly DashboardNavItem[] }) {
   const items = navItems.map((item) => ({
     ...item,
-    iconSrc: item.iconSrc ?? '/v3-assets/figma/sidebar-settings.svg',
+    icon: navIconByLabel[item.label] ?? <SettingsIcon />,
+    dividerBefore: item.label === 'Knowledge Base',
   }))
 
   return <SideMenu items={items} />

@@ -170,12 +170,12 @@ function ChatComposer({ prompts }: { readonly prompts: readonly string[] }) {
           Resume chat message
         </label>
         <div className="relative rounded-2xl border border-border bg-surface p-3">
-          <textarea id="resume-chat-message" className="min-h-16 w-full resize-none bg-surface text-sm text-ink outline-none placeholder:text-muted" placeholder="Paste a job description here to get started..." />
+          <textarea id="resume-chat-message" className="min-h-16 w-full resize-none bg-surface text-sm text-ink outline-none placeholder:text-ink-muted" placeholder="Paste a job description here to get started..." />
           <button type="button" aria-label="Send resume message" className="absolute bottom-2 end-2 grid size-8 place-items-center rounded-lg bg-surface-subtle text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <Send aria-hidden="true" className="size-4" />
           </button>
         </div>
-        <p className="pt-1 text-center text-xs text-muted">Enter to send · Shift+Enter for newline</p>
+        <p className="pt-1 text-center text-xs text-ink-muted">Enter to send · Shift+Enter for newline</p>
       </div>
     </div>
   )
@@ -231,14 +231,14 @@ function SectionEditor({ session }: { readonly session: ResumeBuilderSession }) 
             <section key={id} className="border-b border-border py-2">
               <button type="button" className="flex min-h-10 w-full items-center justify-between text-sm font-medium text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 {label}
-                <ChevronDown aria-hidden="true" className={cn('size-4 text-muted', id === 'professional-summary' ? 'rotate-180' : '')} />
+                <ChevronDown aria-hidden="true" className={cn('size-4 text-ink-muted', id === 'professional-summary' ? 'rotate-180' : '')} />
               </button>
               {id === 'professional-summary' ? (
                 <div className="grid gap-2 pb-3">
                   <label htmlFor="summary-create" className="text-xs font-medium text-ink-muted">
                     Summary
                   </label>
-                  <textarea id="summary-create" className="min-h-24 rounded-md border border-border bg-surface px-3 py-2 text-xs text-ink outline-none placeholder:text-muted focus:border-focus focus:ring-2 focus:ring-focus" placeholder="A brief overview of your professional background and key strengths..." />
+                  <textarea id="summary-create" className="min-h-24 rounded-md border border-border bg-surface px-3 py-2 text-xs text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus" placeholder="A brief overview of your professional background and key strengths..." />
                   <AiSuggestionLabel />
                 </div>
               ) : null}
@@ -262,7 +262,7 @@ function SectionEditor({ session }: { readonly session: ResumeBuilderSession }) 
         </div>
         <div className="p-3 text-xs leading-5 text-ink-muted">
           <p className="border-s-2 border-focus ps-3">{session.aiDraft}</p>
-          <button type="button" className="mt-3 inline-flex min-h-8 items-center gap-2 text-xs text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          <button type="button" className="mt-3 inline-flex min-h-8 items-center gap-2 text-xs text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <Sparkles aria-hidden="true" className="size-3" />
             Regenerate
           </button>
@@ -408,7 +408,7 @@ function ZoomPill({ label }: { readonly label: string }) {
 function InlineChangeControls() {
   return (
     <div className="absolute end-40 top-36 hidden gap-2 lg:flex">
-      <button type="button" aria-label="Decline change" className="grid size-8 place-items-center rounded-soft border border-border bg-surface text-muted shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+      <button type="button" aria-label="Decline change" className="grid size-8 place-items-center rounded-soft border border-border bg-surface text-ink-muted shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
         <X aria-hidden="true" className="size-4" />
       </button>
       <button type="button" aria-label="Accept change" className="grid size-8 place-items-center rounded-soft bg-accent text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">

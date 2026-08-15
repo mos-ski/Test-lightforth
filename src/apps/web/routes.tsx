@@ -37,6 +37,7 @@ import { ResumeEditorPage } from './pages/resume-editor-page'
 import { ResumeHistoryPage } from './pages/resume-history-page'
 import { ResumeUploadPage } from './pages/resume-upload-page'
 import { RouteIndexPage } from './pages/route-index-page'
+import { LibraryPage } from './pages/library-page'
 import { SettingsPage } from './pages/settings-page'
 
 export function WebRoutes() {
@@ -193,6 +194,10 @@ export function WebRoutes() {
 
   if (routePath === '/auto-apply/applied') {
     return <AutoApplyAppliedPage />
+  }
+
+  if (routePath === '/library') {
+    return <LibraryPage />
   }
 
   return <RouteIndexPage />

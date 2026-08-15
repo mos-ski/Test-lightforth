@@ -13,9 +13,7 @@ export type DashboardAction = {
 export type DashboardNavItem = {
   readonly label: string
   readonly href: string
-  readonly iconSrc?: string
   readonly active?: boolean
-  readonly hasChildren?: boolean
 }
 
 export type DashboardInstallPrompt = {

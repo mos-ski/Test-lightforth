@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, LinkIcon, Play, Search, X } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, Search, Send, X, Zap } from 'lucide-react'
 
 import type { AutoApplyActivity, AutoApplyAgentStatus, AutoApplyApplication, AutoApplyJob, AutoApplyMetric, AutoApplySetup } from '@/contracts/auto-apply.draft'
 import { cn, FormField, FormPanel, FormPanelFooter, FormTextArea, ReviewSummaryList, ShellBar, SourcePicker } from '@/ui'
@@ -170,7 +170,7 @@ export function AutoApplySetupStepView({ homeHref, backHref, nextHref, setup, st
 export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, agentHref, setup }: AutoApplyReviewViewProps) {
   return (
     <Workspace>
-      <Header homeHref={homeHref} actionHref={contactHref} />
+      <Header homeHref={homeHref} />
       <section className="px-4 py-9">
         <FormPanel
           title="Review Job Preference"
@@ -219,7 +219,7 @@ function AppShell({
 
   return (
     <Workspace>
-      <Header homeHref={homeHref} actionHref={setupHref} />
+      <Header homeHref={homeHref} />
       <section className="p-4 lg:p-8">
         <div className="mx-auto min-h-[56rem] max-w-7xl bg-surface shadow-panel">
           <div className="border-b border-border px-8 py-8">
@@ -249,15 +249,36 @@ function AppShell({
   )
 }
 
+const agentStatusTone: Record<AutoApplyAgentStatus['status'], string> = {
+  running: 'bg-positive-surface text-positive',
+  complete: 'bg-accent-subtle text-accent-text',
+  idle: 'bg-surface-subtle text-ink-muted',
+}
+
+const activityActorIcon: Record<string, typeof Search> = {
+  scout: Search,
+  filter: Filter,
+  tailor: PenLine,
+  driver: Send,
+  system: Zap,
+}
+
+const activityFilters = ['All', 'Scout', 'Filter', 'Tailor', 'Driver'] as const
+type ActivityFilter = (typeof activityFilters)[number]
+
 export function AutoApplyAgentView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, metrics, statuses, activities }: AutoApplyAgentViewProps) {
+  const [activeFilter, setActiveFilter] = useState<ActivityFilter>('All')
+  const visibleActivities =
+    activeFilter === 'All' ? activities : activities.filter((activity) => activity.actor.toLowerCase() === activeFilter.toLowerCase())
+
   return (
     <AppShell homeHref={homeHref} title="Agents" active="agent" setupHref={setupHref} agentHref={agentHref} jobsHref={jobsHref} appliedHref={appliedHref}>
       <div className="pt-5">
         <div className="grid gap-3 lg:grid-cols-4">
           {metrics.map((metric) => (
             <div key={metric.label} className="rounded-lg border border-border bg-surface p-4 shadow-control">
-              <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{metric.label}</p>
-              <p className="mt-1 text-2xl font-bold">{metric.value}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.3px] text-ink-muted">{metric.label}</p>
+              <p className="mt-1 text-2xl font-bold text-ink">{metric.value}</p>
             </div>
           ))}
         </div>
@@ -265,8 +286,8 @@ export function AutoApplyAgentView({ homeHref, setupHref, agentHref, jobsHref, a
           {statuses.map((status) => (
             <article key={status.name} className="rounded-lg border border-border bg-surface p-4 shadow-control">
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-wide">{status.name}</h2>
-                <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', status.status === 'running' ? 'bg-positive-surface text-positive' : 'bg-surface-subtle text-ink-muted')}>
+                <h2 className="text-xs font-bold uppercase tracking-[0.3px] text-ink">{status.name}</h2>
+                <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', agentStatusTone[status.status])}>
                   {status.status}
                 </span>
               </div>
@@ -274,26 +295,53 @@ export function AutoApplyAgentView({ homeHref, setupHref, agentHref, jobsHref, a
             </article>
           ))}
         </div>
-        <section className="mt-6 rounded-lg border border-border bg-surface p-5">
-          <h2 className="text-base font-semibold">Live activity</h2>
-          <div className="mt-5 grid gap-5">
-            {activities.map((activity) => (
-              <article key={activity.id} className="grid gap-2 border-b border-border pb-5 last:border-b-0 last:pb-0">
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="font-semibold capitalize text-ink">{activity.actor}</span>
-                  <span className="text-ink-muted">{activity.time}</span>
-                </div>
-                <p className={cn('text-sm', activity.tone === 'muted' ? 'text-ink-muted' : 'text-ink')}>{activity.message}</p>
-                <p className="text-xs italic text-ink-muted">{activity.detail}</p>
-                <div className="flex flex-wrap gap-3">
-                  {activity.links.map((link) => (
-                    <a key={link} href={jobsHref} className="text-xs text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                      {link}
-                    </a>
-                  ))}
-                </div>
-              </article>
-            ))}
+        <section className="mt-6 overflow-hidden rounded-lg border border-border bg-surface shadow-control">
+          <div className="flex items-center justify-between border-b border-border px-4">
+            <nav className="flex gap-4" aria-label="Filter activity by agent">
+              {activityFilters.map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setActiveFilter(filter)}
+                  aria-current={activeFilter === filter ? 'true' : undefined}
+                  className={cn(
+                    'border-b-2 px-2 py-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                    activeFilter === filter ? 'border-accent-text text-accent-text' : 'border-transparent text-ink-muted hover:text-ink',
+                  )}
+                >
+                  {filter}
+                </button>
+              ))}
+            </nav>
+            <span className="flex items-center gap-1.5 text-xs font-medium text-positive">
+              <span className="size-1.5 rounded-full bg-positive" aria-hidden="true" />
+              Live
+            </span>
+          </div>
+          <div className="grid gap-5 p-5">
+            {visibleActivities.map((activity) => {
+              const Icon = activityActorIcon[activity.actor.toLowerCase()] ?? Zap
+              return (
+                <article key={activity.id} className="grid grid-cols-[14px_1fr] gap-x-3 border-b border-border pb-5 last:border-b-0 last:pb-0">
+                  <Icon className="mt-0.5 size-3.5 text-ink-muted" aria-hidden="true" />
+                  <div className="grid gap-2">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="font-semibold capitalize text-ink">{activity.actor}</span>
+                      <span className="text-ink-muted">{activity.time}</span>
+                    </div>
+                    <p className={cn('text-sm', activity.tone === 'muted' ? 'text-ink-muted' : 'text-ink')}>{activity.message}</p>
+                    <p className="text-xs italic text-ink-muted">{activity.detail}</p>
+                    <div className="flex flex-wrap gap-3">
+                      {activity.links.map((link) => (
+                        <a key={link} href={jobsHref} className="text-xs text-accent-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                          {link}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </section>
       </div>
@@ -329,7 +377,7 @@ function JobList({ jobs, selectedJob, getJobHref }: { readonly jobs: readonly Au
             <span className="mt-1 block text-xs text-ink-muted">
               {job.company} - {job.location} - {job.type}
             </span>
-            <span className="mt-1 block text-xs text-muted">
+            <span className="mt-1 block text-xs text-ink-muted">
               {job.dateLabel} - {job.source}
             </span>
           </span>
@@ -350,7 +398,7 @@ function JobSearch() {
       <label className="relative block">
         <span className="sr-only">Search by title or company</span>
         <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-5 -translate-y-1/2 text-ink-muted" />
-        <input className="min-h-11 w-full rounded-lg border border-input bg-surface py-2 pe-3 ps-10 text-base text-ink outline-none placeholder:text-muted focus:border-focus focus:ring-2 focus:ring-focus" placeholder="Search by title or company" />
+        <input className="min-h-11 w-full rounded-lg border border-input bg-surface py-2 pe-3 ps-10 text-base text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus" placeholder="Search by title or company" />
       </label>
       <div className="mt-3 flex flex-wrap gap-2">
         {['Location', 'Experience Level', 'Job Type', 'Date Posted'].map((filter) => (
@@ -391,7 +439,7 @@ function JobPreview({
         </div>
         <div className="mt-4 flex items-center gap-2">
           <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', applied ? 'bg-positive text-on-accent' : 'bg-warning-surface text-warning')}>{applied ? 'Applied' : 'NEW'}</span>
-          <span className="text-sm text-muted">{applied ? 'JUL 12 2026' : 'Aug 14, 2026'}</span>
+          <span className="text-sm text-ink-muted">{applied ? 'JUL 12 2026' : 'Aug 14, 2026'}</span>
         </div>
         <section className="mt-4 grid gap-4 border-t border-border pt-4">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Job Listing</h3>
@@ -445,7 +493,7 @@ function JobPreview({
 export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, selectedJob }: AutoApplyJobsViewProps) {
   return (
     <Workspace>
-      <Header homeHref={homeHref} actionHref={setupHref} />
+      <Header homeHref={homeHref} />
       <section className="flex flex-col gap-8 p-4 lg:flex-row lg:p-8">
         <div className="min-w-0 flex-1 bg-surface shadow-panel">
           <div className="border-b border-border px-8 py-8">
@@ -462,7 +510,7 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
               <JobSearch />
               <JobList jobs={jobs} selectedJob={selectedJob} getJobHref={(job) => `${jobsHref}/${job.id}`} />
               <div className="mt-5 flex items-center justify-center gap-4 text-sm text-ink-muted">
-                <span className="inline-flex items-center gap-1 text-muted"><ChevronLeft aria-hidden="true" className="size-4" />Previous</span>
+                <span className="inline-flex items-center gap-1 text-ink-muted"><ChevronLeft aria-hidden="true" className="size-4" />Previous</span>
                 <span>Page 1 of 43</span>
                 <span className="inline-flex items-center gap-1 text-ink">Next<ChevronRight aria-hidden="true" className="size-4" /></span>
               </div>
@@ -478,7 +526,7 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
 export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, application }: AutoApplyAppliedViewProps) {
   return (
     <Workspace>
-      <Header homeHref={homeHref} actionHref={setupHref} />
+      <Header homeHref={homeHref} />
       <section className="flex flex-col gap-8 p-4 lg:flex-row lg:p-8">
         <div className="min-w-0 flex-1 bg-surface shadow-panel">
           <div className="border-b border-border px-8 py-8">
@@ -509,7 +557,7 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
           </div>
           <div className="mt-4 flex items-center gap-2 border-b border-border pb-4">
             <span className="rounded-full bg-positive px-3 py-1 text-xs font-semibold text-on-accent">Applied</span>
-            <span className="text-sm text-muted">{application.appliedDate}</span>
+            <span className="text-sm text-ink-muted">{application.appliedDate}</span>
           </div>
           <section className="border-b border-border py-4">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Job Listing</h3>
@@ -526,7 +574,7 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
             </a>
           </section>
           <section className="border-b border-border py-4">
-            <p className="text-xs font-semibold text-muted">JUL 12</p>
+            <p className="text-xs font-semibold text-ink-muted">JUL 12</p>
             <div className="mt-3 grid gap-3">
               {application.events.map((event) => (
                 <div key={event.label} className="flex items-center justify-between">
@@ -534,7 +582,7 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                     <span className="grid size-5 place-items-center rounded-full bg-positive-surface"><span className="size-2 rounded-full bg-positive" /></span>
                     {event.label}
                   </span>
-                  <span className="text-xs text-muted">{event.time}</span>
+                  <span className="text-xs text-ink-muted">{event.time}</span>
                 </div>
               ))}
             </div>

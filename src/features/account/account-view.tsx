@@ -1,5 +1,5 @@
-import { Apple, Check, Copy, EyeOff, Gift, Monitor, Upload } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Apple, Check, Copy, EyeOff, Gift, Monitor, Moon, Sun, Upload } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 
 import type { BillingPlanCard, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile } from '@/contracts/account.draft'
 import { Button, cn, DataTable, ShellBar } from '@/ui'
@@ -104,7 +104,7 @@ function PlanCard({ plan }: { readonly plan: BillingPlanCard }) {
       <ul className="mt-6 grid gap-3 border-b border-border pb-6 text-sm text-ink-muted">
         {plan.features.map((feature) => (
           <li key={feature} className="flex items-center gap-3">
-            <Check aria-hidden="true" className="size-4 text-muted" />
+            <Check aria-hidden="true" className="size-4 text-ink-muted" />
             {feature}
           </li>
         ))}
@@ -244,6 +244,58 @@ function ProfileSettings({ profile }: { readonly profile: SettingsProfile }) {
   )
 }
 
+type Theme = 'light' | 'dark'
+
+const THEME_STORAGE_KEY = 'lightforth-theme'
+
+function readStoredTheme(): Theme {
+  if (typeof window === 'undefined') return 'light'
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
+  return stored === 'dark' ? 'dark' : 'light'
+}
+
+function AppearanceSettings() {
+  const [theme, setTheme] = useState<Theme>(readStoredTheme)
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
+
+  const options: readonly { readonly value: Theme; readonly label: string; readonly icon: typeof Sun }[] = [
+    { value: 'light', label: 'Light', icon: Sun },
+    { value: 'dark', label: 'Dark', icon: Moon },
+  ]
+
+  return (
+    <section className="rounded-panel border border-border bg-surface p-6 shadow-control sm:p-8">
+      <h2 className="text-xl font-bold">Appearance</h2>
+      <p className="mt-1 text-sm text-ink-muted">Choose how Lightforth looks on this device.</p>
+      <div className="mt-6 inline-flex gap-2 rounded-lg border border-border bg-surface-subtle p-1">
+        {options.map((option) => {
+          const Icon = option.icon
+          const active = theme === option.value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setTheme(option.value)}
+              className={cn(
+                'inline-flex min-h-9 items-center gap-2 rounded-md px-4 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                active ? 'bg-surface text-ink shadow-control' : 'text-ink-muted',
+              )}
+            >
+              <Icon aria-hidden="true" className="size-4" />
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
 function SecuritySettings() {
   return (
     <div className="grid gap-6">
@@ -258,7 +310,7 @@ function SecuritySettings() {
               <span className="text-sm font-medium">{label}</span>
               <span className="flex min-h-10 items-center rounded-lg border border-input bg-surface px-3 text-sm shadow-control">
                 <input className="min-w-0 flex-1 bg-transparent outline-none" type="password" value="passwordpassword" readOnly />
-                <EyeOff aria-hidden="true" className="size-4 text-muted" />
+                <EyeOff aria-hidden="true" className="size-4 text-ink-muted" />
               </span>
             </label>
           ))}
@@ -333,8 +385,13 @@ export function SettingsView({ homeHref, activeTab, profile, referrals }: Settin
           <h1 className="text-2xl font-bold leading-tight">Settings</h1>
         </header>
         <SettingsTabs activeTab={activeTab} />
-        <div className="mt-7">
-          {activeTab === 'profile' ? <ProfileSettings profile={profile} /> : null}
+        <div className="mt-7 grid gap-6">
+          {activeTab === 'profile' ? (
+            <>
+              <ProfileSettings profile={profile} />
+              <AppearanceSettings />
+            </>
+          ) : null}
           {activeTab === 'security' ? <SecuritySettings /> : null}
           {activeTab === 'referral' ? <ReferralSettings referrals={referrals} /> : null}
         </div>

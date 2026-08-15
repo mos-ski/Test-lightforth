@@ -1,15 +1,15 @@
 import type { DashboardAction, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
 
 export const dashboardNavItems: readonly DashboardNavItem[] = [
-  { label: 'Dashboard', href: '/v3/app', iconSrc: '/v3-assets/figma/sidebar-dashboard.svg', active: true },
-  { label: 'Resumes', href: '/v3/resume/history', iconSrc: '/v3-assets/figma/sidebar-documents.svg' },
-  { label: 'Auto-Apply', href: '/v3/auto-apply', iconSrc: '/v3-assets/figma/sidebar-briefcase.svg' },
-  { label: 'Interview Prep', href: '/v3/interview-prep', iconSrc: '/v3-assets/figma/sidebar-interview-prep.svg' },
-  { label: 'Interview Co-Pilot', href: '/v3/interview-copilot', iconSrc: '/v3-assets/figma/sidebar-copilot.svg' },
-  { label: 'Manage Context', href: '/v3/documents', iconSrc: '/v3-assets/figma/sidebar-context.svg' },
-  { label: 'Download Apps', href: '/v3/downloads', iconSrc: '/v3-assets/figma/sidebar-download.svg' },
-  { label: 'Billing & subscription', href: '/v3/billing', iconSrc: '/v3-assets/figma/sidebar-billing.svg' },
-  { label: 'Settings', href: '/v3/settings', iconSrc: '/v3-assets/figma/sidebar-settings.svg' },
+  { label: 'Dashboard', href: '/v3/app', active: true },
+  { label: 'My Documents', href: '/v3/resume/history' },
+  { label: 'Auto-Apply', href: '/v3/auto-apply/applied' },
+  { label: 'Interview Prep', href: '/v3/interview-prep/history' },
+  { label: 'Interview Co-Pilot', href: '/v3/interview-copilot/history' },
+  { label: 'Knowledge Base', href: '/v3/documents' },
+  { label: 'Download Apps', href: '/v3/downloads' },
+  { label: 'Billing & subscription', href: '/v3/billing' },
+  { label: 'Settings', href: '/v3/settings' },
 ]
 
 export const dashboardActions: readonly DashboardAction[] = [

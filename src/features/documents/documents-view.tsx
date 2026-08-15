@@ -30,10 +30,10 @@ function MoreButton({ label }: { readonly label: string }) {
 export function DocumentsView({ homeHref, addHref, rows }: DocumentsViewProps) {
   return (
     <div className="min-h-screen bg-canvas text-ink">
-      <ShellBar homeHref={homeHref} current="Documents" closeHref={homeHref} closeLabel="Close documents" />
+      <ShellBar homeHref={homeHref} current="Knowledge Base" closeHref={homeHref} closeLabel="Close documents" />
       <section className="px-4 py-8 lg:px-12 xl:px-24">
         <DataTable
-          title="Add Context"
+          title="Knowledge Base"
           searchLabel="Search documents"
           action={{ label: 'Add Document', href: addHref }}
           rows={rows}
@@ -60,7 +60,7 @@ export function DocumentsView({ homeHref, addHref, rows }: DocumentsViewProps) {
 export function DocumentsAddView({ homeHref, documentsHref, manualHref }: DocumentsAddViewProps) {
   return (
     <div className="min-h-screen bg-canvas text-ink">
-      <ShellBar homeHref={homeHref} current="Documents" closeHref={homeHref} closeLabel="Close documents" />
+      <ShellBar homeHref={homeHref} current="Knowledge Base" closeHref={homeHref} closeLabel="Close documents" />
       <section className="px-4 py-9">
         <FormPanel
           title="Add Documents"
@@ -84,7 +84,7 @@ export function DocumentsAddView({ homeHref, documentsHref, manualHref }: Docume
 export function DocumentsManualView({ homeHref, backHref, nextHref }: DocumentsManualViewProps) {
   return (
     <div className="min-h-screen bg-canvas text-ink">
-      <ShellBar homeHref={homeHref} current="Documents" closeHref={homeHref} closeLabel="Close documents" />
+      <ShellBar homeHref={homeHref} current="Knowledge Base" closeHref={homeHref} closeLabel="Close documents" />
       <section className="px-4 py-9">
         <FormPanel
           title="Input Context Manually"

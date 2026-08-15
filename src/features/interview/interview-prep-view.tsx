@@ -158,7 +158,12 @@ export function InterviewUploadView({ homeHref, configureHref, historyHref }: In
   )
 }
 
+const INTERVIEW_AI_SUGGESTION =
+  ' Ask the interviewer how success is measured in the first 90 days, and be ready to walk through one metric you personally moved.'
+
 export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, session }: InterviewConfigureViewProps) {
+  const [additionalContext, setAdditionalContext] = useState(session.additionalContext)
+
   return (
     <Workspace>
       <InterviewHeader homeHref={homeHref} current="Interview Prep" />
@@ -194,8 +199,13 @@ export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, sessio
               <FormField id="interview-company" label="Company Name" defaultValue={session.companyName} />
           </div>
           <DocumentDropAction actionHref="/v3/documents/add" />
-          <FormTextArea id="interview-additional-context" label="Additional context" defaultValue={session.additionalContext} />
-          <AiSuggestionAction />
+          <FormTextArea
+            id="interview-additional-context"
+            label="Additional context"
+            value={additionalContext}
+            onChange={(event) => setAdditionalContext(event.target.value)}
+          />
+          <AiSuggestionAction onClick={() => setAdditionalContext((prev) => `${prev}${INTERVIEW_AI_SUGGESTION}`)} />
         </FormPanel>
       </section>
     </Workspace>
@@ -213,7 +223,7 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
         <form className="mx-auto w-full max-w-[846px] border border-border bg-surface shadow-control">
           <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
             <h1 className="text-xl font-medium">Choose interviewer voice</h1>
-            <span className="text-sm text-muted">2/2</span>
+            <span className="text-sm text-ink-muted">2/2</span>
           </div>
           <div className="grid gap-x-6 gap-y-5 px-12 py-10 sm:grid-cols-2 lg:grid-cols-3">
             {voices.map((voice) => (
@@ -336,8 +346,14 @@ function InterviewSessionLoadingView() {
 }
 
 export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {
+  const [expandedMessageIds, setExpandedMessageIds] = useState<readonly string[]>([])
+
   if (isLoading) {
     return <InterviewSessionLoadingView />
+  }
+
+  function toggleExpanded(id: string) {
+    setExpandedMessageIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
   }
 
   return (
@@ -360,7 +376,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
         <div className="flex items-center gap-4">
           <SignalStrength label={session.signalLabel} />
           <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
-          <span className="text-sm italic leading-5 text-muted">{session.activityLabel}</span>
+          <span className="text-sm italic leading-5 text-ink-muted">{session.activityLabel}</span>
         </div>
       </div>
       <section className="grid gap-3 p-3 xl:grid-cols-[minmax(0,1fr)_28.5rem]">
@@ -383,28 +399,36 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
         <aside className="min-h-[32rem] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)] xl:min-h-[calc(100vh-10.25rem)]">
           <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
             <h2 className="text-sm font-medium leading-5">Chat</h2>
-            <button type="button" aria-label="Expand chat" className="grid size-8 place-items-center rounded-soft text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <button type="button" aria-label="Expand chat" className="grid size-8 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               <Maximize2 aria-hidden="true" className="size-4" />
             </button>
           </div>
           <div className="grid gap-3 p-4 sm:p-7">
-            {session.chatMessages.map((message) => (
-              <article
-                key={message.id}
-                className={cn(
-                  'max-w-[16.75rem] overflow-hidden text-sm leading-[22.75px] text-brand-bar-text shadow-control',
-                  message.author === 'candidate' ? 'ms-auto rounded-bl-[16px] rounded-br-sm rounded-tl-[16px] rounded-tr-[16px] bg-accent' : 'rounded-bl-sm rounded-br-[16px] rounded-tl-[16px] rounded-tr-[16px] bg-[var(--lf-live-message)]',
-                )}
-              >
-                <p className="px-3.5 py-2.5">{message.text}</p>
-                {message.author === 'candidate' ? (
-                  <button type="button" className="flex min-h-7 w-full items-center justify-center gap-1 border-t border-[var(--lf-live-border)] px-3 text-xs font-semibold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                    <ChevronDown aria-hidden="true" className="size-3" />
-                    <span>Show more</span>
-                  </button>
-                ) : null}
-              </article>
-            ))}
+            {session.chatMessages.map((message) => {
+              const expanded = expandedMessageIds.includes(message.id)
+              const isLong = message.text.length > 120
+              return (
+                <article
+                  key={message.id}
+                  className={cn(
+                    'max-w-[16.75rem] overflow-hidden text-sm leading-[22.75px] text-brand-bar-text shadow-control',
+                    message.author === 'candidate' ? 'ms-auto rounded-bl-[16px] rounded-br-sm rounded-tl-[16px] rounded-tr-[16px] bg-accent' : 'rounded-bl-sm rounded-br-[16px] rounded-tl-[16px] rounded-tr-[16px] bg-[var(--lf-live-message)]',
+                  )}
+                >
+                  <p className={cn('px-3.5 py-2.5', !expanded && isLong ? 'line-clamp-3' : undefined)}>{message.text}</p>
+                  {message.author === 'candidate' && isLong ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleExpanded(message.id)}
+                      className="flex min-h-7 w-full items-center justify-center gap-1 border-t border-[var(--lf-live-border)] px-3 text-xs font-semibold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                    >
+                      <ChevronDown aria-hidden="true" className={cn('size-3 transition-transform', expanded ? 'rotate-180' : undefined)} />
+                      <span>{expanded ? 'Show less' : 'Show more'}</span>
+                    </button>
+                  ) : null}
+                </article>
+              )
+            })}
           </div>
         </aside>
       </section>
@@ -443,13 +467,13 @@ export function InterviewPreparingReportView({ homeHref, completeHref, reportHre
         <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
           <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
             <h1 className="text-xl font-medium">Preparing your coaching report...</h1>
-            <span className="text-sm text-muted">1/2</span>
+            <span className="text-sm text-ink-muted">1/2</span>
           </div>
           <div className="grid gap-4 p-8">
             <div className="grid gap-4">
               {steps.map((step) => (
                 <div key={step.id} className="flex items-center gap-3">
-                  <span className={cn('grid size-8 place-items-center rounded-full', step.status === 'complete' ? 'bg-positive text-on-accent' : step.status === 'active' ? 'bg-accent-subtle text-accent-text' : 'bg-surface-subtle text-muted')}>
+                  <span className={cn('grid size-8 place-items-center rounded-full', step.status === 'complete' ? 'bg-positive text-on-accent' : step.status === 'active' ? 'bg-accent-subtle text-accent-text' : 'bg-surface-subtle text-ink-muted')}>
                     {step.status === 'complete' ? <Check aria-hidden="true" className="size-4" /> : <span className={cn('size-2.5 rounded-full', step.status === 'active' ? 'bg-accent' : 'bg-muted')} />}
                   </span>
                   <span className="text-sm font-semibold">{step.label}</span>
@@ -475,7 +499,7 @@ export function InterviewHistoryView({ homeHref, createHref, rows }: InterviewHi
       <InterviewHeader homeHref={homeHref} current="History" />
       <section className="px-4 py-8 lg:px-12 xl:px-24">
         <DataTable
-          title="Past Resumes"
+          title="Past Interviews"
           searchLabel="Search interview history"
           action={{ label: 'Create New', href: createHref }}
           rows={rows}
@@ -485,7 +509,7 @@ export function InterviewHistoryView({ homeHref, createHref, rows }: InterviewHi
             { key: 'title', label: 'Title', className: 'w-[18rem]', render: (row) => <span className="font-medium">{row.title}</span> },
             {
               key: 'score',
-              label: 'ATS Score',
+              label: 'Score',
               className: 'w-[9rem]',
               render: (row) => <span className="rounded-pill bg-positive-surface px-2.5 py-0.5 text-xs font-bold leading-4 text-positive">{row.score}</span>,
             },
@@ -632,7 +656,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
                   <div className="h-1.5 flex-1 rounded-full bg-border">
                     <div className="h-full w-1/3 rounded-full bg-accent" />
                   </div>
-                  <ChevronDown aria-hidden="true" className="size-5 text-muted" />
+                  <ChevronDown aria-hidden="true" className="size-5 text-ink-muted" />
                 </div>
               </section>
             </div>
@@ -647,7 +671,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
                 <article key={entry.id} className="rounded-panel bg-surface-subtle p-5">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className={cn('text-sm font-bold', entry.speaker === 'You' ? 'text-accent-text' : 'text-ink')}>{entry.speaker}</h3>
-                    <p className="font-mono text-xs text-muted">{entry.timestamp}</p>
+                    <p className="font-mono text-xs text-ink-muted">{entry.timestamp}</p>
                   </div>
                   <p className="mt-3 text-lg leading-8 text-ink-muted">{entry.text}</p>
                 </article>

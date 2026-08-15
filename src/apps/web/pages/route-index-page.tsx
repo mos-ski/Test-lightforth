@@ -269,6 +269,14 @@ export function RouteIndexPage() {
           Portable React screens grouped by production target. Each flow is built as app wiring plus pure feature views.
         </p>
 
+        <a
+          href="/v3/library"
+          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-on-accent shadow-control transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          Open Component Library
+          <span className="text-ink-muted/80">/v3/library</span>
+        </a>
+
         <section className="mt-10">
           <h2 className="text-2xl font-semibold">Web app: Auth</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">

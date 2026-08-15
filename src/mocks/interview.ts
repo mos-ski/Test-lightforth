@@ -15,7 +15,7 @@ export const interviewSession: InterviewPrepSession = {
 export const interviewerVoices: readonly InterviewerVoice[] = [
   {
     id: 'amelie-laurent',
-    name: 'Amelie Laurent',
+    name: 'Amélie Laurent',
     title: 'Founder & CEO',
     summary: 'Former co-founder of Opendoor. Early staff at Spotify and Clearbit.',
     imageSrc: '/v3-assets/interview-voice-amelie.png',
