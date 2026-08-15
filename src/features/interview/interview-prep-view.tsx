@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowLeft,
   BarChart3,
@@ -8,7 +8,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Clock,
   MessageSquare,
   Mic,
   Pause,
@@ -16,7 +15,6 @@ import {
   Search,
   Settings,
   Sparkles,
-  Target,
   Volume2,
   X,
 } from 'lucide-react'
@@ -216,55 +214,107 @@ export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, sessio
 }
 
 export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voices }: InterviewVoiceViewProps) {
-  const initiallySelected = voices.find((voice) => voice.selected)?.id ?? voices[0]?.id
-  const [selectedVoiceId, setSelectedVoiceId] = useState(initiallySelected)
+  const [selectedVoiceId, setSelectedVoiceId] = useState<string | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  const handleSelect = (voice: InterviewerVoice) => {
+    if (selectedVoiceId === voice.id) return
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    setSelectedVoiceId(voice.id)
+    if (voice.audioSrc) {
+      const audio = new Audio(voice.audioSrc)
+      audio.volume = 0.5
+      audio.play().catch(() => {})
+      audioRef.current = audio
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+
+  const isDisabled = selectedVoiceId === null
 
   return (
     <Workspace>
       <InterviewHeader homeHref={homeHref} current="Interview Prep" />
       <section className="px-4 py-9">
-        <form className="mx-auto w-full max-w-[846px] border border-border bg-surface shadow-control">
-          <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
-            <h1 className="text-xl font-medium">Choose interviewer voice</h1>
-            <span className="text-sm text-ink-muted">2/2</span>
-          </div>
-          <div className="grid gap-x-6 gap-y-5 px-12 py-10 sm:grid-cols-2 lg:grid-cols-3">
-            {voices.map((voice) => (
-              <label
-                key={voice.id}
+        <div className="mx-auto w-full max-w-[720px]">
+          <div className="border border-border bg-surface shadow-control">
+            <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-6">
+              <h1 className="text-lg font-medium">Choose interviewer voice</h1>
+              <span className="text-xs text-ink-muted">2/2</span>
+            </div>
+            <div className="grid gap-x-5 gap-y-4 px-10 py-8 sm:grid-cols-2 lg:grid-cols-3">
+              {voices.map((voice) => {
+                const isSelected = selectedVoiceId === voice.id
+                return (
+                  <label
+                    key={voice.id}
+                    className={cn(
+                      'group grid cursor-pointer gap-3 rounded-xl p-1.5 transition-all duration-200',
+                      'hover:bg-surface-subtle hover:ring-2 hover:ring-focus',
+                      isSelected && 'bg-accent-subtle ring-2 ring-accent',
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="interviewer"
+                      className="sr-only"
+                      checked={isSelected}
+                      onChange={() => handleSelect(voice)}
+                    />
+                    <span className="relative block aspect-[3/2] w-full overflow-hidden rounded-lg bg-surface-subtle">
+                      <img src={voice.imageSrc} alt="" className="absolute inset-0 size-full object-cover" />
+                      {isSelected ? (
+                        <span className="absolute inset-0 grid place-items-center">
+                          <span className="absolute inset-0 bg-accent opacity-85" />
+                          <span className="relative rounded bg-overlay px-2 py-0.5 text-[11px] font-semibold text-on-danger">selected</span>
+                        </span>
+                      ) : (
+                        <span className="absolute inset-0 grid place-items-center bg-ink/0 transition-colors duration-200 group-hover:bg-ink/10">
+                          <span className="rounded bg-overlay/80 px-2 py-0.5 text-[10px] font-medium text-ink opacity-0 transition-opacity duration-200 group-hover:opacity-100">Click to select</span>
+                        </span>
+                      )}
+                    </span>
+                    <span className="grid gap-0.5">
+                      <span className="block text-sm font-bold leading-4 text-ink">{voice.name}</span>
+                      <span className="block text-xs font-medium leading-3 text-accent-text">{voice.title}</span>
+                      <span className="mt-0.5 block text-[11px] leading-3 text-ink-muted line-clamp-2">{voice.summary}</span>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+            <div className="flex items-center justify-between border-t border-border px-6 py-4">
+              <a href={configureHref} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <ArrowLeft aria-hidden="true" className="size-4" />
+                Back
+              </a>
+              <a
+                href={isDisabled ? undefined : sessionHref}
+                aria-disabled={isDisabled}
+                tabIndex={isDisabled ? -1 : undefined}
                 className={cn(
-                  'group grid cursor-pointer gap-4 focus-within:ring-2 focus-within:ring-focus',
-                  selectedVoiceId === voice.id ? 'text-ink' : 'text-ink',
+                  'inline-flex min-h-11 min-w-36 items-center justify-center rounded-lg px-4 text-sm font-semibold shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                  isDisabled
+                    ? 'cursor-not-allowed bg-surface-subtle text-ink-muted'
+                    : 'bg-accent text-on-accent',
                 )}
               >
-                <input
-                  type="radio"
-                  name="interviewer"
-                  className="sr-only"
-                  checked={selectedVoiceId === voice.id}
-                  onChange={() => setSelectedVoiceId(voice.id)}
-                />
-                <span className="relative block aspect-square w-full overflow-hidden bg-surface-subtle">
-                  <img src={voice.imageSrc} alt="" className="absolute inset-0 size-full object-cover" />
-                  {selectedVoiceId === voice.id ? (
-                    <span className="absolute inset-0 grid place-items-center">
-                      <span className="absolute inset-0 bg-accent opacity-85" />
-                      <span className="relative rounded bg-overlay px-3 py-1 text-sm font-semibold text-on-danger">selected</span>
-                    </span>
-                  ) : null}
-                </span>
-                <span className="grid gap-2">
-                  <span>
-                    <span className="block text-base font-bold leading-5 text-ink">{voice.name}</span>
-                    <span className="mt-1 block text-sm font-medium leading-5 text-accent-text">{voice.title}</span>
-                  </span>
-                  <span className="block text-sm leading-5 text-ink-muted">{voice.summary}</span>
-                </span>
-              </label>
-            ))}
+                Start Interview
+              </a>
+            </div>
           </div>
-          <FooterActions backHref={configureHref} continueHref={sessionHref} continueLabel="Start Interview" />
-        </form>
+        </div>
       </section>
     </Workspace>
   )
@@ -656,14 +706,15 @@ export function InterviewHistoryView({ homeHref, createHref, reportHref, rows }:
       <InterviewHeader homeHref={homeHref} current="History" />
       <section className="px-4 py-8 lg:px-12 xl:px-24">
         <DataTable
-          title="Past Interviews"
+          title="Past Interview Practice"
           searchLabel="Search interview history"
           action={{ label: 'Create New', href: createHref }}
           rows={rows}
           itemLabel={(row) => row.title}
           className="mx-auto max-w-7xl"
+          onRowClick={(row) => { window.location.href = `${reportHref}?id=${row.id}` }}
           columns={[
-            { key: 'title', label: 'Title', className: 'w-[14rem]', render: (row) => <a href={`${reportHref}?id=${row.id}`} className="font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded">{row.title}</a> },
+            { key: 'title', label: 'Title', className: 'w-[14rem]', render: (row) => <span className="font-medium">{row.title}</span> },
             {
               key: 'score',
               label: 'Score',
@@ -753,8 +804,6 @@ function InterviewReportLoadingView({ homeHref }: { readonly homeHref: string })
   )
 }
 
-type ReportSectionId = 'summary' | 'scorecard' | 'questions' | 'rubric' | 'recording' | 'transcript'
-
 const rubricToneClasses: Record<InterviewRubricStatus, string> = {
   strong: 'bg-positive-surface text-positive',
   partial: 'bg-warning-surface text-warning',
@@ -767,43 +816,7 @@ const rubricLabel: Record<InterviewRubricStatus, string> = {
   'needs-work': 'Needs work',
 }
 
-function ReportSidebar({ active, onChange }: { readonly active: ReportSectionId; readonly onChange: (id: ReportSectionId) => void }) {
-  const sections: readonly { id: ReportSectionId; label: string; icon: ReactNode }[] = [
-    { id: 'summary', label: 'Overall Summary', icon: <Sparkles className="size-5" aria-hidden="true" /> },
-    { id: 'scorecard', label: 'Scorecard', icon: <Target className="size-5" aria-hidden="true" /> },
-    { id: 'questions', label: 'Suggested Questions', icon: <MessageSquare className="size-5" aria-hidden="true" /> },
-    { id: 'rubric', label: 'Rubric Breakdown', icon: <Search className="size-5" aria-hidden="true" /> },
-    { id: 'recording', label: 'Call Recording', icon: <Clock className="size-5" aria-hidden="true" /> },
-    { id: 'transcript', label: 'Transcript', icon: <Bookmark className="size-5" aria-hidden="true" /> },
-  ]
-
-  return (
-    <nav aria-label="Report sections" className="flex w-[220px] shrink-0 flex-col gap-1 rounded-panel border border-border bg-surface p-3 shadow-control">
-      {sections.map((section) => (
-        <button
-          key={section.id}
-          type="button"
-          onClick={() => onChange(section.id)}
-          className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-            active === section.id
-              ? 'bg-accent-subtle text-accent'
-              : 'text-ink-muted hover:bg-surface-subtle hover:text-ink',
-          )}
-          aria-current={active === section.id ? 'page' : undefined}
-        >
-          {section.icon}
-          <span>{section.label}</span>
-        </button>
-      ))}
-    </nav>
-  )
-}
-
 export function InterviewReportView({ homeHref, scenariosHref, practiceHref, report, isLoading = false }: InterviewReportViewProps) {
-  const [activeSection, setActiveSection] = useState<ReportSectionId>('summary')
-
   if (isLoading) {
     return <InterviewReportLoadingView homeHref={homeHref} />
   }
@@ -812,10 +825,8 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
     <Workspace>
       <InterviewHeader homeHref={homeHref} current="Interview Prep" />
       <section className="px-4 pb-16">
-        <div className="mx-auto flex max-w-[81.5rem] gap-6">
-          <ReportSidebar active={activeSection} onChange={setActiveSection} />
-
-          <article className="flex-1 min-w-0 bg-surface px-8 py-12 shadow-panel sm:px-10 lg:px-12">
+        <div className="mx-auto max-w-[64rem]">
+          <article className="w-full bg-surface px-8 py-12 shadow-panel sm:px-10 lg:px-12">
             <a href={scenariosHref} className="inline-flex min-h-11 items-center gap-3 rounded-soft text-base font-bold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               <ArrowLeft aria-hidden="true" className="size-4" />
               Back to Scenarios
@@ -835,7 +846,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
               </a>
             </header>
 
-            {activeSection === 'summary' && (
+            {(
               <section className="mt-6 flex flex-col gap-6 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center lg:px-8">
                 <div className="grid size-32 shrink-0 place-items-center rounded-full bg-positive-surface text-5xl font-black text-positive">{report.score}</div>
                 <div>
@@ -845,7 +856,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
               </section>
             )}
 
-            {activeSection === 'scorecard' && (
+            {(
               <section className="mt-6 rounded-panel border border-border shadow-control">
                 <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
                   <Sparkles aria-hidden="true" className="size-6 text-accent" />
@@ -859,7 +870,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
               </section>
             )}
 
-            {activeSection === 'questions' && (
+            {(
               <section className="mt-6 rounded-panel border border-border shadow-control">
                 <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
                   <MessageSquare aria-hidden="true" className="size-6 text-accent" />
@@ -876,7 +887,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
               </section>
             )}
 
-            {activeSection === 'rubric' && (
+            {(
               <>
                 <section className="mt-6 rounded-panel border border-border shadow-control">
                   <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
@@ -923,7 +934,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
               </>
             )}
 
-            {activeSection === 'recording' && (
+            {(
               <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
                 <h2 className="text-xl font-bold leading-7">Call Recording</h2>
                 <div className="mt-4 flex min-h-16 items-center gap-4 rounded-panel border border-border bg-surface-subtle p-3">
@@ -941,7 +952,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
               </section>
             )}
 
-            {activeSection === 'transcript' && (
+            {(
               <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
                 <h2 className="inline-flex items-center gap-3 text-xl font-bold leading-8">
                   <Bookmark aria-hidden="true" className="size-5 text-ink-muted" />

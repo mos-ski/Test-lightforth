@@ -20,6 +20,7 @@ export const interviewerVoices: readonly InterviewerVoice[] = [
     summary: 'Former co-founder of Opendoor. Early staff at Spotify and Clearbit.',
     imageSrc: '/v3-assets/interview-voice-amelie.png',
     selected: false,
+    audioSrc: '/v3-assets/voice-preview-amelie.mp3',
   },
   {
     id: 'nikolas-gibbons',
@@ -27,7 +28,8 @@ export const interviewerVoices: readonly InterviewerVoice[] = [
     title: 'Engineering Manager',
     summary: 'Lead engineering teams at Figma, Pitch, and Protocol Labs.',
     imageSrc: '/v3-assets/interview-voice-nikolas.png',
-    selected: true,
+    selected: false,
+    audioSrc: '/v3-assets/voice-preview-nikolas.mp3',
   },
   {
     id: 'sienna-hewitt',
@@ -36,6 +38,7 @@ export const interviewerVoices: readonly InterviewerVoice[] = [
     summary: 'Former PM for Linear, Lambda School, and On Deck.',
     imageSrc: '/v3-assets/interview-voice-sienna.png',
     selected: false,
+    audioSrc: '/v3-assets/voice-preview-sienna.mp3',
   },
   {
     id: 'zahra-christensen',
@@ -44,6 +47,7 @@ export const interviewerVoices: readonly InterviewerVoice[] = [
     summary: 'Lead backend dev at Clearbit. Former Clearbit and Loom.',
     imageSrc: '/v3-assets/interview-voice-zahra.png',
     selected: false,
+    audioSrc: '/v3-assets/voice-preview-zahra.mp3',
   },
   {
     id: 'caitlyn-king',
@@ -52,6 +56,7 @@ export const interviewerVoices: readonly InterviewerVoice[] = [
     summary: 'Founding design team at Figma. Former Pleo, Stripe, and Tile.',
     imageSrc: '/v3-assets/interview-voice-caitlyn.png',
     selected: false,
+    audioSrc: '/v3-assets/voice-preview-caitlyn.mp3',
   },
   {
     id: 'zaid-schwartz',
@@ -60,6 +65,7 @@ export const interviewerVoices: readonly InterviewerVoice[] = [
     summary: 'Lead user research for Slack. Contractor for Netflix and Udacity.',
     imageSrc: '/v3-assets/interview-voice-zaid.png',
     selected: false,
+    audioSrc: '/v3-assets/voice-preview-zaid.mp3',
   },
 ]
 

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { ArrowLeft, Bookmark, Check, CheckCircle2, ChevronRight, Clock, Code2, MessageSquare, Pause, Play, Search, Send, Settings, Sparkles, Target, Users, Video, X } from 'lucide-react'
+import { ArrowLeft, Bookmark, Check, CheckCircle2, ChevronRight, Code2, MessageSquare, Pause, Play, Search, Send, Settings, Sparkles, Users, Video, X } from 'lucide-react'
 
 import type { CopilotHistoryRow, CopilotLiveSession, CopilotMode, CopilotPermissionStep, CopilotReport, CopilotResponseLength, CopilotResponseMode, CopilotSetup } from '@/contracts/copilot.draft'
 import {
@@ -400,41 +400,6 @@ const copilotRubricLabel: Record<string, string> = {
   'needs-work': 'Needs work',
 }
 
-type CopilotReportSectionId = 'summary' | 'scorecard' | 'questions' | 'rubric' | 'transcript'
-
-function CopilotReportSidebar({ active, onChange }: { readonly active: CopilotReportSectionId; readonly onChange: (id: CopilotReportSectionId) => void }) {
-  const sections: readonly { id: CopilotReportSectionId; label: string; icon: ReactNode }[] = [
-    { id: 'summary', label: 'Overall Summary', icon: <Sparkles className="size-5" aria-hidden="true" /> },
-    { id: 'scorecard', label: 'Scorecard', icon: <Target className="size-5" aria-hidden="true" /> },
-    { id: 'questions', label: 'Suggested Questions', icon: <MessageSquare className="size-5" aria-hidden="true" /> },
-    { id: 'rubric', label: 'Rubric Breakdown', icon: <Search className="size-5" aria-hidden="true" /> },
-    { id: 'transcript', label: 'Transcript', icon: <Bookmark className="size-5" aria-hidden="true" /> },
-  ]
-
-  return (
-    <nav aria-label="Report sections" className="flex w-[220px] shrink-0 flex-col gap-1 rounded-panel border border-border bg-surface p-3 shadow-control">
-      {sections.map((section) => (
-        <button
-          key={section.id}
-          type="button"
-          onClick={() => onChange(section.id)}
-          className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-            active === section.id
-              ? 'bg-accent-subtle text-accent'
-              : 'text-ink-muted hover:bg-surface-subtle hover:text-ink',
-          )}
-          aria-current={active === section.id ? 'page' : undefined}
-        >
-          {section.icon}
-          <span>{section.label}</span>
-        </button>
-      ))}
-    </nav>
-  )
-}
-
 function CopilotScorecardSection({ title, items }: { readonly title: string; readonly items: readonly string[] }) {
   return (
     <section className="flex flex-col gap-3">
@@ -455,16 +420,12 @@ function CopilotScorecardSection({ title, items }: { readonly title: string; rea
 }
 
 export function CopilotReportView({ homeHref, historyHref, report }: CopilotReportViewProps) {
-  const [activeSection, setActiveSection] = useState<CopilotReportSectionId>('summary')
-
   return (
     <Workspace>
       <CopilotHeader homeHref={homeHref} current="Copilot" />
       <section className="px-4 pb-16">
-        <div className="mx-auto flex max-w-[81.5rem] gap-6">
-          <CopilotReportSidebar active={activeSection} onChange={setActiveSection} />
-
-          <article className="flex-1 min-w-0 bg-surface px-8 py-12 shadow-panel sm:px-10 lg:px-12">
+        <div className="mx-auto max-w-[64rem]">
+          <article className="w-full bg-surface px-8 py-12 shadow-panel sm:px-10 lg:px-12">
             <a href={historyHref} className="inline-flex min-h-11 items-center gap-3 rounded-soft text-base font-bold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               <ArrowLeft aria-hidden="true" className="size-4" />
               Back to History
@@ -477,7 +438,7 @@ export function CopilotReportView({ homeHref, historyHref, report }: CopilotRepo
               </div>
             </header>
 
-            {activeSection === 'summary' && (
+            {(
               <section className="mt-6 flex flex-col gap-6 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center lg:px-8">
                 <div className="grid size-32 shrink-0 place-items-center rounded-full bg-positive-surface text-5xl font-black text-positive">{report.score}</div>
                 <div>
@@ -487,7 +448,7 @@ export function CopilotReportView({ homeHref, historyHref, report }: CopilotRepo
               </section>
             )}
 
-            {activeSection === 'scorecard' && (
+            {(
               <section className="mt-6 rounded-panel border border-border shadow-control">
                 <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
                   <Sparkles aria-hidden="true" className="size-6 text-accent" />
@@ -501,7 +462,7 @@ export function CopilotReportView({ homeHref, historyHref, report }: CopilotRepo
               </section>
             )}
 
-            {activeSection === 'questions' && (
+            {(
               <section className="mt-6 rounded-panel border border-border shadow-control">
                 <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
                   <MessageSquare aria-hidden="true" className="size-6 text-accent" />
@@ -518,7 +479,7 @@ export function CopilotReportView({ homeHref, historyHref, report }: CopilotRepo
               </section>
             )}
 
-            {activeSection === 'rubric' && (
+            {(
               <section className="mt-6 rounded-panel border border-border shadow-control">
                 <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
                   <Search aria-hidden="true" className="size-6 text-ink-muted" />
@@ -551,7 +512,7 @@ export function CopilotReportView({ homeHref, historyHref, report }: CopilotRepo
               </section>
             )}
 
-            {activeSection === 'transcript' && (
+            {(
               <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
                 <h2 className="inline-flex items-center gap-3 text-xl font-bold leading-8">
                   <Bookmark aria-hidden="true" className="size-5 text-ink-muted" />
@@ -887,8 +848,9 @@ export function CopilotHistoryView({ homeHref, createHref, reportHref, rows }: C
           rows={rows}
           itemLabel={(row) => row.title}
           className="mx-auto max-w-7xl"
+          onRowClick={(row) => { window.location.href = `${reportHref}?id=${row.id}` }}
           columns={[
-            { key: 'title', label: 'Title', className: 'w-[16rem]', render: (row) => <a href={`${reportHref}?id=${row.id}`} className="font-medium text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded">{row.title}</a> },
+            { key: 'title', label: 'Title', className: 'w-[16rem]', render: (row) => <span className="font-medium">{row.title}</span> },
             {
               key: 'mode',
               label: 'Type',

@@ -42,6 +42,7 @@ export type DataTableProps<TRow extends { readonly id: string }> = {
   readonly sortColumn?: string
   readonly sortDirection?: DataTableSortDirection
   readonly onSort?: (column: string) => void
+  readonly onRowClick?: (row: TRow) => void
   readonly selectedIds?: ReadonlySet<string>
   readonly onSelectionChange?: (ids: ReadonlySet<string>) => void
   readonly loading?: boolean
@@ -86,6 +87,7 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
     sortColumn,
     sortDirection,
     onSort,
+    onRowClick,
     selectedIds: controlledSelectedIds,
     onSelectionChange,
     loading = false,
@@ -252,8 +254,10 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                         className={cn(
                           'group/row border-b border-border animate-ease-in-bottom transition-colors',
                           isSelected ? 'bg-accent/10' : 'hover:bg-surface-subtle',
+                          onRowClick && 'cursor-pointer',
                         )}
                         style={{ animationDelay: `${index * 40}ms` }}
+                        onClick={onRowClick ? () => onRowClick(row) : undefined}
                       >
                         <td className="px-4 py-2.5">
                           <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">

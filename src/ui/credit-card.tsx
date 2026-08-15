@@ -1,4 +1,4 @@
-import { Gift, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
+import { Gift, Wallet } from 'lucide-react'
 
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@/ui'
 
@@ -12,7 +12,6 @@ export type CreditCardProps = {
 }
 
 export function CreditCard({ remaining, total, resetDate, bonusHref, detailsHref, className }: CreditCardProps) {
-  const used = total - remaining
   const percentage = total > 0 ? Math.round((remaining / total) * 100) : 0
 
   return (
@@ -37,30 +36,6 @@ export function CreditCard({ remaining, total, resetDate, bonusHref, detailsHref
       </p>
       <div className="mt-3 h-2 overflow-hidden rounded-pill bg-surface-subtle">
         <div className={cn('h-full rounded-pill transition-all', percentage > 20 ? 'bg-accent' : 'bg-danger')} style={{ inlineSize: `${percentage}%` }} />
-      </div>
-
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        <div className="rounded-lg bg-surface-subtle p-3">
-          <div className="flex items-center gap-1.5 text-xs text-ink-muted">
-            <Wallet aria-hidden="true" className="size-3.5" />
-            Total
-          </div>
-          <p className="mt-1 text-lg font-bold">{total}</p>
-        </div>
-        <div className="rounded-lg bg-surface-subtle p-3">
-          <div className="flex items-center gap-1.5 text-xs text-ink-muted">
-            <TrendingDown aria-hidden="true" className="size-3.5" />
-            Used
-          </div>
-          <p className="mt-1 text-lg font-bold">{used}</p>
-        </div>
-        <div className="rounded-lg bg-surface-subtle p-3">
-          <div className="flex items-center gap-1.5 text-xs text-ink-muted">
-            <TrendingUp aria-hidden="true" className="size-3.5" />
-            Remaining
-          </div>
-          <p className="mt-1 text-lg font-bold text-accent">{remaining}</p>
-        </div>
       </div>
 
       <a href={bonusHref} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">

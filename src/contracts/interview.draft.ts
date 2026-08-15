@@ -9,6 +9,7 @@ export type InterviewerVoice = {
   readonly summary: string;
   readonly imageSrc: string;
   readonly selected: boolean;
+  readonly audioSrc?: string;
 };
 
 export type InterviewPrepSession = {
