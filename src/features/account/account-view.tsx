@@ -351,7 +351,7 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
         {dayEntries.length === 0 ? (
           <p className="mt-8 text-sm text-ink-muted">No credit usage in this period yet.</p>
         ) : (
-          <div className="mt-8 flex h-40 items-end gap-1 overflow-x-auto px-1 pb-1">
+          <div className="mt-8 flex h-40 w-full items-end justify-between gap-1 overflow-x-auto px-1 pb-1">
             {dayEntries.map(([day, bucket]) => (
               <div key={day} className="group relative flex shrink-0 flex-col items-center gap-2 rounded-sm px-1.5 pt-2 hover:bg-surface-subtle">
                 <div className="flex items-end gap-0.5" style={{ blockSize: '128px' }}>

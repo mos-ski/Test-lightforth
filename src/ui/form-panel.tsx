@@ -403,7 +403,7 @@ export type ReviewSummaryListProps = {
 export const ReviewSummaryList = forwardRef<HTMLDivElement, ReviewSummaryListProps>(
   function ReviewSummaryList({ rows, className, ...props }, ref) {
     return (
-      <div ref={ref} data-slot="review-summary-list" className={cn('grid gap-3', className)} {...props}>
+      <div ref={ref} data-slot="review-summary-list" className={cn('grid min-w-0 gap-3', className)} {...props}>
         {rows.map((row) => {
           const content = (
             <>
@@ -419,11 +419,11 @@ export const ReviewSummaryList = forwardRef<HTMLDivElement, ReviewSummaryListPro
           )
 
           return row.href ? (
-            <a key={row.id} href={row.href} className="flex min-h-17 items-center gap-3 rounded-lg bg-surface-raised p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <a key={row.id} href={row.href} className="flex min-w-0 min-h-17 items-center gap-3 rounded-lg bg-surface-raised p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               {content}
             </a>
           ) : (
-            <div key={row.id} className="flex min-h-17 items-center gap-3 rounded-lg bg-surface-raised p-3">
+            <div key={row.id} className="flex min-w-0 min-h-17 items-center gap-3 rounded-lg bg-surface-raised p-3">
               {content}
             </div>
           )
