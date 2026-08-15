@@ -1,5 +1,5 @@
 import { forwardRef, useMemo, useState, type ReactNode } from 'react'
-import { Search, Plus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileText, ArrowUpDown, Check } from 'lucide-react'
+import { Search, Plus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileText, ArrowUpDown, Check, Trash2, Download, Mail } from 'lucide-react'
 
 import { cn } from './cn'
 
@@ -251,7 +251,7 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                         key={row.id}
                         className={cn(
                           'group/row border-b border-border animate-ease-in-bottom transition-colors',
-                          isSelected ? 'bg-accent-subtle/50' : 'hover:bg-surface-subtle',
+                          isSelected ? 'bg-accent/10' : 'hover:bg-surface-subtle',
                         )}
                         style={{ animationDelay: `${index * 40}ms` }}
                       >
@@ -316,6 +316,26 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                 </button>
               </div>
             </footer>
+          ) : null}
+
+          {selectedIds.size > 0 ? (
+            <div className="flex items-center justify-between border-t border-border bg-accent/10 px-6 py-3">
+              <span className="text-sm font-semibold text-ink">{selectedIds.size} item{selectedIds.size > 1 ? 's' : ''} selected</span>
+              <div className="flex items-center gap-3">
+                <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                  <Download aria-hidden="true" className="size-4" />
+                  Export
+                </button>
+                <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                  <Mail aria-hidden="true" className="size-4" />
+                  Email
+                </button>
+                <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-danger bg-danger-surface px-4 text-sm font-medium text-danger transition-colors hover:bg-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                  <Trash2 aria-hidden="true" className="size-4" />
+                  Delete
+                </button>
+              </div>
+            </div>
           ) : null}
         </div>
       </article>
