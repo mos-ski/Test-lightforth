@@ -60,7 +60,7 @@ function PlanCard({
 
         {plan.popular ? (
           <div className="mt-6">
-            <Button onClick={() => onSelectPlan(plan.id)} aria-label={subscribeLabel}>
+            <Button className="w-full" onClick={() => onSelectPlan(plan.id)} aria-label={subscribeLabel}>
               Subscribe
             </Button>
           </div>
