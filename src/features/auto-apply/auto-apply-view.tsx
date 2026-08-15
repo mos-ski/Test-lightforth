@@ -865,7 +865,7 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                 </a>
               </div>
               <div className="flex gap-6 pt-5">
-                <div className={cn('min-w-0 transition-all duration-300', selectedJob ? 'flex-1' : 'w-full')}>
+                <div className={cn('min-w-0 transition-all duration-300 ease-out', selectedJob ? 'flex-1' : 'w-full')}>
                   <div className="mb-3 flex gap-2">
                     <label className="relative block flex-1">
                       <span className="sr-only">Search by title or company</span>
@@ -902,11 +902,9 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                     <span className="inline-flex items-center gap-1 text-ink">Next<ChevronRight aria-hidden="true" className="size-4" /></span>
                   </div>
                 </div>
-                {selectedJob ? (
-                  <div className="hidden w-[30rem] shrink-0 animate-slide-in-right lg:block">
-                    <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} />
-                  </div>
-                ) : null}
+                <div className={cn('w-[30rem] shrink-0 transition-all duration-300 ease-out', selectedJob ? 'block' : 'hidden')}>
+                  {selectedJob ? <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} /> : null}
+                </div>
               </div>
             </div>
           </div>
@@ -952,7 +950,7 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                 </a>
               </div>
               <div className="flex gap-6 pt-5">
-                <div className={cn('min-w-0 transition-all duration-300', selectedJob ? 'flex-1' : 'w-full')}>
+                <div className={cn('min-w-0 transition-all duration-300 ease-out', selectedJob ? 'flex-1' : 'w-full')}>
                   <div className="mb-3 flex gap-2">
                     <label className="relative block flex-1">
                       <span className="sr-only">Search applied jobs</span>
@@ -976,15 +974,15 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                   </div>
                   <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
                 </div>
-                {selectedJob ? (
-                  <div className="hidden w-[30rem] shrink-0 animate-slide-in-right lg:block">
+                <div className={cn('w-[30rem] shrink-0 transition-all duration-300 ease-out', selectedJob ? 'block' : 'hidden')}>
+                  {selectedJob ? (
                     <JobPreview
                       job={selectedJob}
                       onClose={() => setSelectedJob(undefined)}
                       applied={selectedJob.id === application.job.id}
                     />
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
