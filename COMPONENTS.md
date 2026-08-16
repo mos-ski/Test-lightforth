@@ -1,179 +1,91 @@
 # Lightforth UI Components
 
-## Primitives (`src/ui/`)
+All components live in `src/ui/`, are exported from `src/ui/index.ts`, and follow the design token system.
 
-### Button
-- **Variants:** `primary`, `secondary`, `ghost`, `danger`
-- **Sizes:** `sm`, `md`, `lg`
-- **Props:** `variant`, `size`, `leadingIcon`, `loading`, `disabled`
-- **Data attributes:** `data-slot="button"`, `data-variant`, `data-size`, `data-loading`
+## Primitives
 
-### Badge
-- **Variants:** `neutral`, `accent`, `positive`, `warning`, `danger`, `info`
-- **Sizes:** `sm`, `md`
-- **Props:** `variant`, `size`
+| Component | File | Variants / Sizes | Key Props |
+|---|---|---|---|
+| **Button** | `button.tsx` | `primary`, `secondary`, `ghost`, `danger` / `sm`, `md`, `lg` | `variant`, `size`, `leadingIcon`, `loading`, `disabled` |
+| **Badge** | `badge.tsx` | `neutral`, `accent`, `positive`, `warning`, `danger`, `info` / `sm`, `md` | `variant`, `size` |
+| **Chip** | `chip.tsx` | `default`, `accent`, `positive`, `warning`, `danger` | `variant`, `removable`, `onRemove` |
+| **Divider** | `divider.tsx` | `horizontal`, `vertical` | `orientation` |
+| **Avatar** | `avatar.tsx` | `xs`, `sm`, `md`, `lg`, `xl` | `src`, `alt`, `name`, `size` |
+| **Card** | `card.tsx` | — | `className` (extends div) |
+| **EmptyState** | `empty-state.tsx` | — | `icon`, `title`, `description`, `action` |
+| **StatCard** | `stat-card.tsx` | — | `label`, `value`, `icon`, `delta` |
+| **Skeleton** | `skeleton.tsx` | — | `className` |
+| **Spinner** | `spinner.tsx` | `sm`, `md`, `lg` | `size` |
+| **ProgressBar** | `progress-bar.tsx` | accent/positive/warning/danger | `value`, `max`, `label`, `showValue`, `color` |
+| **SearchInput** | `search-input.tsx` | — | `value`, `onClear`, `placeholder` |
+| **Tooltip** | `tooltip.tsx` | — | `side` (top/bottom/left/right) |
+| **Breadcrumbs** | `breadcrumbs.tsx` | — | `items` (label, href, current) |
+| **StepIndicator** | `step-indicator.tsx` | horizontal/vertical | `steps` (id, label, status) |
+| **ContentCard** | `content-card.tsx` | — | `compact`, `children` |
+| **Stack** | `stack.tsx` | column/row | `direction`, `gap`, `align`, `wrap` |
+| **VisuallyHidden** | `visually-hidden.tsx` | — | `children` |
 
-### Divider
-- **Orientation:** `horizontal`, `vertical`
-- **Props:** `orientation`
+## Base UI Primitives
 
-### TextField
-- **Props:** `id`, `label`, `error`, `disabled`
-- **Accessibility:** `aria-invalid`, `aria-describedby`, `role="alert"` on error
-
-### SelectField
-- **Props:** `id`, `label`, `options`, `error`, `disabled`
-- **Uses:** `ChevronDown` from lucide-react
-
-### Dialog (Base UI)
-- **Components:** `Dialog`, `DialogTrigger`, `DialogPortal`, `DialogBackdrop`, `DialogPopup`, `DialogTitle`, `DialogDescription`, `DialogClose`
-- **Behavior:** Focus trap, Escape to close, backdrop click
-
-### Tabs (Base UI)
-- **Components:** `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`
-- **Behavior:** Keyboard navigation, aria attributes
-
-### Switch (Base UI)
-- **Props:** `label`, `checked`, `onCheckedChange`
-
-### Checkbox (Base UI)
-- **Props:** `label`, `checked`, `onCheckedChange`
-
-### RadioGroup (Base UI)
-- **Components:** `RadioGroup`, `RadioGroupItem`
-- **Props:** `label`, `value`, `onValueChange`
-
-### Tooltip (Base UI)
-- **Components:** `Tooltip`, `TooltipTrigger`, `TooltipContent`
-- **Props:** `side` (top/bottom/left/right)
-
-### Avatar
-- **Sizes:** `xs`, `sm`, `md`, `lg`, `xl`
-- **Props:** `src`, `alt`, `name`, `size`
-- **Behavior:** Fallback to initials
-
-### Card
-- **Props:** `className` (extends div)
-
-### Skeleton
-- **Props:** `className` (extends div)
-- **Behavior:** `animate-pulse`, `motion-reduce:animate-none`
-
-### Spinner
-- **Sizes:** `sm`, `md`, `lg`
-- **Props:** `size`
-
-### ProgressBar
-- **Props:** `value`, `max`, `label`, `showValue`, `color` (accent/positive/warning/danger)
-
-### SearchInput
-- **Props:** `value`, `onClear`, `placeholder`
-
-### EmptyState
-- **Props:** `icon`, `title`, `description`, `action`
-
-### StatCard
-- **Props:** `label`, `value`, `icon`, `delta` (value + direction)
-
-### Chip
-- **Variants:** `default`, `accent`, `positive`, `warning`, `danger`
-- **Props:** `variant`, `removable`, `onRemove`
-
-### Breadcrumbs
-- **Props:** `items` (label, href, current)
-
-### StepIndicator
-- **Props:** `steps` (id, label, status), `orientation` (horizontal/vertical)
-- **Statuses:** `complete`, `active`, `pending`
-
-### Toast
-- **Exports:** `Toaster`, `toast` (success/error/info/warning/default/dismiss)
-- **Uses:** sonner (already installed)
+| Component | File | Components | Behavior |
+|---|---|---|---|
+| **Dialog** | `dialog.tsx` | `Dialog`, `DialogTrigger`, `DialogPortal`, `DialogBackdrop`, `DialogPopup`, `DialogTitle`, `DialogDescription`, `DialogClose` | Focus trap, Escape to close, backdrop click |
+| **Tabs** | `tabs.tsx` | `Tabs`, `TabsList`, `TabsTrigger`, `TabsContent` | Keyboard navigation, aria attributes |
+| **Switch** | `switch.tsx` | — | `label`, `checked`, `onCheckedChange` |
+| **Checkbox** | `checkbox.tsx` | — | `label`, `checked`, `onCheckedChange` |
+| **RadioGroup** | `radio-group.tsx` | `RadioGroup`, `RadioGroupItem` | `label`, `value`, `onValueChange` |
+| **Menu** | `menu.tsx` | `Menu`, `MenuTrigger`, `MenuContent`, `MenuItem`, `MenuSeparator` | Keyboard navigation, focus management |
+| **Toast** | `toast.tsx` | `Toast`, `Toaster`, `toast` | sonner-based, success/error/info/warning |
 
 ## Form Components
 
-### FormPanel
-- **Props:** `title`, `step`, `uploadedFile`, `footer`, `children`
-
-### FormField
-- **Props:** `id`, `label`, `error`, `disabled`
-
-### FormTextArea
-- **Props:** `id`, `label`, `error`, `disabled`
-
-### FormSelectField
-- **Props:** `id`, `label`, `options`, `error`, `disabled`
-
-### FormChoiceGroup
-- **Props:** `label`, `name`, `options`, `selected`
-
-### FormPanelFooter
-- **Props:** `backHref`, `nextHref`, `nextLabel`, `backLabel`, `nextIcon`
-
-### UploadedFileStrip
-- **Props:** `fileName`, `changeHref`
-
-### AiSuggestionAction
-- **Props:** `children` (default: "AI Suggestion")
-
-### DocumentDropAction
-- **Props:** `label`, `actionLabel`, `hint`, `actionHref`
-
-### ExampleResponseCard
-- **Props:** `children`, `helperText`
-
-### PermissionSteps
-- **Props:** `steps`, `actionHref`, `previewSrc`, `startHref`, `startLabel`
-
-### ReviewSummaryList
-- **Props:** `rows` (id, title, value, icon, href)
-
-### OptionStack
-- **Props:** `options` (id, label, href, icon, variant, disabled)
-
-### GoogleAuthButton
-- **Props:** `children` (default: "Sign in with Google")
-
-### FormDividerLabel
-- **Props:** `children`
-
-### FormLinkButton
-- **Variants:** `primary`, `secondary`
-- **Props:** `variant`
+| Component | File | Key Props |
+|---|---|---|
+| **TextField** | `text-field.tsx` | `id`, `label`, `error`, `disabled` |
+| **SelectField** | `select-field.tsx` | `id`, `label`, `options`, `error`, `disabled` |
+| **FormPanel** | `form-panel.tsx` | `title`, `step`, `uploadedFile`, `footer`, `children` |
+| **FormField** | `form-panel.tsx` | `id`, `label`, `error`, `disabled` |
+| **FormTextArea** | `form-panel.tsx` | `id`, `label`, `error`, `disabled` |
+| **FormSelectField** | `form-panel.tsx` | `id`, `label`, `options`, `error`, `disabled` |
+| **FormChoiceGroup** | `form-panel.tsx` | `label`, `name`, `options`, `selected` |
+| **FormPanelFooter** | `form-panel.tsx` | `backHref`, `nextHref`, `nextLabel`, `backLabel`, `nextIcon` |
+| **UploadedFileStrip** | `form-panel.tsx` | `fileName`, `changeHref` |
+| **AiSuggestionAction** | `form-panel.tsx` | `children` (default: "AI Suggestion") |
+| **DocumentDropAction** | `form-panel.tsx` | `label`, `actionLabel`, `hint`, `actionHref` |
+| **ExampleResponseCard** | `form-panel.tsx` | `children`, `helperText` |
+| **PermissionSteps** | `form-panel.tsx` | `steps`, `actionHref`, `previewSrc`, `startHref`, `startLabel` |
+| **ReviewSummaryList** | `form-panel.tsx` | `rows` (id, title, value, icon, href, details) |
+| **OptionStack** | `form-panel.tsx` | `options` (id, label, href, icon, variant, disabled) |
+| **GoogleAuthButton** | `form-panel.tsx` | `children` (default: "Sign in with Google") |
+| **FormDividerLabel** | `form-panel.tsx` | `children` |
+| **FormLinkButton** | `form-panel.tsx` | `variant` (primary, secondary) |
 
 ## Navigation
 
-### ShellBar
-- **Props:** `homeHref`, `current`, `closeHref`, `action`, `secondaryAction`
+| Component | File | Key Props |
+|---|---|---|
+| **ShellBar** | `shell-bar.tsx` | `homeHref`, `current`, `parent`, `closeHref`, `action`, `secondaryAction` |
+| **SideMenu** | `side-menu.tsx` | `items` (label, href, icon, active, dividerBefore), `width` |
+| **SourcePicker** | `source-picker.tsx` | `title`, `options`, `historyLink` |
 
-### SideMenu
-- **Props:** `items` (label, href, icon, active, dividerBefore), `width`
+## Data Display
 
-### SourcePicker
-- **Props:** `title`, `actionLabel`, `idleText`, `meta`, `options`, `historyLink`
-- **Behavior:** Keyboard navigation (Escape), click outside to close
-
-### DataTable
-- **Props:** `title`, `searchValue`, `onSearchChange`, `action`, `columns`, `rows`, `pagination`, `onPageChange`
-- **Behavior:** Controlled search, functional pagination
+| Component | File | Key Props |
+|---|---|---|
+| **DataTable** | `data-table.tsx` | `title`, `searchLabel`, `action`, `columns`, `rows`, `itemLabel`, `selectable`, `minTableWidthClassName`, `onRowClick` |
+| **ListPickerDialog** | `list-picker-dialog.tsx` | `open`, `onOpenChange`, `title`, `description`, `items`, `emptyLabel`, `icon`, `onSelect` |
+| **CreditCard** | `credit-card.tsx` | `remaining`, `total`, `resetDate`, `bonusHref`, `detailsHref` |
 
 ## Layout
 
-### AppShell
-- **Props:** `sidebar`, `header`, `children`
+| Component | File | Key Props |
+|---|---|---|
+| **AppShell** | `app-shell.tsx` | `sidebar`, `header`, `children` |
+| **Workspace** | `workspace.tsx` | `children`, `className` |
+| **BrandMark** | `brand-mark.tsx` | `LightforthAiIcon`, `LightforthMark` |
 
-### Workspace
-- **Props:** `children`
+## Utilities
 
-### ContentCard
-- **Props:** `compact`, `children`
-
-### Stack
-- **Props:** `direction` (column/row), `gap`, `align`, `wrap`
-
-### VisuallyHidden
-- **Props:** children (screen-reader-only)
-
-## Barrel Export
-
-All components are exported from `src/ui/index.ts` with their prop types.
+| Export | File | Purpose |
+|---|---|---|
+| **cn** | `cn.ts` | clsx + tailwind-merge class merger |
