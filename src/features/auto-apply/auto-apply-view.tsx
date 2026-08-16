@@ -1127,77 +1127,88 @@ function JobPreview({
   return (
     <>
       <div className="fixed inset-0 z-40 bg-overlay/60" onClick={onClose} aria-hidden="true" />
-      <aside className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-auto rounded-t-2xl border-t border-border bg-surface shadow-2xl">
-        <div className="mx-auto max-w-3xl p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-base font-bold">{job.title}</h2>
-              <p className="mt-1 text-sm text-ink-muted">{job.company} {job.location ? `- ${job.location}` : ''}</p>
-            </div>
-            <button type="button" onClick={onClose} aria-label="Close job preview" className="grid size-10 place-items-center rounded-lg text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <X aria-hidden="true" className="size-5" />
-            </button>
+      <aside className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90vh] flex-col overflow-hidden rounded-t-xl border border-b-0 border-border bg-surface shadow-panel">
+        <div className="flex shrink-0 items-center justify-between px-6 pt-4 pb-2">
+          <div className="mx-auto h-1 w-10 rounded-full bg-muted" aria-hidden="true" />
+        </div>
+        <div className="flex items-center justify-between px-6 pb-4">
+          <div>
+            <h2 className="text-lg font-bold text-ink">{job.title}</h2>
+            <p className="mt-0.5 text-sm text-ink-muted">{job.company}{job.location ? ` · ${job.location}` : ''}</p>
           </div>
-          <div className="mt-3 flex items-center gap-2">
-            <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', applied ? 'bg-positive text-on-accent' : 'bg-warning-surface text-warning')}>{applied ? 'Applied' : 'NEW'}</span>
-            <span className="text-sm text-ink-muted">{applied ? 'JUL 12 2026' : job.dateLabel}</span>
+          <button type="button" onClick={onClose} aria-label="Close job preview" className="grid size-10 shrink-0 place-items-center rounded-lg text-ink-muted transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <X aria-hidden="true" className="size-5" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
+          <div className="flex items-center gap-2">
+            <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', applied ? 'bg-positive-surface text-positive' : 'bg-warning-surface text-warning')}>{applied ? 'Applied' : 'NEW'}</span>
+            <span className="text-sm text-ink-muted">{applied ? 'Jul 12, 2026' : job.dateLabel}</span>
           </div>
-          <section className="mt-4 grid gap-3 border-t border-border pt-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Job Listing</h3>
-            <a href={job.listingUrl} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-center gap-2 text-sm text-accent underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
-              <span className="truncate">{job.listingUrl}</span>
-            </a>
-          </section>
-          <section className="mt-4 grid gap-3 border-t border-border pt-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Resume Used</h3>
-            <span className="flex min-w-0 items-center gap-2 text-sm text-ink">
-              <FileText aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
-              <span className="truncate">{job.resumeFileName}</span>
-            </span>
-          </section>
-          {!applied ? (
-            <>
-              <section className="mt-4 rounded-lg bg-positive-surface p-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wide text-positive">Excellent Match</h3>
-                  <p className="text-2xl font-bold text-positive">{job.matchPercent}%</p>
+
+          <div className="mt-5 grid gap-5">
+            <section className="grid gap-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Job Listing</h3>
+              <a href={job.listingUrl} target="_blank" rel="noopener noreferrer" className="flex min-w-0 items-center gap-2 text-sm text-accent underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
+                <span className="truncate">{job.listingUrl}</span>
+              </a>
+            </section>
+
+            <section className="grid gap-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Resume Used</h3>
+              <span className="flex min-w-0 items-center gap-2 text-sm text-ink">
+                <FileText aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+                <span className="truncate">{job.resumeFileName}</span>
+              </span>
+            </section>
+
+            {!applied ? (
+              <>
+                <section className="rounded-lg bg-positive-surface p-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-wide text-positive">Match Score</h3>
+                    <p className="text-2xl font-bold text-positive">{job.matchPercent}%</p>
+                  </div>
+                </section>
+
+                <div className="flex flex-wrap gap-2">{job.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
+
+                <section className="grid gap-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">About the role</h3>
+                  <p className="text-sm leading-6 text-ink-muted">{job.description}</p>
+                </section>
+
+                <div className="rounded-lg border border-border bg-surface-subtle p-4">
+                  <p className="text-sm font-semibold text-ink">{job.creditsRemaining}/{job.creditsTotal} credits remaining</p>
+                  <p className="mt-1 text-xs text-ink-muted">Lightforth only deducts credits for successful applications</p>
                 </div>
-              </section>
-              <div className="mt-3 flex flex-wrap gap-2">{job.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
-              <section className="mt-4">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">About the role</h3>
-                <p className="mt-2 text-sm leading-6 text-ink-muted">{job.description}</p>
-              </section>
-              <div className="mt-4 rounded-lg border border-border bg-surface-subtle p-3">
-                <p className="text-sm font-semibold">{job.creditsRemaining}/{job.creditsTotal} Credits Left</p>
-                <p className="mt-1 text-xs text-ink-muted">Lightforth will only deduct credit for successful applications</p>
-              </div>
-            </>
-          ) : null}
-          {/* CTA Actions */}
-          <div className="mt-5 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row">
+              </>
+            ) : null}
+          </div>
+
+          <div className="mt-6 grid gap-2 border-t border-border pt-5">
             {applied ? (
               <>
-                <a href={job.listingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <a href={job.listingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                   <ExternalLink aria-hidden="true" className="size-4" />
                   View Listing
                 </a>
-                <button type="button" onClick={onClose} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <button type="button" onClick={onClose} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                   Close
                 </button>
               </>
             ) : (
               <>
-                <button type="button" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <button type="button" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                   <Send aria-hidden="true" className="size-4" />
                   Apply Now
                 </button>
-                <a href={job.listingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <a href={job.listingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                   <ExternalLink aria-hidden="true" className="size-4" />
                   View Listing
                 </a>
-                <button type="button" onClick={onClose} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <button type="button" onClick={onClose} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                   Close
                 </button>
               </>
@@ -1242,7 +1253,7 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                 </nav>
               </div>
               <div className="flex gap-6 pt-5">
-                <div className={cn('min-w-0 transition-all duration-300 ease-out', selectedJob ? 'flex-1' : 'w-full')}>
+                <div className="min-w-0 w-full">
                   <div className="mb-3 flex gap-2">
                     <label className="relative block flex-1">
                       <span className="sr-only">Search by title or company</span>
@@ -1278,14 +1289,9 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                     <span className="inline-flex items-center gap-1 text-ink">Next<ChevronRight aria-hidden="true" className="size-4" /></span>
                   </div>
                 </div>
-                <div className="hidden w-[30rem] shrink-0 transition-all duration-300 ease-out md:block">
-                  {selectedJob ? <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} /> : null}
                 </div>
               </div>
-              {/* Mobile bottom sheet */}
-              <div className="md:hidden">
-                {selectedJob ? <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} /> : null}
-              </div>
+              {selectedJob ? <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} /> : null}
             </div>
           </div>
         </div>
@@ -1330,7 +1336,7 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                 </nav>
               </div>
               <div className="flex gap-6 pt-5">
-                <div className={cn('min-w-0 transition-all duration-300 ease-out', selectedJob ? 'flex-1' : 'w-full')}>
+                <div className="min-w-0 w-full">
                   <div className="mb-3 flex gap-2">
                     <label className="relative block flex-1">
                       <span className="sr-only">Search applied jobs</span>
@@ -1354,26 +1360,15 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                   </div>
                   <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
                 </div>
-                <div className="hidden w-[30rem] shrink-0 transition-all duration-300 ease-out md:block">
-                  {selectedJob ? (
-                    <JobPreview
-                      job={selectedJob}
-                      onClose={() => setSelectedJob(undefined)}
-                      applied={selectedJob.id === application.job.id}
-                    />
-                  ) : null}
                 </div>
               </div>
-              {/* Mobile bottom sheet */}
-              <div className="md:hidden">
-                {selectedJob ? (
-                  <JobPreview
-                    job={selectedJob}
-                    onClose={() => setSelectedJob(undefined)}
-                    applied={selectedJob.id === application.job.id}
-                  />
-                ) : null}
-              </div>
+              {selectedJob ? (
+                <JobPreview
+                  job={selectedJob}
+                  onClose={() => setSelectedJob(undefined)}
+                  applied={selectedJob.id === application.job.id}
+                />
+              ) : null}
             </div>
           </div>
         </div>

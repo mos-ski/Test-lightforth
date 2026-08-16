@@ -22,8 +22,9 @@ import type {
   InterviewRubricStatus,
   InterviewerVoice,
 } from '@/contracts/interview.draft'
+import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
-import { AiSuggestionAction, Badge, cn, DataTable, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
+import { AiSuggestionAction, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FileText, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
 import { useTypewriter } from '@/hooks/useTypewriter'
 
 export type InterviewUploadViewProps = {
@@ -38,6 +39,7 @@ export type InterviewConfigureViewProps = {
   readonly uploadHref: string
   readonly voiceHref: string
   readonly session: InterviewPrepSession
+  readonly knowledgeBaseDocuments?: readonly ContextDocumentRow[]
 }
 
 export type InterviewVoiceViewProps = {
@@ -174,13 +176,31 @@ export function InterviewUploadView({ homeHref, configureHref, historyHref, save
 const INTERVIEW_AI_SUGGESTION =
   ' Ask the interviewer how success is measured in the first 90 days, and be ready to walk through one metric you personally moved.'
 
-export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, session }: InterviewConfigureViewProps) {
+export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, session, knowledgeBaseDocuments = [] }: InterviewConfigureViewProps) {
   const [additionalContext, setAdditionalContext] = useState(session.additionalContext)
+  const [selectedDocIds, setSelectedDocIds] = useState<ReadonlySet<string>>(new Set())
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [draftDocIds, setDraftDocIds] = useState<ReadonlySet<string>>(new Set())
+  const selectedDocuments = knowledgeBaseDocuments.filter((doc) => selectedDocIds.has(doc.id))
   const { type, isTyping } = useTypewriter()
 
   function handleAiSuggestion() {
     const base = additionalContext
     type(INTERVIEW_AI_SUGGESTION, (partial) => setAdditionalContext(base + partial))
+  }
+
+  function openDocumentPicker() {
+    setDraftDocIds(selectedDocIds)
+    setPickerOpen(true)
+  }
+
+  function toggleDraftDoc(id: string) {
+    setDraftDocIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   return (
@@ -217,7 +237,18 @@ export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, sessio
               <FormField id="target-role" label="Target Role" defaultValue={session.targetRole} />
               <FormField id="interview-company" label="Company Name" defaultValue={session.companyName} />
           </div>
-          <DocumentDropAction actionHref="/v3/documents/add" />
+          <DocumentDropAction onTrigger={openDocumentPicker} hint="Add from Knowledge Base">
+            {selectedDocuments.length > 0 ? (
+              <span className="flex flex-wrap justify-center gap-2">
+                {selectedDocuments.map((doc) => (
+                  <span key={doc.id} className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface px-3 py-1 text-xs font-medium text-ink">
+                    <FileText aria-hidden="true" className="size-3.5 text-ink-muted" />
+                    {doc.name}
+                  </span>
+                ))}
+              </span>
+            ) : undefined}
+          </DocumentDropAction>
           <FormTextArea
             id="interview-additional-context"
             label="Additional context"
@@ -228,6 +259,39 @@ export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, sessio
           <AiSuggestionAction onClick={handleAiSuggestion} disabled={isTyping} />
         </FormPanel>
       </section>
+
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogPopup aria-label="Add documents from Knowledge Base">
+          <DialogClose />
+          <DialogTitle>Add from Knowledge Base</DialogTitle>
+          <p className="mt-1 text-sm text-ink-muted">Select the documents you want the interviewer to use as context for this session.</p>
+          <div className="mt-4 grid max-h-80 gap-1 overflow-y-auto">
+            {knowledgeBaseDocuments.length === 0 ? (
+              <p className="py-6 text-center text-sm text-ink-muted">No documents in your Knowledge Base yet.</p>
+            ) : (
+              knowledgeBaseDocuments.map((doc) => (
+                <label key={doc.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 hover:bg-surface-subtle">
+                  <Checkbox checked={draftDocIds.has(doc.id)} onCheckedChange={() => toggleDraftDoc(doc.id)} aria-label={doc.name} />
+                  <FileText aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{doc.name}</span>
+                  <span className="shrink-0 text-xs text-ink-muted">{doc.sizeOrUrl}</span>
+                </label>
+              ))
+            )}
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <Button variant="ghost" onClick={() => setPickerOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                setSelectedDocIds(draftDocIds)
+                setPickerOpen(false)
+              }}
+            >
+              Add Selected
+            </Button>
+          </div>
+        </DialogPopup>
+      </Dialog>
     </Workspace>
   )
 }
@@ -443,6 +507,19 @@ type LiveTranscriptTurn = {
   readonly text: string
 }
 
+const SIMULATED_ANSWERS: Record<string, string> = {
+  'question-1':
+    'At my last role, we had three competing priorities and only two frontend engineers available. I set up a quick scoring framework based on revenue impact, user impact, and engineering effort. The highest-ROI item was a checkout flow improvement that could lift conversion by 8%. I presented the tradeoffs to stakeholders, got alignment, and we shipped it in two sprints. The result was a 12% increase in completed purchases.',
+  'question-2':
+    'We ran an A/B test on a new onboarding flow and the data showed a 15% improvement in activation. I pushed to ship it fully. But two weeks later, cohort analysis revealed the lift was driven by a spike in power users, not the broader base. I owned the mistake, rolled it back, and we redesigned the test to segment by user type. That taught me to always look at distribution, not just averages.',
+  'question-3':
+    'I usually start by asking the engineering lead to walk me through their concern in detail. In one case, the lead felt a scope cut would hurt long-term maintainability. I listened, asked clarifying questions, and we found a middle ground: we shipped a slimmer version for the deadline and scheduled a follow-up sprint for the technical debt. The key is treating it as a shared problem, not a tug-of-war.',
+  'question-4':
+    'I owned the launch of a self-serve analytics dashboard from design through to release. I coordinated with data engineering, defined the success metric, ran the beta with 50 customers, and handled the go-to-market. We hit 40% adoption in the first month. What I would change is earlier involvement of customer support, because they got unexpected questions on day one that we could have anticipated.',
+  'question-5':
+    'I see the biggest opportunity in expanding the platform with API integrations. Right now customers have to manually export data to connect their existing tools. If we offered native integrations with the top five tools in our space, we could reduce churn by making the product stickier and open up a new acquisition channel through partner listings.',
+}
+
 export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {
   const [phase, setPhase] = useState<LiveSessionPhase>('ready')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -508,14 +585,14 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
     if (currentPhase === 'answering') {
       const nextIndex = currentIndex + 1
       if (nextIndex >= questions.length) {
-        setTranscript((prev) => [...prev, { id: `answer-${currentIndex}`, speaker: 'candidate', text: 'Answered' }])
+        setTranscript((prev) => [...prev, { id: `answer-${currentIndex}`, speaker: 'candidate', text: SIMULATED_ANSWERS[questions[currentIndex]?.id] ?? 'Answered' }])
         setPhase('done')
         return
       }
       const nextQuestion = questions[nextIndex]
       setTranscript((prev) => [
         ...prev,
-        { id: `answer-${currentIndex}`, speaker: 'candidate', text: 'Answered' },
+        { id: `answer-${currentIndex}`, speaker: 'candidate', text: SIMULATED_ANSWERS[questions[currentIndex]?.id] ?? 'Answered' },
         { id: `${nextQuestion.id}-q`, speaker: 'interviewer', text: nextQuestion.text },
       ])
       setQuestionIndex(nextIndex)
