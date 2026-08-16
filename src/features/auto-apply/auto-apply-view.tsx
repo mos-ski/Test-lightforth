@@ -509,6 +509,35 @@ function PreferencesForm({ setup }: { readonly setup: AutoApplySetup }) {
   )
 }
 
+const DOB_MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+].map((label, index) => ({ label, value: String(index + 1).padStart(2, '0') }))
+
+function DateOfBirthField({ dob }: { readonly dob: string }) {
+  const [year, month, day] = dob ? dob.split('-') : ['', '', '']
+  const currentYear = new Date().getFullYear()
+  const dayOptions = Array.from({ length: 31 }, (_, index) => {
+    const value = String(index + 1).padStart(2, '0')
+    return { label: value, value }
+  })
+  const yearOptions = Array.from({ length: 100 }, (_, index) => {
+    const value = String(currentYear - index)
+    return { label: value, value }
+  })
+
+  return (
+    <div>
+      <span className="mb-1 block text-sm font-medium text-ink">Date of Birth</span>
+      <div className="grid grid-cols-3 gap-2">
+        <FormSelectField id="auto-dob-month" label="Month" defaultValue={month} placeholder="Month" options={DOB_MONTHS} />
+        <FormSelectField id="auto-dob-day" label="Day" defaultValue={day} placeholder="Day" options={dayOptions} />
+        <FormSelectField id="auto-dob-year" label="Year" defaultValue={year} placeholder="Year" options={yearOptions} />
+      </div>
+    </div>
+  )
+}
+
 function ContactForm({ setup }: { readonly setup: AutoApplySetup }) {
   const [openSection, setOpenSection] = useState<string | null>('profile')
 
@@ -540,16 +569,7 @@ function ContactForm({ setup }: { readonly setup: AutoApplySetup }) {
             placeholder="Select gender"
             options={GENDER_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
           />
-          <div>
-            <label htmlFor="auto-dob" className="mb-1 block text-sm font-medium text-ink">Date of Birth</label>
-            <input
-              type="date"
-              id="auto-dob"
-              defaultValue={setup.dob}
-              max={new Date().toISOString().split('T')[0]}
-              className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
-            />
-          </div>
+          <DateOfBirthField dob={setup.dob} />
         </div>
       </CollapsibleSection>
 
