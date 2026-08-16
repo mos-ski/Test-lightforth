@@ -1,4 +1,10 @@
-import type { SVGProps } from 'react'
+import type { ImgHTMLAttributes, SVGProps } from 'react'
+
+export type LightforthAiIconProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt'>
+
+export function LightforthAiIcon(props: LightforthAiIconProps) {
+  return <img src="/v3-assets/Vector.svg" alt="" aria-hidden="true" {...props} />
+}
 
 export function LightforthMark(props: SVGProps<SVGSVGElement>) {
   return (
