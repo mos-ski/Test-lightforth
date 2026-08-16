@@ -11,7 +11,8 @@ export type ResumeUploadViewProps = {
   readonly configureHref: string
   readonly historyHref: string
   readonly uploadedFileName: string
-  readonly savedResumes: readonly ResumeHistoryRow[]
+  readonly uploadedFileUrl?: string
+  readonly savedResumes: readonly { readonly id: string; readonly title: string; readonly company: string; readonly atsScore: number }[]
 }
 
 export type ResumeConfigureViewProps = {
@@ -225,7 +226,7 @@ function AiSuggestionLabel({ onClick }: { readonly onClick?: () => void }) {
   )
 }
 
-export function ResumeUploadView({ homeHref, configureHref, historyHref, uploadedFileName, savedResumes }: ResumeUploadViewProps) {
+export function ResumeUploadView({ homeHref, configureHref, historyHref, uploadedFileName, uploadedFileUrl, savedResumes }: ResumeUploadViewProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
@@ -264,6 +265,7 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref, uploade
         open={uploadDialogOpen}
         onOpenChange={setUploadDialogOpen}
         fileName={uploadedFileName}
+        fileUrl={uploadedFileUrl}
         continueHref={configureHref}
         defaultChecked={useAsDefault}
         onDefaultChange={(checked) => {
