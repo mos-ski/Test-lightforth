@@ -1392,7 +1392,9 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                       Refresh
                     </button>
                   </div>
-                  <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
+                  <div className="-mx-4 sm:mx-0">
+                    <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
+                  </div>
                   <div className="mt-5 flex items-center justify-center gap-4 text-sm text-ink-muted">
                     <span className="inline-flex items-center gap-1 text-ink-muted"><ChevronLeft aria-hidden="true" className="size-4" />Previous</span>
                     <span>Page 1 of 43</span>
@@ -1465,7 +1467,9 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                       Refresh
                     </button>
                   </div>
-                  <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
+                  <div className="-mx-4 sm:mx-0">
+                    <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
+                  </div>
                 </div>
               </div>
               {selectedJob ? (
