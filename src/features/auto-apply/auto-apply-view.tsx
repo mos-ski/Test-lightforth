@@ -1062,7 +1062,7 @@ function JobList({
               type="button"
               onClick={() => onSelectJob(job)}
               className={cn(
-                'group/row flex w-full items-start gap-4 border-b border-border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                'group/row flex w-full items-start gap-4 border-b border-border px-[16px] py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
                 isSelected ? 'bg-accent/10' : 'hover:bg-surface-subtle',
               )}
             >
@@ -1353,13 +1353,13 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
       <section className="px-0 py-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           <div className="min-h-[56rem] bg-surface shadow-panel">
-            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-4 sm:px-8">
+            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-[16px] sm:px-8">
               <h1 className="text-xl font-medium leading-5 text-ink">Jobs</h1>
               <a href={setupHref} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 Update Preference
               </a>
             </div>
-            <div className="p-4 sm:p-8">
+            <div className="p-[16px] sm:p-8">
               <div className="border-b border-border">
                 <nav aria-label="Auto apply sections" className="flex gap-6 text-sm font-medium">
                   <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>
@@ -1392,7 +1392,7 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                       Refresh
                     </button>
                   </div>
-                  <div className="-mx-4 sm:mx-0">
+                  <div className="-mx-[16px] sm:mx-0">
                     <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
                   </div>
                   <div className="mt-5 flex items-center justify-center gap-4 text-sm text-ink-muted">
@@ -1428,13 +1428,13 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
       <section className="px-0 py-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           <div className="min-h-[56rem] bg-surface shadow-panel">
-            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-4 sm:px-8">
+            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-[16px] sm:px-8">
               <h1 className="text-xl font-medium leading-5 text-ink">Applied</h1>
               <a href={setupHref} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 Update Preference
               </a>
             </div>
-            <div className="p-4 sm:p-8">
+            <div className="p-[16px] sm:p-8">
               <div className="border-b border-border">
                 <nav aria-label="Auto apply sections" className="flex gap-6 text-sm font-medium">
                   <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>
@@ -1467,7 +1467,7 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                       Refresh
                     </button>
                   </div>
-                  <div className="-mx-4 sm:mx-0">
+                  <div className="-mx-[16px] sm:mx-0">
                     <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
                   </div>
                 </div>
