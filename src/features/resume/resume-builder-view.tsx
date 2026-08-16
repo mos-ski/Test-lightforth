@@ -281,9 +281,19 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref, uploade
 const RESUME_JOB_DESCRIPTION_SUGGESTION =
   ' Looking for a Senior Product Manager with 5+ years of experience shipping AI-powered products, strong SQL and A/B testing skills, and a track record of driving measurable growth metrics.'
 
+const GENERIC_JOB_DESCRIPTION =
+  'We are looking for a motivated and detail-oriented professional to join our growing team. In this role, you will collaborate with cross-functional teams to drive projects from conception to delivery. You will analyse data, identify opportunities for improvement, and implement strategies that support business growth. The ideal candidate brings strong communication skills, a proactive mindset, and the ability to manage multiple priorities in a fast-paced environment. Experience with modern tools and frameworks, a passion for continuous learning, and a track record of delivering measurable results will set you apart.'
+
 export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session }: ResumeConfigureViewProps) {
   const [jobDescription, setJobDescription] = useState(session.jobDescription)
   const { type, isTyping } = useTypewriter()
+  const prefilled = useRef(false)
+
+  useEffect(() => {
+    if (prefilled.current || jobDescription.length > 0) return
+    prefilled.current = true
+    type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
+  }, [])
 
   function handleAiSuggestion() {
     const base = jobDescription
@@ -311,6 +321,7 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
           <FormTextArea
             id="resume-job-description"
             label="Enter Job Description"
+            tip="Paste a real job description here — Lightforth will tailor your resume to match the role's keywords, skills, and requirements."
             value={jobDescription}
             onChange={(event) => setJobDescription(event.target.value)}
             className={cn(isTyping && 'ring-2 ring-accent shadow-[0_0_0_4px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
