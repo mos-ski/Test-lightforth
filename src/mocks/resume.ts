@@ -19,19 +19,19 @@ export const resumeDocument: ResumeDocument = {
     { label: 'Quantified impact', score: 68 },
   ],
   atsContext:
-    'Your resume scores well on structure and keyword coverage, but it can be stronger on quantified impact and feature-specific terminology for the role you are targeting.',
+    'This resume scores 82 out of 100, which is a solid foundation for most applicant-tracking systems. The structure is clean, the section labels are standard, and the keyword coverage for product-management roles is strong. The main opportunities are adding more quantified outcomes and aligning the language more tightly with the specific job description you are targeting.',
   atsStrengths: [
-    'Strong product-management keyword density and clear, scannable job titles.',
-    'Well-structured sections that ATS parsers can read without confusion.',
-    'Relevant fintech and AI-platform experience that matches common job requirements.',
+    'Your experience section is dense with relevant product-management language. Recruiters and ATS engines will quickly recognize titles like Director of Product, Head of Product, and Product Manager, and the repeated focus on roadmapping, go-to-market, and cross-functional leadership matches common job postings.',
+    'The resume follows a conventional layout with clear headings for Professional Summary, Experience, Skills, Certifications, Projects, and Languages. This predictability helps parsers extract contact information, work history, and education without misplacing fields.',
+    'You include concrete company names, locations, and date ranges for every role, which gives hiring systems the structured timeline they expect and adds credibility when recruiters scan the document.',
   ],
   atsGaps: [
-    'Add more hard numbers to your experience bullets, such as revenue, user-growth percentages, or time saved.',
-    'Include skills and tools from the job description that are missing from your skills list.',
-    'Shorten the professional summary to three or four lines and lead with the target role.',
+    'Several bullets describe achievements without attaching numbers. Phrases like "significantly enhanced" or "drove consistent growth" are less impactful than specific metrics. Adding percentages, dollar amounts, or user counts will lift the Quantified Impact score and help you stand out in keyword-driven filters.',
+    'Your skills list covers strategy and leadership well, but it could be expanded with the exact tools and methodologies mentioned in the target job description, such as SQL, Amplitude, Mixpanel, Python, or specific agile frameworks that appear in the posting.',
+    'The professional summary is competent but generic. Rewriting it to open with the target role title, the years of relevant experience, and one or two signature achievements will make it more memorable to both ATS rankers and human reviewers.',
   ],
   atsPrompt:
-    'Rewrite my experience bullets to include specific metrics and outcomes, and tailor my professional summary for a Senior Product Manager role at a fintech company. Keep the tone confident and concise.',
+    'Rewrite my professional summary to open with the target role title and my years of product-management experience, then add specific metrics to my three most recent roles. Replace vague phrases like "significantly improved" or "drove growth" with hard numbers, and expand the skills section to include the tools mentioned in the job description. Keep the tone professional and concise.',
   roles: [
     {
       company: 'Lightforth',

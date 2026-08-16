@@ -754,37 +754,37 @@ function AtsScoreDrawer({
             ))}
           </div>
 
-          <section className="grid gap-2">
+          <section className="grid gap-3">
             <h3 className="text-sm font-semibold text-ink">What is working</h3>
-            <ul className="grid gap-2">
+            <div className="grid gap-3">
               {atsStrengths.map((strength) => (
-                <li key={strength} className="text-sm leading-6 text-ink-muted">
+                <p key={strength} className="text-sm leading-6 text-ink-muted">
                   {strength}
-                </li>
+                </p>
               ))}
-            </ul>
+            </div>
           </section>
 
-          <section className="grid gap-2">
+          <section className="grid gap-3">
             <h3 className="text-sm font-semibold text-ink">What is missing</h3>
-            <ul className="grid gap-2">
+            <div className="grid gap-3">
               {atsGaps.map((gap) => (
-                <li key={gap} className="text-sm leading-6 text-ink-muted">
+                <p key={gap} className="text-sm leading-6 text-ink-muted">
                   {gap}
-                </li>
+                </p>
               ))}
-            </ul>
+            </div>
           </section>
 
-          <section className="grid gap-2">
+          <section className="grid gap-3">
             <h3 className="text-sm font-semibold text-ink">Suggested fix</h3>
-            <div className="rounded-lg border border-border bg-surface-subtle p-3">
+            <div className="rounded-lg border border-border bg-surface-subtle p-4">
               <p className="text-sm leading-6 text-ink">{atsPrompt}</p>
-              <div className="mt-3 flex justify-end">
+              <div className="mt-4 flex justify-end">
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="inline-flex min-h-8 items-center rounded-lg bg-accent px-3 text-xs font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                  className="inline-flex min-h-9 items-center rounded-lg border border-input bg-surface px-3 text-xs font-semibold text-ink hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 >
                   {copied ? 'Copied' : 'Copy prompt'}
                 </button>
