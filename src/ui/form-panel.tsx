@@ -150,15 +150,25 @@ export function UploadedFileDialog({ open, onOpenChange, fileName, fileUrl, cont
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPopup aria-label="Resume uploaded" className="sm:max-w-lg">
         <DialogTitle>Resume uploaded</DialogTitle>
-        {fileUrl && ready && (
-          <div className="mt-4 overflow-hidden rounded-lg border border-border">
+        <div className="mt-4 overflow-hidden rounded-lg border border-border">
+          {fileUrl ? (
             <iframe
               src={fileUrl}
               title={`Preview of ${fileName}`}
               className="h-64 w-full bg-surface-subtle"
             />
-          </div>
-        )}
+          ) : (
+            <div className="flex h-64 flex-col items-center justify-center gap-3 bg-surface-subtle px-6 text-center">
+              <div className="grid size-14 place-items-center rounded-xl bg-accent-subtle">
+                <FileText aria-hidden="true" className="size-7 text-accent" />
+              </div>
+              <div className="grid gap-1">
+                <p className="text-sm font-medium text-ink">{fileName}</p>
+                <p className="text-xs text-ink-muted">PDF document — preview available after processing</p>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="mt-4 flex items-center gap-3 rounded-lg border border-border bg-surface-subtle px-4 py-3">
           <FileText aria-hidden="true" className="size-5 shrink-0 text-ink-muted" />
           <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{fileName}</span>
