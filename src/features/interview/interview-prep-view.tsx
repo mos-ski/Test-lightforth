@@ -662,7 +662,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
             className={cn('flex min-h-0 flex-1 items-center justify-center p-5', phase !== 'done' && 'cursor-pointer')}
             onClick={phase === 'done' ? undefined : advanceSession}
           >
-            <div className="grid w-full justify-center gap-6 sm:grid-cols-2">
+            <div className="grid w-fit justify-center gap-6 sm:grid-cols-2">
               <ParticipantCard participant={session.interviewer} active={isSpeaking} />
               <ParticipantCard participant={session.candidate} active={phase === 'answering'} />
             </div>
@@ -1012,7 +1012,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
       <InterviewHeader homeHref={homeHref} current="Interview Prep" historyHref={scenariosHref} />
       <section className="px-4 pb-16">
         <div className="mx-auto flex max-w-[64rem] flex-col gap-4 pt-8">
-          <article className="w-full bg-surface shadow-panel">
+          <article className="w-full border border-border bg-surface shadow-panel">
             <div className="flex min-h-[5rem] items-center border-b border-border px-8">
               <h1 className="text-xl font-medium leading-5 text-ink">Report</h1>
             </div>
