@@ -172,6 +172,7 @@ export type FormSelectOption = {
 export type FormSelectFieldProps = {
   readonly id: string
   readonly label: string
+  readonly hideLabel?: boolean
   readonly options: readonly FormSelectOption[]
   readonly error?: string
   readonly value?: string
@@ -186,14 +187,14 @@ export type FormSelectFieldProps = {
 
 export const FormSelectField = forwardRef<HTMLButtonElement, FormSelectFieldProps>(
   function FormSelectField(
-    { id, label, options, error, value, defaultValue, onValueChange, placeholder = 'Select', disabled, required, name, className },
+    { id, label, hideLabel, options, error, value, defaultValue, onValueChange, placeholder = 'Select', disabled, required, name, className },
     ref,
   ) {
     const errorId = `${id}-error`
 
     return (
       <div data-slot="form-select-field" className="grid gap-1.5">
-        <label htmlFor={id} className="text-sm font-medium leading-5 text-ink">
+        <label htmlFor={id} className={cn('text-sm font-medium leading-5 text-ink', hideLabel && 'sr-only')}>
           {label}
         </label>
         <Select.Root
