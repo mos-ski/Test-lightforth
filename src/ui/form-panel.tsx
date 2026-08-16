@@ -1,7 +1,39 @@
-import { forwardRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
+import { forwardRef, useEffect, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import { FileText, X, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check } from 'lucide-react'
 
 import { cn } from './cn'
+
+function ScrollCue() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    function update() {
+      const hasOverflow = document.documentElement.scrollHeight > window.innerHeight + 24
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 24
+      setVisible(hasOverflow && !atBottom)
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  if (!visible) return null
+
+  return (
+    <button
+      type="button"
+      onClick={() => window.scrollBy({ top: window.innerHeight * 0.6, behavior: 'smooth' })}
+      aria-label="Scroll down for more"
+      className="fixed inset-x-0 bottom-4 z-sticky mx-auto grid size-11 place-items-center rounded-pill bg-accent text-on-accent shadow-control animate-bounce focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus motion-reduce:animate-none sm:hidden"
+    >
+      <ChevronDown aria-hidden="true" className="size-5" />
+    </button>
+  )
+}
 
 export type FormUploadedFile = {
   readonly fileName: string
@@ -20,17 +52,20 @@ export type FormPanelProps = Omit<FormHTMLAttributes<HTMLFormElement>, 'title'> 
 export const FormPanel = forwardRef<HTMLFormElement, FormPanelProps>(
   function FormPanel({ title, step, uploadedFile, footer, children, className, ...props }, ref) {
     return (
-      <form ref={ref} data-slot="form-panel" className={cn('mx-auto w-full max-w-[30rem] border border-border bg-surface shadow-panel', className)} {...props}>
-        <header data-slot="form-panel-header" className="flex min-h-20 items-center justify-center gap-2 border-b border-border px-6 py-7 text-center">
-          <h1 className="text-xl font-medium leading-7 text-ink">{title}</h1>
-          {step ? <span className="text-sm font-medium leading-5 text-ink-muted">{step}</span> : null}
-        </header>
-        {uploadedFile ? <UploadedFileStrip fileName={uploadedFile.fileName} changeHref={uploadedFile.changeHref} /> : null}
-        <div data-slot="form-panel-body" className="grid gap-3 px-6 py-8 sm:px-8">
-          {children}
-        </div>
-        {footer}
-      </form>
+      <>
+        <form ref={ref} data-slot="form-panel" className={cn('mx-auto w-full max-w-[30rem] border border-border bg-surface shadow-panel', className)} {...props}>
+          <header data-slot="form-panel-header" className="flex min-h-20 items-center justify-center gap-2 border-b border-border px-6 py-7 text-center">
+            <h1 className="text-xl font-medium leading-7 text-ink">{title}</h1>
+            {step ? <span className="text-sm font-medium leading-5 text-ink-muted">{step}</span> : null}
+          </header>
+          {uploadedFile ? <UploadedFileStrip fileName={uploadedFile.fileName} changeHref={uploadedFile.changeHref} /> : null}
+          <div data-slot="form-panel-body" className="grid gap-3 px-6 py-8 sm:px-8">
+            {children}
+          </div>
+          {footer}
+        </form>
+        <ScrollCue />
+      </>
     )
   },
 )

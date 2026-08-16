@@ -419,17 +419,17 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
 }
 
 const usageFeatureColors: Record<string, string> = {
-  'Resume Builder': 'bg-accent',
-  'Interview Prep': 'bg-positive',
-  'Interview Copilot': 'bg-warning',
-  'Auto Apply': 'bg-info',
+  'Resume Builder': 'bg-[#1a56db]',
+  'Interview Prep': 'bg-[#3b82f6]',
+  'Interview Copilot': 'bg-[#60a5fa]',
+  'Auto Apply': 'bg-[#93c5fd]',
 }
 
 const usageFeatureTextColors: Record<string, string> = {
-  'Resume Builder': 'text-accent',
-  'Interview Prep': 'text-positive',
-  'Interview Copilot': 'text-warning',
-  'Auto Apply': 'text-info',
+  'Resume Builder': 'text-[#1a56db]',
+  'Interview Prep': 'text-[#3b82f6]',
+  'Interview Copilot': 'text-[#60a5fa]',
+  'Auto Apply': 'text-[#93c5fd]',
 }
 
 function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
@@ -445,7 +445,7 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
     days.set(day, bucket)
   }
   const dayEntries = [...days.entries()].reverse()
-  const maxSingle = Math.max(1, ...dayEntries.flatMap(([, bucket]) => Object.values(bucket)))
+  const maxTotal = Math.max(1, ...dayEntries.map(([, bucket]) => Object.values(bucket).reduce((s, v) => s + v, 0)))
 
   return (
     <TitledPanel title="Usage Details">
@@ -466,31 +466,39 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
       {dayEntries.length === 0 ? (
         <p className="mt-8 text-sm text-ink-muted">No credit usage in this period yet.</p>
       ) : (
-        <div className="mt-8 flex h-40 w-full items-end justify-between gap-1 overflow-x-auto px-1 pb-1">
-          {dayEntries.map(([day, bucket]) => (
-            <div key={day} className="group relative flex shrink-0 flex-col items-center gap-2 rounded-sm px-1.5 pt-2 hover:bg-surface-subtle">
-              <div className="flex items-end gap-0.5" style={{ blockSize: '128px' }}>
-                {Object.entries(bucket).map(([feature, count]) => (
-                  <div
-                    key={feature}
-                    className={cn(usageFeatureColors[feature], 'w-2 rounded-t-sm')}
-                    style={{ blockSize: `${Math.max(4, (count / maxSingle) * 128)}px` }}
-                  />
-                ))}
-              </div>
-              <span className="whitespace-nowrap text-xs text-ink-muted">{day}</span>
-              <div className="pointer-events-none absolute bottom-full start-1/2 z-tooltip mb-2 hidden w-max -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-start shadow-popover group-hover:block">
-                <p className="text-sm font-semibold text-ink">{day}</p>
-                <div className="mt-1 grid gap-0.5">
-                  {Object.entries(bucket).map(([feature, count]) => (
-                    <p key={feature} className={cn('text-xs font-medium', usageFeatureTextColors[feature])}>
-                      {feature}: {count}
-                    </p>
-                  ))}
+        <div className="mt-8 flex h-48 w-full items-end justify-between gap-2 overflow-x-auto px-1 pb-1">
+          {dayEntries.map(([day, bucket]) => {
+            const total = Object.values(bucket).reduce((s, v) => s + v, 0)
+            const usedFeatures = chartFeatures.filter((f) => bucket[f])
+            return (
+              <div key={day} className="group relative flex shrink-0 flex-col items-center gap-2 rounded-sm px-1 pt-2 hover:bg-surface-subtle">
+                <div className="relative flex w-8 flex-col-reverse overflow-hidden rounded-t-full bg-surface-subtle" style={{ blockSize: '160px' }}>
+                  {usedFeatures.map((feature, i) => {
+                    const isTop = i === usedFeatures.length - 1
+                    return (
+                      <div
+                        key={feature}
+                        className={cn(usageFeatureColors[feature], isTop && 'rounded-t-full')}
+                        style={{ blockSize: `${Math.max(2, (bucket[feature] / maxTotal) * 160)}px` }}
+                      />
+                    )
+                  })}
+                </div>
+                <span className="whitespace-nowrap text-[10px] text-ink-muted">{day}</span>
+                <div className="pointer-events-none absolute bottom-full start-1/2 z-tooltip mb-2 hidden w-max -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-start shadow-popover group-hover:block">
+                  <p className="text-sm font-semibold text-ink">{day}</p>
+                  <p className="mt-0.5 text-xs text-ink-muted">{total} credits</p>
+                  <div className="mt-1 grid gap-0.5">
+                    {usedFeatures.map((feature) => (
+                      <p key={feature} className={cn('text-xs font-medium', usageFeatureTextColors[feature])}>
+                        {feature}: {bucket[feature]}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

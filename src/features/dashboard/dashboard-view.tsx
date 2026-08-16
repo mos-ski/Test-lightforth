@@ -77,7 +77,7 @@ function HelpDropdown({ forceOpen = false }: { readonly forceOpen?: boolean }) {
     <section
       aria-label="Product updates and support"
       className={cn(
-        'absolute end-0 top-full z-20 mt-3 hidden w-[334px] overflow-hidden rounded-md border border-border bg-surface text-xs shadow-popover group-focus-within:block group-hover:block',
+        'absolute end-0 top-full z-20 mt-3 hidden w-[min(334px,calc(100vw-2rem))] overflow-hidden rounded-md border border-border bg-surface text-xs shadow-popover group-focus-within:block group-hover:block',
         forceOpen ? 'block' : undefined,
       )}
     >
@@ -136,7 +136,7 @@ function CreditDropdown({ creditBalance, forceOpen = false }: { readonly creditB
     <section
       aria-label="Credit balance"
       className={cn(
-        'absolute end-0 top-full z-20 mt-3 hidden w-64 overflow-hidden rounded-md border border-border bg-surface text-xs shadow-popover group-focus-within:block group-hover:block',
+        'absolute end-0 top-full z-20 mt-3 hidden w-[min(16rem,calc(100vw-2rem))] overflow-hidden rounded-md border border-border bg-surface text-xs shadow-popover group-focus-within:block group-hover:block',
         forceOpen ? 'block' : undefined,
       )}
     >
@@ -195,7 +195,7 @@ function ProfileDropdown({ user, forceOpen = false }: { readonly user: UserIdent
     <section
       aria-label={`Account menu for ${user.name}`}
       className={cn(
-        'absolute end-0 top-full z-20 mt-3 hidden w-72 overflow-hidden rounded-md border border-border bg-surface text-sm shadow-popover group-focus-within:block group-hover:block',
+        'absolute end-0 top-full z-20 mt-3 hidden w-[min(18rem,calc(100vw-2rem))] overflow-hidden rounded-md border border-border bg-surface text-sm shadow-popover group-focus-within:block group-hover:block',
         forceOpen ? 'block' : undefined,
       )}
     >

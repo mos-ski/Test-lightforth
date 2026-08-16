@@ -19,7 +19,7 @@ export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(
         disabled={disabled}
         data-slot="checkbox"
         className={cn(
-          'grid size-4 shrink-0 place-items-center rounded border border-input bg-surface transition-colors duration-normal ease-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface data-[checked]:border-accent data-[checked]:bg-accent data-[checked]:text-on-accent disabled:cursor-not-allowed disabled:opacity-50',
+          'relative grid size-4 shrink-0 place-items-center rounded border border-input bg-surface transition-colors duration-normal ease-default before:absolute before:-inset-3.5 before:content-[""] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface data-[checked]:border-accent data-[checked]:bg-accent data-[checked]:text-on-accent disabled:cursor-not-allowed disabled:opacity-50',
           className,
         )}
         {...props}

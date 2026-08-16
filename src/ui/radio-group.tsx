@@ -52,7 +52,7 @@ export const RadioGroupItem = forwardRef<HTMLButtonElement, RadioGroupItemProps>
         name={ctx.name}
         data-slot="radio-group-item"
         className={cn(
-          'grid size-4 shrink-0 place-items-center rounded-full border border-input bg-surface transition-colors duration-normal ease-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface data-[checked]:border-accent disabled:cursor-not-allowed disabled:opacity-50',
+          'relative grid size-4 shrink-0 place-items-center rounded-full border border-input bg-surface transition-colors duration-normal ease-default before:absolute before:-inset-3.5 before:content-[""] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface data-[checked]:border-accent disabled:cursor-not-allowed disabled:opacity-50',
           className,
         )}
         {...props}

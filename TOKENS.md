@@ -57,6 +57,9 @@ All colors are defined in `src/tokens/theme.css` and `src/tokens/tokens.ts` with
 | `info-surface` | `bg-info-surface` | Informational background |
 | `accent-secondary` | `bg-accent-secondary` | Secondary decorative accent (violet) — used for feature-branded gradient tiles like Tutorial cards, never for interactive/semantic UI |
 | `accent-tertiary` | `bg-accent-tertiary` | Third decorative accent (pink) — combines with `accent`/`accent-secondary` for the 3-stop AI-suggestion gradient (icon + text), never for interactive/semantic UI |
+| `paper` | `bg-paper` | Fixed white "physical page" background for the resume canvas — same value in light and dark theme, since a printed document doesn't follow app chrome |
+| `paper-ink` | `text-paper-ink` / `border-paper-ink` | Fixed near-black text/rule color for resume paper content — pairs with `paper`, never adapts to theme |
+| `paper-muted` | `text-paper-muted` | Fixed muted gray for secondary resume paper text (contact line, dates) — pairs with `paper` |
 
 ### Overlay & Brand
 

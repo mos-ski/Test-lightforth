@@ -8,8 +8,6 @@ import {
   Mic,
   Pause,
   Play,
-  Maximize2,
-  Send,
   Settings,
   Volume2,
   X,
@@ -17,7 +15,6 @@ import {
 
 import type {
   InterviewHistoryRow,
-  InterviewChatMessage,
   InterviewLiveSession,
   InterviewPrepSession,
   InterviewReport,
@@ -315,33 +312,24 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
   )
 }
 
-const INTERVIEW_CHAT_RESPONSES: readonly { readonly match: RegExp; readonly reply: string }[] = [
-  {
-    match: /summary/i,
-    reply: "I've updated your professional summary to make it more impactful and results-driven, emphasizing measurable achievements and leadership qualities.",
-  },
-  {
-    match: /bullet|experience/i,
-    reply: 'Rewrote that bullet to lead with the outcome and include a measurable result — take a look at the updated version in your resume.',
-  },
-  {
-    match: /nervous|confidence|calm/i,
-    reply: "That's normal. Take a breath before answering, lead with the outcome, and keep your example under 90 seconds — I'll flag if you're running long.",
-  },
-]
-
-function interviewChatResponseFor(prompt: string): string {
-  const match = INTERVIEW_CHAT_RESPONSES.find((entry) => entry.match.test(prompt))
-  return match?.reply ?? "Got it — I'm reviewing your resume and the conversation so far to put that together now."
-}
-
-function ParticipantCard({ participant }: { readonly participant: InterviewLiveSession['interviewer'] }) {
+function ParticipantCard({ participant, active }: { readonly participant: InterviewLiveSession['interviewer']; readonly active?: boolean }) {
+  const isCandidate = participant.label.includes('You')
   return (
     <figure className="grid w-[13rem] max-w-full gap-[18px] text-brand-bar-text">
-      <div className={cn('relative aspect-[208/222] w-full overflow-hidden', participant.label.includes('You') ? 'bg-[var(--lf-live-avatar-warm)]' : 'bg-[var(--lf-live-avatar-neutral)]')}>
+      <div
+        className={cn(
+          'relative aspect-[208/222] w-full overflow-hidden transition-shadow duration-normal ease-default',
+          isCandidate ? 'bg-[var(--lf-live-avatar-warm)]' : 'bg-[var(--lf-live-avatar-neutral)]',
+          active && 'ring-4 ring-accent shadow-[0_0_32px_var(--lf-focus)]',
+        )}
+      >
         <img src={participant.imageSrc} alt="" className="absolute inset-0 size-full object-cover" />
         <figcaption className="absolute inset-x-3 bottom-3 inline-flex min-h-7 items-center gap-2 bg-[var(--lf-live-scrim)] px-2.5 py-1.5">
-          {participant.label.includes('You') ? <Mic aria-hidden="true" className="size-3.5 text-positive" /> : <Volume2 aria-hidden="true" className="size-3.5" />}
+          {isCandidate ? (
+            <Mic aria-hidden="true" className={cn('size-3.5', active ? 'animate-pulse text-danger motion-reduce:animate-none' : 'text-positive')} />
+          ) : (
+            <Volume2 aria-hidden="true" className={cn('size-3.5', active && 'text-accent-text')} />
+          )}
           <span className="truncate text-xs font-semibold leading-4">{participant.label}</span>
         </figcaption>
       </div>
@@ -413,44 +401,115 @@ function InterviewSessionLoadingView() {
   )
 }
 
+type LiveSessionPhase = 'ready' | 'asking' | 'answering' | 'done'
+
+type LiveTranscriptTurn = {
+  readonly id: string
+  readonly speaker: 'interviewer' | 'candidate'
+  readonly text: string
+}
+
 export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {
-  const [expandedMessageIds, setExpandedMessageIds] = useState<readonly string[]>([])
-  const [messages, setMessages] = useState<readonly InterviewChatMessage[]>(session.chatMessages)
-  const [draft, setDraft] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
+  const [phase, setPhase] = useState<LiveSessionPhase>('ready')
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const [transcript, setTranscript] = useState<readonly LiveTranscriptTurn[]>([])
+  const [isSpeaking, setIsSpeaking] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [settingsTab, setSettingsTab] = useState<'live' | 'session'>('live')
   const [autoScroll, setAutoScroll] = useState(true)
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [fontSize, setFontSize] = useState(14)
-  const [responseMode, setResponseMode] = useState<'auto' | 'manual'>('auto')
   const chatRef = useRef<HTMLDivElement>(null)
+  const phaseRef = useRef(phase)
+  const questionIndexRef = useRef(questionIndex)
+  phaseRef.current = phase
+  questionIndexRef.current = questionIndex
 
   useEffect(() => {
     const el = chatRef.current
     if (el) el.scrollTop = el.scrollHeight
-  }, [messages, isTyping])
+  }, [transcript])
+
+  function speakQuestion(text: string) {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      setPhase('answering')
+      return
+    }
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.onstart = () => setIsSpeaking(true)
+    utterance.onend = () => {
+      setIsSpeaking(false)
+      setPhase('answering')
+    }
+    utterance.onerror = () => {
+      setIsSpeaking(false)
+      setPhase('answering')
+    }
+    window.speechSynthesis.speak(utterance)
+  }
+
+  function advanceSession() {
+    const currentPhase = phaseRef.current
+    const currentIndex = questionIndexRef.current
+    const questions = session.questions
+
+    if (currentPhase === 'ready' || currentPhase === 'done') {
+      const question = questions[0]
+      if (!question) return
+      setQuestionIndex(0)
+      setTranscript([{ id: `${question.id}-q`, speaker: 'interviewer', text: question.text }])
+      setPhase('asking')
+      speakQuestion(question.text)
+      return
+    }
+
+    if (currentPhase === 'asking') {
+      window.speechSynthesis?.cancel()
+      setIsSpeaking(false)
+      setPhase('answering')
+      return
+    }
+
+    if (currentPhase === 'answering') {
+      const nextIndex = currentIndex + 1
+      if (nextIndex >= questions.length) {
+        setTranscript((prev) => [...prev, { id: `answer-${currentIndex}`, speaker: 'candidate', text: 'Answered' }])
+        setPhase('done')
+        return
+      }
+      const nextQuestion = questions[nextIndex]
+      setTranscript((prev) => [
+        ...prev,
+        { id: `answer-${currentIndex}`, speaker: 'candidate', text: 'Answered' },
+        { id: `${nextQuestion.id}-q`, speaker: 'interviewer', text: nextQuestion.text },
+      ])
+      setQuestionIndex(nextIndex)
+      setPhase('asking')
+      speakQuestion(nextQuestion.text)
+    }
+  }
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.code !== 'Space') return
+      const target = event.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+      event.preventDefault()
+      advanceSession()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.speechSynthesis?.cancel()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (isLoading) {
     return <InterviewSessionLoadingView />
   }
 
-  function toggleExpanded(id: string) {
-    setExpandedMessageIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
-  }
-
-  function handleSend() {
-    const trimmed = draft.trim()
-    if (!trimmed) return
-    const candidateMessage: InterviewChatMessage = { id: `chat-${Date.now()}`, author: 'candidate', text: trimmed }
-    setMessages((prev) => [...prev, candidateMessage])
-    setDraft('')
-    setIsTyping(true)
-    window.setTimeout(() => {
-      setMessages((prev) => [...prev, { id: `chat-${Date.now()}-reply`, author: 'assistant', text: interviewChatResponseFor(trimmed) }])
-      setIsTyping(false)
-    }, 900)
-  }
 
   return (
     <main className="min-h-screen bg-[var(--lf-live-canvas)] text-brand-bar-text">
@@ -487,76 +546,48 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
               <span className="size-2 rounded-pill bg-danger" />
             </h2>
           </div>
-          <div className="p-5">
-            <div className="grid min-h-[32rem] place-items-center sm:min-h-[40rem] xl:h-[calc(100vh-16.8125rem)] xl:min-h-0">
+          <div
+            className={cn('p-5', phase !== 'done' && 'cursor-pointer')}
+            onClick={phase === 'done' ? undefined : advanceSession}
+          >
+            <div className="grid min-h-[32rem] place-items-center gap-6 sm:min-h-[40rem] xl:h-[calc(100vh-16.8125rem)] xl:min-h-0">
               <div className="grid w-full justify-center gap-6 sm:w-auto sm:grid-cols-2">
-                <ParticipantCard participant={session.interviewer} />
-                <ParticipantCard participant={session.candidate} />
+                <ParticipantCard participant={session.interviewer} active={isSpeaking} />
+                <ParticipantCard participant={session.candidate} active={phase === 'answering'} />
               </div>
             </div>
           </div>
         </section>
-        <aside className="grid min-h-[32rem] grid-rows-[auto_1fr_auto] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)] xl:min-h-[calc(100vh-10.25rem)]">
+        <aside className="grid min-h-[32rem] grid-rows-[auto_1fr] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)] xl:min-h-[calc(100vh-10.25rem)]">
           <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
-            <h2 className="text-sm font-medium leading-5">Chat</h2>
-            <button type="button" aria-label="Expand chat" className="grid size-8 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <Maximize2 aria-hidden="true" className="size-4" />
-            </button>
+            <h2 className="text-sm font-medium leading-5">Transcript</h2>
           </div>
           <div ref={chatRef} className="grid min-h-0 auto-rows-min content-start gap-3 overflow-y-auto p-4 sm:p-7">
-            {messages.map((message) => {
-              const expanded = expandedMessageIds.includes(message.id)
-              const isLong = message.text.length > 120
-              return (
+            {transcript.length === 0 ? (
+              <p className="text-sm leading-6 text-ink-muted">
+                Your interviewer's questions and a log of your answers will appear here as the session runs — press Space (or tap the interviewer) to begin.
+              </p>
+            ) : (
+              transcript.map((turn) => (
                 <article
-                  key={message.id}
+                  key={turn.id}
                   className={cn(
                     'max-w-[16.75rem] overflow-hidden text-sm leading-[22.75px] text-brand-bar-text shadow-control',
-                    message.author === 'candidate' ? 'ms-auto rounded-bl-[16px] rounded-br-sm rounded-tl-[16px] rounded-tr-[16px] bg-accent' : 'rounded-bl-sm rounded-br-[16px] rounded-tl-[16px] rounded-tr-[16px] bg-[var(--lf-live-message)]',
+                    turn.speaker === 'candidate' ? 'ms-auto rounded-bl-[16px] rounded-br-sm rounded-tl-[16px] rounded-tr-[16px] bg-accent' : 'rounded-bl-sm rounded-br-[16px] rounded-tl-[16px] rounded-tr-[16px] bg-[var(--lf-live-message)]',
                   )}
                 >
-                  <p className={cn('px-3.5 py-2.5', !expanded && isLong ? 'line-clamp-3' : undefined)}>{message.text}</p>
-                  {message.author === 'candidate' && isLong ? (
-                    <button
-                      type="button"
-                      onClick={() => toggleExpanded(message.id)}
-                      className="flex min-h-7 w-full items-center justify-center gap-1 border-t border-[var(--lf-live-border)] px-3 text-xs font-semibold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                    >
-                      <ChevronDown aria-hidden="true" className={cn('size-3 transition-transform', expanded ? 'rotate-180' : undefined)} />
-                      <span>{expanded ? 'Show less' : 'Show more'}</span>
-                    </button>
-                  ) : null}
+                  <p className="px-3.5 py-2.5">{turn.text}</p>
                 </article>
-              )
-            })}
-            {isTyping ? (
-              <div className="flex items-center gap-1.5 rounded-bl-sm rounded-br-[16px] rounded-tl-[16px] rounded-tr-[16px] bg-[var(--lf-live-message)] px-3.5 py-2.5" role="status" aria-label="AI is responding">
+              ))
+            )}
+            {phase === 'answering' ? (
+              <div className="ms-auto flex items-center gap-1.5 rounded-bl-[16px] rounded-br-sm rounded-tl-[16px] rounded-tr-[16px] bg-accent/40 px-3.5 py-2.5" role="status" aria-label="Recording your answer">
                 {[0, 1, 2].map((i) => (
-                  <span key={i} className="size-1.5 animate-bounce rounded-pill bg-ink-muted motion-reduce:animate-none" style={{ animationDelay: `${i * 0.12}s` }} />
+                  <span key={i} className="size-1.5 animate-bounce rounded-pill bg-brand-bar-text motion-reduce:animate-none" style={{ animationDelay: `${i * 0.12}s` }} />
                 ))}
               </div>
             ) : null}
           </div>
-          <label className="border-t border-[var(--lf-live-border)] p-3">
-            <span className="sr-only">Ask Lightforth to help</span>
-            <span className="flex min-h-11 items-center gap-2 rounded-lg border border-[var(--lf-live-border)] bg-[var(--lf-live-header)] px-3 py-2">
-              <input
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault()
-                    handleSend()
-                  }
-                }}
-                className="min-w-0 flex-1 bg-transparent text-sm text-brand-bar-text outline-none placeholder:text-ink-muted"
-                placeholder="Ask Lightforth to help..."
-              />
-              <button type="button" onClick={handleSend} aria-label="Send message">
-                <Send aria-hidden="true" className="size-4 text-ink-muted" />
-              </button>
-            </span>
-          </label>
         </aside>
       </section>
 
@@ -638,37 +669,13 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
                         className="mt-2 w-full accent-[#3b82f6]"
                       />
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold">Response</p>
-                      <div className="mt-2 flex items-center gap-3">
-                        <div className="flex rounded-lg border border-white/20">
-                          <button
-                            type="button"
-                            onClick={() => setResponseMode('auto')}
-                            className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', responseMode === 'auto' ? 'bg-[#3b82f6] text-white' : 'text-slate-400 hover:text-white')}
-                          >
-                            Auto
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setResponseMode('manual')}
-                            className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', responseMode === 'manual' ? 'bg-[#3b82f6] text-white' : 'text-slate-400 hover:text-white')}
-                          >
-                            Manual
-                          </button>
-                        </div>
-                        <span className="text-xs text-slate-400">{responseMode === 'auto' ? 'Answers automatically' : 'Press Space to answer'}</span>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold">Advance the session</p>
+                        <p className="mt-0.5 text-xs text-slate-400">Press this key (or tap the Start/Skip/Done button) to move through each question</p>
                       </div>
+                      <span className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium">Space</span>
                     </div>
-                    {responseMode === 'manual' ? (
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold">Response key</p>
-                          <p className="mt-0.5 text-xs text-slate-400">Press this key to get an answer</p>
-                        </div>
-                        <span className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium">Space</span>
-                      </div>
-                    ) : null}
                   </div>
                 ) : (
                   <div className="space-y-5">

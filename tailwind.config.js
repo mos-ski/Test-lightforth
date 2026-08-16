@@ -33,6 +33,9 @@ const config: Config = {
         'on-accent': 'var(--lf-on-accent)',
         'accent-secondary': 'var(--lf-accent-secondary)',
         'accent-tertiary': 'var(--lf-accent-tertiary)',
+        paper: 'var(--lf-paper)',
+        'paper-ink': 'var(--lf-paper-ink)',
+        'paper-muted': 'var(--lf-paper-muted)',
         focus: 'var(--lf-focus)',
         info: {
           DEFAULT: 'var(--lf-info)',

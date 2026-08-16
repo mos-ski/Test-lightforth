@@ -2,6 +2,7 @@ import { forwardRef, useMemo, useState, type ReactNode } from 'react'
 import { Search, Plus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileText, ArrowUpDown, Check, Trash2, Download, Pencil } from 'lucide-react'
 
 import { cn } from './cn'
+import { Dialog, DialogClose, DialogPopup, DialogTitle } from './dialog'
 
 export type DataTableSortDirection = 'asc' | 'desc'
 
@@ -108,6 +109,7 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
     const [internalSortColumn, setInternalSortColumn] = useState<string | null>(null)
     const [internalSortDirection, setInternalSortDirection] = useState<DataTableSortDirection>('asc')
     const [internalSelectedIds, setInternalSelectedIds] = useState<ReadonlySet<string>>(new Set())
+    const [mobileDetailId, setMobileDetailId] = useState<string | null>(null)
 
     const selectedIds = controlledSelectedIds ?? internalSelectedIds
     const handleSelectionChange = onSelectionChange ?? setInternalSelectedIds
@@ -163,6 +165,7 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
       : undefined)
     const visibleRows = isSelfPaginated ? sortedRows.slice((internalPage - 1) * defaultPageSize, internalPage * defaultPageSize) : sortedRows
     const handlePageChange = onPageChange ?? (isSelfPaginated ? setInternalPage : undefined)
+    const mobileDetailRow = visibleRows.find((row) => row.id === mobileDetailId) ?? null
 
     const content = (
       <>
@@ -178,6 +181,33 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
           </label>
 
           <div className="mt-4">
+            <div className="divide-y divide-border rounded-lg border border-border sm:hidden">
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-3">
+                    <div className="h-4 w-1/3 rounded bg-surface-subtle animate-skeleton-pulse" />
+                    <div className="ms-auto h-4 w-1/4 rounded bg-surface-subtle animate-skeleton-pulse" />
+                  </div>
+                ))
+              ) : visibleRows.length === 0 ? (
+                <p className="px-4 py-8 text-center text-sm text-ink-muted">No items found.</p>
+              ) : (
+                visibleRows.map((row) => (
+                  <button
+                    key={row.id}
+                    type="button"
+                    onClick={() => setMobileDetailId(row.id)}
+                    className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium leading-5 text-ink">{columns[0]?.render(row)}</span>
+                    <span className="shrink-0 truncate text-sm leading-5 text-ink-muted">{columns[1]?.render(row)}</span>
+                    <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+                  </button>
+                ))
+              )}
+            </div>
+
+            <div className="hidden sm:block">
             <table className={cn('w-full border-collapse text-sm', minTableWidthClassName)}>
               <thead>
                 <tr className="border-b border-border bg-surface-subtle text-ink-muted">
@@ -282,6 +312,7 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                 )}
               </tbody>
             </table>
+            </div>
           </div>
 
           {effectivePagination ? (
@@ -334,6 +365,37 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
               </div>
             </div>
           ) : null}
+
+          <Dialog open={mobileDetailRow !== null} onOpenChange={(open) => { if (!open) setMobileDetailId(null) }}>
+            <DialogPopup aria-label={mobileDetailRow ? itemLabel(mobileDetailRow) : 'Row details'}>
+              <DialogClose />
+              {mobileDetailRow ? (
+                <>
+                  <DialogTitle>{itemLabel(mobileDetailRow)}</DialogTitle>
+                  <dl className="mt-4 grid gap-3">
+                    {columns.map((column) => (
+                      <div key={column.key} className="flex items-start justify-between gap-4 border-b border-border pb-3 text-sm">
+                        <dt className="shrink-0 text-ink-muted">{column.label}</dt>
+                        <dd className="min-w-0 text-end font-medium text-ink">{column.render(mobileDetailRow)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {onRowClick ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onRowClick(mobileDetailRow)
+                        setMobileDetailId(null)
+                      }}
+                      className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                    >
+                      View details
+                    </button>
+                  ) : null}
+                </>
+              ) : null}
+            </DialogPopup>
+          </Dialog>
       </>
     )
 

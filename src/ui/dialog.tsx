@@ -41,17 +41,20 @@ export const DialogBackdrop = forwardRef<HTMLDivElement, DialogBackdropProps>(
   },
 )
 
-export type DialogPopupPlacement = 'center' | 'start'
+export type DialogPopupPlacement = 'center' | 'start' | 'end'
 
 export type DialogPopupProps = HTMLAttributes<HTMLDivElement> & {
   readonly placement?: DialogPopupPlacement
 }
 
 const popupPlacements: Record<DialogPopupPlacement, string> = {
+  // Mobile: bottom sheet (slides up from the bottom edge). sm+: centered modal card.
   center:
-    'fixed left-1/2 top-1/2 z-modal w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-panel border border-border bg-surface p-6 shadow-xl transition-[opacity,transform] duration-normal ease-default focus-visible:outline-none data-[ending-style]:-translate-y-[calc(50%-0.5rem)] data-[ending-style]:opacity-0 data-[starting-style]:-translate-y-[calc(50%-0.5rem)] data-[starting-style]:opacity-0 motion-reduce:transition-none',
+    'fixed inset-x-0 bottom-0 z-modal max-h-[85vh] w-full overflow-y-auto rounded-t-panel border-t border-border bg-surface p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-xl transition-transform duration-normal ease-default focus-visible:outline-none before:absolute before:inset-x-0 before:top-2 before:mx-auto before:h-1 before:w-10 before:rounded-pill before:bg-border before:content-[""] data-[ending-style]:translate-y-full data-[starting-style]:translate-y-full motion-reduce:transition-none sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:max-h-[calc(100vh-4rem)] sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-panel sm:border sm:pb-6 sm:transition-[opacity,transform] sm:before:hidden sm:data-[ending-style]:-translate-y-[calc(50%-0.5rem)] sm:data-[ending-style]:opacity-0 sm:data-[starting-style]:-translate-y-[calc(50%-0.5rem)] sm:data-[starting-style]:opacity-0',
   start:
     '-translate-x-full fixed inset-y-0 start-0 z-modal h-full w-72 max-w-[85vw] overflow-y-auto border-e border-border bg-surface shadow-xl transition-transform duration-normal ease-default focus-visible:outline-none data-[open]:translate-x-0 rtl:translate-x-full rtl:data-[open]:translate-x-0 motion-reduce:transition-none',
+  end:
+    'translate-x-full fixed inset-y-0 end-0 z-modal h-full w-80 max-w-[90vw] overflow-y-auto border-s border-border bg-surface shadow-xl transition-transform duration-normal ease-default focus-visible:outline-none data-[open]:translate-x-0 rtl:-translate-x-full rtl:data-[open]:translate-x-0 motion-reduce:transition-none',
 }
 
 export const DialogPopup = forwardRef<HTMLDivElement, DialogPopupProps>(
@@ -102,7 +105,7 @@ export const DialogClose = forwardRef<HTMLButtonElement, DialogCloseProps>(
     return (
       <BaseDialog.Close
         ref={ref}
-        className={cn('absolute end-4 top-4 grid size-8 place-items-center rounded-soft text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', className)}
+        className={cn('absolute end-2 top-2 grid size-11 place-items-center rounded-soft text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', className)}
         {...props}
       >
         <X aria-hidden="true" className="size-4" />

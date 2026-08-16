@@ -86,17 +86,12 @@ export const interviewLiveSession: InterviewLiveSession = {
     label: 'Darnell Smith · You',
     imageSrc: '/v3-assets/figma/live-session-darnell.png',
   },
-  chatMessages: [
-    {
-      id: 'chat-1',
-      author: 'candidate',
-      text: 'Can you improve the job summary section, I want to emphasize that I can also design, do market research, and have experience in product management.',
-    },
-    {
-      id: 'chat-2',
-      author: 'assistant',
-      text: 'I have updated your professional summary to make it more impactful and results-driven, emphasizing measurable achievements and leadership qualities.',
-    },
+  questions: [
+    { id: 'question-1', text: 'Walk me through a time you had to prioritize a roadmap with limited engineering capacity.' },
+    { id: 'question-2', text: 'Tell me about a product decision you made using data that turned out to be wrong. What did you do next?' },
+    { id: 'question-3', text: 'How do you handle disagreement with an engineering lead about scope or timeline?' },
+    { id: 'question-4', text: 'Describe a launch you owned end-to-end. What was the outcome and what would you change?' },
+    { id: 'question-5', text: 'Where do you see the biggest opportunity for this product in the next twelve months?' },
   ],
 }
 

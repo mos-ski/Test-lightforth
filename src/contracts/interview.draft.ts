@@ -30,9 +30,8 @@ export type InterviewParticipant = {
   readonly imageSrc: string;
 };
 
-export type InterviewChatMessage = {
+export type InterviewQuestion = {
   readonly id: string;
-  readonly author: 'candidate' | 'assistant';
   readonly text: string;
 };
 
@@ -43,7 +42,7 @@ export type InterviewLiveSession = {
   readonly activityLabel: string;
   readonly interviewer: InterviewParticipant;
   readonly candidate: InterviewParticipant;
-  readonly chatMessages: readonly InterviewChatMessage[];
+  readonly questions: readonly InterviewQuestion[];
 };
 
 export type InterviewReportStep = {

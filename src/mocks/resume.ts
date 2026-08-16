@@ -11,6 +11,13 @@ export const resumeDocument: ResumeDocument = {
     'Dynamic Product Manager with expertise in managing product lifecycles from concept to launch. Proven track record in leading cross-functional teams, ensuring quality standards, and driving market strategy.',
   improvedSummary:
     'Results-driven Product Leader with 8 years of experience scaling fintech and AI platforms across African markets, delivering measurable business outcomes. Demonstrated expertise in aligning technical solutions with strategic goals, achieving 95% feature completion for MVP launches and driving 30% user growth.',
+  atsScore: 82,
+  atsBreakdown: [
+    { label: 'Keyword match', score: 88 },
+    { label: 'Formatting', score: 90 },
+    { label: 'Section coverage', score: 76 },
+    { label: 'Quantified impact', score: 68 },
+  ],
   roles: [
     {
       company: 'Lightforth',

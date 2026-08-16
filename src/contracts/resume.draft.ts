@@ -27,6 +27,8 @@ export type ResumeDocument = {
   readonly portfolioUrl: string
   readonly summary: string
   readonly improvedSummary: string
+  readonly atsScore: number
+  readonly atsBreakdown: readonly { readonly label: string; readonly score: number }[]
   readonly roles: readonly ResumeRole[]
   readonly education: readonly ResumeEducation[]
   readonly skills: readonly string[]
