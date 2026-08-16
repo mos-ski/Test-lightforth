@@ -292,8 +292,9 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
   const tipRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (prefilled.current || jobDescription.length > 0) return
+    if (prefilled.current) return
     prefilled.current = true
+    setJobDescription('')
     type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
   }, [])
 
@@ -335,13 +336,13 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
               label="Enter Job Description"
               value={jobDescription}
               onChange={(event) => setJobDescription(event.target.value)}
-              className={cn(isTyping && 'ring-2 ring-accent shadow-[0_0_0_4px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
+              className={cn(isTyping && '!border-accent !shadow-[0_0_0_3px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
             />
             {showTip && (
               <div
                 ref={tipRef}
                 role="status"
-                className="absolute -end-2 top-0 z-20 hidden w-64 -translate-y-4 translate-x-full rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel sm:block"
+                className="absolute end-0 top-0 z-20 hidden w-64 translate-x-[calc(100%+12px)] rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel sm:block"
               >
                 <span aria-hidden="true" className="absolute start-0 top-6 -translate-x-1.5 rotate-45 size-3 bg-live-header" />
                 <button
