@@ -1,5 +1,5 @@
-import { Apple, ArrowRight, Bell, ChevronRight, CircleHelp, CreditCard, ExternalLink, Gift, LogOut, Mail, Menu, Monitor, Play, Settings, User, X } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Apple, ArrowRight, Bell, ChevronRight, CircleHelp, CreditCard, ExternalLink, Gift, LogOut, Mail, Menu, Monitor, PanelLeftClose, PanelLeftOpen, Play, Settings, User, X } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 
 import type { DashboardAction, DashboardActionId, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
 import type { UserIdentity } from '@/contracts/identity'
@@ -48,8 +48,8 @@ function toSideMenuItems(navItems: readonly DashboardNavItem[]) {
   }))
 }
 
-function DashboardSidebar({ navItems }: { readonly navItems: readonly DashboardNavItem[] }) {
-  return <SideMenu items={toSideMenuItems(navItems)} />
+function DashboardSidebar({ navItems, collapsed }: { readonly navItems: readonly DashboardNavItem[]; readonly collapsed: boolean }) {
+  return <SideMenu items={toSideMenuItems(navItems)} collapsed={collapsed} />
 }
 
 function MobileNavDrawer({ navItems }: { readonly navItems: readonly DashboardNavItem[] }) {
@@ -238,12 +238,16 @@ function DashboardHeader({
   creditBalance,
   activeDropdown,
   creditNotice,
+  collapsed,
+  onToggleCollapse,
 }: {
   readonly user: UserIdentity
   readonly navItems: readonly DashboardNavItem[]
   readonly creditBalance: number
   readonly activeDropdown?: 'help' | 'credits' | 'profile'
   readonly creditNotice?: 'low' | 'empty'
+  readonly collapsed: boolean
+  readonly onToggleCollapse: () => void
 }) {
   return (
     <header className="relative flex h-14 items-center justify-between border-b border-border bg-surface px-4 lg:px-5">
@@ -252,6 +256,15 @@ function DashboardHeader({
         <a href="/v3" className="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus" aria-label="Lightforth home">
           <LightforthMark className="h-7 w-auto text-brand-mark" />
         </a>
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          aria-pressed={collapsed}
+          aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+          className="hidden size-9 place-items-center rounded-soft text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:grid"
+        >
+          {collapsed ? <PanelLeftOpen aria-hidden="true" className="size-5" /> : <PanelLeftClose aria-hidden="true" className="size-5" />}
+        </button>
       </div>
       <div className="flex items-center gap-4">
         <div className="group relative">
@@ -388,15 +401,25 @@ function InstallPrompt({ installPrompt }: { readonly installPrompt: DashboardIns
 }
 
 export function DashboardView({ user, navItems, actions, installPrompt, creditBalance, isLoading = false, activeDropdown, creditNotice }: DashboardViewProps) {
+  const [collapsed, setCollapsed] = useState(false)
+
   if (isLoading) {
     return <DashboardLoadingView />
   }
 
   return (
     <main className="min-h-screen bg-canvas text-ink">
-      <DashboardHeader user={user} navItems={navItems} creditBalance={creditBalance} activeDropdown={activeDropdown} creditNotice={creditNotice} />
+      <DashboardHeader
+        user={user}
+        navItems={navItems}
+        creditBalance={creditBalance}
+        activeDropdown={activeDropdown}
+        creditNotice={creditNotice}
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed((prev) => !prev)}
+      />
       <div className="flex">
-        <DashboardSidebar navItems={navItems} />
+        <DashboardSidebar navItems={navItems} collapsed={collapsed} />
         <section className="relative min-h-[calc(100vh-3.5rem)] flex-1 px-4 py-10 sm:px-6 sm:py-12 lg:px-16 lg:py-36">
           <div className="mx-auto w-full max-w-3xl">
             <h1 className="text-2xl font-semibold leading-tight text-ink">Welcome, what would you like to do today?</h1>

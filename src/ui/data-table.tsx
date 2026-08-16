@@ -1,5 +1,5 @@
 import { forwardRef, useMemo, useState, type ReactNode } from 'react'
-import { Search, Plus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileText, ArrowUpDown, Check, Trash2, Download, Mail } from 'lucide-react'
+import { Search, Plus, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, FileText, ArrowUpDown, Check, Trash2, Download, Pencil } from 'lucide-react'
 
 import { cn } from './cn'
 
@@ -29,7 +29,7 @@ export type DataTablePagination = {
 }
 
 export type DataTableProps<TRow extends { readonly id: string }> = {
-  readonly title: string
+  readonly title?: string
   readonly searchLabel?: string
   readonly searchPlaceholder?: string
   readonly searchValue?: string
@@ -75,7 +75,7 @@ function SkeletonRow({ colSpan }: { readonly colSpan: number }) {
 export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: string }>>(
   function DataTable<TRow extends { readonly id: string }>({
     title,
-    searchLabel = `Search ${title}`,
+    searchLabel = title ? `Search ${title}` : 'Search',
     searchPlaceholder = 'Search',
     searchValue,
     onSearchChange,
@@ -160,23 +160,9 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
 
     return (
       <article ref={ref} data-slot="data-table" className={cn('bg-surface shadow-panel', className)}>
-        <header className="flex min-h-[5rem] items-center border-b border-border px-8">
-          <h1 className="text-xl font-medium leading-5 text-ink">{title}</h1>
-        </header>
-
-        <div className="p-8">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <label className="relative block w-full max-w-[24rem]">
-              <span className="sr-only">{searchLabel}</span>
-              <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted" />
-              <input
-                value={effectiveSearch}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="min-h-10 w-full rounded-md border border-input bg-surface ps-9 pe-3 text-sm text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus"
-                placeholder={searchPlaceholder}
-              />
-            </label>
-
+        {title || action ? (
+          <header className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
+            {title ? <h1 className="text-xl font-medium leading-5 text-ink">{title}</h1> : <span />}
             {action ? (
               <a
                 href={action.href}
@@ -186,7 +172,20 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                 {action.label}
               </a>
             ) : null}
-          </div>
+          </header>
+        ) : null}
+
+        <div className="p-8">
+          <label className="relative block w-full max-w-[24rem]">
+            <span className="sr-only">{searchLabel}</span>
+            <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted" />
+            <input
+              value={effectiveSearch}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="min-h-10 w-full rounded-md border border-input bg-surface ps-9 pe-3 text-sm text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus"
+              placeholder={searchPlaceholder}
+            />
+          </label>
 
           <div className="mt-4">
             <table className={cn('w-full border-collapse text-sm', minTableWidthClassName)}>

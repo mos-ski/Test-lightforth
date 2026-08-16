@@ -10,16 +10,12 @@ import LightforthHomePage from '@/pages/marketing/lightforth-home/LightforthHome
 
 const OnboardingFlow = lazy(() => import('@/pages/OnboardingFlow'))
 const MyDocuments = lazy(() => import('@/pages/MyDocuments'))
-const ContextPage = lazy(() => import('@/pages/ContextPage'))
 const ResumeBuilder = lazy(() => import('@/pages/ResumeBuilder'))
 const AutoApply = lazy(() => import('@/pages/AutoApply'))
 const InterviewCopilot = lazy(() => import('@/pages/InterviewCopilot'))
 const InterviewPrep = lazy(() => import('@/pages/InterviewPrep'))
 const JobProfile = lazy(() => import('@/pages/JobProfile'))
 const Explore = lazy(() => import('@/pages/Explore'))
-const Downloads = lazy(() => import('@/pages/Downloads'))
-const Billing = lazy(() => import('@/pages/Billing'))
-const UsageDetails = lazy(() => import('@/pages/UsageDetails'))
 const Settings = lazy(() => import('@/pages/Settings'))
 const HowToUse = lazy(() => import('@/pages/HowToUse'))
 const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview'))
@@ -109,20 +105,20 @@ export default function App() {
             <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
             <Route path="/app" element={<AppRoute><Dashboard /></AppRoute>} />
             <Route path="/documents" element={<AppRoute><Suspense fallback={null}><MyDocuments /></Suspense></AppRoute>} />
-            <Route path="/documents/context" element={<AppRoute><Suspense fallback={null}><ContextPage /></Suspense></AppRoute>} />
+            <Route path="/documents/context" element={<Navigate to="/v3/documents" replace />} />
             <Route path="/resume-builder" element={<ProtectedRoute><Suspense fallback={null}><ResumeBuilder /></Suspense></ProtectedRoute>} />
             <Route path="/auto-apply" element={<Suspense fallback={null}><AutoApplyMarketingPage /></Suspense>} />
             <Route path="/app/auto-apply" element={<AppRoute><Suspense fallback={null}><AutoApply /></Suspense></AppRoute>} />
             <Route path="/interview-prep" element={<Suspense fallback={null}><InterviewPrepMarketingPage /></Suspense>} />
             <Route path="/app/interview-prep" element={<AppRoute><Suspense fallback={null}><InterviewPrep /></Suspense></AppRoute>} />
             <Route path="/interview-copilot" element={<AppRoute><Suspense fallback={null}><InterviewCopilot /></Suspense></AppRoute>} />
-            <Route path="/billing" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
-            <Route path="/billings-and-subscription" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
-            <Route path="/billing/usage" element={<AppRoute><Suspense fallback={null}><UsageDetails /></Suspense></AppRoute>} />
+            <Route path="/billing" element={<Navigate to="/v3/billing" replace />} />
+            <Route path="/billings-and-subscription" element={<Navigate to="/v3/billing" replace />} />
+            <Route path="/billing/usage" element={<Navigate to="/v3/billing/usage" replace />} />
             <Route path="/settings" element={<AppRoute><Suspense fallback={null}><Settings /></Suspense></AppRoute>} />
             <Route path="/job-profile" element={<AppRoute><Suspense fallback={null}><JobProfile /></Suspense></AppRoute>} />
             <Route path="/explore" element={<AppRoute><Suspense fallback={null}><Explore /></Suspense></AppRoute>} />
-            <Route path="/downloads" element={<AppRoute><Suspense fallback={null}><Downloads /></Suspense></AppRoute>} />
+            <Route path="/downloads" element={<Navigate to="/v3/downloads" replace />} />
             <Route path="/how-to-use" element={<AppRoute><Suspense fallback={null}><HowToUse /></Suspense></AppRoute>} />
             <Route path="/career-specialist" element={<Suspense fallback={null}><CareerSpecialistLayout /></Suspense>}>
               <Route index element={<Suspense fallback={null}><CareerSpecialistPage /></Suspense>} />

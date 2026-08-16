@@ -16,16 +16,19 @@ export type SideMenuProps = {
   readonly className?: string
   readonly children?: ReactNode
   readonly width?: number
+  readonly collapsed?: boolean
+  readonly collapsedWidth?: number
 }
 
 export const SideMenu = forwardRef<HTMLElement, SideMenuProps>(
-  function SideMenu({ items, className, children, width = 224, ...props }, ref) {
+  function SideMenu({ items, className, children, width = 224, collapsed = false, collapsedWidth = 72, ...props }, ref) {
     return (
       <aside
         ref={ref}
         data-slot="side-menu"
-        className={cn('hidden shrink-0 bg-surface lg:block', className)}
-        style={{ width }}
+        data-collapsed={collapsed ? 'true' : undefined}
+        className={cn('hidden shrink-0 overflow-hidden bg-surface transition-[width] duration-200 ease-out motion-reduce:transition-none lg:block', className)}
+        style={{ width: collapsed ? collapsedWidth : width }}
         {...props}
       >
         <nav aria-label="Primary" className="flex min-h-[calc(100vh-3.5rem)] flex-col pt-3 text-sm">
@@ -38,7 +41,11 @@ export const SideMenu = forwardRef<HTMLElement, SideMenuProps>(
               ) : null}
               <a
                 href={item.href}
-                className="flex min-h-9 w-full items-center gap-3 overflow-hidden rounded px-6 py-1.5 font-medium leading-6 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                title={collapsed ? item.label : undefined}
+                className={cn(
+                  'flex min-h-9 w-full items-center gap-3 overflow-hidden rounded py-1.5 font-medium leading-6 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                  collapsed ? 'justify-center px-0' : 'px-6',
+                )}
                 aria-current={item.active ? 'page' : undefined}
               >
                 <span
@@ -47,7 +54,7 @@ export const SideMenu = forwardRef<HTMLElement, SideMenuProps>(
                 >
                   {item.icon}
                 </span>
-                <span className={cn('min-w-0 flex-1 truncate text-sm', item.active ? 'text-accent' : 'text-ink')}>{item.label}</span>
+                <span className={cn('min-w-0 flex-1 truncate text-sm', item.active ? 'text-accent' : 'text-ink', collapsed && 'sr-only')}>{item.label}</span>
               </a>
             </div>
           ))}

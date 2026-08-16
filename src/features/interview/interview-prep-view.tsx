@@ -1,26 +1,23 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowLeft,
-  BarChart3,
-  Bookmark,
+  ArrowUpDown,
   Check,
-  CheckCircle2,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  MessageSquare,
+  ChevronUp,
   Mic,
   Pause,
   Play,
-  Search,
+  Maximize2,
+  Send,
   Settings,
-  Sparkles,
   Volume2,
   X,
 } from 'lucide-react'
 
 import type {
   InterviewHistoryRow,
+  InterviewChatMessage,
   InterviewLiveSession,
   InterviewPrepSession,
   InterviewReport,
@@ -28,7 +25,7 @@ import type {
   InterviewRubricStatus,
   InterviewerVoice,
 } from '@/contracts/interview.draft'
-import { AiSuggestionAction, Badge, cn, DataTable, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, ShellBar, SourcePicker } from '@/ui'
+import { AiSuggestionAction, Badge, cn, DataTable, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
 
 export type InterviewUploadViewProps = {
   readonly homeHref: string
@@ -88,14 +85,17 @@ export type InterviewReportViewProps = {
 function InterviewHeader({
   homeHref,
   current,
+  historyHref,
 }: {
   readonly homeHref: string
   readonly current: string
+  readonly historyHref?: string
 }) {
   return (
     <ShellBar
       homeHref={homeHref}
       current={current}
+      parent={historyHref ? { label: 'History', href: historyHref } : undefined}
       closeHref={homeHref}
       closeLabel="Close interview prep"
     />
@@ -139,7 +139,7 @@ function FooterActions({
 export function InterviewUploadView({ homeHref, configureHref, historyHref }: InterviewUploadViewProps) {
   return (
     <Workspace>
-      <InterviewHeader homeHref={homeHref} current="Interview Prep" historyHref={historyHref} />
+      <InterviewHeader homeHref={homeHref} current="Interview Prep" />
       <section className="px-4 py-8 lg:py-10">
         <PaperShell>
           <SourcePicker
@@ -148,8 +148,8 @@ export function InterviewUploadView({ homeHref, configureHref, historyHref }: In
             idleText="or drag and drop"
             meta="PDF, DOC, DOCX or TXT"
             options={[
-              { label: 'Upload a Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-upload.svg' },
-              { label: 'Use Lightforth Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-lightforth.svg', emphasis: 'strong' },
+              { label: 'Upload a Resume', href: configureHref },
+              { label: 'Use Lightforth Resume', href: configureHref, emphasis: 'strong' },
             ]}
             historyLink={{ label: 'View interview history', href: historyHref }}
           />
@@ -257,14 +257,10 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
               {voices.map((voice) => {
                 const isSelected = selectedVoiceId === voice.id
                 return (
-                  <label
-                    key={voice.id}
-                    className={cn(
-                      'group grid cursor-pointer gap-3 rounded-xl p-1.5 transition-all duration-200',
-                      'hover:bg-surface-subtle hover:ring-2 hover:ring-focus',
-                      isSelected && 'bg-accent-subtle ring-2 ring-accent',
-                    )}
-                  >
+                    <label
+                      key={voice.id}
+                      className="group grid cursor-pointer gap-1.5 rounded-xl p-1.5 text-left"
+                    >
                     <input
                       type="radio"
                       name="interviewer"
@@ -272,23 +268,22 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
                       checked={isSelected}
                       onChange={() => handleSelect(voice)}
                     />
-                    <span className="relative block aspect-[3/2] w-full overflow-hidden rounded-lg bg-surface-subtle">
-                      <img src={voice.imageSrc} alt="" className="absolute inset-0 size-full object-cover" />
+                    <span className="relative block aspect-square w-full overflow-hidden rounded-lg bg-surface-subtle">
+                      <img src={voice.imageSrc} alt="" className="absolute inset-0 size-full object-cover transition-all duration-200 group-hover:brightness-110" />
+                      {!isSelected && (
+                        <span className="absolute inset-0 bg-accent/0 transition-colors duration-200 group-hover:bg-accent/20" />
+                      )}
                       {isSelected ? (
                         <span className="absolute inset-0 grid place-items-center">
                           <span className="absolute inset-0 bg-accent opacity-85" />
-                          <span className="relative rounded bg-overlay px-2 py-0.5 text-[11px] font-semibold text-on-danger">selected</span>
+                          <span className="relative rounded bg-overlay px-2.5 py-0.5 text-xs font-semibold text-on-danger">selected</span>
                         </span>
-                      ) : (
-                        <span className="absolute inset-0 grid place-items-center bg-ink/0 transition-colors duration-200 group-hover:bg-ink/10">
-                          <span className="rounded bg-overlay/80 px-2 py-0.5 text-[10px] font-medium text-ink opacity-0 transition-opacity duration-200 group-hover:opacity-100">Click to select</span>
-                        </span>
-                      )}
+                      ) : null}
                     </span>
-                    <span className="grid gap-0.5">
-                      <span className="block text-sm font-bold leading-4 text-ink">{voice.name}</span>
-                      <span className="block text-xs font-medium leading-3 text-accent-text">{voice.title}</span>
-                      <span className="mt-0.5 block text-[11px] leading-3 text-ink-muted line-clamp-2">{voice.summary}</span>
+                    <span className="grid gap-1.5 text-left pt-1">
+                      <span className="block text-sm font-semibold leading-5 text-ink">{voice.name}</span>
+                      <span className="block text-xs font-medium leading-4 text-accent-text">{voice.title}</span>
+                      <span className="mt-1 block text-xs leading-5 text-ink-muted line-clamp-2">{voice.summary}</span>
                     </span>
                   </label>
                 )
@@ -318,6 +313,26 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
       </section>
     </Workspace>
   )
+}
+
+const INTERVIEW_CHAT_RESPONSES: readonly { readonly match: RegExp; readonly reply: string }[] = [
+  {
+    match: /summary/i,
+    reply: "I've updated your professional summary to make it more impactful and results-driven, emphasizing measurable achievements and leadership qualities.",
+  },
+  {
+    match: /bullet|experience/i,
+    reply: 'Rewrote that bullet to lead with the outcome and include a measurable result — take a look at the updated version in your resume.',
+  },
+  {
+    match: /nervous|confidence|calm/i,
+    reply: "That's normal. Take a breath before answering, lead with the outcome, and keep your example under 90 seconds — I'll flag if you're running long.",
+  },
+]
+
+function interviewChatResponseFor(prompt: string): string {
+  const match = INTERVIEW_CHAT_RESPONSES.find((entry) => entry.match.test(prompt))
+  return match?.reply ?? "Got it — I'm reviewing your resume and the conversation so far to put that together now."
 }
 
 function ParticipantCard({ participant }: { readonly participant: InterviewLiveSession['interviewer'] }) {
@@ -400,12 +415,21 @@ function InterviewSessionLoadingView() {
 
 export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {
   const [expandedMessageIds, setExpandedMessageIds] = useState<readonly string[]>([])
+  const [messages, setMessages] = useState<readonly InterviewChatMessage[]>(session.chatMessages)
+  const [draft, setDraft] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [settingsTab, setSettingsTab] = useState<'live' | 'session'>('live')
   const [autoScroll, setAutoScroll] = useState(true)
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [fontSize, setFontSize] = useState(14)
   const [responseMode, setResponseMode] = useState<'auto' | 'manual'>('auto')
+  const chatRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = chatRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [messages, isTyping])
 
   if (isLoading) {
     return <InterviewSessionLoadingView />
@@ -413,6 +437,19 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
 
   function toggleExpanded(id: string) {
     setExpandedMessageIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
+  }
+
+  function handleSend() {
+    const trimmed = draft.trim()
+    if (!trimmed) return
+    const candidateMessage: InterviewChatMessage = { id: `chat-${Date.now()}`, author: 'candidate', text: trimmed }
+    setMessages((prev) => [...prev, candidateMessage])
+    setDraft('')
+    setIsTyping(true)
+    window.setTimeout(() => {
+      setMessages((prev) => [...prev, { id: `chat-${Date.now()}-reply`, author: 'assistant', text: interviewChatResponseFor(trimmed) }])
+      setIsTyping(false)
+    }, 900)
   }
 
   return (
@@ -459,15 +496,15 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
             </div>
           </div>
         </section>
-        <aside className="min-h-[32rem] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)] xl:min-h-[calc(100vh-10.25rem)]">
+        <aside className="grid min-h-[32rem] grid-rows-[auto_1fr_auto] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)] xl:min-h-[calc(100vh-10.25rem)]">
           <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
             <h2 className="text-sm font-medium leading-5">Chat</h2>
             <button type="button" aria-label="Expand chat" className="grid size-8 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               <Maximize2 aria-hidden="true" className="size-4" />
             </button>
           </div>
-          <div className="grid gap-3 p-4 sm:p-7">
-            {session.chatMessages.map((message) => {
+          <div ref={chatRef} className="grid min-h-0 auto-rows-min content-start gap-3 overflow-y-auto p-4 sm:p-7">
+            {messages.map((message) => {
               const expanded = expandedMessageIds.includes(message.id)
               const isLong = message.text.length > 120
               return (
@@ -492,7 +529,34 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
                 </article>
               )
             })}
+            {isTyping ? (
+              <div className="flex items-center gap-1.5 rounded-bl-sm rounded-br-[16px] rounded-tl-[16px] rounded-tr-[16px] bg-[var(--lf-live-message)] px-3.5 py-2.5" role="status" aria-label="AI is responding">
+                {[0, 1, 2].map((i) => (
+                  <span key={i} className="size-1.5 animate-bounce rounded-pill bg-ink-muted motion-reduce:animate-none" style={{ animationDelay: `${i * 0.12}s` }} />
+                ))}
+              </div>
+            ) : null}
           </div>
+          <label className="border-t border-[var(--lf-live-border)] p-3">
+            <span className="sr-only">Ask Lightforth to help</span>
+            <span className="flex min-h-11 items-center gap-2 rounded-lg border border-[var(--lf-live-border)] bg-[var(--lf-live-header)] px-3 py-2">
+              <input
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    handleSend()
+                  }
+                }}
+                className="min-w-0 flex-1 bg-transparent text-sm text-brand-bar-text outline-none placeholder:text-ink-muted"
+                placeholder="Ask Lightforth to help..."
+              />
+              <button type="button" onClick={handleSend} aria-label="Send message">
+                <Send aria-hidden="true" className="size-4 text-ink-muted" />
+              </button>
+            </span>
+          </label>
         </aside>
       </section>
 
@@ -731,23 +795,6 @@ export function InterviewHistoryView({ homeHref, createHref, reportHref, rows }:
   )
 }
 
-function MetricRow({ metric }: { readonly metric: InterviewReport['metrics'][number] }) {
-  return (
-    <article className="border-t border-border py-6 first:border-t-0 first:pt-0 last:pb-0">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-bold leading-7">{metric.label}</h3>
-          <p className="mt-1 text-base leading-6 text-ink-muted">{metric.note}</p>
-        </div>
-        <p className="text-base leading-6 text-ink-muted">Interviewer: {metric.interviewerScore}%</p>
-      </div>
-      <div className="mt-3 h-3 overflow-hidden rounded-full bg-surface-subtle">
-        <div className="h-full rounded-full bg-accent" style={{ inlineSize: `${metric.score}%` }} />
-      </div>
-    </article>
-  )
-}
-
 function InterviewReportLoadingView({ homeHref }: { readonly homeHref: string }) {
   return (
     <Workspace>
@@ -816,171 +863,121 @@ const rubricLabel: Record<InterviewRubricStatus, string> = {
   'needs-work': 'Needs work',
 }
 
+type RubricSortColumn = 'status' | 'notes'
+type RubricSort = { readonly column: RubricSortColumn; readonly direction: 'asc' | 'desc' }
+
 export function InterviewReportView({ homeHref, scenariosHref, practiceHref, report, isLoading = false }: InterviewReportViewProps) {
+  const [rubricSort, setRubricSort] = useState<RubricSort | null>(null)
+
   if (isLoading) {
     return <InterviewReportLoadingView homeHref={homeHref} />
   }
 
+  const sortedRubric = rubricSort
+    ? [...report.rubric].sort((a, b) => {
+        const cmp = String(a[rubricSort.column]).localeCompare(String(b[rubricSort.column]))
+        return rubricSort.direction === 'asc' ? cmp : -cmp
+      })
+    : report.rubric
+
+  function toggleRubricSort(column: RubricSortColumn) {
+    setRubricSort((prev) => {
+      if (prev?.column !== column) return { column, direction: 'asc' }
+      return prev.direction === 'asc' ? { column, direction: 'desc' } : null
+    })
+  }
+
   return (
     <Workspace>
-      <InterviewHeader homeHref={homeHref} current="Interview Prep" />
+      <InterviewHeader homeHref={homeHref} current="Interview Prep" historyHref={scenariosHref} />
       <section className="px-4 pb-16">
-        <div className="mx-auto max-w-[64rem]">
-          <article className="w-full bg-surface px-8 py-12 shadow-panel sm:px-10 lg:px-12">
-            <a href={scenariosHref} className="inline-flex min-h-11 items-center gap-3 rounded-soft text-base font-bold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <ArrowLeft aria-hidden="true" className="size-4" />
-              Back to Scenarios
-            </a>
+        <div className="mx-auto flex max-w-[64rem] flex-col gap-4 pt-8">
+          <article className="w-full bg-surface shadow-panel">
+            <div className="flex min-h-[5rem] items-center border-b border-border px-8">
+              <h1 className="text-xl font-medium leading-5 text-ink">Report</h1>
+            </div>
 
-            <header className="mt-8 flex flex-col gap-5 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center sm:justify-between lg:px-8">
-              <div className="flex items-center gap-5">
-                <img src={report.interviewerImageSrc} alt="" className="size-20 rounded-full border-2 border-border object-cover shadow-control" />
-                <div>
-                  <h1 className="text-3xl font-bold leading-10">{report.title}</h1>
-                  <p className="mt-1 text-lg leading-7 text-ink-muted">{report.subtitle}</p>
-                </div>
-              </div>
-              <a href={practiceHref} className="inline-flex min-h-14 items-center justify-center gap-3 rounded-lg bg-accent px-6 text-lg font-bold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Play aria-hidden="true" className="size-5" />
-                Practice Again
-              </a>
-            </header>
+            <div className="px-8 pt-6">
+              <Tabs defaultValue="summary">
+                <TabsList>
+                  <TabsTrigger value="summary">Summary</TabsTrigger>
+                  <TabsTrigger value="details">Interview Details</TabsTrigger>
+                  <TabsTrigger value="call">Call details</TabsTrigger>
+                </TabsList>
 
-            {(
-              <section className="mt-6 flex flex-col gap-6 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center lg:px-8">
-                <div className="grid size-32 shrink-0 place-items-center rounded-full bg-positive-surface text-5xl font-black text-positive">{report.score}</div>
-                <div>
-                  <h2 className="text-2xl font-bold leading-8">Overall Summary</h2>
-                  <p className="mt-4 text-lg leading-8 text-ink-muted">{report.summary}</p>
-                </div>
-              </section>
-            )}
-
-            {(
-              <section className="mt-6 rounded-panel border border-border shadow-control">
-                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
-                  <Sparkles aria-hidden="true" className="size-6 text-accent" />
-                  Post-Interview Scorecard
-                </h2>
-                <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 lg:px-8">
-                  <ScorecardSection title="What Went Well" items={report.whatWentWell} />
-                  <ScorecardSection title="What Needs Work" items={report.whatNeedsWork} />
-                  <ScorecardSection title="Knowledge Gaps" items={report.knowledgeGaps} />
-                </div>
-              </section>
-            )}
-
-            {(
-              <section className="mt-6 rounded-panel border border-border shadow-control">
-                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
-                  <MessageSquare aria-hidden="true" className="size-6 text-accent" />
-                  Suggested Questions for Future Interviews
-                </h2>
-                <ul className="flex flex-col gap-3 px-6 py-6 lg:px-8">
-                  {report.suggestedQuestions.map((question, i) => (
-                    <li key={i} className="flex items-start gap-3 text-base text-ink-muted">
-                      <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-accent-subtle text-xs font-bold text-accent">{i + 1}</span>
-                      <span>{question}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {(
-              <>
-                <section className="mt-6 rounded-panel border border-border shadow-control">
-                  <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
-                    <Search aria-hidden="true" className="size-6 text-ink-muted" />
-                    Interview Rubric Breakdown
-                  </h2>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-border bg-surface-subtle text-xs font-semibold uppercase tracking-wide text-muted">
-                          <th className="px-4 py-3">Element</th>
-                          <th className="px-4 py-3">Status</th>
-                          <th className="px-4 py-3">Notes</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {report.rubric.map((row) => (
-                          <tr key={row.element} className="border-b border-border-subtle transition-colors hover:bg-surface-subtle last:border-0">
-                            <td className="px-4 py-3 font-medium text-ink">{row.element}</td>
-                            <td className="px-4 py-3">
-                              <Badge tone={row.status === 'strong' ? 'positive' : row.status === 'partial' ? 'warning' : 'danger'} className={rubricToneClasses[row.status]}>
-                                {rubricLabel[row.status]}
-                              </Badge>
-                            </td>
-                            <td className="px-4 py-3 text-ink-muted">{row.notes}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-
-                <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
-                  <h2 className="text-xl font-bold leading-8">Talk Time Ratio</h2>
-                  <div className="mt-4 flex items-center justify-between text-sm text-ink-muted">
-                    <span>You: {report.talkTime.youPercent}%</span>
-                    <span>Interviewer: {report.talkTime.interviewerPercent}%</span>
-                  </div>
-                  <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full bg-surface-subtle" role="img" aria-label={`You spoke ${report.talkTime.youPercent}% of the time`}>
-                    <div className="h-full bg-accent" style={{ width: `${report.talkTime.youPercent}%` }} />
-                  </div>
-                  <p className="mt-3 text-sm text-ink-muted">{report.talkTime.tip}</p>
-                </section>
-              </>
-            )}
-
-            {(
-              <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
-                <h2 className="text-xl font-bold leading-7">Call Recording</h2>
-                <div className="mt-4 flex min-h-16 items-center gap-4 rounded-panel border border-border bg-surface-subtle p-3">
-                  <button type="button" aria-label="Play recording" className="grid size-12 place-items-center rounded-lg bg-accent text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                    <Play aria-hidden="true" className="size-5" />
-                  </button>
-                  <span className="font-mono text-base text-ink-muted">0:00</span>
-                  <div className="h-1.5 flex-1 rounded-full bg-border">
-                    <div className="h-full w-1/3 rounded-full bg-accent" />
-                  </div>
-                  <button type="button" aria-label="Pause recording" className="grid size-10 place-items-center rounded-lg text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                    <Pause aria-hidden="true" className="size-4" />
-                  </button>
-                </div>
-              </section>
-            )}
-
-            {(
-              <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
-                <h2 className="inline-flex items-center gap-3 text-xl font-bold leading-8">
-                  <Bookmark aria-hidden="true" className="size-5 text-ink-muted" />
-                  Transcript
-                </h2>
-                <div className="mt-5 grid gap-3">
-                  {report.transcript.map((entry) => (
-                    <article key={entry.id} className="rounded-panel bg-surface-subtle p-5">
-                      <div className="flex items-center justify-between gap-3">
-                        <h3 className={cn('text-sm font-bold', entry.speaker === 'You' ? 'text-accent-text' : 'text-ink')}>{entry.speaker}</h3>
-                        <p className="font-mono text-xs text-ink-muted">{entry.timestamp}</p>
+                <TabsContent value="summary">
+                  <div className="flex flex-col gap-6 pb-8">
+                    <div className="flex flex-col gap-5 rounded-panel border border-border p-6 shadow-control sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-4">
+                        <img src={report.interviewerImageSrc} alt="" className="size-16 rounded-full border-2 border-border object-cover shadow-control" />
+                        <div>
+                          <h2 className="text-2xl font-bold leading-8">{report.title}</h2>
+                          <p className="mt-1 text-sm text-ink-muted">{report.subtitle}</p>
+                        </div>
                       </div>
-                      <p className="mt-3 text-lg leading-8 text-ink-muted">{entry.text}</p>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            )}
+                      <a href={practiceHref} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                        <Play aria-hidden="true" className="size-4" />
+                        Practice Again
+                      </a>
+                    </div>
 
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <a href={scenariosHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-border bg-surface-subtle px-5 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <ArrowLeft aria-hidden="true" className="size-4" />
-                Back to Scenarios
-              </a>
-              <a href={practiceHref} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent px-5 text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Play aria-hidden="true" className="size-4" />
-                Try Again
-              </a>
+                    <div className="flex flex-col items-start gap-6 rounded-panel border border-border p-6 shadow-control sm:flex-row sm:items-center">
+                      <div className="grid size-28 shrink-0 place-items-center rounded-full border-8 border-positive/30 bg-positive-surface text-4xl font-black text-positive">
+                        {report.score}
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold leading-8">Summary</h2>
+                        <p className="mt-2 text-base leading-7 text-ink-muted">{report.summary}</p>
+                      </div>
+                    </div>
+
+                    <ScorecardSection title="What Went Well" items={report.whatWentWell} />
+                    <ScorecardSection title="What Needs Work" items={report.whatNeedsWork} divider />
+                    <ScorecardSection title="Knowledge Gaps" items={report.knowledgeGaps} divider />
+                    <ScorecardSection title="Suggested Questions for Future Interviews" items={report.suggestedQuestions} divider />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="details">
+                  <div className="pb-8">
+                    <RubricTable rows={sortedRubric} sort={rubricSort} onSort={toggleRubricSort} toneClasses={rubricToneClasses} label={rubricLabel} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="call">
+                  <div className="flex flex-col gap-6 pb-8">
+                    <div className="rounded-panel border border-border p-6 shadow-control lg:p-8">
+                      <h3 className="text-lg font-bold leading-7">Call Recording</h3>
+                      <div className="mt-4 flex min-h-16 items-center gap-4 rounded-panel border border-border bg-surface-subtle p-3">
+                        <button type="button" aria-label="Play recording" className="grid size-12 place-items-center rounded-lg bg-accent text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                          <Play aria-hidden="true" className="size-5" />
+                        </button>
+                        <span className="font-mono text-base text-ink-muted">0:00</span>
+                        <div className="h-1.5 flex-1 rounded-full bg-border">
+                          <div className="h-full w-1/3 rounded-full bg-accent" />
+                        </div>
+                        <button type="button" aria-label="Pause recording" className="grid size-10 place-items-center rounded-lg text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                          <Pause aria-hidden="true" className="size-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-panel border border-border bg-surface p-4">
+                      <div className="flex flex-col">
+                        {report.transcript.map((entry, index) => (
+                          <div key={entry.id} className={cn('flex flex-col gap-1', index > 0 && 'pt-3')}>
+                            <div className="flex items-center gap-2">
+                              <span className="rounded-soft bg-ink/10 px-1.5 py-0.5 text-xs font-medium text-ink">{entry.timestamp}</span>
+                              <span className={cn('text-sm font-medium', entry.speaker === 'You' ? 'text-accent-text' : 'text-ink')}>{entry.speaker}</span>
+                            </div>
+                            <p className="text-base leading-7 text-ink">{entry.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </article>
         </div>
@@ -989,13 +986,73 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
   )
 }
 
-function ScorecardSection({ title, items }: { readonly title: string; readonly items: readonly string[] }) {
+function RubricSortIcon({ column, sort }: { readonly column: RubricSortColumn; readonly sort: RubricSort | null }) {
+  if (sort?.column !== column) return <ArrowUpDown aria-hidden="true" className="size-3 text-ink-muted" />
+  return sort.direction === 'asc' ? (
+    <ChevronUp aria-hidden="true" className="size-3 text-accent-text" />
+  ) : (
+    <ChevronDown aria-hidden="true" className="size-3 text-accent-text" />
+  )
+}
+
+function RubricTable<TStatus extends string>({
+  rows,
+  sort,
+  onSort,
+  toneClasses,
+  label,
+}: {
+  readonly rows: readonly { readonly element: string; readonly status: TStatus; readonly notes: string }[]
+  readonly sort: RubricSort | null
+  readonly onSort: (column: RubricSortColumn) => void
+  readonly toneClasses: Record<string, string>
+  readonly label: Record<string, string>
+}) {
+  function sortAria(column: RubricSortColumn): 'ascending' | 'descending' | 'none' {
+    if (sort?.column !== column) return 'none'
+    return sort.direction === 'asc' ? 'ascending' : 'descending'
+  }
+
   return (
-    <section className="flex flex-col gap-3">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
-        <CheckCircle2 className="size-4 text-positive" aria-hidden="true" />
-        {title}
-      </h3>
+    <div className="overflow-x-auto rounded-panel border border-border shadow-control">
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-border bg-surface-subtle text-ink-muted">
+            <th className="px-4 py-2.5 text-start font-semibold">Element</th>
+            <th className="cursor-pointer select-none px-4 py-2.5 text-start font-semibold hover:bg-surface-subtle" aria-sort={sortAria('status')} onClick={() => onSort('status')}>
+              <span className="inline-flex items-center gap-1">
+                Status
+                <RubricSortIcon column="status" sort={sort} />
+              </span>
+            </th>
+            <th className="cursor-pointer select-none px-4 py-2.5 text-start font-semibold hover:bg-surface-subtle" aria-sort={sortAria('notes')} onClick={() => onSort('notes')}>
+              <span className="inline-flex items-center gap-1">
+                Notes
+                <RubricSortIcon column="notes" sort={sort} />
+              </span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.element} className="border-b border-border transition-colors hover:bg-surface-subtle last:border-0">
+              <td className="px-4 py-2.5 font-medium text-ink">{row.element}</td>
+              <td className="px-4 py-2.5">
+                <Badge className={toneClasses[row.status]}>{label[row.status]}</Badge>
+              </td>
+              <td className="px-4 py-2.5 text-ink-muted">{row.notes}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function ScorecardSection({ title, items, divider = false }: { readonly title: string; readonly items: readonly string[]; readonly divider?: boolean }) {
+  return (
+    <section className={cn('flex flex-col gap-3', divider && 'border-t border-border-subtle pt-6')}>
+      <h3 className="text-base font-bold text-ink">{title}</h3>
       <ul className="flex flex-col gap-2">
         {items.map((item, index) => (
           <li key={index} className="flex items-start gap-2 text-sm text-ink-muted">

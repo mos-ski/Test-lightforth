@@ -31,6 +31,7 @@ const config: Config = {
           text: 'var(--lf-accent-text)',
         },
         'on-accent': 'var(--lf-on-accent)',
+        'accent-secondary': 'var(--lf-accent-secondary)',
         focus: 'var(--lf-focus)',
         info: {
           DEFAULT: 'var(--lf-info)',

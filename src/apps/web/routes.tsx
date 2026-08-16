@@ -26,6 +26,7 @@ import { DocumentsAddPage } from './pages/documents-add-page'
 import { DocumentsManualPage } from './pages/documents-manual-page'
 import { DocumentsPage } from './pages/documents-page'
 import { DownloadsPage } from './pages/downloads-page'
+import { TutorialsPage } from './pages/tutorials-page'
 import { InterviewCompletePage } from './pages/interview-complete-page'
 import { InterviewConfigurePage } from './pages/interview-configure-page'
 import { InterviewHistoryPage } from './pages/interview-history-page'
@@ -76,6 +77,10 @@ export function WebRoutes() {
 
   if (routePath === '/downloads') {
     return <DownloadsPage />
+  }
+
+  if (routePath === '/tutorials') {
+    return <TutorialsPage />
   }
 
   if (routePath === '/billing') {

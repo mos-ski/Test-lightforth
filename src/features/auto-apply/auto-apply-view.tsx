@@ -622,24 +622,25 @@ function JobSearch({ onRefresh }: { readonly onRefresh?: () => void }) {
           <input className="min-h-11 w-full rounded-lg border border-input bg-surface py-2 pe-3 ps-10 text-base text-ink outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus" placeholder="Search by title or company" />
         </label>
         {onRefresh ? (
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            aria-label="Refresh job list"
-          >
-            <RefreshCw aria-hidden="true" className="size-4" />
-            Refresh
-          </button>
+          <>
+            <button
+              type="button"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <Filter aria-hidden="true" className="size-4" />
+              Filter
+            </button>
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              aria-label="Refresh job list"
+            >
+              <RefreshCw aria-hidden="true" className="size-4" />
+              Refresh
+            </button>
+          </>
         ) : null}
-      </div>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {['Location', 'Experience Level', 'Job Type', 'Date Posted'].map((filter) => (
-          <button key={filter} type="button" className="inline-flex min-h-9 items-center gap-1 rounded-full border border-input bg-surface px-3 text-sm text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            {filter}
-            <ChevronDown aria-hidden="true" className="size-4" />
-          </button>
-        ))}
       </div>
     </div>
   )
@@ -692,36 +693,14 @@ function JobList({
                 isSelected ? 'bg-accent/10' : 'hover:bg-surface-subtle',
               )}
             >
-              <div className="flex shrink-0 items-center gap-3">
-                <label
-                  className="grid size-6 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <span className="sr-only">{`Select ${job.title}`}</span>
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={isSelected}
-                    onChange={() => toggleRow(job.id)}
-                  />
-                  {isSelected ? (
-                    <Check aria-hidden="true" className="size-3.5 text-accent" />
-                  ) : (
-                    <>
-                      <FileText aria-hidden="true" className="size-3.5 text-ink-muted group-hover/row:hidden" />
-                      <span aria-hidden="true" className="hidden size-3.5 rounded border border-ink-muted group-hover/row:block" />
-                    </>
-                  )}
-                </label>
-                <span
-                  className={cn(
-                    'grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold',
-                    job.company.toLowerCase().includes('stripe') ? 'bg-accent-subtle text-accent-text' : 'bg-danger-surface text-danger',
-                  )}
-                >
-                  {job.company.slice(0, 2).toUpperCase()}
-                </span>
-              </div>
+              <span
+                className={cn(
+                  'grid size-9 shrink-0 place-items-center rounded-lg text-xs font-bold',
+                  job.company.toLowerCase().includes('stripe') ? 'bg-accent-subtle text-accent-text' : 'bg-danger-surface text-danger',
+                )}
+              >
+                {job.company.slice(0, 2).toUpperCase()}
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-ink">{job.title}</span>
@@ -811,7 +790,7 @@ function JobPreview({
       </section>
       {!applied ? (
         <>
-          <section className="mt-4 rounded-lg border border-positive bg-positive-surface p-3">
+          <section className="mt-4 rounded-lg bg-positive-surface p-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wide text-positive">Excellent Match</h3>
               <p className="text-2xl font-bold text-positive">{job.matchPercent}%</p>
@@ -849,20 +828,20 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
       <section className="p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           <div className="min-h-[56rem] bg-surface shadow-panel">
-            <div className="border-b border-border px-8 py-8">
-              <h1 className="text-xl font-medium">Jobs</h1>
+            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
+              <h1 className="text-xl font-medium leading-5 text-ink">Jobs</h1>
+              <a href={setupHref} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                Update Preference
+              </a>
             </div>
             <div className="p-8">
-              <div className="flex items-center justify-between border-b border-border">
+              <div className="border-b border-border">
                 <nav aria-label="Auto apply sections" className="flex gap-6 text-sm font-medium">
                   <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>
                   <a href={agentHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Agent</a>
                   <a href={jobsHref} aria-current="page" className="min-h-11 border-b-2 border-accent px-1 pb-2 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Jobs</a>
                   <a href={appliedHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Applied</a>
                 </nav>
-                <a href={setupHref} className="mb-2 inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                  Update Preference
-                </a>
               </div>
               <div className="flex gap-6 pt-5">
                 <div className={cn('min-w-0 transition-all duration-300 ease-out', selectedJob ? 'flex-1' : 'w-full')}>
@@ -879,6 +858,13 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                     </label>
                     <button
                       type="button"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                    >
+                      <Filter aria-hidden="true" className="size-4" />
+                      Filter
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setRefreshKey((k) => k + 1)}
                       className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                       aria-label="Refresh job list"
@@ -886,14 +872,6 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                       <RefreshCw aria-hidden="true" className="size-4" />
                       Refresh
                     </button>
-                  </div>
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {['Location', 'Experience Level', 'Job Type', 'Date Posted'].map((filter) => (
-                      <button key={filter} type="button" className="inline-flex min-h-9 items-center gap-1 rounded-full border border-input bg-surface px-3 text-sm text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                        {filter}
-                        <ChevronDown aria-hidden="true" className="size-4" />
-                      </button>
-                    ))}
                   </div>
                   <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
                   <div className="mt-5 flex items-center justify-center gap-4 text-sm text-ink-muted">
@@ -934,20 +912,20 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
       <section className="p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           <div className="min-h-[56rem] bg-surface shadow-panel">
-            <div className="border-b border-border px-8 py-8">
-              <h1 className="text-xl font-medium">Applied</h1>
+            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
+              <h1 className="text-xl font-medium leading-5 text-ink">Applied</h1>
+              <a href={setupHref} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                Update Preference
+              </a>
             </div>
             <div className="p-8">
-              <div className="flex items-center justify-between border-b border-border">
+              <div className="border-b border-border">
                 <nav aria-label="Auto apply sections" className="flex gap-6 text-sm font-medium">
                   <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>
                   <a href={agentHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Agent</a>
                   <a href={jobsHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Jobs</a>
                   <a href={appliedHref} aria-current="page" className="min-h-11 border-b-2 border-accent px-1 pb-2 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Applied</a>
                 </nav>
-                <a href={setupHref} className="mb-2 inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                  Update Preference
-                </a>
               </div>
               <div className="flex gap-6 pt-5">
                 <div className={cn('min-w-0 transition-all duration-300 ease-out', selectedJob ? 'flex-1' : 'w-full')}>

@@ -1,4 +1,4 @@
-import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile } from '@/contracts/account.draft'
+import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile, TutorialItem } from '@/contracts/account.draft'
 
 export const downloadItems: readonly DownloadItem[] = [
   {
@@ -39,9 +39,11 @@ export const billingPlans: readonly BillingPlanCard[] = [
     name: 'STARTER',
     price: 'N5,000',
     cadence: 'per month',
+    annualPrice: 'N48,000',
+    annualCadence: 'per year',
     credits: '15 Credits',
     description: 'The budget tier to get your job hunt started with the essentials.',
-    features: ['15 credits per month', 'Resume builder', 'Download resumes'],
+    features: ['15 credits per month', 'Resume builder', 'Cover letter features', 'Download resumes'],
     note: 'Ideal for light or occasional job applications',
   },
   {
@@ -49,17 +51,22 @@ export const billingPlans: readonly BillingPlanCard[] = [
     name: 'PRO',
     price: 'N20,000',
     cadence: 'per month',
+    annualPrice: 'N192,000',
+    annualCadence: 'per year',
     credits: '50 Credits',
-    description: 'More credits. Unlock our full suite of tools to actively apply and prep for interviews.',
+    description: 'More credits, Unlock our full suite of tools to actively apply and prep for interviews',
     features: ['50 credits per month', 'All features from Starter', 'Auto-apply', 'AI Interview prep', 'Interview Copilot'],
-    note: 'Best for users who want AI and autopilot help consistently',
+    note: 'Best for users who want AI + autopilot help consistently',
     popular: true,
+    current: true,
   },
   {
     id: 'premium',
     name: 'PREMIUM',
     price: 'N50,000',
     cadence: 'per month',
+    annualPrice: 'N480,000',
+    annualCadence: 'per year',
     credits: '100 Credits',
     description: 'Built for power users who apply daily or want maximum automation.',
     features: ['100 credits per month', 'All features from PRO', 'Unlimited AI suggestions', 'Unlimited ATS scores', 'Dedicated priority support'],
@@ -105,4 +112,12 @@ export const referralRows: readonly ReferralRow[] = [
   { id: '2', name: 'Morayo Sanni', email: 'sannimoyo@yahoo.com', dateTime: '02/18/2026, 9:29 am', status: 'Not subscribed' },
   { id: '3', name: 'Jamal Yakubu', email: 'jamal.yakubu@yahoo.com', dateTime: '02/17/2026, 2:58 pm', status: 'Not subscribed' },
   { id: '4', name: 'Joseph Ayo', email: 'ayojoefemi925@gmail.com', dateTime: '02/13/2026, 6:59 am', status: 'Not subscribed' },
+]
+
+export const tutorialItems: readonly TutorialItem[] = [
+  { id: 'getting-started', title: 'Getting Started', href: 'https://lightforth.ai/docs/getting-started', kind: 'external', tone: 'accent' },
+  { id: 'interview-copilot', title: 'Interview Copilot', href: 'https://lightforth.ai/tutorials/interview-copilot', kind: 'video', tone: 'accent' },
+  { id: 'auto-apply', title: 'Auto Apply', href: 'https://lightforth.ai/tutorials/auto-apply', kind: 'video', tone: 'positive' },
+  { id: 'resume-builder', title: 'Resume Builder', href: 'https://lightforth.ai/tutorials/resume-builder', kind: 'video', tone: 'accent-secondary' },
+  { id: 'interview-prep', title: 'Interview Prep', href: 'https://lightforth.ai/tutorials/interview-prep', kind: 'video', tone: 'danger' },
 ]

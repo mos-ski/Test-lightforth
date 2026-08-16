@@ -1,4 +1,12 @@
-import type { CopilotHistoryRow, CopilotLiveSession, CopilotPermissionStep, CopilotReport, CopilotSetup } from '@/contracts/copilot.draft'
+import type {
+  CopilotCodingTurn,
+  CopilotHistoryRow,
+  CopilotLiveSession,
+  CopilotPermissionStep,
+  CopilotReport,
+  CopilotSetup,
+  CopilotTranscriptTurn,
+} from '@/contracts/copilot.draft'
 
 export const copilotSetup: CopilotSetup = {
   mode: 'interview',
@@ -73,6 +81,76 @@ export const copilotHistoryRows: readonly CopilotHistoryRow[] = [
   { id: 'copilot-history-8', mode: 'interview', title: 'Marketing Manager, Lifecycle', where: 'Mobile', company: 'HubSpot', duration: '24m', dateTime: 'July 12th 2026, 3:47 pm' },
   { id: 'copilot-history-9', mode: 'meeting', title: 'Q3 Roadmap Review', where: 'Desktop', company: 'Lightforth', duration: '55m', dateTime: 'July 7th 2026, 11:12 am' },
   { id: 'copilot-history-10', mode: 'coding', title: 'Coding Interview — System Design: Rate Limiter', where: 'Desktop', company: 'DeeXoptions', duration: '18m', dateTime: 'July 1st 2026, 5:39 pm' },
+]
+
+export const copilotInterviewTranscript: readonly CopilotTranscriptTurn[] = [
+  {
+    speaker: 'Interviewer',
+    question: 'Can you tell me a bit about yourself and your background in product management?',
+    answer:
+      "I'm a product manager with 6 years of experience shipping B2B and consumer products, most recently leading the payments team at a fintech startup. I focus on translating ambiguous problems into clear roadmaps, and I'm most energized by the intersection of user research and measurable business impact.",
+  },
+  {
+    speaker: 'Interviewer',
+    question: 'What would you say is your greatest strength as a PM?',
+    answer:
+      'My greatest strength is owning the full product lifecycle — from discovery through launch and iteration. That end-to-end ownership reduces handoff friction. On my last team, it helped us cut time-to-market by roughly 30% over two quarters.',
+  },
+  {
+    speaker: 'Interviewer',
+    question: 'Tell me about a time you disagreed with a stakeholder on product direction.',
+    answer:
+      'A senior stakeholder wanted to ship a feature I believed would hurt retention based on our research. Instead of pushing back directly, I brought a data brief showing the risk alongside two alternatives that met their goal differently. We shipped a smaller version with a 30-day review gate — it performed well and strengthened the relationship.',
+    interjection: { speaker: 'Interviewer', text: 'And how did they react once they saw the data?' },
+  },
+  {
+    speaker: 'Interviewer',
+    question: 'How do you prioritize when you have limited engineering time?',
+    answer:
+      'I use RICE scoring to quantify reach, impact, confidence, and effort, paired with qualitative input from customer success and sales — they often catch signals the data misses. The output is a ranked backlog everyone can see and challenge transparently.',
+  },
+  {
+    speaker: 'Interviewer',
+    question: 'Where do you see yourself in the next three to five years?',
+    answer:
+      "I'd like to be leading product strategy at a company building something with real impact — either as a Director of Product or in a founding role. I'm especially interested in how AI can make product experiences more personalized without sacrificing trust.",
+  },
+]
+
+export const copilotMeetingTranscript: readonly CopilotTranscriptTurn[] = [
+  {
+    speaker: 'Priya (Eng Lead)',
+    question: 'I think we should push the launch date by two weeks to finish QA properly.',
+    answer:
+      "That tracks with the bug count we're seeing. Suggest a checkpoint: propose a go/no-go review next Wednesday so the team doesn't lose more time than necessary while still protecting quality.",
+  },
+  {
+    speaker: 'Marcus (Marketing)',
+    question: 'Marketing already has assets scheduled for the original date — any slip needs to be decided today, not next week.',
+    answer:
+      'Bridge the conflict: loop marketing into the QA checkpoint today so they can adjust the campaign calendar in parallel rather than finding out at the last minute.',
+    interjection: { speaker: 'Priya (Eng Lead)', text: "Does marketing need the final date today, or just a heads-up that it might move?" },
+  },
+  {
+    speaker: 'Marcus (Marketing)',
+    question: "What's the actual blocker on QA — is it headcount or test coverage?",
+    answer: 'Push for clarity: ask the QA lead directly whether it\'s resourcing or scope, since the fix looks different either way.',
+  },
+]
+
+export const copilotCodingBank: readonly CopilotCodingTurn[] = [
+  {
+    question: 'Write a function that returns the nth Fibonacci number using memoization.',
+    answer: 'function fib(n, memo = {}) {\n  if (n in memo) return memo[n]\n  if (n <= 1) return n\n  memo[n] = fib(n - 1, memo) + fib(n - 2, memo)\n  return memo[n]\n}',
+  },
+  {
+    question: 'Reverse a singly linked list in place.',
+    answer: 'function reverseList(head) {\n  let prev = null\n  let curr = head\n  while (curr) {\n    const next = curr.next\n    curr.next = prev\n    prev = curr\n    curr = next\n  }\n  return prev\n}',
+  },
+  {
+    question: 'Given an array of integers, return the two indices whose values sum to a target.',
+    answer: 'function twoSum(nums, target) {\n  const seen = new Map()\n  for (let i = 0; i < nums.length; i++) {\n    const complement = target - nums[i]\n    if (seen.has(complement)) return [seen.get(complement), i]\n    seen.set(nums[i], i)\n  }\n  return []\n}',
+  },
 ]
 
 export const copilotReport: CopilotReport = {

@@ -1,4 +1,4 @@
-import { Gift, Wallet } from 'lucide-react'
+import { Gift } from 'lucide-react'
 
 import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@/ui'
 
@@ -38,9 +38,9 @@ export function CreditCard({ remaining, total, resetDate, bonusHref, detailsHref
         <div className={cn('h-full rounded-pill transition-all', percentage > 20 ? 'bg-accent' : 'bg-danger')} style={{ inlineSize: `${percentage}%` }} />
       </div>
 
-      <a href={bonusHref} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-        <Gift aria-hidden="true" className="size-4" />
-        Get Free Credits
+      <a href={bonusHref} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+        <Gift aria-hidden="true" className="size-4 text-accent-secondary" />
+        <span className="bg-gradient-to-r from-accent to-accent-secondary bg-clip-text text-transparent">Get Free Credits</span>
       </a>
     </section>
   )

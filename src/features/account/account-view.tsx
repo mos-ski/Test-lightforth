@@ -1,7 +1,8 @@
-import { AlertTriangle, Apple, Check, ChevronDown, Copy, EyeOff, Gift, Monitor, Moon, Sun, Upload } from 'lucide-react'
+import { AlertTriangle, Apple, Check, ChevronDown, Copy, ExternalLink, EyeOff, Monitor, Moon, Play, Sun, Upload } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
-import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile } from '@/contracts/account.draft'
+import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile, TutorialItem } from '@/contracts/account.draft'
+import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import {
   Button,
   cn,
@@ -21,10 +22,16 @@ export type DownloadsViewProps = {
   readonly downloads: readonly DownloadItem[]
 }
 
+export type TutorialsViewProps = {
+  readonly homeHref: string
+  readonly tutorials: readonly TutorialItem[]
+}
+
 export type BillingViewProps = {
   readonly homeHref: string
   readonly plans: readonly BillingPlanCard[]
   readonly usageRows: readonly CreditUsageRow[]
+  readonly documentRows: readonly ContextDocumentRow[]
 }
 
 export type CreditHistoryViewProps = {
@@ -50,6 +57,18 @@ function ContentShell({ children }: { readonly children: ReactNode }) {
   return <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-10">{children}</section>
 }
 
+function TitledPanel({ title, action, children }: { readonly title: string; readonly action?: ReactNode; readonly children: ReactNode }) {
+  return (
+    <article className="w-full bg-surface shadow-panel">
+      <div className="flex min-h-[5rem] items-center justify-between border-b border-border px-8">
+        <h1 className="text-xl font-medium leading-5 text-ink">{title}</h1>
+        {action}
+      </div>
+      <div className="p-8">{children}</div>
+    </article>
+  )
+}
+
 function DownloadIcon({ id }: { readonly id: DownloadItem['id'] }) {
   if (id === 'windows') {
     return <Monitor aria-hidden="true" className="size-5" />
@@ -63,19 +82,15 @@ export function DownloadsView({ homeHref, downloads }: DownloadsViewProps) {
     <AppWorkspace>
       <ShellBar homeHref={homeHref} current="Download Apps" closeHref={homeHref} closeLabel="Close downloads" />
       <ContentShell>
-        <article className="mx-auto max-w-5xl rounded-panel border border-accent bg-surface p-6 shadow-panel sm:p-10 lg:p-16">
-          <header className="mb-8 sm:mb-12">
-            <h1 className="text-lg font-semibold leading-8 text-ink">Download Lightforth Copilot</h1>
-          </header>
-
-          <div className="grid gap-3 lg:grid-cols-3">
+        <TitledPanel title="Download Apps">
+          <div className="grid gap-4 sm:grid-cols-3">
             {downloads.map((item) => (
               <a
                 key={item.id}
                 href={item.href}
-                className="group flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-surface p-3 text-ink shadow-control transition duration-200 hover:-translate-y-0.5 hover:border-focus hover:shadow-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                className="group flex min-w-0 flex-col gap-3 rounded-panel border border-border p-3 text-ink transition-colors duration-normal ease-default hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
               >
-                <span className="block h-[171px] w-full overflow-hidden bg-accent-subtle">
+                <span className="block h-[171px] w-full overflow-hidden rounded-soft bg-accent-subtle">
                   <img src={item.imageSrc} alt="" className="size-full object-cover" />
                 </span>
                 <span className="flex w-full flex-col gap-3">
@@ -86,7 +101,7 @@ export function DownloadsView({ homeHref, downloads }: DownloadsViewProps) {
                     <span className="size-1 rounded-pill bg-current opacity-60" aria-hidden="true" />
                     <span>{item.extension}</span>
                   </span>
-                  <span className="inline-flex min-h-9 w-full items-center justify-center rounded-md border border-accent bg-accent px-3 text-sm font-semibold leading-6 text-on-accent transition duration-200 group-hover:bg-accent-hover">
+                  <span className="inline-flex min-h-9 w-full items-center justify-center rounded-soft bg-accent px-3 text-sm font-semibold leading-6 text-on-accent transition-colors duration-normal group-hover:bg-accent-hover">
                     {item.cta}
                   </span>
                   <span className="min-h-5 text-sm leading-5 text-ink-muted">{item.support}</span>
@@ -95,30 +110,91 @@ export function DownloadsView({ homeHref, downloads }: DownloadsViewProps) {
             ))}
           </div>
 
-          <p className="mt-8 max-w-3xl text-xs leading-5 text-ink sm:mt-14">
+          <p className="mt-8 max-w-3xl text-xs leading-5 text-ink-muted">
             By downloading a Lightforth application, you agree that our Terms of Service apply to your use of that application. If you have entered a different agreement with Lightforth that covers our applications, that agreement will apply instead.
           </p>
-        </article>
+        </TitledPanel>
       </ContentShell>
     </AppWorkspace>
   )
 }
 
-function PlanCard({ plan }: { readonly plan: BillingPlanCard }) {
+const tutorialToneClasses: Record<TutorialItem['tone'], string> = {
+  accent: 'from-accent to-accent-hover',
+  positive: 'from-positive to-positive/70',
+  'accent-secondary': 'from-accent-secondary to-accent-secondary/70',
+  danger: 'from-danger to-danger-hover',
+}
+
+function TutorialCard({ item }: { readonly item: TutorialItem }) {
   return (
-    <article className={cn('flex min-h-[29rem] flex-col rounded-panel border bg-surface p-6 shadow-control', plan.popular ? 'border-accent bg-accent-subtle' : 'border-border')}>
+    <a
+      href={item.href}
+      target="_blank"
+      rel="noreferrer"
+      className="group relative flex h-[17.5rem] flex-col justify-end overflow-hidden rounded-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+    >
+      <span className={cn('absolute inset-0 bg-gradient-to-br', tutorialToneClasses[item.tone])} aria-hidden="true" />
+      <span className="absolute inset-0 bg-gradient-to-t from-live-scrim via-transparent to-transparent" aria-hidden="true" />
+      <span className="absolute inset-0 flex items-center justify-center">
+        <span className="grid size-16 place-items-center rounded-pill bg-surface/95 shadow-lg transition-transform duration-normal group-hover:scale-105">
+          {item.kind === 'external' ? <ExternalLink aria-hidden="true" className="size-5 text-ink" /> : <Play aria-hidden="true" className="size-5 text-ink" />}
+        </span>
+      </span>
+      <span className="relative p-5 text-base font-semibold text-on-accent">{item.title}</span>
+    </a>
+  )
+}
+
+export function TutorialsView({ homeHref, tutorials }: TutorialsViewProps) {
+  return (
+    <AppWorkspace>
+      <ShellBar homeHref={homeHref} current="Tutorials" closeHref={homeHref} closeLabel="Close tutorials" />
+      <ContentShell>
+        <TitledPanel title="Tutorials">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {tutorials.map((item) => (
+              <TutorialCard key={item.id} item={item} />
+            ))}
+          </div>
+        </TitledPanel>
+      </ContentShell>
+    </AppWorkspace>
+  )
+}
+
+function PlanCard({ plan, annual, currentIndex, index }: { readonly plan: BillingPlanCard; readonly annual: boolean; readonly currentIndex: number; readonly index: number }) {
+  const price = annual ? plan.annualPrice : plan.price
+  const cadence = annual ? plan.annualCadence : plan.cadence
+  const isCurrent = plan.current === true
+  const actionLabel = isCurrent ? 'Current Plan' : index < currentIndex ? 'Downgrade' : 'Upgrade'
+
+  return (
+    <article className={cn('flex min-h-[29rem] flex-col rounded-panel border p-6', isCurrent ? 'border-positive bg-positive-surface/40' : 'border-border bg-surface')}>
       <div className="flex items-center gap-2">
         <h3 className="text-lg font-bold">{plan.name}</h3>
-        {plan.popular ? <span className="rounded-pill bg-accent px-3 py-1 text-xs font-bold text-on-accent">Popular</span> : null}
+        {isCurrent ? <span className="rounded-pill border border-positive bg-positive-surface px-2.5 py-0.5 text-xs font-semibold text-positive">Current</span> : null}
       </div>
       <p className="mt-6 text-2xl font-black">
-        {plan.price} <span className="text-sm font-medium text-ink-muted">{plan.cadence}</span>
+        {price} <span className="text-sm font-medium text-ink-muted">{cadence}</span>
       </p>
       <p className="mt-6 font-bold">{plan.credits}</p>
       <p className="mt-4 min-h-14 text-sm leading-6 text-ink-muted">{plan.description}</p>
-      <a href="/v3/billing" className={cn('mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 py-2.5 text-base font-semibold shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', plan.popular ? 'bg-accent text-on-accent hover:bg-accent-hover' : 'border border-input bg-surface text-ink hover:bg-surface-subtle')}>
-        Upgrade
-      </a>
+      {isCurrent ? (
+        <span className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-soft border border-input px-4 py-2.5 text-sm font-medium text-ink-muted opacity-60">
+          Current Plan
+        </span>
+      ) : (
+        <a
+          href="/v3/billing"
+          className={cn(
+            'mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-soft px-4 py-2.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+            index > currentIndex ? 'bg-accent text-on-accent hover:bg-accent-hover' : 'border border-input text-ink hover:bg-surface-subtle',
+          )}
+        >
+          {actionLabel}
+        </a>
+      )}
       <ul className="mt-6 grid gap-3 border-b border-border pb-6 text-sm text-ink-muted">
         {plan.features.map((feature) => (
           <li key={feature} className="flex items-center gap-3">
@@ -236,64 +312,89 @@ function CancelSubscriptionDialog({ renewalLabel }: { readonly renewalLabel: str
   )
 }
 
-export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
+function AnnualToggle({ annual, onToggle }: { readonly annual: boolean; readonly onToggle: () => void }) {
+  return (
+    <div className="flex items-center gap-3 text-sm font-semibold text-ink">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={annual}
+        aria-label="Toggle annual billing"
+        onClick={onToggle}
+        className={cn('relative h-6 w-9 shrink-0 rounded-pill border transition-colors duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', annual ? 'border-accent bg-accent' : 'border-border bg-surface-subtle')}
+      >
+        <span className={cn('absolute top-0.5 size-5 rounded-pill bg-surface shadow-control transition-transform duration-normal', annual ? 'translate-x-3.5' : 'translate-x-0.5')} />
+      </button>
+      Annual
+      <span className="rounded-pill border border-positive bg-positive-surface px-2 py-0.5 text-xs font-medium text-positive">(save 20%)</span>
+    </div>
+  )
+}
+
+export function BillingView({ homeHref, plans, documentRows }: BillingViewProps) {
+  const [annual, setAnnual] = useState(false)
+  const currentPlan = plans.find((plan) => plan.current) ?? plans[0]
+  const currentIndex = currentPlan ? plans.indexOf(currentPlan) : 0
+
   return (
     <AppWorkspace>
       <ShellBar homeHref={homeHref} current="Billing & subscription" closeHref={homeHref} closeLabel="Close billing" />
       <ContentShell>
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold leading-tight">Billing & Subscription</h1>
-        </header>
-        <div className="grid gap-5 lg:grid-cols-2">
-          <section className="rounded-panel border border-border bg-surface p-6 shadow-control">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex flex-wrap items-center gap-3">
-                <strong className="text-lg font-bold">You're on Starter plan</strong>
-                <span className="rounded-pill border border-border px-3 py-1 text-xs font-medium">Monthly</span>
-              </div>
-              <p className="text-4xl font-black">$25 <span className="text-sm font-normal text-ink-muted">per month</span></p>
+        <div className="grid gap-6">
+          <TitledPanel title="Billing & Subscription">
+            <div className="grid gap-5 lg:grid-cols-2">
+              <section className="rounded-panel border border-border p-6">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm text-ink-muted">You&apos;re on</span>
+                  <span className="font-semibold text-ink">{currentPlan?.name.charAt(0)}{currentPlan?.name.slice(1).toLowerCase()} plan</span>
+                  <span className="rounded-pill bg-accent-subtle px-2.5 py-0.5 text-sm font-medium text-accent-text">Monthly</span>
+                </div>
+                <p className="mt-2 text-sm text-ink-muted">Renews Sep 9, 2026</p>
+                <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+                  <CancelSubscriptionDialog renewalLabel="September 9th, 2026" />
+                  <p className="text-right">
+                    <span className="text-4xl font-black text-ink">{currentPlan?.price}</span>{' '}
+                    <span className="text-sm text-ink-muted">per month</span>
+                  </p>
+                </div>
+              </section>
+              <CreditCard
+                remaining={45}
+                total={128}
+                resetDate="Sep 9, 2026"
+                bonusHref="/v3/billing/bonus"
+                detailsHref="/v3/billing/usage"
+                className="shadow-none"
+              />
             </div>
-            <p className="mb-6 mt-1 text-sm text-ink-muted">Renews Sep 1, 2026</p>
-            <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-              <CancelSubscriptionDialog renewalLabel="September 1st, 2026" />
-              <a href="/v3/billing/payment" className="text-sm font-semibold text-accent underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus hover:underline">
-                Manage Payment Method
-              </a>
+          </TitledPanel>
+
+          <TitledPanel title="Billing & Subscription" action={<AnnualToggle annual={annual} onToggle={() => setAnnual((prev) => !prev)} />}>
+            <div className="grid gap-5 lg:grid-cols-3">
+              {plans.map((plan, index) => (
+                <PlanCard key={plan.id} plan={plan} annual={annual} currentIndex={currentIndex} index={index} />
+              ))}
             </div>
-          </section>
-          <CreditCard
-            remaining={31}
-            total={34}
-            resetDate="May 31, 2026"
-            bonusHref="/v3/billing/bonus"
-            detailsHref="/v3/billing/usage"
-          />
-        </div>
-        <section className="mt-6 rounded-panel border border-border bg-surface p-6 shadow-control">
-          <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <h2 className="text-xl font-bold">Update plan</h2>
-            <span className="rounded-pill bg-positive-surface px-3 py-1 text-xs font-bold text-positive">Annual saves 20%</span>
-          </div>
-          <div className="grid gap-5 lg:grid-cols-3">
-            {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} />
-            ))}
-          </div>
-          <p className="mt-6 rounded-lg bg-warning-surface px-4 py-3 text-sm text-warning">Every feature uses 1 credit. Use your credits however you like.</p>
-        </section>
-        <section className="mt-6">
+          </TitledPanel>
+
           <DataTable
             title="How credits works"
-            rows={usageRows}
-            itemLabel={(row) => row.feature}
+            rows={documentRows}
+            itemLabel={(row) => row.name}
             minTableWidthClassName="min-w-[54rem]"
             columns={[
-              { key: 'feature', label: 'Feature', className: 'w-[16rem]', render: (row) => <span className="font-semibold">{row.feature}</span> },
-              { key: 'trigger', label: 'Trigger Event', className: 'w-[28rem]', render: (row) => row.trigger },
-              { key: 'deducted', label: 'Deducted', className: 'w-[10rem] text-end', render: (row) => <span className={cn('font-semibold', row.free ? 'text-positive' : undefined)}>{row.deducted}</span> },
+              { key: 'name', label: 'Name', className: 'w-[18rem]', render: (row) => <span className="font-medium">{row.name}</span> },
+              {
+                key: 'kind',
+                label: 'Type',
+                className: 'w-[9rem]',
+                render: (row) => <span className="rounded-pill bg-surface-subtle px-2.5 py-0.5 text-xs font-bold leading-4 text-ink">{row.kind}</span>,
+              },
+              { key: 'size-or-url', label: 'Size/URL', className: 'w-[14rem]', render: (row) => row.sizeOrUrl },
+              { key: 'added', label: 'Added', className: 'w-[18rem]', render: (row) => row.addedAtLabel },
             ]}
           />
-        </section>
+        </div>
       </ContentShell>
     </AppWorkspace>
   )
@@ -329,66 +430,61 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
   const maxSingle = Math.max(1, ...dayEntries.flatMap(([, bucket]) => Object.values(bucket)))
 
   return (
-    <article className="bg-surface shadow-panel">
-      <header className="flex min-h-[5rem] items-center border-b border-border px-8">
-        <h1 className="text-xl font-medium leading-5 text-ink">Usage Details</h1>
-      </header>
-      <div className="p-8">
-        <p className="text-3xl font-black">
-          {totalUsed} <span className="text-base font-medium text-ink-muted">credits used in last 30 days</span>
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <span className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control">
-            All features
-            <ChevronDown aria-hidden="true" className="size-4 text-ink-muted" />
-          </span>
-          <span className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control">
-            Last 30 days
-            <ChevronDown aria-hidden="true" className="size-4 text-ink-muted" />
-          </span>
-        </div>
+    <TitledPanel title="Usage Details">
+      <p className="text-3xl font-black">
+        {totalUsed} <span className="text-base font-medium text-ink-muted">credits used in last 30 days</span>
+      </p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <span className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control">
+          All features
+          <ChevronDown aria-hidden="true" className="size-4 text-ink-muted" />
+        </span>
+        <span className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control">
+          Last 30 days
+          <ChevronDown aria-hidden="true" className="size-4 text-ink-muted" />
+        </span>
+      </div>
 
-        {dayEntries.length === 0 ? (
-          <p className="mt-8 text-sm text-ink-muted">No credit usage in this period yet.</p>
-        ) : (
-          <div className="mt-8 flex h-40 w-full items-end justify-between gap-1 overflow-x-auto px-1 pb-1">
-            {dayEntries.map(([day, bucket]) => (
-              <div key={day} className="group relative flex shrink-0 flex-col items-center gap-2 rounded-sm px-1.5 pt-2 hover:bg-surface-subtle">
-                <div className="flex items-end gap-0.5" style={{ blockSize: '128px' }}>
+      {dayEntries.length === 0 ? (
+        <p className="mt-8 text-sm text-ink-muted">No credit usage in this period yet.</p>
+      ) : (
+        <div className="mt-8 flex h-40 w-full items-end justify-between gap-1 overflow-x-auto px-1 pb-1">
+          {dayEntries.map(([day, bucket]) => (
+            <div key={day} className="group relative flex shrink-0 flex-col items-center gap-2 rounded-sm px-1.5 pt-2 hover:bg-surface-subtle">
+              <div className="flex items-end gap-0.5" style={{ blockSize: '128px' }}>
+                {Object.entries(bucket).map(([feature, count]) => (
+                  <div
+                    key={feature}
+                    className={cn(usageFeatureColors[feature], 'w-2 rounded-t-sm')}
+                    style={{ blockSize: `${Math.max(4, (count / maxSingle) * 128)}px` }}
+                  />
+                ))}
+              </div>
+              <span className="whitespace-nowrap text-xs text-ink-muted">{day}</span>
+              <div className="pointer-events-none absolute bottom-full start-1/2 z-tooltip mb-2 hidden w-max -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-start shadow-popover group-hover:block">
+                <p className="text-sm font-semibold text-ink">{day}</p>
+                <div className="mt-1 grid gap-0.5">
                   {Object.entries(bucket).map(([feature, count]) => (
-                    <div
-                      key={feature}
-                      className={cn(usageFeatureColors[feature], 'w-2 rounded-t-sm')}
-                      style={{ blockSize: `${Math.max(4, (count / maxSingle) * 128)}px` }}
-                    />
+                    <p key={feature} className={cn('text-xs font-medium', usageFeatureTextColors[feature])}>
+                      {feature}: {count}
+                    </p>
                   ))}
                 </div>
-                <span className="whitespace-nowrap text-xs text-ink-muted">{day}</span>
-                <div className="pointer-events-none absolute bottom-full start-1/2 z-tooltip mb-2 hidden w-max -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-start shadow-popover group-hover:block">
-                  <p className="text-sm font-semibold text-ink">{day}</p>
-                  <div className="mt-1 grid gap-0.5">
-                    {Object.entries(bucket).map(([feature, count]) => (
-                      <p key={feature} className={cn('text-xs font-medium', usageFeatureTextColors[feature])}>
-                        {feature}: {count}
-                      </p>
-                    ))}
-                  </div>
-                </div>
               </div>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4">
-          {chartFeatures.map((feature) => (
-            <span key={feature} className="inline-flex items-center gap-2 text-sm text-ink-muted">
-              <span aria-hidden="true" className={cn('size-2.5 rounded-pill', usageFeatureColors[feature])} />
-              {feature}
-            </span>
+            </div>
           ))}
         </div>
+      )}
+
+      <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4">
+        {chartFeatures.map((feature) => (
+          <span key={feature} className="inline-flex items-center gap-2 text-sm text-ink-muted">
+            <span aria-hidden="true" className={cn('size-2.5 rounded-pill', usageFeatureColors[feature])} />
+            {feature}
+          </span>
+        ))}
       </div>
-    </article>
+    </TitledPanel>
   )
 }
 
@@ -403,8 +499,8 @@ export function CreditHistoryView({ homeHref, billingHref, rows }: CreditHistory
         closeLabel="Back to billing"
       />
       <ContentShell>
-        <UsageChart rows={rows} />
-        <div className="mt-6">
+        <div className="grid gap-6">
+          <UsageChart rows={rows} />
           <DataTable
             title="Credit History"
             rows={rows}
@@ -460,33 +556,35 @@ function SettingsTabs({ activeTab }: { readonly activeTab: SettingsTab }) {
   )
 }
 
-function ProfileSettings({ profile }: { readonly profile: SettingsProfile }) {
+function ProfileSettings({ profile, activeTab }: { readonly profile: SettingsProfile; readonly activeTab: SettingsTab }) {
+  const initials = `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`
+
   return (
-    <section className="rounded-panel border border-border bg-surface p-6 shadow-control sm:p-8">
-      <div className="mb-8 flex items-center justify-between gap-3">
-        <h2 className="text-xl font-bold">Profile</h2>
-        <Button>Update</Button>
+    <TitledPanel title="Profile">
+      <div className="px-0 pb-6">
+        <SettingsTabs activeTab={activeTab} />
       </div>
-      <div className="mb-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-        <div className="grid size-14 place-items-center rounded-pill bg-surface-subtle text-sm font-black">PROFI</div>
-        <div>
-          <Button variant="secondary">
-            <Upload aria-hidden="true" className="size-4" />
-            Upload Photo
-          </Button>
-          <p className="mt-2 text-xs text-ink-muted">JPG, PNG, GIF or WebP. Max 5MB.</p>
-        </div>
+      <div className="flex items-center gap-4">
+        <div className="grid size-12 shrink-0 place-items-center rounded-pill bg-surface-subtle text-sm font-bold text-ink">{initials}</div>
+        <Button variant="secondary">
+          <Upload aria-hidden="true" className="size-4" />
+          Upload Photo
+        </Button>
       </div>
-      <div className="grid gap-6 md:grid-cols-2">
+      <p className="mt-2 text-xs text-ink-muted">JPG, PNG, GIF or WebP. Max 5MB.</p>
+      <div className="mt-6 grid gap-6 md:grid-cols-2">
         <SettingsField label="First Name" value={profile.firstName} />
         <SettingsField label="Last Name" value={profile.lastName} />
-        <SettingsField label="Email" value={profile.email} />
+        <SettingsField label="Email" value={profile.email} disabled />
         <SettingsField label="Phone Number" value={profile.phone} />
         <SettingsField label="Country" value={profile.country} wide disabled />
         <SettingsField label="City" value={profile.city} />
         <SettingsField label="Postal Code" value={profile.postalCode} />
       </div>
-    </section>
+      <div className="mt-8 flex justify-end">
+        <Button>Update</Button>
+      </div>
+    </TitledPanel>
   )
 }
 
@@ -514,41 +612,44 @@ function AppearanceSettings() {
   ]
 
   return (
-    <section className="rounded-panel border border-border bg-surface p-6 shadow-control sm:p-8">
-      <h2 className="text-xl font-bold">Appearance</h2>
-      <p className="mt-1 text-sm text-ink-muted">Choose how Lightforth looks on this device.</p>
-      <div className="mt-6 inline-flex gap-2 rounded-lg border border-border bg-surface-subtle p-1">
-        {options.map((option) => {
-          const Icon = option.icon
-          const active = theme === option.value
-          return (
-            <button
-              key={option.value}
-              type="button"
-              aria-pressed={active}
-              onClick={() => setTheme(option.value)}
-              className={cn(
-                'inline-flex min-h-9 items-center gap-2 rounded-md px-4 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-                active ? 'bg-surface text-ink shadow-control' : 'text-ink-muted',
-              )}
-            >
-              <Icon aria-hidden="true" className="size-4" />
-              {option.label}
-            </button>
-          )
-        })}
+    <article className="w-full bg-surface shadow-panel">
+      <div className="flex min-h-[5rem] items-center border-b border-border px-8">
+        <h1 className="text-xl font-medium leading-5 text-ink">Appearance</h1>
       </div>
-    </section>
+      <div className="p-8">
+        <p className="text-sm text-ink-muted">Choose how Lightforth looks on this device.</p>
+        <div className="mt-6 inline-flex gap-2 rounded-lg border border-border bg-surface-subtle p-1">
+          {options.map((option) => {
+            const Icon = option.icon
+            const active = theme === option.value
+            return (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setTheme(option.value)}
+                className={cn(
+                  'inline-flex min-h-9 items-center gap-2 rounded-md px-4 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                  active ? 'bg-surface text-ink shadow-control' : 'text-ink-muted',
+                )}
+              >
+                <Icon aria-hidden="true" className="size-4" />
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </article>
   )
 }
 
-function SecuritySettings() {
+function SecuritySettings({ activeTab }: { readonly activeTab: SettingsTab }) {
   return (
     <div className="grid gap-6">
-      <section className="rounded-panel border border-border bg-surface p-6 shadow-control sm:p-8">
-        <div className="mb-8 flex items-center justify-between gap-3">
-          <h2 className="text-xl font-bold">Password</h2>
-          <Button>Update</Button>
+      <TitledPanel title="Password">
+        <div className="px-0 pb-6">
+          <SettingsTabs activeTab={activeTab} />
         </div>
         <div className="grid gap-6">
           {['Current Password', 'New Password', 'Confirm New Password'].map((label) => (
@@ -561,50 +662,66 @@ function SecuritySettings() {
             </label>
           ))}
         </div>
-      </section>
-      <section className="flex flex-col items-start justify-between gap-4 rounded-panel border border-border bg-surface p-6 shadow-control sm:flex-row sm:items-center">
-        <div>
-          <h2 className="font-bold">Two-step verification</h2>
-          <p className="text-sm text-ink-muted">We recommend 2FA for better security.</p>
+        <div className="mt-8 flex justify-end">
+          <Button>Update</Button>
         </div>
-        <span className="h-7 w-12 rounded-pill bg-surface-subtle p-1">
-          <span className="block size-5 rounded-pill bg-surface shadow-control" />
-        </span>
-      </section>
-      <section className="flex flex-col items-start justify-between gap-4 rounded-panel border border-border bg-surface p-6 shadow-control sm:flex-row sm:items-center">
-        <div>
-          <h2 className="font-bold">Delete Account</h2>
-          <p className="text-sm text-ink-muted">Permanently delete your Lightforth account.</p>
+      </TitledPanel>
+      <TitledPanel title="Account settings">
+        <div className="grid gap-6">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="font-bold">Two-step verification</h2>
+              <p className="text-sm text-ink-muted">We recommend 2FA for better security.</p>
+            </div>
+            <span className="h-6 w-11 shrink-0 rounded-pill bg-surface-subtle p-1">
+              <span className="block size-4 rounded-pill bg-surface shadow-control" />
+            </span>
+          </div>
+          <div className="flex flex-col items-start justify-between gap-4 border-t border-border pt-6 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="font-bold">Delete Account</h2>
+              <p className="text-sm text-ink-muted">Permanently delete your Lightforth account.</p>
+            </div>
+            <button type="button" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-danger bg-surface px-4 py-2.5 text-base font-semibold text-danger shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              Delete Account
+            </button>
+          </div>
         </div>
-        <button type="button" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-danger bg-surface px-4 py-2.5 text-base font-semibold text-danger shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          Delete Account
-        </button>
-      </section>
+      </TitledPanel>
     </div>
   )
 }
 
-function ReferralSettings({ referrals }: { readonly referrals: readonly ReferralRow[] }) {
+function ReferralSettings({ referrals, activeTab }: { readonly referrals: readonly ReferralRow[]; readonly activeTab: SettingsTab }) {
   return (
-    <div className="grid gap-8">
-      <section className="rounded-panel border border-border bg-surface p-6 shadow-control sm:p-8">
-        <h2 className="text-xl font-bold">Referral</h2>
-        <div className="mt-8 rounded-panel bg-accent-subtle p-6">
-          <h3 className="text-2xl font-black leading-tight">Earn 5 bonus credits</h3>
-          <p className="mt-4 text-sm text-ink-muted">You get 5 bonus credits when your invite signs up and subscribes.</p>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            {['https://lightforth.app/ref/adedamola', 'Adedamolaios'].map((value, index) => (
-              <div key={value} className="min-w-0 rounded-lg border border-accent bg-surface px-4 py-3">
+    <div className="grid gap-6">
+      <TitledPanel title="Referral">
+        <div className="px-0 pb-6">
+          <SettingsTabs activeTab={activeTab} />
+        </div>
+        <div className="rounded-panel bg-accent-subtle p-8">
+          <h2 className="text-3xl font-bold leading-tight text-ink">Earn 5 free credits</h2>
+          <p className="mt-2 text-sm text-ink-muted">You get 5 free credits when your referral signs up and subscribes.</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {['https://app.lightforth.ai/auth/signup?code=Adedamolaiosmk', 'Adedamolaiosmk'].map((value, index) => (
+              <div key={value} className="min-w-0 rounded-soft border border-accent bg-surface px-3 py-2">
                 <p className="text-xs text-ink-muted">{index === 0 ? 'Referral Link' : 'Referral Code'}</p>
-                <div className="flex items-center gap-3">
-                  <p className="truncate text-sm font-bold text-accent-text">{value}</p>
-                  <Copy aria-hidden="true" className="size-4 text-accent-text" />
+                <div className="mt-1 flex items-center gap-3">
+                  <p className="truncate bg-gradient-to-r from-accent to-accent-secondary bg-clip-text text-sm font-semibold text-transparent">{value}</p>
+                  <button type="button" aria-label="Copy" className="shrink-0 text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded-soft">
+                    <Copy aria-hidden="true" className="size-4" />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
+          <ul className="mt-6 grid gap-2 text-sm text-ink">
+            <li>• Invite a friend using your link</li>
+            <li>• They sign up → you earn 5 free credits</li>
+            <li>• Refer 5 friends → unlock 25 credits + bonus tools</li>
+          </ul>
         </div>
-      </section>
+      </TitledPanel>
       <DataTable
         title="Previous Referrals"
         searchLabel="Search referrals"
@@ -627,19 +744,15 @@ export function SettingsView({ homeHref, activeTab, profile, referrals }: Settin
     <AppWorkspace>
       <ShellBar homeHref={homeHref} current="Settings" closeHref={homeHref} closeLabel="Close settings" />
       <ContentShell>
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold leading-tight">Settings</h1>
-        </header>
-        <SettingsTabs activeTab={activeTab} />
-        <div className="mt-7 grid gap-6">
+        <div className="grid gap-6">
           {activeTab === 'profile' ? (
             <>
-              <ProfileSettings profile={profile} />
+              <ProfileSettings profile={profile} activeTab={activeTab} />
               <AppearanceSettings />
             </>
           ) : null}
-          {activeTab === 'security' ? <SecuritySettings /> : null}
-          {activeTab === 'referral' ? <ReferralSettings referrals={referrals} /> : null}
+          {activeTab === 'security' ? <SecuritySettings activeTab={activeTab} /> : null}
+          {activeTab === 'referral' ? <ReferralSettings referrals={referrals} activeTab={activeTab} /> : null}
         </div>
       </ContentShell>
     </AppWorkspace>

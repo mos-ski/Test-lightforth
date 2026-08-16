@@ -16,11 +16,23 @@ export type BillingPlanCard = {
   readonly name: string
   readonly price: string
   readonly cadence: string
+  readonly annualPrice: string
+  readonly annualCadence: string
   readonly credits: string
   readonly description: string
   readonly features: readonly string[]
   readonly note: string
   readonly popular?: boolean
+  readonly current?: boolean
+}
+
+export type TutorialItem = {
+  readonly id: string
+  readonly title: string
+  readonly href: string
+  readonly kind: 'external' | 'video'
+  readonly imageSrc?: string
+  readonly tone: 'accent' | 'positive' | 'accent-secondary' | 'danger'
 }
 
 export type CreditUsageRow = {

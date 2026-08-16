@@ -1,7 +1,18 @@
-import { useState, type ReactNode } from 'react'
-import { ArrowLeft, Bookmark, Check, CheckCircle2, ChevronRight, Code2, MessageSquare, Pause, Play, Search, Send, Settings, Sparkles, Users, Video, X } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, Pause, Play, Plus, Send, Settings, Users, Video, X } from 'lucide-react'
 
-import type { CopilotHistoryRow, CopilotLiveSession, CopilotMode, CopilotPermissionStep, CopilotReport, CopilotResponseLength, CopilotResponseMode, CopilotSetup } from '@/contracts/copilot.draft'
+import type {
+  CopilotCodingTurn,
+  CopilotHistoryRow,
+  CopilotLiveSession,
+  CopilotMode,
+  CopilotPermissionStep,
+  CopilotReport,
+  CopilotResponseLength,
+  CopilotResponseMode,
+  CopilotSetup,
+  CopilotTranscriptTurn,
+} from '@/contracts/copilot.draft'
 import {
   AiSuggestionAction,
   Badge,
@@ -19,14 +30,18 @@ import {
   ShellBar,
   SourcePicker,
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/ui'
 
-const copilotModeMeta: Record<CopilotMode, { readonly label: string; readonly icon: ReactNode; readonly panelTitle: string; readonly badgeVariant: 'accent' | 'positive' | 'info' }> = {
-  interview: { label: 'Interview', icon: <Users aria-hidden="true" className="size-4" />, panelTitle: 'Configure your interview', badgeVariant: 'accent' },
-  coding: { label: 'Coding', icon: <Code2 aria-hidden="true" className="size-4" />, panelTitle: 'Configure your coding interview', badgeVariant: 'info' },
-  meeting: { label: 'Meeting', icon: <Video aria-hidden="true" className="size-4" />, panelTitle: 'Configure your meeting', badgeVariant: 'positive' },
+const copilotModeMeta: Record<
+  CopilotMode,
+  { readonly label: string; readonly icon: ReactNode; readonly panelTitle: string; readonly badgeVariant: 'accent' | 'positive' | 'info'; readonly createCta: string }
+> = {
+  interview: { label: 'Interview', icon: <Users aria-hidden="true" className="size-4" />, panelTitle: 'Configure your interview', badgeVariant: 'accent', createCta: 'Start New Interview' },
+  coding: { label: 'Coding', icon: <Code2 aria-hidden="true" className="size-4" />, panelTitle: 'Configure your coding interview', badgeVariant: 'info', createCta: 'Start New Coding Exercise' },
+  meeting: { label: 'Meeting', icon: <Video aria-hidden="true" className="size-4" />, panelTitle: 'Configure your meeting', badgeVariant: 'positive', createCta: 'Attend New Meeting' },
 }
 
 function CopilotModeTabs({ mode, onModeChange }: { readonly mode: CopilotMode; readonly onModeChange: (mode: CopilotMode) => void }) {
@@ -37,7 +52,7 @@ function CopilotModeTabs({ mode, onModeChange }: { readonly mode: CopilotMode; r
           <TabsTrigger
             key={id}
             value={id}
-            className="min-h-9 gap-1.5 rounded-pill border border-input px-3 pb-0 data-[selected]:border-accent data-[selected]:bg-accent-subtle"
+            className="min-h-9 gap-1.5 rounded-pill border border-input px-3 pb-0 data-[active]:border-accent data-[active]:bg-accent-subtle"
           >
             {copilotModeMeta[id].icon}
             {copilotModeMeta[id].label}
@@ -81,6 +96,8 @@ export type CopilotLiveViewProps = {
   readonly completeHref: string
   readonly session: CopilotLiveSession
   readonly isLoading?: boolean
+  readonly transcriptBank?: readonly CopilotTranscriptTurn[]
+  readonly codingBank?: readonly CopilotCodingTurn[]
 }
 
 export type CopilotCompleteViewProps = {
@@ -105,14 +122,17 @@ export type CopilotReportViewProps = {
 function CopilotHeader({
   homeHref,
   current = 'Interviews & Meetings',
+  historyHref,
 }: {
   readonly homeHref: string
   readonly current?: string
+  readonly historyHref?: string
 }) {
   return (
     <ShellBar
       homeHref={homeHref}
       current={current}
+      parent={historyHref ? { label: 'History', href: historyHref } : undefined}
       closeHref={homeHref}
       closeLabel="Close interview copilot"
     />
@@ -142,23 +162,28 @@ function FooterActions({ backHref, nextHref, nextLabel }: { readonly backHref: s
 }
 
 export function CopilotUploadView({ homeHref, configureHref, historyHref }: CopilotUploadViewProps) {
+  const [mode, setMode] = useState<CopilotMode>('interview')
+
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} historyHref={historyHref} />
+      <CopilotHeader homeHref={homeHref} />
       <section className="px-4 py-8 lg:py-10">
-        <PaperShell>
-          <SourcePicker
-            title="Upload a resume"
-            actionLabel="Click to upload"
-            idleText="or drag and drop"
-            meta="PDF, DOC, DOCX or TXT"
-            options={[
-              { label: 'Upload a Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-upload.svg' },
-              { label: 'Use Lightforth Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-lightforth.svg', emphasis: 'strong' },
-            ]}
-            historyLink={{ label: 'View copilot history', href: historyHref }}
-          />
-        </PaperShell>
+        <div className="mx-auto max-w-[44rem]">
+          <CopilotModeTabs mode={mode} onModeChange={setMode} />
+          <PaperShell>
+            <SourcePicker
+              title={mode === 'interview' ? 'Upload a resume' : mode === 'coding' ? 'Upload a job description' : 'Upload meeting agenda'}
+              actionLabel="Click to upload"
+              idleText="or drag and drop"
+              meta="PDF, DOC, DOCX or TXT"
+              options={[
+                { label: `Start ${copilotModeMeta[mode].label}`, href: configureHref },
+                { label: 'Use Lightforth Resume', href: configureHref, emphasis: 'strong' },
+              ]}
+              historyLink={{ label: 'View copilot history', href: historyHref }}
+            />
+          </PaperShell>
+        </div>
       </section>
     </Workspace>
   )
@@ -400,13 +425,10 @@ const copilotRubricLabel: Record<string, string> = {
   'needs-work': 'Needs work',
 }
 
-function CopilotScorecardSection({ title, items }: { readonly title: string; readonly items: readonly string[] }) {
+function CopilotScorecardSection({ title, items, divider = false }: { readonly title: string; readonly items: readonly string[]; readonly divider?: boolean }) {
   return (
-    <section className="flex flex-col gap-3">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-ink">
-        <CheckCircle2 className="size-4 text-positive" aria-hidden="true" />
-        {title}
-      </h3>
+    <section className={cn('flex flex-col gap-3', divider && 'border-t border-border-subtle pt-6')}>
+      <h3 className="text-base font-bold text-ink">{title}</h3>
       <ul className="flex flex-col gap-2">
         {items.map((item, index) => (
           <li key={index} className="flex items-start gap-2 text-sm text-ink-muted">
@@ -419,118 +441,166 @@ function CopilotScorecardSection({ title, items }: { readonly title: string; rea
   )
 }
 
+type RubricSortColumn = 'status' | 'notes'
+type RubricSort = { readonly column: RubricSortColumn; readonly direction: 'asc' | 'desc' }
+
+function RubricSortIcon({ column, sort }: { readonly column: RubricSortColumn; readonly sort: RubricSort | null }) {
+  if (sort?.column !== column) return <ArrowUpDown aria-hidden="true" className="size-3 text-ink-muted" />
+  return sort.direction === 'asc' ? (
+    <ChevronUp aria-hidden="true" className="size-3 text-accent-text" />
+  ) : (
+    <ChevronDown aria-hidden="true" className="size-3 text-accent-text" />
+  )
+}
+
+function RubricTable<TStatus extends string>({
+  rows,
+  sort,
+  onSort,
+  toneClasses,
+  label,
+}: {
+  readonly rows: readonly { readonly element: string; readonly status: TStatus; readonly notes: string }[]
+  readonly sort: RubricSort | null
+  readonly onSort: (column: RubricSortColumn) => void
+  readonly toneClasses: Record<string, string>
+  readonly label: Record<string, string>
+}) {
+  function sortAria(column: RubricSortColumn): 'ascending' | 'descending' | 'none' {
+    if (sort?.column !== column) return 'none'
+    return sort.direction === 'asc' ? 'ascending' : 'descending'
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-panel border border-border shadow-control">
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-border bg-surface-subtle text-ink-muted">
+            <th className="px-4 py-2.5 text-start font-semibold">Element</th>
+            <th className="cursor-pointer select-none px-4 py-2.5 text-start font-semibold hover:bg-surface-subtle" aria-sort={sortAria('status')} onClick={() => onSort('status')}>
+              <span className="inline-flex items-center gap-1">
+                Status
+                <RubricSortIcon column="status" sort={sort} />
+              </span>
+            </th>
+            <th className="cursor-pointer select-none px-4 py-2.5 text-start font-semibold hover:bg-surface-subtle" aria-sort={sortAria('notes')} onClick={() => onSort('notes')}>
+              <span className="inline-flex items-center gap-1">
+                Notes
+                <RubricSortIcon column="notes" sort={sort} />
+              </span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.element} className="border-b border-border transition-colors hover:bg-surface-subtle last:border-0">
+              <td className="px-4 py-2.5 font-medium text-ink">{row.element}</td>
+              <td className="px-4 py-2.5">
+                <Badge className={toneClasses[row.status]}>{label[row.status]}</Badge>
+              </td>
+              <td className="px-4 py-2.5 text-ink-muted">{row.notes}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export function CopilotReportView({ homeHref, historyHref, report }: CopilotReportViewProps) {
+  const [rubricSort, setRubricSort] = useState<RubricSort | null>(null)
+  const sortedRubric = rubricSort
+    ? [...report.rubric].sort((a, b) => {
+        const cmp = String(a[rubricSort.column]).localeCompare(String(b[rubricSort.column]))
+        return rubricSort.direction === 'asc' ? cmp : -cmp
+      })
+    : report.rubric
+
+  function toggleRubricSort(column: RubricSortColumn) {
+    setRubricSort((prev) => {
+      if (prev?.column !== column) return { column, direction: 'asc' }
+      return prev.direction === 'asc' ? { column, direction: 'desc' } : null
+    })
+  }
+
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} current="Copilot" />
+      <CopilotHeader homeHref={homeHref} current="Copilot" historyHref={historyHref} />
       <section className="px-4 pb-16">
-        <div className="mx-auto max-w-[64rem]">
-          <article className="w-full bg-surface px-8 py-12 shadow-panel sm:px-10 lg:px-12">
-            <a href={historyHref} className="inline-flex min-h-11 items-center gap-3 rounded-soft text-base font-bold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <ArrowLeft aria-hidden="true" className="size-4" />
-              Back to History
-            </a>
+        <div className="mx-auto flex max-w-[64rem] flex-col gap-4 pt-8">
+          <article className="w-full bg-surface shadow-panel">
+            <div className="flex min-h-[5rem] items-center border-b border-border px-8">
+              <h1 className="text-xl font-medium leading-5 text-ink">Report</h1>
+            </div>
 
-            <header className="mt-8 flex flex-col gap-5 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center sm:justify-between lg:px-8">
-              <div>
-                <h1 className="text-3xl font-bold leading-10">{report.title}</h1>
-                <p className="mt-1 text-lg leading-7 text-ink-muted">{report.subtitle}</p>
-              </div>
-            </header>
+            <div className="px-8 pt-6">
+              <Tabs defaultValue="summary">
+                <TabsList>
+                  <TabsTrigger value="summary">Summary</TabsTrigger>
+                  <TabsTrigger value="details">Interview Details</TabsTrigger>
+                  <TabsTrigger value="call">Call details</TabsTrigger>
+                </TabsList>
 
-            {(
-              <section className="mt-6 flex flex-col gap-6 rounded-panel border border-border px-6 py-6 shadow-control sm:flex-row sm:items-center lg:px-8">
-                <div className="grid size-32 shrink-0 place-items-center rounded-full bg-positive-surface text-5xl font-black text-positive">{report.score}</div>
-                <div>
-                  <h2 className="text-2xl font-bold leading-8">Overall Summary</h2>
-                  <p className="mt-4 text-lg leading-8 text-ink-muted">{report.summary}</p>
-                </div>
-              </section>
-            )}
-
-            {(
-              <section className="mt-6 rounded-panel border border-border shadow-control">
-                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
-                  <Sparkles aria-hidden="true" className="size-6 text-accent" />
-                  Post-Session Scorecard
-                </h2>
-                <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 lg:px-8">
-                  <CopilotScorecardSection title="What Went Well" items={report.whatWentWell} />
-                  <CopilotScorecardSection title="What Needs Work" items={report.whatNeedsWork} />
-                  <CopilotScorecardSection title="Knowledge Gaps" items={report.knowledgeGaps} />
-                </div>
-              </section>
-            )}
-
-            {(
-              <section className="mt-6 rounded-panel border border-border shadow-control">
-                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
-                  <MessageSquare aria-hidden="true" className="size-6 text-accent" />
-                  Suggested Questions for Future Sessions
-                </h2>
-                <ul className="flex flex-col gap-3 px-6 py-6 lg:px-8">
-                  {report.suggestedQuestions.map((question, i) => (
-                    <li key={i} className="flex items-start gap-3 text-base text-ink-muted">
-                      <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-accent-subtle text-xs font-bold text-accent">{i + 1}</span>
-                      <span>{question}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            {(
-              <section className="mt-6 rounded-panel border border-border shadow-control">
-                <h2 className="inline-flex min-h-20 items-center gap-3 border-b border-border px-6 text-2xl font-bold leading-8 lg:px-8">
-                  <Search aria-hidden="true" className="size-6 text-ink-muted" />
-                  Session Rubric Breakdown
-                </h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-border bg-surface-subtle text-xs font-semibold uppercase tracking-wide text-muted">
-                        <th className="px-4 py-3">Element</th>
-                        <th className="px-4 py-3">Status</th>
-                        <th className="px-4 py-3">Notes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {report.rubric.map((row) => (
-                        <tr key={row.element} className="border-b border-border-subtle transition-colors hover:bg-surface-subtle last:border-0">
-                          <td className="px-4 py-3 font-medium text-ink">{row.element}</td>
-                          <td className="px-4 py-3">
-                            <Badge tone={row.status === 'strong' ? 'positive' : row.status === 'partial' ? 'warning' : 'danger'} className={copilotRubricToneClasses[row.status]}>
-                              {copilotRubricLabel[row.status]}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-ink-muted">{row.notes}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            )}
-
-            {(
-              <section className="mt-6 rounded-panel border border-border p-6 shadow-control lg:p-8">
-                <h2 className="inline-flex items-center gap-3 text-xl font-bold leading-8">
-                  <Bookmark aria-hidden="true" className="size-5 text-ink-muted" />
-                  Transcript
-                </h2>
-                <div className="mt-5 grid gap-3">
-                  {report.transcript.map((entry) => (
-                    <article key={entry.id} className="rounded-panel bg-surface-subtle p-5">
-                      <div className="flex items-center justify-between gap-3">
-                        <h3 className={cn('text-sm font-bold', entry.isUser ? 'text-accent-text' : 'text-ink')}>{entry.speaker}</h3>
-                        <p className="font-mono text-xs text-ink-muted">{entry.timestamp}</p>
+                <TabsContent value="summary">
+                  <div className="flex flex-col gap-6 pb-8">
+                    <div className="flex flex-col items-start gap-6 rounded-panel border border-border p-6 shadow-control sm:flex-row sm:items-center">
+                      <div className="grid size-28 shrink-0 place-items-center rounded-full border-8 border-positive/30 bg-positive-surface text-4xl font-black text-positive">
+                        {report.score}
                       </div>
-                      <p className="mt-3 text-lg leading-8 text-ink-muted">{entry.text}</p>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            )}
+                      <div>
+                        <h2 className="text-xl font-bold leading-8">Summary</h2>
+                        <p className="mt-2 text-base leading-7 text-ink-muted">{report.summary}</p>
+                      </div>
+                    </div>
+
+                    <CopilotScorecardSection title="What Went Well" items={report.whatWentWell} />
+                    <CopilotScorecardSection title="What Needs Work" items={report.whatNeedsWork} divider />
+                    <CopilotScorecardSection title="Knowledge Gaps" items={report.knowledgeGaps} divider />
+                    <CopilotScorecardSection title="Suggested Questions for Future Sessions" items={report.suggestedQuestions} divider />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="details">
+                  <div className="pb-8">
+                    <RubricTable rows={sortedRubric} sort={rubricSort} onSort={toggleRubricSort} toneClasses={copilotRubricToneClasses} label={copilotRubricLabel} />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="call">
+                  <div className="flex flex-col gap-6 pb-8">
+                    <div className="rounded-panel border border-border p-6 shadow-control lg:p-8">
+                      <h3 className="text-lg font-bold leading-7">Call Recording</h3>
+                      <div className="mt-4 flex min-h-16 items-center gap-4 rounded-panel border border-border bg-surface-subtle p-3">
+                        <button type="button" aria-label="Play recording" className="grid size-12 place-items-center rounded-lg bg-accent text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                          <Play aria-hidden="true" className="size-5" />
+                        </button>
+                        <span className="font-mono text-base text-ink-muted">0:00</span>
+                        <div className="h-1.5 flex-1 rounded-full bg-border">
+                          <div className="h-full w-1/3 rounded-full bg-accent" />
+                        </div>
+                        <button type="button" aria-label="Pause recording" className="grid size-10 place-items-center rounded-lg text-ink-muted transition-colors hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                          <Pause aria-hidden="true" className="size-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-panel border border-border bg-surface p-4">
+                      <div className="flex flex-col">
+                        {report.transcript.map((entry, index) => (
+                          <div key={entry.id} className={cn('flex flex-col gap-1', index > 0 && 'pt-3')}>
+                            <div className="flex items-center gap-2">
+                              <span className="rounded-soft bg-ink/10 px-1.5 py-0.5 text-xs font-medium text-ink">{entry.timestamp}</span>
+                              <span className={cn('text-sm font-medium', entry.isUser ? 'text-accent-text' : 'text-ink')}>{entry.speaker}</span>
+                            </div>
+                            <p className="text-base leading-7 text-ink">{entry.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           </article>
         </div>
       </section>
@@ -556,7 +626,354 @@ function copilotResponseFor(prompt: string): string {
   )
 }
 
-export function CopilotLiveView({ completeHref, session, isLoading = false }: CopilotLiveViewProps) {
+function TranscriptBubble({ speaker, text, kind, fontSize }: { readonly speaker: string; readonly text: string; readonly kind: 'speaker' | 'ai'; readonly fontSize: number }) {
+  return (
+    <div className={cn('rounded-lg p-3', kind === 'ai' ? 'border border-focus/40 bg-accent-subtle/40' : 'bg-[var(--lf-live-message)]')}>
+      <p className="mb-1.5 truncate text-[11px] font-bold uppercase tracking-wide text-ink-muted">{speaker}</p>
+      <p className="whitespace-pre-wrap break-words text-brand-bar-text" style={{ fontSize: `${fontSize}px` }}>{text}</p>
+    </div>
+  )
+}
+
+function questionTextFor(turn: CopilotTranscriptTurn): string {
+  if (!turn.interjection) return turn.question
+  const target = Math.round(turn.question.length * 0.55)
+  const idx = turn.question.lastIndexOf(' ', target)
+  return turn.question.slice(0, idx > 0 ? idx : target)
+}
+
+type ConversationalStatus = 'listening' | 'processing' | 'answering'
+
+const conversationalStatusLabel: Record<ConversationalStatus, string> = {
+  listening: 'Listening...',
+  processing: 'Processing...',
+  answering: 'Answering...',
+}
+
+function CopilotTranscriptPanel({
+  bank,
+  responseMode,
+  fontSize,
+  onActivityChange,
+}: {
+  readonly bank: readonly CopilotTranscriptTurn[]
+  readonly responseMode: 'auto' | 'manual'
+  readonly fontSize: number
+  readonly onActivityChange: (label: string) => void
+}) {
+  const [started, setStarted] = useState(false)
+  const [status, setStatus] = useState<ConversationalStatus>('listening')
+  const [turnIndex, setTurnIndex] = useState(0)
+  const [qDisplayed, setQDisplayed] = useState('')
+  const [interjectionDisplayed, setInterjectionDisplayed] = useState('')
+  const [aDisplayed, setADisplayed] = useState('')
+  const [history, setHistory] = useState<CopilotTranscriptTurn[]>([])
+  const panelRef = useRef<HTMLDivElement>(null)
+  const statusRef = useRef(status)
+  const turnIndexRef = useRef(turnIndex)
+  const startedRef = useRef(started)
+
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
+  useEffect(() => {
+    turnIndexRef.current = turnIndex
+  }, [turnIndex])
+  useEffect(() => {
+    startedRef.current = started
+  }, [started])
+  useEffect(() => {
+    onActivityChange(started ? conversationalStatusLabel[status] : 'Idle...')
+  }, [status, started, onActivityChange])
+
+  const advance = () => {
+    if (!startedRef.current) {
+      setStarted(true)
+      return
+    }
+    const cur = statusRef.current
+    const turn = bank[turnIndexRef.current]
+    if (cur === 'listening') setStatus('processing')
+    else if (cur === 'processing') setStatus('answering')
+    else {
+      setHistory((h) => [...h, turn])
+      setTurnIndex((i) => (i + 1) % bank.length)
+      setStatus('listening')
+    }
+  }
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.code !== 'Space' || responseMode === 'auto') return
+      event.preventDefault()
+      advance()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responseMode, bank])
+
+  useEffect(() => {
+    if (responseMode !== 'auto') return
+    const delay = status === 'listening' ? 1800 : status === 'processing' ? 1200 : 1800
+    const id = setTimeout(advance, delay)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responseMode, status, turnIndex])
+
+  useEffect(() => {
+    if (!started || status !== 'listening') return
+    setQDisplayed('')
+    setADisplayed('')
+    setInterjectionDisplayed('')
+    const turn = bank[turnIndex]
+    const text = questionTextFor(turn)
+    let i = 0
+    let interjectionInterval: ReturnType<typeof setInterval> | undefined
+    const qInterval = setInterval(() => {
+      i++
+      setQDisplayed(text.slice(0, i))
+      if (i >= text.length) {
+        clearInterval(qInterval)
+        if (turn.interjection) {
+          let j = 0
+          const interjectionText = turn.interjection.text
+          interjectionInterval = setInterval(() => {
+            j++
+            setInterjectionDisplayed(interjectionText.slice(0, j))
+            if (j >= interjectionText.length) clearInterval(interjectionInterval)
+          }, 22)
+        }
+      }
+    }, 22)
+    return () => {
+      clearInterval(qInterval)
+      if (interjectionInterval) clearInterval(interjectionInterval)
+    }
+  }, [started, status, turnIndex, bank])
+
+  useEffect(() => {
+    if (status !== 'answering') return
+    setADisplayed('')
+    const text = bank[turnIndex].answer
+    let i = 0
+    const id = setInterval(() => {
+      i += 4
+      setADisplayed(text.slice(0, i))
+      if (i >= text.length) clearInterval(id)
+    }, 12)
+    return () => clearInterval(id)
+  }, [status, turnIndex, bank])
+
+  useEffect(() => {
+    const el = panelRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [qDisplayed, aDisplayed, interjectionDisplayed, history.length])
+
+  const currentTurn = bank[turnIndex]
+  const questionComplete = qDisplayed.length >= questionTextFor(currentTurn).length
+
+  return (
+    <div ref={panelRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
+      {history.map((turn, index) => (
+        <div key={index} className="space-y-3">
+          <TranscriptBubble speaker={turn.speaker} text={`${questionTextFor(turn)}${turn.interjection ? '…' : ''}`} kind="speaker" fontSize={fontSize} />
+          {turn.interjection ? (
+            <div className="ms-4 flex items-start gap-1.5 border-s-2 border-[var(--lf-live-control-border)] ps-3">
+              <ChevronRight aria-hidden="true" className="mt-0.5 size-3 shrink-0 text-ink-muted" />
+              <p className="text-xs leading-relaxed text-ink-muted">
+                <span className="font-semibold text-brand-bar-text">{turn.interjection.speaker}</span> {turn.interjection.text}
+              </p>
+            </div>
+          ) : null}
+          <TranscriptBubble speaker="Lightforth AI" text={turn.answer} kind="ai" fontSize={fontSize} />
+        </div>
+      ))}
+
+      {started ? (
+        <div className="space-y-3">
+          {qDisplayed ? (
+            <TranscriptBubble
+              speaker={currentTurn.speaker}
+              text={`${qDisplayed}${questionComplete && currentTurn.interjection ? '…' : !questionComplete ? '|' : ''}`}
+              kind="speaker"
+              fontSize={fontSize}
+            />
+          ) : null}
+          {interjectionDisplayed && currentTurn.interjection ? (
+            <div className="ms-4 flex items-start gap-1.5 border-s-2 border-[var(--lf-live-control-border)] ps-3">
+              <ChevronRight aria-hidden="true" className="mt-0.5 size-3 shrink-0 text-ink-muted" />
+              <p className="text-xs leading-relaxed text-ink-muted">
+                <span className="font-semibold text-brand-bar-text">{currentTurn.interjection.speaker}</span> {interjectionDisplayed}
+                {status === 'listening' && interjectionDisplayed.length < currentTurn.interjection.text.length ? (
+                  <span className="animate-pulse">|</span>
+                ) : null}
+              </p>
+            </div>
+          ) : null}
+          {status === 'processing' ? (
+            <div className="flex items-center gap-1.5 py-1" role="status" aria-label="Processing">
+              {[0, 1, 2].map((i) => (
+                <span key={i} className="size-2 animate-bounce rounded-pill bg-ink-muted motion-reduce:animate-none" style={{ animationDelay: `${i * 0.12}s` }} />
+              ))}
+            </div>
+          ) : null}
+          {status === 'answering' && aDisplayed ? (
+            <TranscriptBubble
+              speaker="Lightforth AI"
+              text={`${aDisplayed}${aDisplayed.length < currentTurn.answer.length ? '|' : ''}`}
+              kind="ai"
+              fontSize={fontSize}
+            />
+          ) : null}
+        </div>
+      ) : (
+        <p className="text-sm italic text-ink-muted">
+          {responseMode === 'auto' ? 'Auto Respond is on — listening automatically…' : 'Press Space to start the simulation…'}
+        </p>
+      )}
+    </div>
+  )
+}
+
+type CodingStatus = 'idle' | 'capturing' | 'analyzing' | 'answered'
+
+const codingStatusLabel: Record<CodingStatus, string> = {
+  idle: 'Watching your screen...',
+  capturing: 'Capturing screen...',
+  analyzing: 'Analyzing...',
+  answered: 'Answer ready',
+}
+
+function CopilotCodingPanel({
+  bank,
+  responseMode,
+  fontSize,
+  onActivityChange,
+}: {
+  readonly bank: readonly CopilotCodingTurn[]
+  readonly responseMode: 'auto' | 'manual'
+  readonly fontSize: number
+  readonly onActivityChange: (label: string) => void
+}) {
+  const [status, setStatus] = useState<CodingStatus>('idle')
+  const [index, setIndex] = useState(0)
+  const [history, setHistory] = useState<CopilotCodingTurn[]>([])
+  const [copied, setCopied] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+  const statusRef = useRef(status)
+  const indexRef = useRef(index)
+
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
+  useEffect(() => {
+    indexRef.current = index
+  }, [index])
+  useEffect(() => {
+    onActivityChange(codingStatusLabel[status])
+  }, [status, onActivityChange])
+
+  const capture = () => {
+    if (statusRef.current === 'idle') setStatus('capturing')
+    else if (statusRef.current === 'answered') {
+      setHistory((h) => [...h, bank[indexRef.current]])
+      setIndex((i) => (i + 1) % bank.length)
+      setStatus('idle')
+    }
+  }
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      const isSpace = event.code === 'Space'
+      const isCtrlEnter = event.code === 'Enter' && (event.ctrlKey || event.metaKey)
+      if (!isSpace && !isCtrlEnter) return
+      event.preventDefault()
+      capture()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bank])
+
+  useEffect(() => {
+    if (status !== 'capturing') return
+    const id = setTimeout(() => setStatus('analyzing'), 600)
+    return () => clearTimeout(id)
+  }, [status])
+
+  useEffect(() => {
+    if (status !== 'analyzing') return
+    const id = setTimeout(() => setStatus('answered'), 900)
+    return () => clearTimeout(id)
+  }, [status])
+
+  useEffect(() => {
+    if (responseMode !== 'auto') return
+    const delay = status === 'capturing' ? 600 : status === 'analyzing' ? 900 : 2200
+    const id = setTimeout(capture, delay)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [responseMode, status, index])
+
+  useEffect(() => {
+    const el = panelRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [status, history.length])
+
+  const current = bank[index]
+
+  return (
+    <div ref={panelRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
+      {history.map((item, i) => (
+        <div key={i} className="space-y-2 border-b border-[var(--lf-live-divider)] pb-4 last:border-0">
+          <p className="text-sm text-brand-bar-text">{item.question}</p>
+          <pre className="overflow-x-auto rounded-lg bg-[var(--lf-live-message)] p-3 text-xs text-positive" style={{ fontSize: `${fontSize}px` }}>
+            <code>{item.answer}</code>
+          </pre>
+        </div>
+      ))}
+
+      {status === 'analyzing' ? (
+        <div className="flex items-center gap-1.5 py-1" role="status" aria-label="Analyzing">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="size-2 animate-bounce rounded-pill bg-ink-muted motion-reduce:animate-none" style={{ animationDelay: `${i * 0.12}s` }} />
+          ))}
+        </div>
+      ) : null}
+
+      {status === 'answered' ? (
+        <div className="space-y-2">
+          <p className="text-sm text-brand-bar-text">{current.question}</p>
+          <div className="relative">
+            <pre className="overflow-x-auto rounded-lg bg-[var(--lf-live-message)] p-3 text-xs text-positive" style={{ fontSize: `${fontSize}px` }}>
+              <code>{current.answer}</code>
+            </pre>
+            <button
+              type="button"
+              onClick={() => {
+                void navigator.clipboard?.writeText(current.answer)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 1500)
+              }}
+              className="absolute end-2 top-2 rounded-soft bg-[var(--lf-live-control-border)] px-2 py-1 text-[10px] font-semibold text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {status === 'idle' && history.length === 0 ? (
+        <p className="text-sm italic text-ink-muted">
+          {responseMode === 'auto' ? 'Auto Respond is on — Copilot will capture automatically. Press Space to capture sooner.' : 'Press Space to capture your first question…'}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+export function CopilotLiveView({ completeHref, session, isLoading = false, transcriptBank = [], codingBank = [] }: CopilotLiveViewProps) {
   const [liveResponse, setLiveResponse] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
   const [showSettings, setShowSettings] = useState(false)
@@ -564,7 +981,8 @@ export function CopilotLiveView({ completeHref, session, isLoading = false }: Co
   const [autoScroll, setAutoScroll] = useState(true)
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [fontSize, setFontSize] = useState(14)
-  const [responseMode, setResponseMode] = useState<'auto' | 'manual'>('auto')
+  const [responseMode, setResponseMode] = useState<'auto' | 'manual'>('manual')
+  const [activityLabel, setActivityLabel] = useState(session.activityLabel)
 
   if (isLoading) {
     return <CopilotLiveLoadingView />
@@ -595,7 +1013,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false }: Co
         <div className="flex items-center gap-4">
           <LiveSignal label={session.signalLabel} />
           <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
-          <span className="text-sm italic leading-5 text-ink-muted">{session.activityLabel}</span>
+          <span className="text-sm italic leading-5 text-ink-muted">{activityLabel}</span>
         </div>
         <button type="button" onClick={() => setShowSettings(true)} className="min-h-8 items-center gap-3 rounded-soft px-2 text-sm font-medium text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
           <Settings aria-hidden="true" className="size-4" />
@@ -610,13 +1028,11 @@ export function CopilotLiveView({ completeHref, session, isLoading = false }: Co
               <span className="size-2 rounded-pill bg-danger" />
             </h2>
           </div>
-          <div className="grid min-h-[32rem] place-items-center p-5 xl:h-[calc(100vh-12.4375rem)]">
-            {liveResponse ? (
-              <p className="max-w-[28rem] text-start text-sm leading-[22.75px] text-brand-bar-text">{liveResponse}</p>
+          <div className="flex min-h-[32rem] flex-col xl:h-[calc(100vh-12.4375rem)]">
+            {session.mode === 'coding' ? (
+              <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} />
             ) : (
-              <p className="max-w-[16.25rem] text-center text-sm leading-[22.75px] text-ink-muted">
-                Lightforth will analyze your interview questions and generate target responses in real time.
-              </p>
+              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} />
             )}
           </div>
         </article>
@@ -634,7 +1050,13 @@ export function CopilotLiveView({ completeHref, session, isLoading = false }: Co
                 <X aria-hidden="true" className="size-4" />
               </button>
             </div>
-            <div className="flex min-h-0 flex-col justify-end gap-1.5 px-4 pb-2">
+            <div className="flex min-h-0 flex-col justify-end gap-1.5 overflow-y-auto px-4 pb-2">
+              {liveResponse ? (
+                <div className="mt-2 rounded-lg border border-focus/40 bg-accent-subtle/40 p-3">
+                  <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-ink-muted">Lightforth AI</p>
+                  <p className="text-xs leading-relaxed text-brand-bar-text">{liveResponse}</p>
+                </div>
+              ) : null}
               {session.prompts.map((prompt) => (
                 <button
                   key={prompt}
@@ -837,32 +1259,56 @@ export function CopilotCompleteView({ homeHref, sessionHref, historyHref }: Copi
 }
 
 export function CopilotHistoryView({ homeHref, createHref, reportHref, rows }: CopilotHistoryViewProps) {
+  const [activeMode, setActiveMode] = useState<CopilotMode>('interview')
+  const filteredRows = rows.filter((row) => row.mode === activeMode)
+
   return (
     <Workspace>
       <CopilotHeader homeHref={homeHref} current="History" />
       <section className="px-4 py-8 lg:px-12 xl:px-24">
-        <DataTable
-          title="Past Copilot Sessions"
-          searchLabel="Search copilot history"
-          action={{ label: 'Create New', href: createHref }}
-          rows={rows}
-          itemLabel={(row) => row.title}
-          className="mx-auto max-w-7xl"
-          onRowClick={(row) => { window.location.href = `${reportHref}?id=${row.id}` }}
-          columns={[
-            { key: 'title', label: 'Title', className: 'w-[16rem]', render: (row) => <span className="font-medium">{row.title}</span> },
-            {
-              key: 'mode',
-              label: 'Type',
-              className: 'w-[7rem]',
-              render: (row) => <Badge variant={copilotModeMeta[row.mode].badgeVariant}>{copilotModeMeta[row.mode].label}</Badge>,
-            },
-            { key: 'where', label: 'Where', className: 'w-[8rem]', render: (row) => row.where },
-            { key: 'company', label: 'Company', className: 'w-[10rem]', render: (row) => row.company },
-            { key: 'duration', label: 'Duration', className: 'w-[7rem]', render: (row) => row.duration },
-            { key: 'date-time', label: 'Date & Time', className: 'w-[12rem]', render: (row) => row.dateTime },
-          ]}
-        />
+        <div className="mx-auto max-w-7xl bg-surface shadow-panel">
+          <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
+            <h1 className="text-xl font-medium leading-5 text-ink">Past Copilot Sessions</h1>
+            <a
+              href={createHref}
+              className="inline-flex min-h-10 items-center justify-center gap-3 rounded-lg bg-accent px-4 py-2 text-base font-semibold leading-6 text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <Plus aria-hidden="true" className="size-5 shrink-0" />
+              {copilotModeMeta[activeMode].createCta}
+            </a>
+          </div>
+          <div className="p-8">
+            <nav aria-label="Copilot session types" className="flex gap-6 border-b border-border text-sm font-medium">
+              {(Object.keys(copilotModeMeta) as CopilotMode[]).map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setActiveMode(id)}
+                  aria-current={activeMode === id ? 'page' : undefined}
+                  className={cn(
+                    'min-h-11 border-b-2 px-1 pb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                    activeMode === id ? 'border-accent text-accent' : 'border-transparent text-ink-muted hover:text-ink',
+                  )}
+                >
+                  {copilotModeMeta[id].label}
+                </button>
+              ))}
+            </nav>
+            <DataTable
+              searchLabel="Search copilot history"
+              rows={filteredRows}
+              itemLabel={(row) => row.title}
+              onRowClick={(row) => { window.location.href = `${reportHref}?id=${row.id}` }}
+              columns={[
+                  { key: 'title', label: 'Title', className: 'w-[16rem]', render: (row) => <span className="font-medium">{row.title}</span> },
+                  { key: 'where', label: 'Where', className: 'w-[8rem]', render: (row) => row.where },
+                  { key: 'company', label: 'Company', className: 'w-[10rem]', render: (row) => row.company },
+                  { key: 'duration', label: 'Duration', className: 'w-[7rem]', render: (row) => row.duration },
+                  { key: 'date-time', label: 'Date & Time', className: 'w-[12rem]', render: (row) => row.dateTime },
+              ]}
+            />
+          </div>
+        </div>
       </section>
     </Workspace>
   )

@@ -140,8 +140,7 @@ function TabRail({ tab }: { readonly tab: ResumeBuilderTab }) {
           className={cn('grid min-h-8 place-items-center rounded-md text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', item === tab ? 'bg-surface text-ink shadow-control' : '')}
           aria-current={item === tab ? 'page' : undefined}
         >
-          {item[0].toUpperCase()}
-          {item.slice(1)}
+          {item[0].toUpperCase()}{item.slice(1)}
         </a>
       ))}
     </div>
@@ -221,7 +220,7 @@ function SectionEditor({ session }: { readonly session: ResumeBuilderSession }) 
   const sections = Object.entries(sectionLabels) as ReadonlyArray<[ResumeSectionId, string]>
 
   return (
-    <aside className="flex w-full flex-col border-e border-border bg-surface lg:w-[21.25rem]">
+    <aside className="relative flex w-full flex-col border-e border-border bg-surface lg:w-[21.25rem]">
       <div className="border-b border-border p-3">
         <TabRail tab="create" />
       </div>
@@ -252,13 +251,15 @@ function SectionEditor({ session }: { readonly session: ResumeBuilderSession }) 
           </button>
         </div>
       </div>
-      <div className="absolute start-24 top-44 w-72 border-2 border-accent bg-surface shadow-panel">
-        <div className="flex items-center justify-between bg-brand-bar px-3 py-2 text-brand-bar-text">
+      <div className="absolute end-3 top-20 z-10 w-64 rounded-lg border border-accent bg-surface shadow-panel">
+        <div className="flex items-center justify-between rounded-t-lg bg-brand-bar px-3 py-2 text-brand-bar-text">
           <span className="inline-flex items-center gap-2 text-xs font-semibold">
             <Sparkles aria-hidden="true" className="size-3" />
             Light AI
           </span>
-          <X aria-hidden="true" className="size-3" />
+          <button type="button" aria-label="Close AI suggestion" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <X aria-hidden="true" className="size-3" />
+          </button>
         </div>
         <div className="p-3 text-xs leading-5 text-ink-muted">
           <p className="border-s-2 border-focus ps-3">{session.aiDraft}</p>
@@ -278,25 +279,32 @@ function TemplateSidebar({ templates, selectedTemplateId }: { readonly templates
       <div className="border-b border-border p-3">
         <TabRail tab="template" />
       </div>
-      <div className="grid grid-cols-2 gap-2 overflow-auto p-3">
-        {templates.map((template) => (
-          <button
-            key={template.id}
-            type="button"
-            className={cn(
-              'overflow-hidden rounded-lg border bg-surface text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-              template.id === selectedTemplateId ? 'border-accent shadow-panel' : 'border-border',
-            )}
-          >
-            <span className="relative block min-h-48 bg-surface-subtle">
-              {template.id === selectedTemplateId ? <span className="absolute start-2 top-2 grid size-8 place-items-center rounded-pill bg-positive text-on-accent"><Check aria-hidden="true" className="size-4" /></span> : null}
-            </span>
-            <span className="block p-3">
-              <span className={cn('block text-sm font-semibold', template.id === selectedTemplateId ? 'text-accent' : 'text-ink')}>{template.name}</span>
-              <span className="mt-1 block line-clamp-2 text-xs leading-4 text-ink-muted">{template.description}</span>
-            </span>
-          </button>
-        ))}
+      <div className="grid grid-cols-2 gap-3 overflow-auto p-3">
+        {templates.map((template) => {
+          const isSelected = template.id === selectedTemplateId
+          return (
+            <button
+              key={template.id}
+              type="button"
+              className={cn(
+                'overflow-hidden rounded-lg border text-start transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                isSelected ? 'border-accent shadow-panel' : 'border-border hover:shadow-control',
+              )}
+            >
+              <span className="relative block aspect-[3/4] bg-surface-subtle">
+                {isSelected ? (
+                  <span className="absolute start-2 top-2 grid size-7 place-items-center rounded-pill bg-positive text-on-accent">
+                    <Check aria-hidden="true" className="size-3.5" />
+                  </span>
+                ) : null}
+              </span>
+              <span className="block p-2.5">
+                <span className={cn('block text-xs font-semibold leading-4', isSelected ? 'text-accent' : 'text-ink')}>{template.name}</span>
+                <span className="mt-1 block line-clamp-2 text-[11px] leading-3 text-ink-muted">{template.description}</span>
+              </span>
+            </button>
+          )
+        })}
       </div>
     </aside>
   )
@@ -307,21 +315,21 @@ function ClassicResume({ document, state, tab }: { readonly document: ResumeDocu
 
   return (
     <PaperShell>
-      <header className="border-b border-ink pb-3 text-center">
+      <header className="border-b border-ink pb-4 text-center">
         <h1 className="text-3xl font-bold tracking-wide">{document.candidateName}</h1>
         <p className="mt-2 text-xs text-ink-muted">
           <a href={`mailto:${document.email}`} className="text-accent-text underline">{document.email}</a> | {document.location} | {document.linkedinUrl} | {document.portfolioUrl}
         </p>
       </header>
-      <section className="mt-4">
-        <h2 className="border-b border-ink text-sm font-bold uppercase tracking-wide">Professional Summary</h2>
+      <section className="mt-5">
+        <h2 className="border-b border-ink pb-1 text-sm font-bold uppercase tracking-wide">Professional Summary</h2>
         <p className={cn('mt-2 text-xs italic leading-5', useImproved ? 'bg-accent-subtle text-accent-text' : 'bg-positive-surface text-positive')}>
           {useImproved ? document.improvedSummary : document.summary}
         </p>
       </section>
-      <section className="mt-4">
-        <h2 className="border-b border-ink text-sm font-bold uppercase tracking-wide">Experience</h2>
-        <div className="grid gap-4 pt-2">
+      <section className="mt-5">
+        <h2 className="border-b border-ink pb-1 text-sm font-bold uppercase tracking-wide">Experience</h2>
+        <div className="grid gap-5 pt-3">
           {document.roles.map((role, roleIndex) => (
             <article key={`${role.company}-${role.period}`}>
               <div className="flex items-start justify-between gap-4 text-xs">
@@ -330,9 +338,9 @@ function ClassicResume({ document, state, tab }: { readonly document: ResumeDocu
                   <p className="italic text-ink-muted">{role.location}</p>
                   <p className="italic">{role.title}</p>
                 </div>
-                <p className="text-end text-ink-muted">{role.period}</p>
+                <p className="shrink-0 text-end text-ink-muted">{role.period}</p>
               </div>
-              <ul className="mt-2 list-disc space-y-1 ps-5 text-xs leading-5">
+              <ul className="mt-2 list-disc space-y-1.5 ps-5 text-xs leading-5">
                 {role.bullets.map((bullet, index) => (
                   <li key={bullet} className={cn(state === 'suggestions' && roleIndex === 0 && index < 2 ? 'bg-accent-subtle text-accent-text' : '')}>
                     {bullet}
@@ -343,16 +351,16 @@ function ClassicResume({ document, state, tab }: { readonly document: ResumeDocu
           ))}
         </div>
       </section>
-      <section className="mt-4">
-        <h2 className="border-b border-ink text-sm font-bold uppercase tracking-wide">Skills</h2>
+      <section className="mt-5">
+        <h2 className="border-b border-ink pb-1 text-sm font-bold uppercase tracking-wide">Skills</h2>
         <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
           {document.skills.slice(0, 14).map((skill) => (
             <span key={skill}>{skill}</span>
           ))}
         </div>
       </section>
-      <section className="mt-4">
-        <h2 className="border-b border-ink text-sm font-bold uppercase tracking-wide">Certifications</h2>
+      <section className="mt-5">
+        <h2 className="border-b border-ink pb-1 text-sm font-bold uppercase tracking-wide">Certifications</h2>
         {document.certifications.map((certification) => (
           <div key={certification.name} className="mt-2 flex justify-between gap-4 text-xs">
             <div>
@@ -420,7 +428,7 @@ function InlineChangeControls() {
 
 function Tooltip({ title, body, align = 'start' }: { readonly title: string; readonly body: string; readonly align?: 'start' | 'end' }) {
   return (
-    <aside className={cn('absolute hidden w-64 rounded-lg bg-brand-bar p-3 text-xs shadow-panel lg:block', align === 'start' ? 'bottom-8 start-80' : 'end-6 top-32')} aria-label={title}>
+    <aside className={cn('absolute z-10 hidden w-64 rounded-lg bg-brand-bar p-3 text-xs shadow-panel lg:block', align === 'start' ? 'bottom-8 start-8' : 'end-8 top-12')} aria-label={title}>
       <h2 className="font-semibold text-brand-bar-text">{title}</h2>
       <p className="mt-1 leading-5 text-surface-subtle">{body}</p>
     </aside>

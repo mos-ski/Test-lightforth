@@ -37,6 +37,23 @@ export type CopilotLiveSession = {
   readonly prompts: readonly string[];
 };
 
+export type CopilotTranscriptInterjection = {
+  readonly speaker: string;
+  readonly text: string;
+};
+
+export type CopilotTranscriptTurn = {
+  readonly speaker: string;
+  readonly question: string;
+  readonly answer: string;
+  readonly interjection?: CopilotTranscriptInterjection;
+};
+
+export type CopilotCodingTurn = {
+  readonly question: string;
+  readonly answer: string;
+};
+
 export type CopilotHistoryRow = {
   readonly id: string;
   readonly mode: CopilotMode;
