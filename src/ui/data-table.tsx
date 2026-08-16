@@ -200,7 +200,7 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                     className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset"
                   >
                     <span className="min-w-0 flex-1 truncate text-sm font-medium leading-5 text-ink">{columns[0]?.render(row)}</span>
-                    <span className="shrink-0 truncate text-sm leading-5 text-ink-muted">{columns[1]?.render(row)}</span>
+                    <span className="max-w-[45%] shrink truncate text-sm leading-5 text-ink-muted">{columns[1]?.render(row)}</span>
                     <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
                   </button>
                 ))
@@ -408,7 +408,7 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
     }
 
     return (
-      <article ref={ref} data-slot="data-table" className={cn('bg-surface shadow-panel', className)}>
+      <article ref={ref} data-slot="data-table" className={cn('min-w-0 bg-surface shadow-panel', className)}>
         {title || action ? (
           <header className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
             {title ? <h1 className="text-xl font-medium leading-5 text-ink">{title}</h1> : <span />}
