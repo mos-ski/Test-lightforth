@@ -284,7 +284,7 @@ function CancelSubscriptionDialog({ renewalLabel }: { readonly renewalLabel: str
                     label="Cancellation Reason"
                     options={cancellationReasons}
                     value={reason}
-                    onChange={(event) => setReason(event.target.value)}
+                    onValueChange={setReason}
                   />
                   <label className="grid gap-1.5">
                     <span className="text-sm font-medium text-ink">Additional Information</span>

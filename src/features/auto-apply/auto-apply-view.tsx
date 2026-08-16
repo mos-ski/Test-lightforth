@@ -17,7 +17,7 @@ import {
   WORK_SCHEDULE_OPTIONS,
 } from '@/contracts/auto-apply.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
-import { cn, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ReviewSummaryList, ShellBar, SourcePicker } from '@/ui'
+import { cn, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ReviewSummaryList, ShellBar, SourcePicker } from '@/ui'
 import { useAgentSession, type AgentSession, type FeedEvent, type FeedLink } from '@/hooks/useAgentSession'
 
 export type AutoApplyUploadViewProps = {
@@ -517,13 +517,13 @@ function ContactForm({ setup }: { readonly setup: AutoApplySetup }) {
           <FormField id="auto-phone" label="Phone" defaultValue={setup.phone} placeholder="+1" />
           <FormField id="auto-first-name" label="First Name" defaultValue={setup.firstName} required />
           <FormField id="auto-last-name" label="Last Name" defaultValue={setup.lastName} required />
-          <div>
-            <label htmlFor="auto-gender" className="mb-1 block text-sm font-medium text-ink">Gender</label>
-            <select id="auto-gender" defaultValue={setup.gender} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select gender</option>
-              {GENDER_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-gender"
+            label="Gender"
+            defaultValue={setup.gender}
+            placeholder="Select gender"
+            options={GENDER_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
           <div>
             <label htmlFor="auto-dob" className="mb-1 block text-sm font-medium text-ink">Date of Birth</label>
             <input
@@ -590,28 +590,25 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
         isFilled={filled.demographics}
       >
         <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label htmlFor="auto-race" className="mb-1 block text-sm font-medium text-ink">Race/Ethnicity</label>
-            <select id="auto-race" defaultValue={setup.race} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {RACE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-race"
+            label="Race/Ethnicity"
+            defaultValue={setup.race}
+            options={RACE_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
           <FormField id="auto-citizenship" label="Citizenship" defaultValue={setup.citizenship} placeholder="e.g. USA, Canada" />
-          <div>
-            <label htmlFor="auto-veteran" className="mb-1 block text-sm font-medium text-ink">Veteran Status</label>
-            <select id="auto-veteran" defaultValue={setup.veteran} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {VETERAN_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="auto-disability" className="mb-1 block text-sm font-medium text-ink">Disability Status</label>
-            <select id="auto-disability" defaultValue={setup.disability} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {DISABILITY_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-veteran"
+            label="Veteran Status"
+            defaultValue={setup.veteran}
+            options={VETERAN_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
+          <FormSelectField
+            id="auto-disability"
+            label="Disability Status"
+            defaultValue={setup.disability}
+            options={DISABILITY_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
         </div>
       </CollapsibleSection>
 
@@ -621,13 +618,12 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
         onToggle={() => toggle('security')}
         isFilled={filled.security}
       >
-        <div>
-          <label htmlFor="auto-clearance" className="mb-1 block text-sm font-medium text-ink">Do you hold a defined security clearance?</label>
-          <select id="auto-clearance" defaultValue={setup.securityClearance} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-            <option value="">Select</option>
-            {SECURITY_CLEARANCE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-        </div>
+        <FormSelectField
+          id="auto-clearance"
+          label="Do you hold a defined security clearance?"
+          defaultValue={setup.securityClearance}
+          options={SECURITY_CLEARANCE_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -637,13 +633,12 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
         isFilled={filled.workAuth}
       >
         <div className="grid gap-3">
-          <div>
-            <label htmlFor="auto-us-auth" className="mb-1 block text-sm font-medium text-ink">US Work Authorization</label>
-            <select id="auto-us-auth" defaultValue={setup.usWorkAuth} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {US_WORK_AUTH_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-us-auth"
+            label="US Work Authorization"
+            defaultValue={setup.usWorkAuth}
+            options={US_WORK_AUTH_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
           <FormField id="auto-canada-auth" label="Canada Work Authorization (Optional)" defaultValue={setup.canadaWorkAuth} placeholder="e.g. Citizen, PR, Work Permit" />
         </div>
         <fieldset className="mt-3">
@@ -668,20 +663,18 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
         isFilled={filled.logistics}
       >
         <div className="grid gap-3">
-          <div>
-            <label htmlFor="auto-start" className="mb-1 block text-sm font-medium text-ink">When are you willing to start?</label>
-            <select id="auto-start" defaultValue={setup.willingToStart} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {START_TIMELINE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="auto-schedule" className="mb-1 block text-sm font-medium text-ink">Work Schedule Availability</label>
-            <select id="auto-schedule" defaultValue={setup.workSchedule} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {WORK_SCHEDULE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-start"
+            label="When are you willing to start?"
+            defaultValue={setup.willingToStart}
+            options={START_TIMELINE_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
+          <FormSelectField
+            id="auto-schedule"
+            label="Work Schedule Availability"
+            defaultValue={setup.workSchedule}
+            options={WORK_SCHEDULE_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
         </div>
         <label className="mt-3 flex items-center gap-2">
           <input type="checkbox" defaultChecked={setup.willingToTravel} className="size-4 rounded border-input text-accent focus:ring-focus" />
@@ -1269,44 +1262,41 @@ function FilterDropdown({
       {open ? (
         <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-border bg-surface p-4 shadow-panel">
           <div className="grid gap-4">
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-ink-muted">Location</label>
-              <select
-                value={filters.location}
-                onChange={(e) => onFiltersChange({ ...filters, location: e.target.value })}
-                className="min-h-10 rounded-lg border border-input bg-surface px-3 text-sm text-ink focus:border-focus focus:ring-2 focus:ring-focus"
-              >
-                <option value="all">All locations</option>
-                <option value="remote">Remote</option>
-                <option value="onsite">Onsite</option>
-                <option value="hybrid">Hybrid</option>
-              </select>
-            </div>
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-ink-muted">Match score</label>
-              <select
-                value={filters.matchMin}
-                onChange={(e) => onFiltersChange({ ...filters, matchMin: Number(e.target.value) })}
-                className="min-h-10 rounded-lg border border-input bg-surface px-3 text-sm text-ink focus:border-focus focus:ring-2 focus:ring-focus"
-              >
-                <option value={0}>Any match</option>
-                <option value={90}>90%+</option>
-                <option value={80}>80%+</option>
-                <option value={70}>70%+</option>
-              </select>
-            </div>
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-ink-muted">Status</label>
-              <select
-                value={filters.status}
-                onChange={(e) => onFiltersChange({ ...filters, status: e.target.value })}
-                className="min-h-10 rounded-lg border border-input bg-surface px-3 text-sm text-ink focus:border-focus focus:ring-2 focus:ring-focus"
-              >
-                <option value="all">All statuses</option>
-                <option value="new">New</option>
-                <option value="applied">Applied</option>
-              </select>
-            </div>
+            <FormSelectField
+              id="auto-apply-filter-location"
+              label="Location"
+              value={filters.location}
+              onValueChange={(value) => onFiltersChange({ ...filters, location: value })}
+              options={[
+                { label: 'All locations', value: 'all' },
+                { label: 'Remote', value: 'remote' },
+                { label: 'Onsite', value: 'onsite' },
+                { label: 'Hybrid', value: 'hybrid' },
+              ]}
+            />
+            <FormSelectField
+              id="auto-apply-filter-match"
+              label="Match score"
+              value={String(filters.matchMin)}
+              onValueChange={(value) => onFiltersChange({ ...filters, matchMin: Number(value) })}
+              options={[
+                { label: 'Any match', value: '0' },
+                { label: '90%+', value: '90' },
+                { label: '80%+', value: '80' },
+                { label: '70%+', value: '70' },
+              ]}
+            />
+            <FormSelectField
+              id="auto-apply-filter-status"
+              label="Status"
+              value={filters.status}
+              onValueChange={(value) => onFiltersChange({ ...filters, status: value })}
+              options={[
+                { label: 'All statuses', value: 'all' },
+                { label: 'New', value: 'new' },
+                { label: 'Applied', value: 'applied' },
+              ]}
+            />
             {activeCount > 0 ? (
               <button
                 type="button"
