@@ -22,12 +22,14 @@ import type {
   InterviewRubricStatus,
   InterviewerVoice,
 } from '@/contracts/interview.draft'
-import { AiSuggestionAction, Badge, cn, DataTable, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
+import type { ResumeHistoryRow } from '@/contracts/resume.draft'
+import { AiSuggestionAction, Badge, cn, DataTable, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
 
 export type InterviewUploadViewProps = {
   readonly homeHref: string
   readonly configureHref: string
   readonly historyHref: string
+  readonly savedResumes: readonly ResumeHistoryRow[]
 }
 
 export type InterviewConfigureViewProps = {
@@ -133,7 +135,9 @@ function FooterActions({
   )
 }
 
-export function InterviewUploadView({ homeHref, configureHref, historyHref }: InterviewUploadViewProps) {
+export function InterviewUploadView({ homeHref, configureHref, historyHref, savedResumes }: InterviewUploadViewProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+
   return (
     <Workspace>
       <InterviewHeader homeHref={homeHref} current="Interview Prep" />
@@ -141,17 +145,27 @@ export function InterviewUploadView({ homeHref, configureHref, historyHref }: In
         <PaperShell>
           <SourcePicker
             title="Upload a resume"
-            actionLabel="Click to upload"
-            idleText="or drag and drop"
-            meta="PDF, DOC, DOCX or TXT"
             options={[
-              { label: 'Upload a Resume', href: configureHref },
-              { label: 'Use Lightforth Resume', href: configureHref, emphasis: 'strong' },
+              { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', href: configureHref },
+              { label: 'Use Lightforth Resume', icon: <LightforthAiIcon className="size-5" />, emphasis: 'strong', onClick: () => setPickerOpen(true) },
             ]}
             historyLink={{ label: 'View interview history', href: historyHref }}
           />
         </PaperShell>
       </section>
+
+      <ListPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        title="Use a Lightforth Resume"
+        description="Pick a resume from your history to continue with."
+        items={savedResumes.map((resume) => ({ id: resume.id, title: resume.title, subtitle: resume.company, meta: `ATS ${resume.atsScore}` }))}
+        emptyLabel="No saved resumes yet. Upload one to get started."
+        icon={<LightforthAiIcon className="size-4" />}
+        onSelect={() => {
+          window.location.href = configureHref
+        }}
+      />
     </Workspace>
   )
 }
@@ -214,6 +228,16 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
   const [selectedVoiceId, setSelectedVoiceId] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
+  const speakPreview = (voice: InterviewerVoice) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(`Hello, I'm ${voice.name}. I'll be your interviewer today. Let's get ready to practice.`)
+    utterance.rate = 0.95
+    utterance.pitch = 0.9
+    utterance.volume = 0.8
+    window.speechSynthesis.speak(utterance)
+  }
+
   const handleSelect = (voice: InterviewerVoice) => {
     if (selectedVoiceId === voice.id) return
     if (audioRef.current) {
@@ -224,8 +248,10 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
     if (voice.audioSrc) {
       const audio = new Audio(voice.audioSrc)
       audio.volume = 0.5
-      audio.play().catch(() => {})
+      audio.play().catch(() => speakPreview(voice))
       audioRef.current = audio
+    } else {
+      speakPreview(voice)
     }
   }
 
@@ -250,7 +276,7 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
               <h1 className="text-lg font-medium">Choose interviewer voice</h1>
               <span className="text-xs text-ink-muted">2/2</span>
             </div>
-            <div className="grid gap-x-5 gap-y-4 px-10 py-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-x-5 gap-y-4 px-4 py-6 sm:grid-cols-2 sm:px-10 sm:py-8 lg:grid-cols-3">
               {voices.map((voice) => {
                 const isSelected = selectedVoiceId === voice.id
                 return (

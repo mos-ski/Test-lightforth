@@ -1,5 +1,6 @@
 import type { Plan } from '@/contracts/billing'
 import { Badge, Button, cn } from '@/ui'
+import { X } from 'lucide-react'
 
 export type AuthPlanOption = {
   readonly id: Plan
@@ -41,8 +42,8 @@ function PlanCard({
   return (
     <article
       className={cn(
-        'flex min-h-full flex-col border-border bg-surface p-6',
-        selected ? 'border bg-accent-subtle' : 'border-y border-e first:border-s',
+        'flex min-h-full flex-col rounded-panel border border-border bg-surface p-6',
+        selected ? 'bg-accent-subtle' : '',
       )}
       aria-label={`${plan.name} plan`}
     >
@@ -93,10 +94,10 @@ export function PlanSelectionView({
   return (
     <main className="min-h-screen bg-canvas text-ink">
       <section className="relative min-h-screen overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-80 bg-brand-bar" />
+        <div className="absolute inset-x-0 top-0 h-64 bg-brand-bar sm:h-80" />
         <a
           href={laterHref}
-          className="absolute end-6 top-56 z-shell text-base font-medium text-brand-bar-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          className="absolute end-6 top-48 z-shell text-base font-medium text-brand-bar-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:top-56"
         >
           I&apos;ll do this later
         </a>
@@ -105,11 +106,11 @@ export function PlanSelectionView({
           aria-label="Close plan selection"
           className="absolute end-6 top-6 z-shell grid size-11 place-items-center rounded-soft text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
-          x
+          <X aria-hidden="true" className="size-5" />
         </a>
 
-        <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 pb-12 pt-16">
-          <div className="mx-auto flex flex-col items-center gap-3 text-brand-bar-text">
+        <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-12 pt-14 sm:px-6 sm:pt-16">
+          <div className="mx-auto flex flex-col items-center gap-3 text-center text-brand-bar-text">
             <h1 className="text-2xl font-semibold leading-tight">Choose a plan</h1>
             <div className="flex items-center gap-3 text-sm font-medium">
               <span>Monthly</span>
@@ -129,8 +130,8 @@ export function PlanSelectionView({
             </div>
           </div>
 
-          <div className="mx-auto mt-12 w-full max-w-4xl bg-surface p-6 shadow-panel">
-            <div className="grid overflow-hidden rounded-panel border border-border md:grid-cols-3">
+          <div className="mx-auto mt-8 w-full max-w-4xl bg-surface p-4 shadow-panel sm:mt-12 sm:p-6">
+            <div className="grid gap-4 md:grid-cols-3">
               {plans.map((plan) => (
                 <PlanCard key={plan.id} plan={plan} selected={plan.id === selectedPlanId} onSelectPlan={onSelectPlan} />
               ))}

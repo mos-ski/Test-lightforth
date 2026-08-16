@@ -168,7 +168,7 @@ function PlanCard({ plan, annual, currentIndex, index }: { readonly plan: Billin
   const actionLabel = isCurrent ? 'Current Plan' : index < currentIndex ? 'Downgrade' : 'Upgrade'
 
   return (
-    <article className={cn('flex min-h-[29rem] flex-col rounded-panel border p-6', isCurrent ? 'border-positive bg-positive-surface/40' : 'border-border bg-surface')}>
+    <article className={cn('flex min-h-0 flex-col rounded-panel border p-6 md:min-h-[29rem]', isCurrent ? 'border-positive bg-positive-surface/40' : 'border-border bg-surface')}>
       <div className="flex items-center gap-2">
         <h3 className="text-lg font-bold">{plan.name}</h3>
         {isCurrent ? <span className="rounded-pill border border-positive bg-positive-surface px-2.5 py-0.5 text-xs font-semibold text-positive">Current</span> : null}
@@ -376,7 +376,7 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
       <ContentShell>
         <div className="grid gap-6">
           <TitledPanel title="Billing & Subscription">
-            <div className="grid gap-5 lg:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-2">
               <section className="rounded-panel border border-border p-6">
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-sm text-ink-muted">You&apos;re on</span>
@@ -404,7 +404,7 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
           </TitledPanel>
 
           <TitledPanel title="Billing & Subscription" action={<AnnualToggle annual={annual} onToggle={() => setAnnual((prev) => !prev)} />}>
-            <div className="grid gap-5 lg:grid-cols-3">
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {plans.map((plan, index) => (
                 <PlanCard key={plan.id} plan={plan} annual={annual} currentIndex={currentIndex} index={index} />
               ))}
@@ -435,67 +435,106 @@ const usageFeatureTextColors: Record<string, string> = {
 function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
   const chartFeatures = Object.keys(usageFeatureColors)
   const usageRows = rows.filter((row) => row.amount < 0 && chartFeatures.includes(row.feature))
-  const totalUsed = usageRows.reduce((sum, row) => sum + Math.abs(row.amount), 0)
+
+  const [dayRange, setDayRange] = useState(30)
+  const [featureFilter, setFeatureFilter] = useState<string | null>(null)
+  const [hoveredDay, setHoveredDay] = useState<string | null>(null)
+  const [openDropdown, setOpenDropdown] = useState<'feature' | 'range' | null>(null)
+
+  const filteredRows = featureFilter ? usageRows.filter((r) => r.feature === featureFilter) : usageRows
+  const totalUsed = filteredRows.reduce((sum, row) => sum + Math.abs(row.amount), 0)
 
   const days = new Map<string, Record<string, number>>()
-  for (const row of usageRows) {
+  for (const row of filteredRows) {
     const day = row.dateTime.split(',').slice(0, 2).join(',').split(',')[0].trim()
     const bucket = days.get(day) ?? {}
     bucket[row.feature] = (bucket[row.feature] ?? 0) + Math.abs(row.amount)
     days.set(day, bucket)
   }
-  const dayEntries = [...days.entries()].reverse()
+  const dayEntries = [...days.entries()].reverse().slice(0, dayRange)
   const maxTotal = Math.max(1, ...dayEntries.map(([, bucket]) => Object.values(bucket).reduce((s, v) => s + v, 0)))
 
   return (
     <TitledPanel title="Usage Details">
       <p className="text-3xl font-black">
-        {totalUsed} <span className="text-base font-medium text-ink-muted">credits used in last 30 days</span>
+        {totalUsed} <span className="text-base font-medium text-ink-muted">credits used in last {dayRange} days</span>
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
-        <span className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control">
-          All features
-          <ChevronDown aria-hidden="true" className="size-4 text-ink-muted" />
-        </span>
-        <span className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control">
-          Last 30 days
-          <ChevronDown aria-hidden="true" className="size-4 text-ink-muted" />
-        </span>
+        <div className="relative">
+          <button type="button" onClick={() => setOpenDropdown(openDropdown === 'feature' ? null : 'feature')} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            {featureFilter ?? 'All features'}
+            <ChevronDown aria-hidden="true" className={cn('size-4 text-ink-muted transition-transform', openDropdown === 'feature' && 'rotate-180')} />
+          </button>
+          {openDropdown === 'feature' ? (
+            <div className="absolute left-0 top-full z-20 mt-1 w-48 rounded-lg border border-border bg-surface py-1 shadow-popover">
+              <button type="button" onClick={() => { setFeatureFilter(null); setOpenDropdown(null) }} className={cn('block w-full px-3 py-2 text-left text-sm hover:bg-surface-subtle focus-visible:outline-none', !featureFilter && 'font-semibold text-accent')}>
+                All features
+              </button>
+              {chartFeatures.map((feature) => (
+                <button key={feature} type="button" onClick={() => { setFeatureFilter(feature); setOpenDropdown(null) }} className={cn('block w-full px-3 py-2 text-left text-sm hover:bg-surface-subtle focus-visible:outline-none', featureFilter === feature && 'font-semibold text-accent')}>
+                  {feature}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <div className="relative">
+          <button type="button" onClick={() => setOpenDropdown(openDropdown === 'range' ? null : 'range')} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-input bg-surface px-3 text-sm font-medium text-ink shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            Last {dayRange} days
+            <ChevronDown aria-hidden="true" className={cn('size-4 text-ink-muted transition-transform', openDropdown === 'range' && 'rotate-180')} />
+          </button>
+          {openDropdown === 'range' ? (
+            <div className="absolute left-0 top-full z-20 mt-1 w-40 rounded-lg border border-border bg-surface py-1 shadow-popover">
+              {[7, 14, 30].map((d) => (
+                <button key={d} type="button" onClick={() => { setDayRange(d); setOpenDropdown(null) }} className={cn('block w-full px-3 py-2 text-left text-sm hover:bg-surface-subtle focus-visible:outline-none', dayRange === d && 'font-semibold text-accent')}>
+                  Last {d} days
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {dayEntries.length === 0 ? (
         <p className="mt-8 text-sm text-ink-muted">No credit usage in this period yet.</p>
       ) : (
-        <div className="mt-8 flex h-48 w-full items-end justify-between gap-2 overflow-x-auto px-1 pb-1">
+        <div className="mt-8 flex h-48 w-full items-end justify-between gap-1 overflow-x-auto px-1 pb-1">
           {dayEntries.map(([day, bucket]) => {
             const total = Object.values(bucket).reduce((s, v) => s + v, 0)
             const usedFeatures = chartFeatures.filter((f) => bucket[f])
+            const isHovered = hoveredDay === day
             return (
-              <div key={day} className="group relative flex shrink-0 flex-col items-center gap-2 rounded-sm px-1 pt-2 hover:bg-surface-subtle">
-                <div className="relative flex w-8 flex-col-reverse overflow-hidden rounded-t-full bg-surface-subtle" style={{ blockSize: '160px' }}>
-                  {usedFeatures.map((feature, i) => {
-                    const isTop = i === usedFeatures.length - 1
-                    return (
-                      <div
-                        key={feature}
-                        className={cn(usageFeatureColors[feature], isTop && 'rounded-t-full')}
-                        style={{ blockSize: `${Math.max(2, (bucket[feature] / maxTotal) * 160)}px` }}
-                      />
-                    )
-                  })}
+              <div
+                key={day}
+                className="group relative flex shrink-0 flex-col items-center gap-2 px-0.5 pt-2"
+                onMouseEnter={() => setHoveredDay(day)}
+                onMouseLeave={() => setHoveredDay(null)}
+              >
+                <div className={cn('relative flex w-7 flex-col-reverse overflow-hidden bg-surface-subtle transition-opacity', isHovered ? 'opacity-100' : 'opacity-80 group-hover:opacity-100')} style={{ blockSize: '160px' }}>
+                  {usedFeatures.map((feature) => (
+                    <div
+                      key={feature}
+                      className={cn(usageFeatureColors[feature], 'w-full transition-all')}
+                      style={{ blockSize: `${Math.max(2, (bucket[feature] / maxTotal) * 160)}px` }}
+                    />
+                  ))}
                 </div>
-                <span className="whitespace-nowrap text-[10px] text-ink-muted">{day}</span>
-                <div className="pointer-events-none absolute bottom-full start-1/2 z-tooltip mb-2 hidden w-max -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-start shadow-popover group-hover:block">
-                  <p className="text-sm font-semibold text-ink">{day}</p>
-                  <p className="mt-0.5 text-xs text-ink-muted">{total} credits</p>
-                  <div className="mt-1 grid gap-0.5">
-                    {usedFeatures.map((feature) => (
-                      <p key={feature} className={cn('text-xs font-medium', usageFeatureTextColors[feature])}>
-                        {feature}: {bucket[feature]}
-                      </p>
-                    ))}
+                <span className="whitespace-nowrap text-[9px] text-ink-muted">{day}</span>
+                {isHovered ? (
+                  <div className="pointer-events-none absolute bottom-full start-1/2 z-tooltip mb-2 w-max -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-start shadow-popover">
+                    <p className="text-sm font-semibold text-ink">{day}</p>
+                    <p className="mt-0.5 text-xs text-ink-muted">{total} credit{total !== 1 ? 's' : ''} spent</p>
+                    <div className="mt-1.5 grid gap-0.5 border-t border-border pt-1.5">
+                      {usedFeatures.map((feature) => (
+                        <div key={feature} className="flex items-center gap-2">
+                          <span className={cn('size-2 rounded-full', usageFeatureColors[feature])} />
+                          <span className="text-xs text-ink-muted">{feature}</span>
+                          <span className="ml-auto text-xs font-semibold text-ink">{bucket[feature]}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : null}
               </div>
             )
           })}
