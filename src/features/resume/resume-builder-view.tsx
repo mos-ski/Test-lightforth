@@ -94,11 +94,11 @@ function PaperShell({ children, compact = false }: { readonly children: ReactNod
 function PageBreakLine({ top }: { readonly top: string }) {
   return (
     <div
-      className="pointer-events-none absolute start-0 end-0 z-10 flex items-center gap-2 border-b-2 border-dashed border-paper-muted/60 py-1"
+      className="pointer-events-none absolute start-0 end-0 z-10 flex items-center gap-2 border-b-2 border-dashed border-accent py-1"
       style={{ top }}
       aria-hidden="true"
     >
-      <span className="bg-paper px-1 text-[10px] font-medium uppercase tracking-wide text-paper-muted">Page break</span>
+      <span className="bg-paper px-1 text-[10px] font-medium uppercase tracking-wide text-accent-text">Page break</span>
     </div>
   )
 }
@@ -121,12 +121,16 @@ function ResumePaper({ children, compact = false }: { readonly children: ReactNo
   )
 }
 
-function AiSuggestionLabel() {
+function AiSuggestionLabel({ onClick }: { readonly onClick?: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm font-bold">
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-8 items-center gap-1.5 self-start text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+    >
       <LightforthAiIcon className="size-3.5 shrink-0" />
       <span className="bg-gradient-to-r from-accent to-accent-tertiary bg-clip-text text-transparent">AI Suggestion</span>
-    </span>
+    </button>
   )
 }
 
