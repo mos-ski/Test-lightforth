@@ -30,6 +30,7 @@ export type ResumeEditorViewProps = {
   readonly templates: readonly ResumeTemplate[]
   readonly tab: ResumeBuilderTab
   readonly chatState: ResumeChatState
+  readonly jd?: string
 }
 
 export type ResumeHistoryViewProps = {
@@ -312,6 +313,10 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
     type(RESUME_JOB_DESCRIPTION_SUGGESTION, (partial) => setJobDescription(base + partial))
   }
 
+  const editorUrl = jobDescription.trim()
+    ? `${editorHref}?jd=${encodeURIComponent(jobDescription.trim())}`
+    : editorHref
+
   return (
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="Build a Resume" />
@@ -324,7 +329,7 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
             changeHref: uploadHref,
             onChangeClick: () => clearDefaultResumePreference(),
           }}
-          footer={<FormPanelFooter backHref={uploadHref} nextHref={editorHref} />}
+          footer={<FormPanelFooter backHref={uploadHref} nextHref={editorUrl} />}
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <FormField id="resume-name" label="Resume Name" placeholder="e.g. Senior PM Resume" />
@@ -373,10 +378,10 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
                   >
                     <X aria-hidden="true" className="size-3" />
                   </button>
-                  <p className="text-sm font-semibold">Send your First Message</p>
-                  <p className="mt-1 text-xs leading-relaxed text-brand-bar-text/80">
-                    Chat or paste a job description and Lightforth will rewrite your resume to match key words.
-                  </p>
+                <p className="text-sm font-semibold">Tailor your resume</p>
+                <p className="mt-1 text-xs leading-relaxed text-brand-bar-text/80">
+                  Paste a job description and Lightforth will automatically rewrite your resume to match key words.
+                </p>
                   <button
                     type="button"
                     onClick={() => setShowTip(false)}
@@ -437,11 +442,11 @@ function ChatEmptyState() {
   return (
     <div className="grid flex-1 place-items-center p-6 text-center">
       <div className="max-w-[15rem]">
-        <p className="text-sm font-bold text-ink">Paste a job description, or ask for a rewrite</p>
+        <p className="text-sm font-bold text-ink">Send a message to adjust your resume</p>
         <ol className="mt-4 grid gap-2 text-start text-xs text-ink-muted">
           <li className="flex items-start gap-2">
             <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-pill bg-accent-subtle text-[11px] font-bold text-accent-text">1</span>
-            Type your first message below
+            Ask for rewrites, tone changes, or keyword targeting
           </li>
           <li className="flex items-start gap-2">
             <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-pill bg-accent-subtle text-[11px] font-bold text-accent-text">2</span>
@@ -455,7 +460,7 @@ function ChatEmptyState() {
 
 type ChatMessage = { readonly id: string; readonly author: 'candidate' | 'assistant'; readonly text: string }
 
-const CHAT_PLACEHOLDER_EMPTY = 'Paste a job description here to get started…'
+const CHAT_PLACEHOLDER_EMPTY = 'Send a message for more adjustments…'
 const CHAT_PLACEHOLDER_ACTIVE = 'Message Lightforth AI...'
 
 function useTypedPlaceholder(text: string, enabled: boolean) {
@@ -1352,19 +1357,27 @@ function useIsMobileViewport() {
   return isMobile
 }
 
-export function ResumeEditorView({ homeHref, document, session, templates, tab, chatState }: ResumeEditorViewProps) {
-  const [messages, setMessages] = useState<readonly ChatMessage[]>(
-    chatState === 'suggestions'
-      ? [
-          { id: 'seed-candidate', author: 'candidate', text: session.chatPrompt },
-          { id: 'seed-assistant', author: 'assistant', text: session.aiResponse },
-        ]
-      : [],
-  )
+export function ResumeEditorView({ homeHref, document, session, templates, tab, chatState, jd }: ResumeEditorViewProps) {
+  const hasJd = Boolean(jd && jd.trim())
+  const [messages, setMessages] = useState<readonly ChatMessage[]>(() => {
+    if (hasJd) {
+      return [
+        { id: 'jd-candidate', author: 'candidate', text: jd!.trim() },
+        { id: 'jd-assistant', author: 'assistant', text: "I've tailored your resume to match the job description — review the highlighted changes below and accept or reject them." },
+      ]
+    }
+    if (chatState === 'suggestions') {
+      return [
+        { id: 'seed-candidate', author: 'candidate', text: session.chatPrompt },
+        { id: 'seed-assistant', author: 'assistant', text: session.aiResponse },
+      ]
+    }
+    return []
+  })
   const [draft, setDraft] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [thinkingLabel, setThinkingLabel] = useState(THINKING_LABELS[0])
-  const [pendingSuggestion, setPendingSuggestion] = useState(chatState === 'suggestions')
+  const [pendingSuggestion, setPendingSuggestion] = useState(hasJd || chatState === 'suggestions')
   const [hasAcceptedChanges, setHasAcceptedChanges] = useState(false)
   const [atsOpen, setAtsOpen] = useState(false)
   const [dismissedSendTip, setDismissedSendTip] = useState(false)
@@ -1423,7 +1436,7 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   }
 
   const showImproved = hasAcceptedChanges || pendingSuggestion
-  const showSendTip = tab === 'chat' && messages.length === 0 && !dismissedSendTip
+  const showSendTip = tab === 'chat' && messages.length === 0 && !dismissedSendTip && !hasJd
   const showAcceptTip = pendingSuggestion && (tab === 'chat' || tab === 'create') && !dismissedAcceptTip
   const changes: readonly SuggestionChange[] = pendingSuggestion
     ? [
@@ -1508,9 +1521,9 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
             <WalkthroughTooltip
               targetId="walkthrough-chat-input"
               side="right"
-              title="Send your First Message"
-              body="Chat or paste a job description and Lightforth will rewrite your resume to match key words."
-              actionLabel="I'm ready"
+              title="Send more messages"
+              body="Ask for rewrites, tone changes, or keyword targeting — Lightforth will update your resume in real time."
+              actionLabel="Got it"
               onAction={() => setDismissedSendTip(true)}
               onDismiss={() => setDismissedSendTip(true)}
             />
