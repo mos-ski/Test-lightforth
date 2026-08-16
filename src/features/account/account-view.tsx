@@ -58,7 +58,7 @@ function ContentShell({ children }: { readonly children: ReactNode }) {
 function TitledPanel({ title, action, children }: { readonly title: string; readonly action?: ReactNode; readonly children: ReactNode }) {
   return (
     <article className="w-full bg-surface shadow-panel">
-      <div className="flex min-h-[5rem] items-center justify-between border-b border-border px-4 sm:px-6 lg:px-8">
+      <div className="flex min-h-[5rem] flex-wrap items-center justify-between gap-3 border-b border-border px-4 sm:px-6 lg:px-8">
         <h1 className="text-lg font-medium leading-5 text-ink sm:text-xl">{title}</h1>
         {action}
       </div>
@@ -334,20 +334,20 @@ function CreditUsageTable({ rows }: { readonly rows: readonly CreditUsageRow[] }
     <TitledPanel title="How credits works">
       <div className="relative">
         <div className="overflow-x-auto [scrollbar-width:thin]">
-          <table className="w-full min-w-[36rem] border-collapse text-sm">
+          <table className="w-full min-w-[28rem] border-collapse text-sm">
             <thead>
               <tr className="border-b border-border bg-surface-subtle text-ink-muted">
-                <th className="px-4 py-2.5 text-start font-semibold">Feature</th>
-                <th className="px-4 py-2.5 text-start font-semibold">What triggers it</th>
-                <th className="px-4 py-2.5 text-start font-semibold">Credits</th>
+                <th className="px-3 py-2.5 text-start font-semibold sm:px-4">Feature</th>
+                <th className="hidden px-3 py-2.5 text-start font-semibold sm:table-cell sm:px-4">What triggers it</th>
+                <th className="px-3 py-2.5 text-start font-semibold sm:px-4">Credits</th>
               </tr>
             </thead>
             <tbody className="text-ink">
               {rows.map((row) => (
                 <tr key={row.feature} className="border-b border-border">
-                  <td className="px-4 py-2.5 font-medium leading-5">{row.feature}</td>
-                  <td className="px-4 py-2.5 leading-5 text-ink-muted">{row.trigger}</td>
-                  <td className="px-4 py-2.5 leading-5">
+                  <td className="px-3 py-2.5 font-medium leading-5 sm:px-4">{row.feature}</td>
+                  <td className="hidden px-3 py-2.5 leading-5 text-ink-muted sm:table-cell sm:px-4">{row.trigger}</td>
+                  <td className="px-3 py-2.5 leading-5 sm:px-4">
                     <span
                       className={cn(
                         'rounded-pill px-2.5 py-0.5 text-xs font-bold leading-4',
@@ -380,17 +380,17 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
         <div className="grid gap-6">
           <TitledPanel title="Billing & Subscription">
             <div className="grid gap-5 md:grid-cols-2">
-              <section className="rounded-panel border border-border p-6">
-                <div className="flex flex-wrap items-center gap-3">
+              <section className="rounded-panel border border-border p-4 sm:p-6">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm text-ink-muted">You&apos;re on</span>
                   <span className="font-semibold text-ink">{currentPlan?.name.charAt(0)}{currentPlan?.name.slice(1).toLowerCase()} plan</span>
-                  <span className="rounded-pill bg-accent-subtle px-2.5 py-0.5 text-sm font-medium text-accent-text">Monthly</span>
+                  <span className="rounded-pill bg-accent-subtle px-2.5 py-0.5 text-xs font-medium text-accent-text">Monthly</span>
                 </div>
                 <p className="mt-2 text-sm text-ink-muted">Renews Sep 9, 2026</p>
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
                   <CancelSubscriptionDialog renewalLabel="September 9th, 2026" />
-                  <p className="text-right">
-                    <span className="text-4xl font-black text-ink">{currentPlan?.price}</span>{' '}
+                  <p className="text-end">
+                    <span className="text-3xl font-black text-ink sm:text-4xl">{currentPlan?.price}</span>{' '}
                     <span className="text-sm text-ink-muted">per month</span>
                   </p>
                 </div>

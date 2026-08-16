@@ -299,7 +299,6 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
             <div className="grid gap-3">
               <FormField id="copilot-meeting-title" label="Meeting title" defaultValue={setup.meetingTitle ?? ''} />
               <FormField id="copilot-meeting-company" label="Client / Team" defaultValue={setup.companyName} />
-              <FormTextArea id="copilot-meeting-agenda" label="Agenda" defaultValue={setup.meetingAgenda ?? ''} />
             </div>
           )}
           <DocumentDropAction onTrigger={openDocumentPicker} hint="Add from Knowledge Base">
