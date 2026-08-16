@@ -76,6 +76,58 @@ export const DEFAULT_AUTO_APPLY_SETUP: AutoApplySetup = {
   drugDiversion: 'no',
 };
 
+export type AutoApplyOutcome = 'success' | 'needs-review' | 'failed';
+
+export type AutoApplyJob = {
+  readonly id: string;
+  readonly title: string;
+  readonly company: string;
+  readonly location: string;
+  readonly type: string;
+  readonly matchPercent: number;
+  readonly source: string;
+  readonly dateLabel: string;
+  readonly status: 'applied' | 'new';
+  readonly outcome?: AutoApplyOutcome;
+  readonly reviewNote?: string;
+  readonly listingUrl: string;
+  readonly resumeFileName: string;
+  readonly description: string;
+  readonly tags: readonly string[];
+  readonly creditsRemaining: number;
+  readonly creditsTotal: number;
+};
+
+export type AutoApplyApplicationEvent = {
+  readonly label: string;
+  readonly time: string;
+};
+
+export type AutoApplyApplication = {
+  readonly job: AutoApplyJob;
+  readonly appliedDate: string;
+  readonly events: readonly AutoApplyApplicationEvent[];
+  readonly activityLog: readonly string[];
+};
+
+export type AutoApplyMetric = { readonly label: string; readonly value: number };
+
+export type AutoApplyAgentStatus = {
+  readonly name: string;
+  readonly status: 'running' | 'complete' | 'idle';
+  readonly description: string;
+};
+
+export type AutoApplyActivity = {
+  readonly id: string;
+  readonly actor: string;
+  readonly time: string;
+  readonly message: string;
+  readonly detail: string;
+  readonly links: readonly string[];
+  readonly tone: 'success' | 'muted' | 'default';
+};
+
 export const EMPLOYMENT_TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Temporary', 'Volunteer'] as const;
 export const LOCATION_TYPES = ['Onsite', 'Remote', 'Hybrid'] as const;
 export const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'] as const;
