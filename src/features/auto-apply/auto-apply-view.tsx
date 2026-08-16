@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
-import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, RefreshCw, Search, Send, X, XCircle, Zap, Trash2, Download, Mail } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, RefreshCw, Search, Send, X, Zap, Trash2, Download, Mail } from 'lucide-react'
 
 import type { AutoApplyApplication, AutoApplyJob, AutoApplyOutcome, AutoApplySetup } from '@/contracts/auto-apply.draft'
 import {
@@ -1030,27 +1030,12 @@ function JobSearch({ onRefresh }: { readonly onRefresh?: () => void }) {
 
 function OutcomeBadge({ outcome }: { readonly outcome: AutoApplyOutcome }) {
   if (outcome === 'success') {
-    return (
-      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-positive-surface px-3 py-2 text-sm font-medium text-positive">
-        <CheckCircle2 aria-hidden="true" className="size-4" />
-        Success
-      </span>
-    )
+    return <span className="shrink-0 rounded-lg bg-positive-surface px-4 py-2 text-sm font-medium text-positive">Success</span>
   }
   if (outcome === 'failed') {
-    return (
-      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-danger-surface px-3 py-2 text-sm font-medium text-danger">
-        <XCircle aria-hidden="true" className="size-4" />
-        Failed
-      </span>
-    )
+    return <span className="shrink-0 rounded-lg bg-danger-surface px-4 py-2 text-sm font-medium text-danger">Failed</span>
   }
-  return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-warning-surface px-3 py-2 text-sm font-medium text-warning">
-      <AlertTriangle aria-hidden="true" className="size-4" />
-      Needs Review
-    </span>
-  )
+  return <span className="shrink-0 rounded-lg bg-warning-surface px-4 py-2 text-sm font-medium text-warning">Needs Review</span>
 }
 
 function JobList({
