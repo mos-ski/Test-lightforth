@@ -27,6 +27,7 @@ export {
   OptionStack,
   PermissionSteps,
   ReviewSummaryList,
+  UploadedFileDialog,
   UploadedFileStrip,
 } from './form-panel'
 export type {
@@ -51,6 +52,7 @@ export type {
   PermissionStepsProps,
   ReviewSummaryListProps,
   SummaryRow,
+  UploadedFileDialogProps,
   UploadedFileStripProps,
 } from './form-panel'
 export { SourcePicker } from './source-picker'

@@ -47,6 +47,7 @@ import {
   Tabs,
   TabsContent,
   TabsList,
+  UploadedFileDialog,
   TabsTrigger,
 } from '@/ui'
 
@@ -64,6 +65,7 @@ export type CopilotUploadViewProps = {
   readonly configureHref: string
   readonly historyHref: string
   readonly mode: CopilotMode
+  readonly uploadedFileName: string
   readonly savedResumes: readonly ResumeHistoryRow[]
 }
 
@@ -163,14 +165,15 @@ function FooterActions({ backHref, nextHref, nextLabel }: { readonly backHref: s
   )
 }
 
-export function CopilotUploadView({ homeHref, configureHref, historyHref, mode, savedResumes }: CopilotUploadViewProps) {
+export function CopilotUploadView({ homeHref, configureHref, historyHref, mode, uploadedFileName, savedResumes }: CopilotUploadViewProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
 
-  const uploadOption: SourcePickerOption = {
-    label: mode === 'interview' ? 'Upload a Resume' : mode === 'coding' ? 'Upload a Job Description' : 'Upload an Agenda',
-    hint: 'PDF, DOC, DOCX or TXT',
-    href: configureHref,
-  }
+  const uploadOption: SourcePickerOption =
+    mode === 'interview'
+      ? { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', onClick: () => setUploadDialogOpen(true) }
+      : { label: mode === 'coding' ? 'Upload a Job Description' : 'Upload an Agenda', hint: 'PDF, DOC, DOCX or TXT', href: configureHref }
 
   return (
     <Workspace>
@@ -192,18 +195,33 @@ export function CopilotUploadView({ homeHref, configureHref, historyHref, mode, 
       </section>
 
       {mode === 'interview' ? (
-        <ListPickerDialog
-          open={pickerOpen}
-          onOpenChange={setPickerOpen}
-          title="Use a Lightforth Resume"
-          description="Pick a resume from your history to continue with."
-          items={savedResumes.map((resume) => ({ id: resume.id, title: resume.title, subtitle: resume.company, meta: `ATS ${resume.atsScore}` }))}
-          emptyLabel="No saved resumes yet. Upload one to get started."
-          icon={<LightforthAiIcon className="size-4" />}
-          onSelect={() => {
-            window.location.href = configureHref
-          }}
-        />
+        <>
+          <ListPickerDialog
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            title="Use a Lightforth Resume"
+            description="Pick a resume from your history to continue with."
+            items={savedResumes.map((resume) => ({ id: resume.id, title: resume.title, subtitle: resume.company, meta: `ATS ${resume.atsScore}` }))}
+            emptyLabel="No saved resumes yet. Upload one to get started."
+            icon={<LightforthAiIcon className="size-4" />}
+            onSelect={() => {
+              setPickerOpen(false)
+              setUploadDialogOpen(true)
+            }}
+          />
+          <UploadedFileDialog
+            open={uploadDialogOpen}
+            onOpenChange={setUploadDialogOpen}
+            fileName={uploadedFileName}
+            continueHref={configureHref}
+            defaultChecked={useAsDefault}
+            onDefaultChange={(checked) => {
+              setUseAsDefault(checked)
+              if (checked) setDefaultResumePreference(uploadedFileName)
+              else clearDefaultResumePreference()
+            }}
+          />
+        </>
       ) : null}
     </Workspace>
   )
@@ -215,7 +233,6 @@ const COPILOT_AI_SUGGESTION =
 export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, setup, knowledgeBaseDocuments }: CopilotConfigureViewProps) {
   const mode = setup.mode
   const [additionalContext, setAdditionalContext] = useState(setup.additionalContext)
-  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
   const [selectedDocIds, setSelectedDocIds] = useState<ReadonlySet<string>>(new Set())
   const [pickerOpen, setPickerOpen] = useState(false)
   const [draftDocIds, setDraftDocIds] = useState<ReadonlySet<string>>(new Set())
@@ -253,12 +270,6 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
               ? {
                   fileName: setup.uploadedFileName,
                   changeHref: uploadHref,
-                  defaultChecked: useAsDefault,
-                  onDefaultChange: (checked) => {
-                    setUseAsDefault(checked)
-                    if (checked) setDefaultResumePreference(setup.uploadedFileName)
-                    else clearDefaultResumePreference()
-                  },
                   onChangeClick: () => clearDefaultResumePreference(),
                 }
               : undefined

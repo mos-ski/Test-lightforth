@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Send, Target, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
-import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker } from '@/ui'
+import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, UploadedFileDialog } from '@/ui'
 import { useTypewriter } from '@/hooks/useTypewriter'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 
@@ -10,6 +10,7 @@ export type ResumeUploadViewProps = {
   readonly homeHref: string
   readonly configureHref: string
   readonly historyHref: string
+  readonly uploadedFileName: string
   readonly savedResumes: readonly ResumeHistoryRow[]
 }
 
@@ -224,8 +225,10 @@ function AiSuggestionLabel({ onClick }: { readonly onClick?: () => void }) {
   )
 }
 
-export function ResumeUploadView({ homeHref, configureHref, historyHref, savedResumes }: ResumeUploadViewProps) {
+export function ResumeUploadView({ homeHref, configureHref, historyHref, uploadedFileName, savedResumes }: ResumeUploadViewProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
 
   return (
     <Workspace>
@@ -235,7 +238,7 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref, savedRe
           <SourcePicker
             title="Upload a resume"
             options={[
-              { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', href: configureHref },
+              { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', onClick: () => setUploadDialogOpen(true) },
               { label: 'Use Lightforth Resume', icon: <LightforthAiIcon className="size-5" />, emphasis: 'strong', onClick: () => setPickerOpen(true) },
             ]}
             historyLink={{ label: 'View past resumes', href: historyHref }}
@@ -252,7 +255,21 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref, savedRe
         emptyLabel="No saved resumes yet. Upload one to get started."
         icon={<LightforthAiIcon className="size-4" />}
         onSelect={() => {
-          window.location.href = configureHref
+          setPickerOpen(false)
+          setUploadDialogOpen(true)
+        }}
+      />
+
+      <UploadedFileDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        fileName={uploadedFileName}
+        continueHref={configureHref}
+        defaultChecked={useAsDefault}
+        onDefaultChange={(checked) => {
+          setUseAsDefault(checked)
+          if (checked) setDefaultResumePreference(uploadedFileName)
+          else clearDefaultResumePreference()
         }}
       />
     </Workspace>
@@ -264,7 +281,6 @@ const RESUME_JOB_DESCRIPTION_SUGGESTION =
 
 export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session }: ResumeConfigureViewProps) {
   const [jobDescription, setJobDescription] = useState(session.jobDescription)
-  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
   const { type, isTyping } = useTypewriter()
 
   function handleAiSuggestion() {
@@ -282,12 +298,6 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
           uploadedFile={{
             fileName: session.uploadedFileName,
             changeHref: uploadHref,
-            defaultChecked: useAsDefault,
-            onDefaultChange: (checked) => {
-              setUseAsDefault(checked)
-              if (checked) setDefaultResumePreference(session.uploadedFileName)
-              else clearDefaultResumePreference()
-            },
             onChangeClick: () => clearDefaultResumePreference(),
           }}
           footer={<FormPanelFooter backHref={uploadHref} nextHref={editorHref} />}
