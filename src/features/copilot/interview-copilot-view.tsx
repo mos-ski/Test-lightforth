@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
 import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, FileText, MessageCircle, Pause, PhoneOff, Play, Plus, Send, Settings, Users, Video, X } from 'lucide-react'
 
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
@@ -509,6 +509,91 @@ function DraggableAvatar({ name }: { readonly name: string }) {
   )
 }
 
+type AiAssistantMessage = { readonly id: string; readonly role: 'user' | 'assistant'; readonly text: string }
+
+function CopilotAiAssistantPanel({
+  prompts,
+  messages,
+  setMessages,
+  draft,
+  setDraft,
+  onSend,
+  scrollRef,
+  className,
+}: {
+  readonly prompts: readonly string[]
+  readonly messages: readonly AiAssistantMessage[]
+  readonly setMessages: (updater: (prev: readonly AiAssistantMessage[]) => readonly AiAssistantMessage[]) => void
+  readonly draft: string
+  readonly setDraft: (value: string) => void
+  readonly onSend: () => void
+  readonly scrollRef: RefObject<HTMLDivElement>
+  readonly className?: string
+}) {
+  return (
+    <div className={cn('grid min-h-0 grid-rows-[1fr_auto]', className)}>
+      <div ref={scrollRef} className="flex min-h-0 flex-col gap-2.5 overflow-y-auto px-4 py-3">
+        {messages.length === 0 ? (
+          <div className="flex flex-1 flex-col justify-end gap-1.5">
+            {prompts.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => {
+                  const userMsg: AiAssistantMessage = { id: `aam-${Date.now()}`, role: 'user', text: prompt }
+                  setMessages((prev) => [...prev, userMsg])
+                  const aiMsg: AiAssistantMessage = { id: `aam-${Date.now()}-ai`, role: 'assistant', text: copilotResponseFor(prompt) }
+                  setMessages((prev) => [...prev, aiMsg])
+                }}
+                className="inline-flex min-h-[27px] items-center gap-1 rounded-[3px] border border-[var(--lf-live-control-border)] px-2.5 py-1 text-start text-[10px] font-medium leading-[15px] text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                <ChevronRight aria-hidden="true" className="size-2.5" />
+                <span className="truncate">{prompt}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <>
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={cn(
+                  'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed',
+                  msg.role === 'user'
+                    ? 'ms-auto rounded-ee-sm bg-[var(--lf-live-control-border)] text-brand-bar-text'
+                    : 'rounded-ss-sm bg-[var(--lf-live-message)] text-brand-bar-text'
+                )}
+              >
+                {msg.text}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+      <label className="border-t border-[var(--lf-live-border)] p-3">
+        <span className="sr-only">Ask AI anything</span>
+        <span className="flex min-h-11 items-center gap-2 rounded-lg border border-[var(--lf-live-border)] bg-[var(--lf-live-header)] px-3 py-2">
+          <input
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                onSend()
+              }
+            }}
+            className="min-w-0 flex-1 bg-transparent text-sm text-brand-bar-text outline-none placeholder:text-ink-muted"
+            placeholder="Ask AI anything..."
+          />
+          <button type="button" onClick={onSend} aria-label="Send question">
+            <Send aria-hidden="true" className="size-4 text-ink-muted" />
+          </button>
+        </span>
+      </label>
+    </div>
+  )
+}
+
 function CopilotLiveSettingsModal({
   open,
   onOpenChange,
@@ -991,11 +1076,13 @@ function CopilotTranscriptPanel({
   responseMode,
   fontSize,
   onActivityChange,
+  manualHint = 'Press Space to start the simulation…',
 }: {
   readonly bank: readonly CopilotTranscriptTurn[]
   readonly responseMode: 'auto' | 'manual'
   readonly fontSize: number
   readonly onActivityChange: (label: string) => void
+  readonly manualHint?: string
 }) {
   const [started, setStarted] = useState(false)
   const [status, setStatus] = useState<ConversationalStatus>('listening')
@@ -1165,7 +1252,7 @@ function CopilotTranscriptPanel({
         </div>
       ) : (
         <p className="text-sm italic text-ink-muted">
-          {responseMode === 'auto' ? 'Auto Respond is on — listening automatically…' : 'Press Space to start the simulation…'}
+          {responseMode === 'auto' ? 'Auto Respond is on — listening automatically…' : manualHint}
         </p>
       )}
     </div>
@@ -1186,11 +1273,13 @@ function CopilotCodingPanel({
   responseMode,
   fontSize,
   onActivityChange,
+  manualHint = 'Press Space to capture your first question…',
 }: {
   readonly bank: readonly CopilotCodingTurn[]
   readonly responseMode: 'auto' | 'manual'
   readonly fontSize: number
   readonly onActivityChange: (label: string) => void
+  readonly manualHint?: string
 }) {
   const [status, setStatus] = useState<CodingStatus>('idle')
   const [index, setIndex] = useState(0)
@@ -1287,7 +1376,8 @@ function CopilotCodingPanel({
             </pre>
             <button
               type="button"
-              onClick={() => {
+              onClick={(event) => {
+                event.stopPropagation()
                 void navigator.clipboard?.writeText(current.answer)
                 setCopied(true)
                 setTimeout(() => setCopied(false), 1500)
@@ -1302,7 +1392,7 @@ function CopilotCodingPanel({
 
       {status === 'idle' && history.length === 0 ? (
         <p className="text-sm italic text-ink-muted">
-          {responseMode === 'auto' ? 'Auto Respond is on — Copilot will capture automatically. Press Space to capture sooner.' : 'Press Space to capture your first question…'}
+          {responseMode === 'auto' ? 'Auto Respond is on — Copilot will capture automatically. Press Space to capture sooner.' : manualHint}
         </p>
       ) : null}
     </div>
@@ -1310,7 +1400,6 @@ function CopilotCodingPanel({
 }
 
 export function CopilotLiveView({ completeHref, session, isLoading = false, transcriptBank = [], codingBank = [] }: CopilotLiveViewProps) {
-  type AiAssistantMessage = { readonly id: string; readonly role: 'user' | 'assistant'; readonly text: string }
   const [assistantMessages, setAssistantMessages] = useState<readonly AiAssistantMessage[]>([])
   const [draft, setDraft] = useState('')
   const assistantScrollRef = useRef<HTMLDivElement>(null)
@@ -1350,18 +1439,28 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
     setAssistantMessages((prev) => [...prev, aiMsg])
   }
 
+  function handleManualAdvance() {
+    if (responseMode !== 'manual') return
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', key: ' ', bubbles: true, cancelable: true }))
+  }
+
   if (isMobile) {
     return (
       <main className="min-h-screen bg-black text-white">
-        <div className="fixed inset-0 z-0">
-          {session.mode === 'coding' ? (
-            <div className="size-full bg-gradient-to-b from-[#0b1220] to-black" />
-          ) : (
-            <>
-              <img src={session.screenPreviewSrc} alt="" className="size-full scale-125 object-cover object-top" />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/80" />
-            </>
-          )}
+        <div
+          className="fixed inset-0 z-0 flex flex-col bg-gradient-to-b from-[#0b1220] to-black pt-[6.5rem] pb-[7.5rem]"
+          onClick={handleManualAdvance}
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {session.mode === 'coding' ? (
+              <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} manualHint="Tap anywhere to capture your first question…" />
+            ) : (
+              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} manualHint="Tap anywhere to start the simulation…" />
+            )}
+          </div>
+          {responseMode === 'manual' ? (
+            <p className="pointer-events-none px-5 pb-1 text-center text-xs text-white/40">Tap anywhere to continue</p>
+          ) : null}
         </div>
 
         <div className="fixed inset-x-0 top-0 z-20 flex items-center justify-between gap-3 bg-gradient-to-b from-black/70 to-transparent px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
@@ -1418,18 +1517,21 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           aria-hidden={!showChat}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-[var(--lf-live-border)] px-5 py-4">
-            <h2 className="text-base font-semibold">Chat</h2>
+            <h2 className="text-base font-semibold">Ask AI</h2>
             <button type="button" onClick={() => setShowChat(false)} aria-label="Close chat" className="grid size-8 place-items-center rounded-soft text-ink-muted hover:text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               <X aria-hidden="true" className="size-4" />
             </button>
           </div>
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-            {session.mode === 'coding' ? (
-              <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} />
-            ) : (
-              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} />
-            )}
-          </div>
+          <CopilotAiAssistantPanel
+            prompts={session.prompts}
+            messages={assistantMessages}
+            setMessages={setAssistantMessages}
+            draft={draft}
+            setDraft={setDraft}
+            onSend={handleSend}
+            scrollRef={assistantScrollRef}
+            className="min-h-0 flex-1"
+          />
         </div>
 
         <CopilotLiveSettingsModal
@@ -1503,71 +1605,23 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
               <div className="hidden h-1.5 bg-[var(--lf-live-divider)] xl:block" />
             </>
           ) : null}
-          <section className="grid min-h-0 grid-rows-[auto_1fr_auto] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
+          <section className="grid min-h-0 grid-rows-[auto_1fr] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
             <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
               <h2 className="text-sm font-medium leading-5">AI Assistant</h2>
               <button type="button" aria-label="Close AI assistant" className="grid size-8 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 <X aria-hidden="true" className="size-4" />
               </button>
             </div>
-            <div ref={assistantScrollRef} className="flex min-h-0 flex-col gap-2.5 overflow-y-auto px-4 py-3">
-              {assistantMessages.length === 0 ? (
-                <div className="flex flex-1 flex-col justify-end gap-1.5">
-                  {session.prompts.map((prompt) => (
-                    <button
-                      key={prompt}
-                      type="button"
-                      onClick={() => {
-                        const userMsg: AiAssistantMessage = { id: `aam-${Date.now()}`, role: 'user', text: prompt }
-                        setAssistantMessages((prev) => [...prev, userMsg])
-                        const aiMsg: AiAssistantMessage = { id: `aam-${Date.now()}-ai`, role: 'assistant', text: copilotResponseFor(prompt) }
-                        setAssistantMessages((prev) => [...prev, aiMsg])
-                      }}
-                      className="inline-flex min-h-[27px] items-center gap-1 rounded-[3px] border border-[var(--lf-live-control-border)] px-2.5 py-1 text-start text-[10px] font-medium leading-[15px] text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                    >
-                      <ChevronRight aria-hidden="true" className="size-2.5" />
-                      <span className="truncate">{prompt}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  {assistantMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={cn(
-                        'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed',
-                        msg.role === 'user'
-                          ? 'ms-auto rounded-ee-sm bg-[var(--lf-live-control-border)] text-brand-bar-text'
-                          : 'rounded-ss-sm bg-[var(--lf-live-message)] text-brand-bar-text'
-                      )}
-                    >
-                      {msg.text}
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-            <label className="border-t border-[var(--lf-live-border)] p-3">
-              <span className="sr-only">Ask AI anything</span>
-              <span className="flex min-h-11 items-center gap-2 rounded-lg border border-[var(--lf-live-border)] bg-[var(--lf-live-header)] px-3 py-2">
-                <input
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault()
-                      handleSend()
-                    }
-                  }}
-                  className="min-w-0 flex-1 bg-transparent text-sm text-brand-bar-text outline-none placeholder:text-ink-muted"
-                  placeholder="Ask AI anything..."
-                />
-                <button type="button" onClick={handleSend} aria-label="Send question">
-                  <Send aria-hidden="true" className="size-4 text-ink-muted" />
-                </button>
-              </span>
-            </label>
+            <CopilotAiAssistantPanel
+              prompts={session.prompts}
+              messages={assistantMessages}
+              setMessages={setAssistantMessages}
+              draft={draft}
+              setDraft={setDraft}
+              onSend={handleSend}
+              scrollRef={assistantScrollRef}
+              className="min-h-0"
+            />
           </section>
         </aside>
       </section>
