@@ -96,12 +96,6 @@ export function PlanSelectionView({
       <section className="relative min-h-screen overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-64 bg-brand-bar sm:h-80" />
         <a
-          href={laterHref}
-          className="absolute end-6 top-48 z-shell text-base font-medium text-brand-bar-text underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:top-56"
-        >
-          I&apos;ll do this later
-        </a>
-        <a
           href="/v3"
           aria-label="Close plan selection"
           className="absolute end-6 top-6 z-shell grid size-11 place-items-center rounded-soft text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
@@ -140,6 +134,15 @@ export function PlanSelectionView({
               Every feature uses 1 credit. Use your credits however you like.
             </p>
           </div>
+
+          <p className="mt-6 text-center">
+            <a
+              href={laterHref}
+              className="text-base font-medium text-ink-muted underline underline-offset-4 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              I&apos;ll do this later
+            </a>
+          </p>
         </div>
       </section>
     </main>
