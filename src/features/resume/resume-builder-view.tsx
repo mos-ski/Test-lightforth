@@ -382,7 +382,7 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
                     onClick={() => setShowTip(false)}
                     className="mt-3 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-live-header transition-colors hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                   >
-                    I'm ready
+                    Continue
                   </button>
                 </div>
               )}
