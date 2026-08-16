@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, Fi
 
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
+import { useCameraStream } from '@/hooks/useCameraStream'
 import { useTypewriter } from '@/hooks/useTypewriter'
 import type {
   CopilotCodingTurn,
@@ -416,6 +417,11 @@ export function CopilotPreferencesView({ homeHref, configureHref, shareHref, set
 
 export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, previewSrc, actionLabel, mode }: CopilotPermissionViewProps) {
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
+  const { stream: videoStream, request: requestVideo } = useCameraStream()
+  const { request: requestAudio } = useCameraStream()
+  const [grantedIds, setGrantedIds] = useState<ReadonlySet<string>>(new Set())
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [errorId, setErrorId] = useState<string | null>(null)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1279px)')
@@ -424,15 +430,42 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  const permissionSteps = steps.map((step) => {
-    if (isMobile && step.id === 'screen') {
-      return { ...step, id: 'video', title: 'Turn on your video', description: 'Required - shows your camera during the call', actionLabel: 'Turn on Video' }
+  useEffect(() => {
+    if (isMobile && previewSrc) {
+      void requestVideo({ video: true }).then((granted) => {
+        if (granted) setGrantedIds((prev) => new Set(prev).add('video'))
+      })
     }
-    if (isMobile && step.id === 'microphone') {
-      return { ...step, title: 'Connect your audio', description: 'Required - connects to your call audio', actionLabel: 'Connect Audio' }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile, previewSrc])
+
+  async function handleRequestPermission(stepId: string) {
+    setErrorId(null)
+    setPendingId(stepId)
+    const granted = stepId === 'video' ? await requestVideo({ video: true }) : await requestAudio({ audio: true })
+    setPendingId(null)
+    if (granted) {
+      setGrantedIds((prev) => new Set(prev).add(stepId))
+    } else {
+      setErrorId(stepId)
     }
-    return step
-  })
+  }
+
+  const permissionSteps = steps
+    .map((step) => {
+      if (isMobile && step.id === 'screen') {
+        return { ...step, id: 'video', title: 'Turn on your video', description: 'Required - shows your camera during the call', actionLabel: 'Turn on Video' }
+      }
+      if (isMobile && step.id === 'microphone') {
+        return { ...step, title: 'Connect your audio', description: 'Required - connects to your call audio', actionLabel: 'Connect Audio' }
+      }
+      return step
+    })
+    .map((step, index, mapped) => {
+      if (!isMobile || step.status !== 'disabled') return step
+      const previous = mapped[index - 1]
+      return previous && grantedIds.has(previous.id) ? { ...step, status: 'available' as const } : step
+    })
 
   return (
     <Workspace>
@@ -449,6 +482,12 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
             previewSrc={previewSrc ?? undefined}
             startHref={previewSrc ? nextHref : undefined}
             startLabel={actionLabel}
+            onRequestPermission={isMobile ? handleRequestPermission : undefined}
+            pendingStepId={pendingId}
+            grantedStepIds={grantedIds}
+            errorStepId={errorId}
+            videoStepId="video"
+            videoStream={videoStream}
           />
         </FormPanel>
       </section>
@@ -458,9 +497,20 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
 
 function DraggableAvatar({ name }: { readonly name: string }) {
   const ref = useRef<HTMLButtonElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [pos, setPos] = useState<{ readonly x: number; readonly y: number } | null>(null)
   const dragState = useRef<{ readonly startX: number; readonly startY: number; readonly originX: number; readonly originY: number } | null>(null)
   const draggedRef = useRef(false)
+  const { stream, request } = useCameraStream()
+
+  useEffect(() => {
+    void request({ video: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.srcObject = stream ?? null
+  }, [stream])
 
   useEffect(() => {
     function handleMove(event: PointerEvent) {
@@ -501,10 +551,14 @@ function DraggableAvatar({ name }: { readonly name: string }) {
       onClick={(event) => {
         if (draggedRef.current) event.preventDefault()
       }}
-      className="fixed z-20 size-24 cursor-grab touch-none rounded-full shadow-xl ring-2 ring-white/40 transition-shadow active:cursor-grabbing active:shadow-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus"
+      className="fixed z-20 size-24 cursor-grab touch-none overflow-hidden rounded-full shadow-xl ring-2 ring-white/40 transition-shadow active:cursor-grabbing active:shadow-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus"
       style={pos ? { left: pos.x, top: pos.y } : { top: '5.5rem', right: '1rem' }}
     >
-      <Avatar name={name} size="xl" className="size-full text-2xl" />
+      {stream ? (
+        <video ref={videoRef} autoPlay muted playsInline className="size-full scale-x-[-1] object-cover" />
+      ) : (
+        <Avatar name={name} size="xl" className="size-full text-2xl" />
+      )}
     </button>
   )
 }
