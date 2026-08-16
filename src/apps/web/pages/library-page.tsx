@@ -67,9 +67,9 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
 
 function Section({ title, children }: { readonly title: string; readonly children: React.ReactNode }) {
   return (
-    <section className="grid gap-4">
+    <section className="grid min-w-0 gap-4">
       <h2 className="text-xl font-semibold text-ink">{title}</h2>
-      <div className="rounded-panel border border-border bg-surface p-6 shadow-panel">{children}</div>
+      <div className="min-w-0 rounded-panel border border-border bg-surface p-6 shadow-panel">{children}</div>
     </section>
   )
 }
