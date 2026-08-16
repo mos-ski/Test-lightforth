@@ -495,7 +495,7 @@ function ChatSidebar({
   }, [messages, isTyping])
 
   return (
-    <aside className="flex w-full flex-col overflow-hidden border-e border-border bg-surface max-h-[45vh] lg:h-full lg:max-h-none lg:w-[21.25rem]">
+    <aside className="flex w-full flex-1 flex-col overflow-hidden border-e border-border bg-surface lg:h-full lg:w-[21.25rem] lg:flex-none">
       <div className="border-b border-border p-3">
         <TabRail tab="chat" />
       </div>
@@ -603,7 +603,7 @@ function SectionEditor({
   const [expandedId, setExpandedId] = useState<ResumeSectionId | null>('professional-summary')
 
   return (
-    <aside className="flex w-full flex-col overflow-hidden border-e border-border bg-surface max-h-[45vh] lg:h-full lg:max-h-none lg:w-[21.25rem]">
+    <aside className="flex w-full flex-1 flex-col overflow-hidden border-e border-border bg-surface lg:h-full lg:w-[21.25rem] lg:flex-none">
       <div className="border-b border-border p-3">
         <TabRail tab="create" />
       </div>
@@ -669,7 +669,7 @@ function SectionEditor({
 
 function TemplateSidebar({ templates, selectedTemplateId }: { readonly templates: readonly ResumeTemplate[]; readonly selectedTemplateId: string }) {
   return (
-    <aside className="flex w-full flex-col overflow-hidden border-e border-border bg-surface max-h-[45vh] lg:h-full lg:max-h-none lg:w-[21.25rem]">
+    <aside className="flex w-full flex-1 flex-col overflow-hidden border-e border-border bg-surface lg:h-full lg:w-[21.25rem] lg:flex-none">
       <div className="border-b border-border p-3">
         <TabRail tab="template" />
       </div>
@@ -743,32 +743,40 @@ function ClassicResume({
       <section className="mt-5">
         <h2 className="border-b border-paper-ink pb-1 text-sm font-bold uppercase tracking-wide">Experience</h2>
         <div className="grid gap-5 pt-3">
-          {document.roles.map((role, roleIndex) => (
-            <article key={`${role.company}-${role.period}`}>
-              <div className="flex items-start justify-between gap-4 text-xs">
-                <div>
-                  <h3 className="font-bold">{role.company}</h3>
-                  <p className="italic text-paper-muted">{role.location}</p>
-                  <p className="italic">{role.title}</p>
+          {document.roles.map((role, roleIndex) => {
+            const bullets =
+              showImproved && roleIndex === 0
+                ? role.bullets.map((bullet, index) => (index < 2 ? document.improvedFirstRoleBullets[index] ?? bullet : bullet))
+                : role.bullets
+            return (
+              <article key={`${role.company}-${role.period}`}>
+                <div className="flex items-start justify-between gap-4 text-xs">
+                  <div>
+                    <h3 className="font-bold">{role.company}</h3>
+                    <p className="italic text-paper-muted">{role.location}</p>
+                    <p className="italic">{role.title}</p>
+                  </div>
+                  <p className="shrink-0 text-end text-paper-muted">{role.period}</p>
                 </div>
-                <p className="shrink-0 text-end text-paper-muted">{role.period}</p>
-              </div>
-              <ul className="mt-2 list-disc space-y-1.5 ps-5 text-xs leading-5">
-                {role.bullets.map((bullet, index) => (
-                  <li key={bullet} className={cn(highlightChanges && roleIndex === 0 && index < 2 ? 'bg-accent-subtle text-accent-text' : '')}>
-                    {bullet}
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ))}
+                <ul className="mt-2 list-disc space-y-1.5 ps-5 text-xs leading-5">
+                  {bullets.map((bullet, index) => (
+                    <li key={bullet} className={cn(highlightChanges && roleIndex === 0 && index < 2 ? 'bg-accent-subtle text-accent-text' : '')}>
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            )
+          })}
         </div>
       </section>
       <section className="mt-5">
         <h2 className="border-b border-paper-ink pb-1 text-sm font-bold uppercase tracking-wide">Skills</h2>
         <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-          {document.skills.slice(0, 14).map((skill) => (
-            <span key={skill}>{skill}</span>
+          {(showImproved ? document.improvedSkills : document.skills).slice(0, showImproved ? 22 : 14).map((skill) => (
+            <span key={skill} className={cn(highlightChanges && !document.skills.includes(skill) ? 'bg-accent-subtle font-semibold text-accent-text' : undefined)}>
+              {skill}
+            </span>
           ))}
         </div>
       </section>
@@ -888,23 +896,7 @@ type SuggestionChange = {
   readonly after: string
 }
 
-function SuggestionBottomSheet({
-  open,
-  onClose,
-  changes,
-  typedSummary,
-  isTypingSummary,
-  onAccept,
-  onReject,
-}: {
-  readonly open: boolean
-  readonly onClose: () => void
-  readonly changes: readonly SuggestionChange[]
-  readonly typedSummary: string | null
-  readonly isTypingSummary: boolean
-  readonly onAccept: () => void
-  readonly onReject: () => void
-}) {
+function ChangeCarousel({ changes, typedSummary }: { readonly changes: readonly SuggestionChange[]; readonly typedSummary: string | null }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -921,62 +913,146 @@ function SuggestionBottomSheet({
     return () => el.removeEventListener('scroll', handleScroll)
   }, [changes.length])
 
-  if (!open || changes.length === 0) return null
+  if (changes.length === 0) return null
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 md:hidden" role="dialog" aria-label="AI suggestions">
-      <div className="absolute inset-0 bg-overlay/60" onClick={onClose} />
-      <div className="relative flex max-h-[80vh] flex-col rounded-t-2xl bg-surface shadow-2xl">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <div className="flex items-center gap-2">
-            <LightforthAiIcon className="size-4" />
-            <span className="text-sm font-semibold text-ink">AI Suggestions</span>
-            <span className="rounded-pill bg-accent-subtle px-2 py-0.5 text-[10px] font-bold text-accent-text">{changes.length}</span>
+    <>
+      <div ref={scrollRef} className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {changes.map((change, i) => (
+          <div key={change.id} className="w-[85%] shrink-0 snap-center rounded-xl border border-border bg-surface-subtle p-4">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-accent">{change.section}</p>
+            {i === 0 && typedSummary !== null ? (
+              <>
+                <p className="mb-2 text-xs text-ink-muted">Updated:</p>
+                <p className="text-sm leading-6 text-ink">{typedSummary}</p>
+              </>
+            ) : (
+              <>
+                <p className="mb-1 text-xs font-medium text-ink-muted">Before</p>
+                <p className="mb-3 text-sm leading-6 text-ink-muted line-clamp-3">{change.before}</p>
+                <p className="mb-1 text-xs font-medium text-ink">After</p>
+                <p className="text-sm leading-6 text-ink">{change.after}</p>
+              </>
+            )}
           </div>
-          <button type="button" onClick={onClose} aria-label="Close suggestions" className="grid size-8 place-items-center rounded-soft text-ink-muted hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <X aria-hidden="true" className="size-4" />
-          </button>
-        </div>
-
-        <div ref={scrollRef} className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {changes.map((change, i) => (
-            <div key={change.id} className="w-[85%] shrink-0 snap-center rounded-xl border border-border bg-surface-subtle p-4">
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-accent">{change.section}</p>
-              {i === 0 && typedSummary !== null ? (
-                <>
-                  <p className="mb-2 text-xs text-ink-muted">Updated:</p>
-                  <p className="text-sm leading-6 text-ink">{typedSummary}</p>
-                </>
-              ) : (
-                <>
-                  <p className="mb-1 text-xs font-medium text-ink-muted">Before</p>
-                  <p className="mb-3 text-sm leading-6 text-ink-muted line-clamp-3">{change.before}</p>
-                  <p className="mb-1 text-xs font-medium text-ink">After</p>
-                  <p className="text-sm leading-6 text-ink">{change.after}</p>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-
+        ))}
+      </div>
+      {changes.length > 1 ? (
         <div className="flex items-center justify-center gap-1.5 px-4 py-2">
           {changes.map((_, i) => (
             <span key={i} className={cn('size-1.5 rounded-pill transition-colors', i === activeIndex ? 'bg-accent' : 'bg-border')} />
           ))}
         </div>
+      ) : null}
+    </>
+  )
+}
 
-        <div className="flex gap-2 border-t border-border px-4 py-3">
-          <button type="button" onClick={onReject} className="flex-1 inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-border text-sm font-semibold text-ink-muted hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <X aria-hidden="true" className="size-3.5" />
-            Reject All
-          </button>
-          <button type="button" onClick={onAccept} className="flex-1 inline-flex min-h-10 items-center justify-center gap-1 rounded-lg bg-accent text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <Check aria-hidden="true" className="size-3.5" />
-            Accept All
-          </button>
+function ResumePreviewTray({
+  onOpen,
+  pendingSuggestion,
+  changeCount,
+  atsScore,
+}: {
+  readonly onOpen: () => void
+  readonly pendingSuggestion: boolean
+  readonly changeCount: number
+  readonly atsScore: number
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-t border-border bg-surface px-4 lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+    >
+      <span className="flex min-w-0 items-center gap-2.5">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-subtle text-ink-muted">
+          <FileText aria-hidden="true" className="size-4" />
+        </span>
+        <span className="min-w-0 text-start">
+          <span className="block text-sm font-semibold text-ink">Resume Preview</span>
+          <span className="block truncate text-xs text-ink-muted">
+            {pendingSuggestion ? `${changeCount} change${changeCount === 1 ? '' : 's'} to review` : `ATS Score ${atsScore}%`}
+          </span>
+        </span>
+      </span>
+      <span className="flex shrink-0 items-center gap-2">
+        {pendingSuggestion ? <span aria-hidden="true" className="size-2 rounded-pill bg-accent" /> : null}
+        <ChevronDown aria-hidden="true" className="size-4 -rotate-90 text-ink-muted" />
+      </span>
+    </button>
+  )
+}
+
+function ResumePreviewDialog({
+  open,
+  onOpenChange,
+  document,
+  tab,
+  showImproved,
+  pendingSuggestion,
+  changes,
+  typedSummary,
+  atsScore,
+  onAccept,
+  onReject,
+}: {
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly document: ResumeDocument
+  readonly tab: ResumeBuilderTab
+  readonly showImproved: boolean
+  readonly pendingSuggestion: boolean
+  readonly changes: readonly SuggestionChange[]
+  readonly typedSummary: string | null
+  readonly atsScore: number
+  readonly onAccept: () => void
+  readonly onReject: () => void
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPopup placement="center" aria-label="Resume preview" className="flex max-h-[85vh] flex-col p-0 sm:max-h-[calc(100vh-4rem)]">
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 pb-3 pt-6">
+          <div className="flex items-center gap-2">
+            {pendingSuggestion ? <LightforthAiIcon className="size-4" /> : <FileText aria-hidden="true" className="size-4 text-ink-muted" />}
+            <DialogTitle className="text-sm">{pendingSuggestion ? 'Review Changes' : 'Resume Preview'}</DialogTitle>
+            {pendingSuggestion ? (
+              <span className="rounded-pill bg-accent-subtle px-2 py-0.5 text-[10px] font-bold text-accent-text">{changes.length}</span>
+            ) : (
+              <span className="rounded-pill bg-positive-surface px-2 py-0.5 text-[10px] font-bold text-positive">ATS {atsScore}%</span>
+            )}
+          </div>
+          <DialogClose className="static" />
         </div>
-      </div>
-    </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {pendingSuggestion ? (
+            <ChangeCarousel changes={changes} typedSummary={typedSummary} />
+          ) : (
+            <div className="bg-canvas px-4 py-6">
+              {tab === 'template' ? (
+                <ExecutiveResume document={document} />
+              ) : (
+                <ClassicResume document={document} showImproved={showImproved} highlightChanges={false} typedSummary={null} isTypingSummary={false} />
+              )}
+            </div>
+          )}
+        </div>
+
+        {pendingSuggestion ? (
+          <div className="flex shrink-0 gap-2 border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <button type="button" onClick={onReject} className="flex-1 inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-border text-sm font-semibold text-ink-muted hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <X aria-hidden="true" className="size-3.5" />
+              Reject All
+            </button>
+            <button type="button" onClick={onAccept} className="flex-1 inline-flex min-h-10 items-center justify-center gap-1 rounded-lg bg-accent text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <Check aria-hidden="true" className="size-3.5" />
+              Accept All
+            </button>
+          </div>
+        ) : null}
+      </DialogPopup>
+    </Dialog>
   )
 }
 
@@ -1166,6 +1242,19 @@ function AtsScoreDrawer({
 
 const THINKING_LABELS = ['Thinking…', 'Reading your resume…', 'Fetching from your Knowledge Base…', 'Pulling the job description…']
 
+function useIsMobileViewport() {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches)
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1023px)')
+    const handler = (event: MediaQueryListEvent) => setIsMobile(event.matches)
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
+  }, [])
+
+  return isMobile
+}
+
 export function ResumeEditorView({ homeHref, document, session, templates, tab, chatState }: ResumeEditorViewProps) {
   const [messages, setMessages] = useState<readonly ChatMessage[]>(
     chatState === 'suggestions'
@@ -1189,10 +1278,13 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     const parsed = parseInt(session.zoomLabel.replace('%', ''), 10)
     return Number.isFinite(parsed) ? parsed / 100 : 0.85
   })
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const isMobileViewport = useIsMobileViewport()
 
   function revealSuggestion() {
     setPendingSuggestion(true)
     typeSummary(document.improvedSummary, setTypedSummary, { durationMs: 1000 })
+    if (isMobileViewport) setPreviewOpen(true)
   }
 
   function handleSend() {
@@ -1219,11 +1311,13 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     setHasAcceptedChanges(true)
     setPendingSuggestion(false)
     setTypedSummary(null)
+    setPreviewOpen(false)
   }
 
   function handleReject() {
     setPendingSuggestion(false)
     setTypedSummary(null)
+    setPreviewOpen(false)
   }
 
   function handleShowTutorial() {
@@ -1234,6 +1328,23 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   const showImproved = hasAcceptedChanges || pendingSuggestion
   const showSendTip = tab === 'chat' && messages.length === 0 && !dismissedSendTip
   const showAcceptTip = pendingSuggestion && (tab === 'chat' || tab === 'create') && !dismissedAcceptTip
+  const changes: readonly SuggestionChange[] = pendingSuggestion
+    ? [
+        { id: 'professional-summary', section: 'Professional Summary', before: document.summary, after: document.improvedSummary },
+        {
+          id: 'experience-highlights',
+          section: `Experience — ${document.roles[0]?.company ?? 'Current Role'}`,
+          before: document.roles[0]?.bullets.slice(0, 2).join(' ') ?? '',
+          after: document.improvedFirstRoleBullets.join(' '),
+        },
+        {
+          id: 'skills',
+          section: 'Skills',
+          before: document.skills.join(', '),
+          after: document.improvedSkills.join(', '),
+        },
+      ]
+    : []
 
   return (
     <Workspace>
@@ -1259,7 +1370,13 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
           <SectionEditor pendingSuggestion={pendingSuggestion} onSuggest={revealSuggestion} onAccept={handleAccept} onReject={handleReject} />
         ) : null}
         {tab === 'template' ? <TemplateSidebar templates={templates} selectedTemplateId={session.selectedTemplateId} /> : null}
-        <div className="relative flex-1 overflow-auto bg-canvas px-4 py-8 lg:px-8">
+        <ResumePreviewTray
+          onOpen={() => setPreviewOpen(true)}
+          pendingSuggestion={pendingSuggestion}
+          changeCount={changes.length}
+          atsScore={document.atsScore}
+        />
+        <div className="relative hidden flex-1 overflow-auto bg-canvas px-4 py-8 lg:block lg:px-8">
           <ZoomControls zoom={zoom} onChange={setZoom} />
           <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
             {tab === 'template' ? (
@@ -1312,6 +1429,19 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
         atsStrengths={document.atsStrengths}
         atsGaps={document.atsGaps}
         atsPrompt={document.atsPrompt}
+      />
+      <ResumePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        document={document}
+        tab={tab}
+        showImproved={showImproved}
+        pendingSuggestion={pendingSuggestion}
+        changes={changes}
+        typedSummary={typedSummary}
+        atsScore={document.atsScore}
+        onAccept={handleAccept}
+        onReject={handleReject}
       />
     </Workspace>
   )
