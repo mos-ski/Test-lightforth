@@ -52,8 +52,8 @@ const copilotModeMeta: Record<
   { readonly label: string; readonly icon: ReactNode; readonly panelTitle: string; readonly badgeVariant: 'accent' | 'positive' | 'info'; readonly createCta: string }
 > = {
   interview: { label: 'Interview', icon: <Users aria-hidden="true" className="size-4" />, panelTitle: 'Configure your interview', badgeVariant: 'accent', createCta: 'Start New Interview' },
-  coding: { label: 'Coding', icon: <Code2 aria-hidden="true" className="size-4" />, panelTitle: 'Configure your coding interview', badgeVariant: 'info', createCta: 'Start Coding Exercise' },
-  meeting: { label: 'Meeting', icon: <Video aria-hidden="true" className="size-4" />, panelTitle: 'Configure your meeting', badgeVariant: 'positive', createCta: 'Attend New Meeting' },
+  coding: { label: 'Coding', icon: <Code2 aria-hidden="true" className="size-4" />, panelTitle: 'Configure your coding exercise', badgeVariant: 'info', createCta: 'Start Coding Exercise' },
+  meeting: { label: 'Meeting', icon: <Video aria-hidden="true" className="size-4" />, panelTitle: 'Set up your meeting', badgeVariant: 'positive', createCta: 'Attend New Meeting' },
 }
 
 export type CopilotUploadViewProps = {
@@ -86,6 +86,7 @@ export type CopilotPermissionViewProps = {
   readonly steps: readonly CopilotPermissionStep[]
   readonly previewSrc?: string
   readonly actionLabel: string
+  readonly mode: CopilotMode
 }
 
 export type CopilotLiveViewProps = {
@@ -100,6 +101,7 @@ export type CopilotCompleteViewProps = {
   readonly homeHref: string
   readonly sessionHref: string
   readonly historyHref: string
+  readonly mode: CopilotMode
 }
 
 export type CopilotHistoryViewProps = {
@@ -113,6 +115,7 @@ export type CopilotReportViewProps = {
   readonly homeHref: string
   readonly historyHref: string
   readonly report: CopilotReport
+  readonly mode: CopilotMode
 }
 
 function CopilotHeader({
@@ -168,7 +171,7 @@ export function CopilotUploadView({ homeHref, configureHref, historyHref, mode, 
 
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} />
+      <CopilotHeader homeHref={homeHref} current={copilotModeMeta[mode].label} />
       <section className="px-4 py-8 lg:py-10">
         <div className="mx-auto max-w-[44rem]">
           <PaperShell>
@@ -236,13 +239,13 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
 
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} />
+      <CopilotHeader homeHref={homeHref} current={copilotModeMeta[mode].label} />
       <section className="px-4 py-9">
         <FormPanel
           title={copilotModeMeta[mode].panelTitle}
-          step="1/3"
-          uploadedFile={{ fileName: setup.uploadedFileName, changeHref: uploadHref }}
-          footer={<FormPanelFooter backHref={uploadHref} nextHref={preferencesHref} />}
+          step={mode === 'coding' ? undefined : '1/3'}
+          uploadedFile={mode !== 'coding' ? { fileName: setup.uploadedFileName, changeHref: uploadHref } : undefined}
+          footer={<FormPanelFooter backHref={uploadHref} nextHref={preferencesHref} nextLabel={mode === 'coding' ? 'Start Session' : undefined} />}
         >
           {mode === 'interview' ? (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -279,9 +282,15 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
                   { label: 'JavaScript / TypeScript', value: 'javascript' },
                   { label: 'Python', value: 'python' },
                   { label: 'Java', value: 'java' },
+                  { label: 'PHP', value: 'php' },
                   { label: 'Go', value: 'go' },
                   { label: 'C++', value: 'c++' },
+                  { label: 'C#', value: 'csharp' },
+                  { label: 'Ruby', value: 'ruby' },
+                  { label: 'Swift', value: 'swift' },
+                  { label: 'Rust', value: 'rust' },
                 ]}
+                className="sm:col-span-full"
               />
               <FormField id="copilot-target-role-coding" label="Target Role" defaultValue={setup.targetRole} />
               <FormField id="copilot-company-coding" label="Company Name" defaultValue={setup.companyName} />
@@ -321,7 +330,21 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
           <DialogClose />
           <DialogTitle>Add from Knowledge Base</DialogTitle>
           <p className="mt-1 text-sm text-ink-muted">Select the documents you want Copilot to use as context for this session.</p>
-          <div className="mt-4 grid max-h-80 gap-1 overflow-y-auto">
+          <div className="mt-4 rounded-lg border-2 border-dashed border-border p-6 text-center hover:border-accent transition-colors">
+            <input
+              type="file"
+              id="doc-upload"
+              className="sr-only"
+              accept=".pdf,.doc,.docx,.txt"
+              onChange={() => {}}
+            />
+            <label htmlFor="doc-upload" className="cursor-pointer">
+              <FileText aria-hidden="true" className="mx-auto size-8 text-ink-muted" />
+              <p className="mt-2 text-sm font-medium text-ink">Upload a new document</p>
+              <p className="mt-1 text-xs text-ink-muted">PDF, DOC, DOCX or TXT</p>
+            </label>
+          </div>
+          <div className="mt-4 grid max-h-60 gap-1 overflow-y-auto">
             {knowledgeBaseDocuments.length === 0 ? (
               <p className="py-6 text-center text-sm text-ink-muted">No documents in your Knowledge Base yet.</p>
             ) : (
@@ -355,7 +378,7 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
 export function CopilotPreferencesView({ homeHref, configureHref, shareHref, setup }: CopilotPreferencesViewProps) {
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} />
+      <CopilotHeader homeHref={homeHref} current={copilotModeMeta[setup.mode].label} />
       <section className="px-4 py-9">
         <FormPanel
           title="Set Preference"
@@ -391,7 +414,7 @@ export function CopilotPreferencesView({ homeHref, configureHref, shareHref, set
   )
 }
 
-export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, previewSrc, actionLabel }: CopilotPermissionViewProps) {
+export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, previewSrc, actionLabel, mode }: CopilotPermissionViewProps) {
   const permissionSteps = steps.map((step) => ({
     ...step,
     iconSrc: step.id === 'screen' ? '/v3-assets/figma/form-screen.svg' : '/v3-assets/figma/form-mic.svg',
@@ -399,7 +422,7 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
 
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} />
+      <CopilotHeader homeHref={homeHref} current={copilotModeMeta[mode].label} />
       <section className="px-4 py-9">
         <FormPanel
           title="Share your screen"
@@ -579,7 +602,7 @@ function RubricTable<TStatus extends string>({
   )
 }
 
-export function CopilotReportView({ homeHref, historyHref, report }: CopilotReportViewProps) {
+export function CopilotReportView({ homeHref, historyHref, report, mode }: CopilotReportViewProps) {
   const [rubricSort, setRubricSort] = useState<RubricSort | null>(null)
   const sortedRubric = rubricSort
     ? [...report.rubric].sort((a, b) => {
@@ -597,7 +620,7 @@ export function CopilotReportView({ homeHref, historyHref, report }: CopilotRepo
 
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} current="Copilot" historyHref={historyHref} />
+      <CopilotHeader homeHref={homeHref} current={copilotModeMeta[mode].label} historyHref={historyHref} />
       <section className="px-4 pb-16">
         <div className="mx-auto flex max-w-[64rem] flex-col gap-4 pt-8">
           <article className="w-full bg-surface shadow-panel">
@@ -1120,11 +1143,15 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
         </article>
         <div className="hidden h-full bg-[var(--lf-live-divider)] xl:block" />
         <aside className="grid min-h-[42rem] gap-3 xl:min-h-0 xl:grid-rows-[auto_6px_minmax(0,1fr)]">
-          <section className="overflow-hidden rounded-panel bg-[var(--lf-live-panel)]">
-            <h2 className="bg-[var(--lf-live-panel-header)] px-5 py-[13px] text-[18.67px] font-medium leading-[37px]">Your Interview</h2>
-            <img src={session.screenPreviewSrc} alt="" className="h-[22.666rem] w-full rounded-b-lg object-cover" />
-          </section>
-          <div className="hidden h-1.5 bg-[var(--lf-live-divider)] xl:block" />
+          {session.mode !== 'coding' ? (
+            <>
+              <section className="overflow-hidden rounded-panel bg-[var(--lf-live-panel)]">
+                <h2 className="bg-[var(--lf-live-panel-header)] px-5 py-[13px] text-[18.67px] font-medium leading-[37px]">Your Interview</h2>
+                <img src={session.screenPreviewSrc} alt="" className="h-[22.666rem] w-full rounded-b-lg object-cover" />
+              </section>
+              <div className="hidden h-1.5 bg-[var(--lf-live-divider)] xl:block" />
+            </>
+          ) : null}
           <section className="grid min-h-0 grid-rows-[auto_1fr_auto] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
             <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
               <h2 className="text-sm font-medium leading-5">AI Assistant</h2>
@@ -1341,10 +1368,10 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
   )
 }
 
-export function CopilotCompleteView({ homeHref, sessionHref, historyHref }: CopilotCompleteViewProps) {
+export function CopilotCompleteView({ homeHref, sessionHref, historyHref, mode }: CopilotCompleteViewProps) {
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} />
+      <CopilotHeader homeHref={homeHref} current={copilotModeMeta[mode].label} />
       <section className="px-4 py-9">
         <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
           <div className="grid gap-5 p-8">

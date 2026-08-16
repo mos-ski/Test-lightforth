@@ -13,12 +13,12 @@ export function CopilotUploadPage() {
   const mode = (VALID_MODES as readonly string[]).includes(requestedMode ?? '') ? (requestedMode as CopilotMode) : 'interview'
 
   useEffect(() => {
-    if (mode === 'coding') {
-      window.location.href = '/v3/interview-copilot/configure?mode=coding'
+    if (mode === 'coding' || mode === 'meeting') {
+      window.location.href = `/v3/interview-copilot/configure?mode=${mode}`
     }
   }, [mode])
 
-  if (mode === 'coding') return null
+  if (mode === 'coding' || mode === 'meeting') return null
 
   return (
     <CopilotUploadView
