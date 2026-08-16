@@ -312,9 +312,8 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
     type(RESUME_JOB_DESCRIPTION_SUGGESTION, (partial) => setJobDescription(base + partial))
   }
 
-  const editorUrl = jobDescription.trim()
-    ? `${editorHref}?jd=${encodeURIComponent(jobDescription.trim())}`
-    : editorHref
+  const effectiveJd = jobDescription.trim() || GENERIC_JOB_DESCRIPTION
+  const editorUrl = `${editorHref}?jd=${encodeURIComponent(effectiveJd)}`
 
   return (
     <Workspace>
