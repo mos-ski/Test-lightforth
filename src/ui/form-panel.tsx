@@ -116,12 +116,13 @@ export type UploadedFileDialogProps = {
   readonly open: boolean
   readonly onOpenChange: (open: boolean) => void
   readonly fileName: string
+  readonly fileUrl?: string
   readonly continueHref: string
   readonly defaultChecked?: boolean
   readonly onDefaultChange?: (checked: boolean) => void
 }
 
-export function UploadedFileDialog({ open, onOpenChange, fileName, continueHref, defaultChecked, onDefaultChange }: UploadedFileDialogProps) {
+export function UploadedFileDialog({ open, onOpenChange, fileName, fileUrl, continueHref, defaultChecked, onDefaultChange }: UploadedFileDialogProps) {
   const [progress, setProgress] = useState(0)
   const ready = progress >= 100
 
@@ -147,8 +148,17 @@ export function UploadedFileDialog({ open, onOpenChange, fileName, continueHref,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPopup aria-label="Resume uploaded">
+      <DialogPopup aria-label="Resume uploaded" className="sm:max-w-lg">
         <DialogTitle>Resume uploaded</DialogTitle>
+        {fileUrl && ready && (
+          <div className="mt-4 overflow-hidden rounded-lg border border-border">
+            <iframe
+              src={fileUrl}
+              title={`Preview of ${fileName}`}
+              className="h-64 w-full bg-surface-subtle"
+            />
+          </div>
+        )}
         <div className="mt-4 flex items-center gap-3 rounded-lg border border-border bg-surface-subtle px-4 py-3">
           <FileText aria-hidden="true" className="size-5 shrink-0 text-ink-muted" />
           <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{fileName}</span>
