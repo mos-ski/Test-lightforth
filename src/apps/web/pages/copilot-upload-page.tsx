@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import type { CopilotMode } from '@/contracts/copilot.draft'
@@ -10,6 +11,14 @@ export function CopilotUploadPage() {
   const [searchParams] = useSearchParams()
   const requestedMode = searchParams.get('mode')
   const mode = (VALID_MODES as readonly string[]).includes(requestedMode ?? '') ? (requestedMode as CopilotMode) : 'interview'
+
+  useEffect(() => {
+    if (mode === 'coding') {
+      window.location.href = '/v3/interview-copilot/configure?mode=coding'
+    }
+  }, [mode])
+
+  if (mode === 'coding') return null
 
   return (
     <CopilotUploadView
