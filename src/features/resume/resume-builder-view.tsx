@@ -327,8 +327,8 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
           footer={<FormPanelFooter backHref={uploadHref} nextHref={editorHref} />}
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            <FormField id="resume-name" label="Resume Name" defaultValue={session.resumeName} />
-            <FormField id="company-name" label="Company Name" defaultValue={session.companyName} />
+            <FormField id="resume-name" label="Resume Name" placeholder="e.g. Senior PM Resume" />
+            <FormField id="company-name" label="Company Name" placeholder="e.g. Google, Stripe" />
           </div>
           <div className="relative">
             <div className="flex items-center gap-1.5">

@@ -261,8 +261,8 @@ export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, sessio
                   { label: 'Hard', value: 'hard' },
                 ]}
               />
-              <FormField id="target-role" label="Target Role" defaultValue={session.targetRole} />
-              <FormField id="interview-company" label="Company Name" defaultValue={session.companyName} />
+              <FormField id="target-role" label="Target Role" placeholder="e.g. Senior Software Engineer" />
+              <FormField id="interview-company" label="Company Name" placeholder="e.g. Google, Meta" />
           </div>
           <DocumentDropAction onTrigger={openDocumentPicker} hint="Add from Knowledge Base">
             {selectedDocuments.length > 0 ? (

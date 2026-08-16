@@ -298,8 +298,8 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
                   { label: 'Hard', value: 'hard' },
                 ]}
               />
-              <FormField id="copilot-target-role" label="Target Role" defaultValue={setup.targetRole} />
-              <FormField id="copilot-company" label="Company Name" defaultValue={setup.companyName} />
+              <FormField id="copilot-target-role" label="Target Role" placeholder="e.g. Senior Software Engineer" />
+              <FormField id="copilot-company" label="Company Name" placeholder="e.g. Google, Meta" />
             </div>
           ) : mode === 'coding' ? (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -321,13 +321,13 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
                 ]}
                 className="sm:col-span-full"
               />
-              <FormField id="copilot-target-role-coding" label="Target Role" defaultValue={setup.targetRole} />
-              <FormField id="copilot-company-coding" label="Company Name" defaultValue={setup.companyName} />
+              <FormField id="copilot-target-role-coding" label="Target Role" placeholder="e.g. Full Stack Developer" />
+              <FormField id="copilot-company-coding" label="Company Name" placeholder="e.g. Stripe, Netflix" />
             </div>
           ) : (
             <div className="grid gap-3">
-              <FormField id="copilot-meeting-title" label="Meeting title" defaultValue={setup.meetingTitle ?? ''} />
-              <FormField id="copilot-meeting-company" label="Client / Team" defaultValue={setup.companyName} />
+              <FormField id="copilot-meeting-title" label="Meeting title" placeholder="e.g. Q3 Planning Review" />
+              <FormField id="copilot-meeting-company" label="Client / Team" placeholder="e.g. Product Team" />
             </div>
           )}
           <DocumentDropAction onTrigger={openDocumentPicker} hint="Add from Knowledge Base">
