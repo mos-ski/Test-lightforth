@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 .worktrees/
 .vercel
+
+# Test artifacts
+playwright-report
+playwright/.cache
+blob-report
+test-results
