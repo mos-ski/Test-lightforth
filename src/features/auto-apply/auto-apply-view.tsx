@@ -530,9 +530,9 @@ function DateOfBirthField({ dob }: { readonly dob: string }) {
     <div>
       <span className="mb-1 block text-sm font-medium text-ink">Date of Birth</span>
       <div className="grid grid-cols-3 gap-2">
-        <FormSelectField id="auto-dob-month" label="Month" defaultValue={month} placeholder="Month" options={DOB_MONTHS} />
-        <FormSelectField id="auto-dob-day" label="Day" defaultValue={day} placeholder="Day" options={dayOptions} />
-        <FormSelectField id="auto-dob-year" label="Year" defaultValue={year} placeholder="Year" options={yearOptions} />
+        <FormSelectField id="auto-dob-month" label="Month" hideLabel defaultValue={month} placeholder="Month" options={DOB_MONTHS} />
+        <FormSelectField id="auto-dob-day" label="Day" hideLabel defaultValue={day} placeholder="Day" options={dayOptions} />
+        <FormSelectField id="auto-dob-year" label="Year" hideLabel defaultValue={year} placeholder="Year" options={yearOptions} />
       </div>
     </div>
   )
