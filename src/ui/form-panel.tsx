@@ -366,28 +366,17 @@ export type FormTextAreaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>
   readonly id: string
   readonly label: string
   readonly error?: string
-  readonly tip?: string
 }
 
 export const FormTextArea = forwardRef<HTMLTextAreaElement, FormTextAreaProps>(
-  function FormTextArea({ id, label, error, tip, className, disabled, ...props }, ref) {
+  function FormTextArea({ id, label, error, className, disabled, ...props }, ref) {
     const errorId = `${id}-error`
 
     return (
       <div data-slot="form-textarea" className="grid gap-1.5">
-        <div className="flex items-center gap-2">
-          <label htmlFor={id} className="text-sm font-medium leading-5 text-ink">
-            {label}
-          </label>
-          {tip && (
-            <span className="group relative">
-              <span className="inline-flex size-4 cursor-help items-center justify-center rounded-full bg-muted/30 text-[10px] font-bold text-muted transition-colors hover:bg-accent-subtle hover:text-accent">?</span>
-              <span className="pointer-events-none absolute start-full top-1/2 z-tooltip ms-2 -translate-y-1/2 whitespace-normal rounded-lg border border-border bg-surface px-3 py-2 text-xs text-ink shadow-popover opacity-0 transition-opacity duration-fast group-hover:opacity-100 w-56">
-                {tip}
-              </span>
-            </span>
-          )}
-        </div>
+        <label htmlFor={id} className="text-sm font-medium leading-5 text-ink">
+          {label}
+        </label>
         <span className="relative block">
           <textarea
             ref={ref}

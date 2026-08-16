@@ -288,12 +288,23 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
   const [jobDescription, setJobDescription] = useState(session.jobDescription)
   const { type, isTyping } = useTypewriter()
   const prefilled = useRef(false)
+  const [showTip, setShowTip] = useState(true)
+  const tipRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (prefilled.current || jobDescription.length > 0) return
     prefilled.current = true
     type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
   }, [])
+
+  useEffect(() => {
+    if (!showTip) return
+    function handleClickOutside(e: MouseEvent) {
+      if (tipRef.current && !tipRef.current.contains(e.target as Node)) setShowTip(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showTip])
 
   function handleAiSuggestion() {
     const base = jobDescription
@@ -318,14 +329,43 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
             <FormField id="resume-name" label="Resume Name" defaultValue={session.resumeName} />
             <FormField id="company-name" label="Company Name" defaultValue={session.companyName} />
           </div>
-          <FormTextArea
-            id="resume-job-description"
-            label="Enter Job Description"
-            tip="Paste a real job description here — Lightforth will tailor your resume to match the role's keywords, skills, and requirements."
-            value={jobDescription}
-            onChange={(event) => setJobDescription(event.target.value)}
-            className={cn(isTyping && 'ring-2 ring-accent shadow-[0_0_0_4px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
-          />
+          <div className="relative">
+            <FormTextArea
+              id="resume-job-description"
+              label="Enter Job Description"
+              value={jobDescription}
+              onChange={(event) => setJobDescription(event.target.value)}
+              className={cn(isTyping && 'ring-2 ring-accent shadow-[0_0_0_4px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
+            />
+            {showTip && (
+              <div
+                ref={tipRef}
+                role="status"
+                className="absolute -end-2 top-0 z-20 hidden w-64 -translate-y-4 translate-x-full rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel sm:block"
+              >
+                <span aria-hidden="true" className="absolute start-0 top-6 -translate-x-1.5 rotate-45 size-3 bg-live-header" />
+                <button
+                  type="button"
+                  onClick={() => setShowTip(false)}
+                  aria-label="Dismiss tip"
+                  className="absolute end-2 top-2 rounded p-1 text-brand-bar-text/60 hover:text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                >
+                  <X aria-hidden="true" className="size-3" />
+                </button>
+                <p className="text-sm font-semibold">Send your First Message</p>
+                <p className="mt-1 text-xs leading-relaxed text-brand-bar-text/80">
+                  Chat or paste a job description and Lightforth will rewrite your resume to match key words.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowTip(false)}
+                  className="mt-3 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-live-header transition-colors hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                >
+                  I'm ready
+                </button>
+              </div>
+            )}
+          </div>
           <AiSuggestionAction onClick={handleAiSuggestion} disabled={isTyping} />
         </FormPanel>
       </section>
