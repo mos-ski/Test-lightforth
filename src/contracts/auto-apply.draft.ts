@@ -13,10 +13,10 @@ export type AutoApplySetup = {
   readonly linkedIn: string;
   readonly github: string;
   readonly portfolio: string;
-  readonly desiredRole: string;
+  readonly desiredRole: readonly string[];
   readonly experienceLevel: string;
-  readonly salary: string;
-  readonly locations: string;
+  readonly salary: { readonly min: number; readonly max: number };
+  readonly locations: readonly string[];
   readonly employmentTypes: readonly string[];
   readonly locationTypes: readonly string[];
   readonly openToRelocate: boolean;
@@ -52,10 +52,10 @@ export const DEFAULT_AUTO_APPLY_SETUP: AutoApplySetup = {
   linkedIn: '',
   github: '',
   portfolio: '',
-  desiredRole: 'Product Manager',
+  desiredRole: ['Product Manager'],
   experienceLevel: 'Senior',
-  salary: '',
-  locations: '',
+  salary: { min: 80000, max: 150000 },
+  locations: [],
   employmentTypes: [],
   locationTypes: [],
   openToRelocate: false,

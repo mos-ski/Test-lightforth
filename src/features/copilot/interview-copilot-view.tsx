@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, FileText, Pause, Play, Plus, Send, Settings, Users, Video, X } from 'lucide-react'
 
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
+import type { ResumeHistoryRow } from '@/contracts/resume.draft'
 import type {
   CopilotCodingTurn,
   CopilotHistoryRow,
@@ -33,9 +34,12 @@ import {
   FormPanelFooter,
   FormSelectField,
   FormTextArea,
+  LightforthAiIcon,
+  ListPickerDialog,
   PermissionSteps,
   ShellBar,
   SourcePicker,
+  type SourcePickerOption,
   Tabs,
   TabsContent,
   TabsList,
@@ -47,33 +51,16 @@ const copilotModeMeta: Record<
   { readonly label: string; readonly icon: ReactNode; readonly panelTitle: string; readonly badgeVariant: 'accent' | 'positive' | 'info'; readonly createCta: string }
 > = {
   interview: { label: 'Interview', icon: <Users aria-hidden="true" className="size-4" />, panelTitle: 'Configure your interview', badgeVariant: 'accent', createCta: 'Start New Interview' },
-  coding: { label: 'Coding', icon: <Code2 aria-hidden="true" className="size-4" />, panelTitle: 'Configure your coding interview', badgeVariant: 'info', createCta: 'Start New Coding Exercise' },
+  coding: { label: 'Coding', icon: <Code2 aria-hidden="true" className="size-4" />, panelTitle: 'Configure your coding interview', badgeVariant: 'info', createCta: 'Start Coding Exercise' },
   meeting: { label: 'Meeting', icon: <Video aria-hidden="true" className="size-4" />, panelTitle: 'Configure your meeting', badgeVariant: 'positive', createCta: 'Attend New Meeting' },
-}
-
-function CopilotModeTabs({ mode, onModeChange }: { readonly mode: CopilotMode; readonly onModeChange: (mode: CopilotMode) => void }) {
-  return (
-    <Tabs value={mode} onValueChange={(value) => onModeChange(value as CopilotMode)}>
-      <TabsList className="border-b-0 gap-2">
-        {(Object.keys(copilotModeMeta) as CopilotMode[]).map((id) => (
-          <TabsTrigger
-            key={id}
-            value={id}
-            className="min-h-9 gap-1.5 rounded-pill border border-input px-3 pb-0 data-[active]:border-accent data-[active]:bg-accent-subtle"
-          >
-            {copilotModeMeta[id].icon}
-            {copilotModeMeta[id].label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
-  )
 }
 
 export type CopilotUploadViewProps = {
   readonly homeHref: string
   readonly configureHref: string
   readonly historyHref: string
+  readonly mode: CopilotMode
+  readonly savedResumes: readonly ResumeHistoryRow[]
 }
 
 export type CopilotConfigureViewProps = {
@@ -169,30 +156,48 @@ function FooterActions({ backHref, nextHref, nextLabel }: { readonly backHref: s
   )
 }
 
-export function CopilotUploadView({ homeHref, configureHref, historyHref }: CopilotUploadViewProps) {
-  const [mode, setMode] = useState<CopilotMode>('interview')
+export function CopilotUploadView({ homeHref, configureHref, historyHref, mode, savedResumes }: CopilotUploadViewProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  const uploadOption: SourcePickerOption = {
+    label: mode === 'interview' ? 'Upload a Resume' : mode === 'coding' ? 'Upload a Job Description' : 'Upload an Agenda',
+    hint: 'PDF, DOC, DOCX or TXT',
+    href: configureHref,
+  }
 
   return (
     <Workspace>
       <CopilotHeader homeHref={homeHref} />
       <section className="px-4 py-8 lg:py-10">
         <div className="mx-auto max-w-[44rem]">
-          <CopilotModeTabs mode={mode} onModeChange={setMode} />
           <PaperShell>
             <SourcePicker
               title={mode === 'interview' ? 'Upload a resume' : mode === 'coding' ? 'Upload a job description' : 'Upload meeting agenda'}
-              actionLabel="Click to upload"
-              idleText="or drag and drop"
-              meta="PDF, DOC, DOCX or TXT"
-              options={[
-                { label: `Start ${copilotModeMeta[mode].label}`, href: configureHref },
-                { label: 'Use Lightforth Resume', href: configureHref, emphasis: 'strong' },
-              ]}
+              options={
+                mode === 'interview'
+                  ? [uploadOption, { label: 'Use Lightforth Resume', icon: <LightforthAiIcon className="size-5" />, emphasis: 'strong', onClick: () => setPickerOpen(true) }]
+                  : [uploadOption]
+              }
               historyLink={{ label: 'View copilot history', href: historyHref }}
             />
           </PaperShell>
         </div>
       </section>
+
+      {mode === 'interview' ? (
+        <ListPickerDialog
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          title="Use a Lightforth Resume"
+          description="Pick a resume from your history to continue with."
+          items={savedResumes.map((resume) => ({ id: resume.id, title: resume.title, subtitle: resume.company, meta: `ATS ${resume.atsScore}` }))}
+          emptyLabel="No saved resumes yet. Upload one to get started."
+          icon={<LightforthAiIcon className="size-4" />}
+          onSelect={() => {
+            window.location.href = configureHref
+          }}
+        />
+      ) : null}
     </Workspace>
   )
 }
@@ -1339,7 +1344,7 @@ export function CopilotHistoryView({ homeHref, createHref, reportHref, rows }: C
           <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
             <h1 className="text-xl font-medium leading-5 text-ink">Past Copilot Sessions</h1>
             <a
-              href={createHref}
+              href={`${createHref}?mode=${activeMode}`}
               className="inline-flex min-h-10 items-center justify-center gap-3 rounded-lg bg-accent px-4 py-2 text-base font-semibold leading-6 text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               <Plus aria-hidden="true" className="size-5 shrink-0" />

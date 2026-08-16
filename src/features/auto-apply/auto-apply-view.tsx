@@ -16,13 +16,15 @@ import {
   START_TIMELINE_OPTIONS,
   WORK_SCHEDULE_OPTIONS,
 } from '@/contracts/auto-apply.draft'
-import { cn, FormField, FormPanel, FormPanelFooter, FormTextArea, ReviewSummaryList, ShellBar, SourcePicker } from '@/ui'
+import type { ResumeHistoryRow } from '@/contracts/resume.draft'
+import { cn, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ReviewSummaryList, ShellBar, SourcePicker } from '@/ui'
 import { useAgentSession, type AgentSession, type FeedEvent, type FeedLink } from '@/hooks/useAgentSession'
 
 export type AutoApplyUploadViewProps = {
   readonly homeHref: string
   readonly contactHref: string
   readonly agentHref: string
+  readonly savedResumes: readonly ResumeHistoryRow[]
 }
 
 export type AutoApplySetupStepViewProps = {
@@ -102,7 +104,9 @@ function Tag({ children }: { readonly children: ReactNode }) {
   return <span className="rounded-full bg-accent-subtle px-2 py-1 text-xs font-medium text-accent-text">{children}</span>
 }
 
-export function AutoApplyUploadView({ homeHref, contactHref, agentHref }: AutoApplyUploadViewProps) {
+export function AutoApplyUploadView({ homeHref, contactHref, agentHref, savedResumes }: AutoApplyUploadViewProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+
   return (
     <Workspace>
       <Header homeHref={homeHref} />
@@ -110,17 +114,27 @@ export function AutoApplyUploadView({ homeHref, contactHref, agentHref }: AutoAp
         <PaperShell>
           <SourcePicker
             title="Upload a resume"
-            actionLabel="Click to upload"
-            idleText="or drag and drop"
-            meta="PDF, DOC, DOCX or TXT"
             options={[
-              { label: 'Upload a Resume', href: contactHref, iconSrc: '/v3-assets/figma/upload-option-upload.svg' },
-              { label: 'Use Lightforth Resume', href: contactHref, iconSrc: '/v3-assets/figma/upload-option-lightforth.svg', emphasis: 'strong' },
+              { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', href: contactHref },
+              { label: 'Use Lightforth Resume', icon: <LightforthAiIcon className="size-5" />, emphasis: 'strong', onClick: () => setPickerOpen(true) },
             ]}
             historyLink={{ label: 'Continue to saved agent', href: agentHref }}
           />
         </PaperShell>
       </section>
+
+      <ListPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        title="Use a Lightforth Resume"
+        description="Pick a resume from your history to continue with."
+        items={savedResumes.map((resume) => ({ id: resume.id, title: resume.title, subtitle: resume.company, meta: `ATS ${resume.atsScore}` }))}
+        emptyLabel="No saved resumes yet. Upload one to get started."
+        icon={<LightforthAiIcon className="size-4" />}
+        onSelect={() => {
+          window.location.href = contactHref
+        }}
+      />
     </Workspace>
   )
 }
@@ -143,224 +157,13 @@ export function AutoApplySetupStepView({ homeHref, backHref, nextHref, setup, st
           footer={<FormPanelFooter backHref={backHref} nextHref={nextHref} />}
         >
           {step === 'contact' ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <FormField id="auto-email" label="Email" defaultValue={setup.email} required />
-              <FormField id="auto-phone" label="Phone" defaultValue={setup.phone} placeholder="+1" />
-              <FormField id="auto-first-name" label="First Name" defaultValue={setup.firstName} required />
-              <FormField id="auto-last-name" label="Last Name" defaultValue={setup.lastName} required />
-              <div>
-                <label htmlFor="auto-gender" className="mb-1 block text-sm font-medium text-ink">Gender</label>
-                <select id="auto-gender" defaultValue={setup.gender} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-                  <option value="">Select gender</option>
-                  {GENDER_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-              </div>
-              <FormField id="auto-dob" label="Date of Birth" defaultValue={setup.dob} placeholder="MM/DD/YYYY" />
-              <FormField id="auto-country" label="Country" defaultValue={setup.country} placeholder="Select country" />
-              <FormField id="auto-city" label="City" defaultValue={setup.city} placeholder={setup.country ? 'Enter city' : 'Select a country first'} disabled={!setup.country} />
-              <FormField id="auto-street" label="Street Address" defaultValue={setup.streetAddress} placeholder="123 Main St" />
-              <FormField id="auto-postal" label="Postal Code" defaultValue={setup.postalCode} placeholder="10001" />
-              <div className="sm:col-span-2">
-                <FormField id="auto-linkedin" label="LinkedIn URL" defaultValue={setup.linkedIn} placeholder="https://linkedin.com/in/..." />
-              </div>
-              <div className="sm:col-span-2">
-                <FormField id="auto-github" label="GitHub URL" defaultValue={setup.github} placeholder="https://github.com/..." />
-              </div>
-              <div className="sm:col-span-2">
-                <FormField id="auto-portfolio" label="Portfolio URL" defaultValue={setup.portfolio} placeholder="https://yoursite.com" />
-              </div>
-            </div>
+            <ContactForm setup={setup} />
           ) : null}
           {step === 'preferences' ? (
-            <div className="grid gap-3">
-              <FormField id="auto-role" label="Desired Role" defaultValue={setup.desiredRole} required placeholder="e.g. Product Manager" />
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="auto-experience" className="mb-1 block text-sm font-medium text-ink">Experience Level</label>
-                  <select id="auto-experience" defaultValue={setup.experienceLevel} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-                    <option value="">Select level</option>
-                    {EXPERIENCE_LEVELS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
-                </div>
-                <FormField id="auto-salary" label="Salary Expectation" defaultValue={setup.salary} placeholder="e.g. $120,000/year" />
-              </div>
-              <FormField id="auto-locations" label="Preferred Locations" defaultValue={setup.locations} placeholder="Search cities or regions…" />
-              <div>
-                <label className="mb-2 block text-sm font-medium text-ink">Employment Type</label>
-                <div className="flex flex-wrap gap-2">
-                  {EMPLOYMENT_TYPES.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      className={cn(
-                        'rounded-full border px-4 py-1.5 text-sm transition-colors',
-                        setup.employmentTypes.includes(t)
-                          ? 'border-accent bg-accent-subtle text-accent font-medium'
-                          : 'border-border text-ink hover:border-accent/40',
-                      )}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-ink">Job Location Type</label>
-                <div className="flex flex-wrap gap-2">
-                  {LOCATION_TYPES.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      className={cn(
-                        'rounded-full border px-4 py-1.5 text-sm transition-colors',
-                        setup.locationTypes.includes(t)
-                          ? 'border-accent bg-accent-subtle text-accent font-medium'
-                          : 'border-border text-ink hover:border-accent/40',
-                      )}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" defaultChecked={setup.openToRelocate} className="size-4 rounded border-input text-accent focus:ring-focus" />
-                <span className="text-sm text-ink">I am open to relocating</span>
-              </label>
-            </div>
+            <PreferencesForm setup={setup} />
           ) : null}
           {step === 'additional' ? (
-            <div className="grid gap-6">
-              <div>
-                <h3 className="mb-3 text-sm font-semibold text-ink">Demographics</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="auto-race" className="mb-1 block text-sm font-medium text-ink">Race/Ethnicity</label>
-                    <select id="auto-race" defaultValue={setup.race} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-                      <option value="">Select</option>
-                      {RACE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                  </div>
-                  <FormField id="auto-citizenship" label="Citizenship" defaultValue={setup.citizenship} placeholder="e.g. USA, Canada" />
-                  <div>
-                    <label htmlFor="auto-veteran" className="mb-1 block text-sm font-medium text-ink">Veteran Status</label>
-                    <select id="auto-veteran" defaultValue={setup.veteran} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-                      <option value="">Select</option>
-                      {VETERAN_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="auto-disability" className="mb-1 block text-sm font-medium text-ink">Disability Status</label>
-                    <select id="auto-disability" defaultValue={setup.disability} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-                      <option value="">Select</option>
-                      {DISABILITY_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 className="mb-3 text-sm font-semibold text-ink">Security Clearance</h3>
-                <div>
-                  <label htmlFor="auto-clearance" className="mb-1 block text-sm font-medium text-ink">Do you hold a defined security clearance?</label>
-                  <select id="auto-clearance" defaultValue={setup.securityClearance} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-                    <option value="">Select</option>
-                    {SECURITY_CLEARANCE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <h3 className="mb-3 text-sm font-semibold text-ink">Work Authorization</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="auto-us-auth" className="mb-1 block text-sm font-medium text-ink">US Work Authorization</label>
-                    <select id="auto-us-auth" defaultValue={setup.usWorkAuth} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-                      <option value="">Select</option>
-                      {US_WORK_AUTH_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                  </div>
-                  <FormField id="auto-canada-auth" label="Canada Work Authorization (Optional)" defaultValue={setup.canadaWorkAuth} placeholder="e.g. Citizen, PR, Work Permit" />
-                </div>
-                <fieldset className="mt-3">
-                  <legend className="text-sm font-medium text-ink">Are you authorized to work in the country you are applying to?</legend>
-                  <div className="mt-2 flex gap-4">
-                    <label className="flex items-center gap-2">
-                      <input type="radio" name="authorizedToWork" value="yes" defaultChecked={setup.authorizedToWork === 'yes'} className="size-4 text-accent focus:ring-focus" />
-                      <span className="text-sm text-ink">Yes</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input type="radio" name="authorizedToWork" value="no" defaultChecked={setup.authorizedToWork === 'no'} className="size-4 text-accent focus:ring-focus" />
-                      <span className="text-sm text-ink">No</span>
-                    </label>
-                  </div>
-                </fieldset>
-              </div>
-              <div>
-                <h3 className="mb-3 text-sm font-semibold text-ink">Logistics</h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="auto-start" className="mb-1 block text-sm font-medium text-ink">When are you willing to start?</label>
-                    <select id="auto-start" defaultValue={setup.willingToStart} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-                      <option value="">Select</option>
-                      {START_TIMELINE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="auto-schedule" className="mb-1 block text-sm font-medium text-ink">Work Schedule Availability</label>
-                    <select id="auto-schedule" defaultValue={setup.workSchedule} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-                      <option value="">Select</option>
-                      {WORK_SCHEDULE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <label className="mt-3 flex items-center gap-2">
-                  <input type="checkbox" defaultChecked={setup.willingToTravel} className="size-4 rounded border-input text-accent focus:ring-focus" />
-                  <span className="text-sm text-ink">I am willing to travel for work.</span>
-                </label>
-              </div>
-              <div>
-                <h3 className="mb-3 text-sm font-semibold text-ink">Background Questions</h3>
-                <div className="grid gap-3">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" defaultChecked={setup.drugTestConsent} className="size-4 rounded border-input text-accent focus:ring-focus" />
-                    <span className="text-sm text-ink">I consent to drug testing if required by the employer.</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" defaultChecked={setup.backgroundCheckConsent} className="size-4 rounded border-input text-accent focus:ring-focus" />
-                    <span className="text-sm text-ink">I consent to background checks if required.</span>
-                  </label>
-                  <fieldset>
-                    <legend className="text-sm font-medium text-ink">Is there anything that would prevent you from obtaining a Public Trust Clearance?</legend>
-                    <div className="mt-2 flex gap-4">
-                      <label className="flex items-center gap-2">
-                        <input type="radio" name="preventPublicTrust" value="yes" defaultChecked={setup.preventPublicTrust === 'yes'} className="size-4 text-accent focus:ring-focus" />
-                        <span className="text-sm text-ink">Yes</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="radio" name="preventPublicTrust" value="no" defaultChecked={setup.preventPublicTrust === 'no'} className="size-4 text-accent focus:ring-focus" />
-                        <span className="text-sm text-ink">No</span>
-                      </label>
-                    </div>
-                  </fieldset>
-                  <fieldset>
-                    <legend className="text-sm font-medium text-ink">Have you ever been disciplined due to drug diversion?</legend>
-                    <div className="mt-2 flex gap-4">
-                      <label className="flex items-center gap-2">
-                        <input type="radio" name="drugDiversion" value="yes" defaultChecked={setup.drugDiversion === 'yes'} className="size-4 text-accent focus:ring-focus" />
-                        <span className="text-sm text-ink">Yes</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input type="radio" name="drugDiversion" value="no" defaultChecked={setup.drugDiversion === 'no'} className="size-4 text-accent focus:ring-focus" />
-                        <span className="text-sm text-ink">No</span>
-                      </label>
-                    </div>
-                  </fieldset>
-                </div>
-              </div>
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-ink">References</h3>
-                <p className="text-xs text-ink-muted">No references added yet.</p>
-              </div>
-            </div>
+            <AdditionalForm setup={setup} />
           ) : null}
         </FormPanel>
       </section>
@@ -380,15 +183,706 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
         >
           <ReviewSummaryList
             rows={[
-              { id: 'resume', title: 'Resume', value: setup.uploadedFileName, iconSrc: '/v3-assets/figma/form-review-resume.svg', href: contactHref },
-              { id: 'contact', title: 'Contact Information', value: `${setup.firstName} ${setup.lastName} - ${setup.email} - ${setup.country}`, iconSrc: '/v3-assets/figma/form-review-contact.svg', href: contactHref },
-              { id: 'preferences', title: 'Job Preferences', value: `${setup.desiredRole}, ${setup.experienceLevel} - ${setup.salary}`, iconSrc: '/v3-assets/figma/form-review-briefcase.svg', href: '/v3/auto-apply/preferences' },
-              { id: 'additional', title: 'Additional Info', value: `${setup.willingToStart} - ${setup.usWorkAuth || 'Not set'}`, iconSrc: '/v3-assets/figma/form-review-info.svg', href: additionalHref },
+              {
+                id: 'resume',
+                title: 'Resume',
+                value: setup.uploadedFileName,
+                iconSrc: '/v3-assets/figma/form-review-resume.svg',
+                href: contactHref,
+                details: (
+                  <div className="grid gap-1">
+                    <p><span className="font-medium text-ink">File:</span> {setup.uploadedFileName}</p>
+                  </div>
+                ),
+              },
+              {
+                id: 'contact',
+                title: 'Contact Information',
+                value: `${setup.firstName} ${setup.lastName} - ${setup.email} - ${setup.country}`,
+                iconSrc: '/v3-assets/figma/form-review-contact.svg',
+                href: contactHref,
+                details: (
+                  <div className="grid gap-1">
+                    <p><span className="font-medium text-ink">Name:</span> {setup.firstName} {setup.lastName}</p>
+                    <p><span className="font-medium text-ink">Email:</span> {setup.email}</p>
+                    <p><span className="font-medium text-ink">Phone:</span> {setup.phone}</p>
+                    <p><span className="font-medium text-ink">Country:</span> {setup.country}</p>
+                    <p><span className="font-medium text-ink">City:</span> {setup.city}</p>
+                    <p><span className="font-medium text-ink">Address:</span> {setup.streetAddress}, {setup.postalCode}</p>
+                    {setup.linkedIn ? <p><span className="font-medium text-ink">LinkedIn:</span> {setup.linkedIn}</p> : null}
+                    {setup.github ? <p><span className="font-medium text-ink">GitHub:</span> {setup.github}</p> : null}
+                    {setup.portfolio ? <p><span className="font-medium text-ink">Portfolio:</span> {setup.portfolio}</p> : null}
+                  </div>
+                ),
+              },
+              {
+                id: 'preferences',
+                title: 'Job Preferences',
+                value: `${setup.desiredRole.join(', ')}, ${setup.experienceLevel} - $${Math.round(setup.salary.min / 1000)}k–$${Math.round(setup.salary.max / 1000)}k`,
+                iconSrc: '/v3-assets/figma/form-review-briefcase.svg',
+                href: '/v3/auto-apply/preferences',
+                details: (
+                  <div className="grid gap-1">
+                    <p><span className="font-medium text-ink">Desired Role:</span> {setup.desiredRole.join(', ')}</p>
+                    <p><span className="font-medium text-ink">Experience Level:</span> {setup.experienceLevel}</p>
+                    <p><span className="font-medium text-ink">Salary:</span> ${Math.round(setup.salary.min / 1000)}k – ${Math.round(setup.salary.max / 1000)}k</p>
+                    <p><span className="font-medium text-ink">Locations:</span> {setup.locations.join(', ')}</p>
+                    <p><span className="font-medium text-ink">Employment Types:</span> {setup.employmentTypes.join(', ')}</p>
+                    <p><span className="font-medium text-ink">Location Types:</span> {setup.locationTypes.join(', ')}</p>
+                    <p><span className="font-medium text-ink">Open to Relocate:</span> {setup.openToRelocate ? 'Yes' : 'No'}</p>
+                  </div>
+                ),
+              },
+              {
+                id: 'additional',
+                title: 'Additional Info',
+                value: `${setup.willingToStart} - ${setup.usWorkAuth || 'Not set'}`,
+                iconSrc: '/v3-assets/figma/form-review-info.svg',
+                href: additionalHref,
+                details: (
+                  <div className="grid gap-1">
+                    <p><span className="font-medium text-ink">Willing to Start:</span> {setup.willingToStart}</p>
+                    <p><span className="font-medium text-ink">US Work Auth:</span> {setup.usWorkAuth || 'Not set'}</p>
+                    <p><span className="font-medium text-ink">Work Schedule:</span> {setup.workSchedule}</p>
+                    <p><span className="font-medium text-ink">Willing to Travel:</span> {setup.willingToTravel ? 'Yes' : 'No'}</p>
+                    <p><span className="font-medium text-ink">Drug Test Consent:</span> {setup.drugTestConsent ? 'Yes' : 'No'}</p>
+                    <p><span className="font-medium text-ink">Background Check:</span> {setup.backgroundCheckConsent ? 'Yes' : 'No'}</p>
+                  </div>
+                ),
+              },
             ]}
           />
         </FormPanel>
       </section>
     </Workspace>
+  )
+}
+
+function PreferencesForm({ setup }: { readonly setup: AutoApplySetup }) {
+  const formatSalary = (val: number) => `$${Math.round(val / 1000)}k`
+  const withCommas = (val: string) => {
+    const num = val.replace(/[^0-9]/g, '')
+    if (!num) return ''
+    return Number(num).toLocaleString('en-US')
+  }
+  const SALARY_MIN = 20000
+  const SALARY_MAX = 300000
+  const toPercent = (val: number) => ((val - SALARY_MIN) / (SALARY_MAX - SALARY_MIN)) * 100
+
+  const [roles, setRoles] = useState<string[]>([...setup.desiredRole])
+  const [roleSearch, setRoleSearch] = useState('')
+  const [roleOpen, setRoleOpen] = useState(false)
+  const [locations, setLocations] = useState<string[]>([...setup.locations])
+  const [locSearch, setLocSearch] = useState('')
+  const [locOpen, setLocOpen] = useState(false)
+  const [salaryMin, setSalaryMin] = useState(setup.salary.min)
+  const [salaryMax, setSalaryMax] = useState(setup.salary.max)
+  const [salaryMinInput, setSalaryMinInput] = useState(formatSalary(setup.salary.min))
+  const [salaryMaxInput, setSalaryMaxInput] = useState(formatSalary(setup.salary.max))
+  const [expSearch, setExpSearch] = useState('')
+  const [expOpen, setExpOpen] = useState(false)
+  const [experience, setExperience] = useState(setup.experienceLevel)
+
+  const ROLE_OPTIONS = [
+    'Product Manager', 'Senior Product Manager', 'Product Lead', 'Product Owner',
+    'Software Engineer', 'Senior Software Engineer', 'Frontend Engineer', 'Backend Engineer',
+    'Data Scientist', 'Data Analyst', 'Machine Learning Engineer',
+    'UX Designer', 'UI Designer', 'Product Designer',
+    'Project Manager', 'Program Manager', 'Scrum Master',
+    'DevOps Engineer', 'Cloud Engineer', 'Site Reliability Engineer',
+    'Marketing Manager', 'Content Strategist', 'Growth Manager',
+    'Business Analyst', 'Operations Manager', 'Financial Analyst',
+    'HR Manager', 'Recruiter', 'Account Executive', 'Sales Manager',
+  ]
+
+  const filteredRoles = ROLE_OPTIONS.filter((r) => r.toLowerCase().includes(roleSearch.toLowerCase()) && !roles.includes(r))
+
+  const addRole = (role: string) => {
+    if (role && roles.length < 5 && !roles.includes(role)) {
+      setRoles([...roles, role])
+    }
+    setRoleSearch('')
+    setRoleOpen(false)
+  }
+
+  const removeRole = (role: string) => setRoles(roles.filter((r) => r !== role))
+
+  const LOCATION_OPTIONS = [
+    'New York, NY', 'San Francisco, CA', 'Los Angeles, CA', 'Chicago, IL', 'Seattle, WA',
+    'Austin, TX', 'Boston, MA', 'Denver, CO', 'Miami, FL', 'Atlanta, GA',
+    'Portland, OR', 'Washington, DC', 'San Diego, CA', 'Dallas, TX', 'Houston, TX',
+    'London, UK', 'Berlin, Germany', 'Toronto, Canada', 'Singapore', 'Sydney, Australia',
+    'Remote', 'Hybrid', 'Onsite',
+  ]
+
+  const filteredLocations = LOCATION_OPTIONS.filter((l) => l.toLowerCase().includes(locSearch.toLowerCase()) && !locations.includes(l))
+
+  const addLocation = (loc: string) => {
+    if (loc && locations.length < 5 && !locations.includes(loc)) {
+      setLocations([...locations, loc])
+    }
+    setLocSearch('')
+    setLocOpen(false)
+  }
+
+  const removeLocation = (loc: string) => setLocations(locations.filter((l) => l !== loc))
+
+  const filteredExps = EXPERIENCE_LEVELS.filter((e) => e.toLowerCase().includes(expSearch.toLowerCase()))
+
+  return (
+    <div className="grid gap-5">
+      {/* Desired Role - searchable select with pills below */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-ink">Desired Role <span className="text-ink-muted">(up to 5)</span></label>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setRoleOpen(!roleOpen)}
+            className="flex min-h-10 w-full items-center justify-between rounded-lg border border-input bg-surface px-3 text-left text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus"
+          >
+            <span className="text-ink-muted">Search roles...</span>
+            <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', roleOpen && 'rotate-180')} />
+          </button>
+          {roleOpen ? (
+            <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
+              <div className="border-b border-border p-2">
+                <input
+                  type="text"
+                  value={roleSearch}
+                  onChange={(e) => setRoleSearch(e.target.value)}
+                  placeholder="Search roles..."
+                  autoFocus
+                  className="w-full rounded-md border border-input bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus"
+                />
+              </div>
+              <div className="max-h-48 overflow-y-auto p-1">
+                {filteredRoles.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => addRole(opt)}
+                    className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
+                  >
+                    {opt}
+                  </button>
+                ))}
+                {filteredRoles.length === 0 ? <p className="px-3 py-2 text-sm text-ink-muted">No results</p> : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
+        {roles.length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {roles.map((role) => (
+              <span key={role} className="inline-flex items-center gap-1 rounded-md bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent">
+                {role}
+                <button type="button" onClick={() => removeRole(role)} className="rounded-full p-0.5 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus" aria-label={`Remove ${role}`}>
+                  <X aria-hidden="true" className="size-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {roles.length >= 5 ? <p className="mt-1 text-xs text-ink-muted">Maximum 5 roles reached</p> : null}
+      </div>
+
+      {/* Experience Level - searchable select */}
+      <div className="relative">
+        <label className="mb-1 block text-sm font-medium text-ink">Experience Level</label>
+        <button
+          type="button"
+          onClick={() => setExpOpen(!expOpen)}
+          className="flex min-h-10 w-full items-center justify-between rounded-lg border border-input bg-surface px-3 text-left text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus"
+        >
+          <span className={experience ? '' : 'text-ink-muted'}>{experience || 'Search and select level'}</span>
+          <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', expOpen && 'rotate-180')} />
+        </button>
+        {expOpen ? (
+          <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
+            <div className="border-b border-border p-2">
+              <input
+                type="text"
+                value={expSearch}
+                onChange={(e) => setExpSearch(e.target.value)}
+                placeholder="Search experience..."
+                autoFocus
+                className="w-full rounded-md border border-input bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus"
+              />
+            </div>
+            <div className="max-h-48 overflow-y-auto p-1">
+              {filteredExps.map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => { setExperience(opt); setExpOpen(false); setExpSearch('') }}
+                  className={cn(
+                    'flex w-full items-center rounded-md px-3 py-2 text-left text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus',
+                    experience === opt ? 'bg-accent-subtle text-accent font-medium' : 'text-ink hover:bg-surface-subtle',
+                  )}
+                >
+                  {experience === opt ? <Check aria-hidden="true" className="mr-2 size-4" /> : <span className="mr-2 size-4" />}
+                  {opt}
+                </button>
+              ))}
+              {filteredExps.length === 0 ? <p className="px-3 py-2 text-sm text-ink-muted">No results</p> : null}
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Salary Range Slider */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-ink">Salary Range</label>
+        <div className="rounded-lg border border-border bg-surface p-4">
+          <div className="mb-3 flex items-center justify-between text-sm">
+            <input
+              type="tel"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={salaryMinInput.includes(',') ? salaryMinInput : withCommas(salaryMinInput)}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9]/g, '')
+                setSalaryMinInput(raw)
+              }}
+              onFocus={() => setSalaryMinInput(withCommas(String(salaryMin)))}
+              onBlur={() => {
+                const num = Number(salaryMinInput.replace(/[^0-9]/g, ''))
+                if (!isNaN(num) && num >= SALARY_MIN && num < salaryMax) {
+                  const snapped = Math.round(num / 5000) * 5000
+                  setSalaryMin(snapped)
+                  setSalaryMinInput(formatSalary(snapped))
+                } else {
+                  setSalaryMinInput(formatSalary(salaryMin))
+                }
+              }}
+              className="w-20 rounded border border-transparent bg-surface-subtle px-2 py-0.5 text-center font-semibold text-ink outline-none hover:border-input focus:border-focus focus:ring-1 focus:ring-focus"
+            />
+            <span className="text-ink-muted">to</span>
+            <input
+              type="tel"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={salaryMaxInput.includes(',') ? salaryMaxInput : withCommas(salaryMaxInput)}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9]/g, '')
+                setSalaryMaxInput(raw)
+              }}
+              onFocus={() => setSalaryMaxInput(withCommas(String(salaryMax)))}
+              onBlur={() => {
+                const num = Number(salaryMaxInput.replace(/[^0-9]/g, ''))
+                if (!isNaN(num) && num > salaryMin && num <= SALARY_MAX) {
+                  const snapped = Math.round(num / 5000) * 5000
+                  setSalaryMax(snapped)
+                  setSalaryMaxInput(formatSalary(snapped))
+                } else {
+                  setSalaryMaxInput(formatSalary(salaryMax))
+                }
+              }}
+              className="w-20 rounded border border-transparent bg-surface-subtle px-2 py-0.5 text-center font-semibold text-ink outline-none hover:border-input focus:border-focus focus:ring-1 focus:ring-focus"
+            />
+          </div>
+          <div className="relative h-6">
+            <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-surface-subtle" />
+            <div
+              className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent"
+              style={{ left: `${toPercent(salaryMin)}%`, right: `${100 - toPercent(salaryMax)}%` }}
+            />
+            <input
+              type="range"
+              min={SALARY_MIN}
+              max={SALARY_MAX}
+              step={5000}
+              value={salaryMax}
+              onChange={(e) => { const v = Number(e.target.value); if (v > salaryMin) { setSalaryMax(v); setSalaryMaxInput(formatSalary(v)) } }}
+              className="absolute inset-0 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110 [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-surface"
+            />
+            <input
+              type="range"
+              min={SALARY_MIN}
+              max={SALARY_MAX}
+              step={5000}
+              value={salaryMin}
+              onChange={(e) => { const v = Number(e.target.value); if (v < salaryMax) { setSalaryMin(v); setSalaryMinInput(formatSalary(v)) } }}
+              className="absolute inset-0 z-10 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110 [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-surface"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Locations - searchable multi-select */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-ink">Preferred Locations <span className="text-ink-muted">(up to 5)</span></label>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setLocOpen(!locOpen)}
+            className="flex min-h-10 w-full items-center justify-between rounded-lg border border-input bg-surface px-3 text-left text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus"
+          >
+            <span className="text-ink-muted">Search locations...</span>
+            <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', locOpen && 'rotate-180')} />
+          </button>
+          {locOpen ? (
+            <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
+              <div className="border-b border-border p-2">
+                <input
+                  type="text"
+                  value={locSearch}
+                  onChange={(e) => setLocSearch(e.target.value)}
+                  placeholder="Search locations..."
+                  autoFocus
+                  className="w-full rounded-md border border-input bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus"
+                />
+              </div>
+              <div className="max-h-48 overflow-y-auto p-1">
+                {filteredLocations.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => addLocation(opt)}
+                    className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
+                  >
+                    {opt}
+                  </button>
+                ))}
+                {filteredLocations.length === 0 ? <p className="px-3 py-2 text-sm text-ink-muted">No results</p> : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
+        {locations.length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {locations.map((loc) => (
+              <span key={loc} className="inline-flex items-center gap-1 rounded-md bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent">
+                {loc}
+                <button type="button" onClick={() => removeLocation(loc)} className="rounded-full p-0.5 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus" aria-label={`Remove ${loc}`}>
+                  <X aria-hidden="true" className="size-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {locations.length >= 5 ? <p className="mt-1 text-xs text-ink-muted">Maximum 5 locations reached</p> : null}
+      </div>
+
+      {/* Employment Type */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-ink">Employment Type</label>
+        <div className="flex flex-wrap gap-2">
+          {EMPLOYMENT_TYPES.map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={cn(
+                'rounded-full border px-4 py-1.5 text-sm transition-colors',
+                setup.employmentTypes.includes(t)
+                  ? 'border-accent bg-accent-subtle text-accent font-medium'
+                  : 'border-border text-ink hover:border-accent/40',
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Location Type */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-ink">Job Location Type</label>
+        <div className="flex flex-wrap gap-2">
+          {LOCATION_TYPES.map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={cn(
+                'rounded-full border px-4 py-1.5 text-sm transition-colors',
+                setup.locationTypes.includes(t)
+                  ? 'border-accent bg-accent-subtle text-accent font-medium'
+                  : 'border-border text-ink hover:border-accent/40',
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <label className="flex items-center gap-2">
+        <input type="checkbox" defaultChecked={setup.openToRelocate} className="size-4 rounded border-input text-accent focus:ring-focus" />
+        <span className="text-sm text-ink">I am open to relocating</span>
+      </label>
+    </div>
+  )
+}
+
+function ContactForm({ setup }: { readonly setup: AutoApplySetup }) {
+  const [openSection, setOpenSection] = useState<string | null>('profile')
+
+  const toggle = (key: string) => setOpenSection((prev) => prev === key ? null : key)
+
+  const filled = {
+    profile: !!(setup.email || setup.phone || setup.firstName || setup.lastName || setup.gender || setup.dob),
+    address: !!(setup.country || setup.city || setup.streetAddress || setup.postalCode),
+    links: !!(setup.linkedIn || setup.github || setup.portfolio),
+  }
+
+  return (
+    <div className="grid gap-2">
+      <CollapsibleSection
+        title="Profile Details"
+        isOpen={openSection === 'profile'}
+        onToggle={() => toggle('profile')}
+        isFilled={filled.profile}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FormField id="auto-email" label="Email" defaultValue={setup.email} required disabled />
+          <FormField id="auto-phone" label="Phone" defaultValue={setup.phone} placeholder="+1" />
+          <FormField id="auto-first-name" label="First Name" defaultValue={setup.firstName} required />
+          <FormField id="auto-last-name" label="Last Name" defaultValue={setup.lastName} required />
+          <div>
+            <label htmlFor="auto-gender" className="mb-1 block text-sm font-medium text-ink">Gender</label>
+            <select id="auto-gender" defaultValue={setup.gender} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+              <option value="">Select gender</option>
+              {GENDER_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="auto-dob" className="mb-1 block text-sm font-medium text-ink">Date of Birth</label>
+            <input
+              type="date"
+              id="auto-dob"
+              defaultValue={setup.dob}
+              max={new Date().toISOString().split('T')[0]}
+              className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+            />
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Address and Location"
+        isOpen={openSection === 'address'}
+        onToggle={() => toggle('address')}
+        isFilled={filled.address}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <FormField id="auto-country" label="Country" defaultValue={setup.country} placeholder="Select country" />
+          <FormField id="auto-city" label="City" defaultValue={setup.city} placeholder={setup.country ? 'Enter city' : 'Select a country first'} disabled={!setup.country} />
+          <FormField id="auto-street" label="Street Address" defaultValue={setup.streetAddress} placeholder="123 Main St" />
+          <FormField id="auto-postal" label="Postal Code" defaultValue={setup.postalCode} placeholder="10001" />
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Public Links"
+        isOpen={openSection === 'links'}
+        onToggle={() => toggle('links')}
+        isFilled={filled.links}
+      >
+        <div className="grid gap-3">
+          <FormField id="auto-linkedin" label="LinkedIn URL" defaultValue={setup.linkedIn} placeholder="https://linkedin.com/in/..." />
+          <FormField id="auto-github" label="GitHub URL" defaultValue={setup.github} placeholder="https://github.com/..." />
+          <FormField id="auto-portfolio" label="Portfolio URL" defaultValue={setup.portfolio} placeholder="https://yoursite.com" />
+        </div>
+      </CollapsibleSection>
+    </div>
+  )
+}
+
+function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
+  const [openSection, setOpenSection] = useState<string | null>('demographics')
+
+  const toggle = (key: string) => setOpenSection((prev) => prev === key ? null : key)
+
+  const filled = {
+    demographics: !!(setup.race || setup.citizenship || setup.veteran || setup.disability),
+    security: !!setup.securityClearance,
+    workAuth: !!(setup.usWorkAuth || setup.canadaWorkAuth || setup.authorizedToWork),
+    logistics: !!(setup.willingToStart || setup.workSchedule || setup.willingToTravel),
+    background: !!(setup.drugTestConsent || setup.backgroundCheckConsent || setup.preventPublicTrust || setup.drugDiversion),
+    references: false,
+  }
+
+  return (
+    <div className="grid gap-2">
+      <CollapsibleSection
+        title="Demographics"
+        isOpen={openSection === 'demographics'}
+        onToggle={() => toggle('demographics')}
+        isFilled={filled.demographics}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor="auto-race" className="mb-1 block text-sm font-medium text-ink">Race/Ethnicity</label>
+            <select id="auto-race" defaultValue={setup.race} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+              <option value="">Select</option>
+              {RACE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <FormField id="auto-citizenship" label="Citizenship" defaultValue={setup.citizenship} placeholder="e.g. USA, Canada" />
+          <div>
+            <label htmlFor="auto-veteran" className="mb-1 block text-sm font-medium text-ink">Veteran Status</label>
+            <select id="auto-veteran" defaultValue={setup.veteran} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+              <option value="">Select</option>
+              {VETERAN_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="auto-disability" className="mb-1 block text-sm font-medium text-ink">Disability Status</label>
+            <select id="auto-disability" defaultValue={setup.disability} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+              <option value="">Select</option>
+              {DISABILITY_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Security Clearance"
+        isOpen={openSection === 'security'}
+        onToggle={() => toggle('security')}
+        isFilled={filled.security}
+      >
+        <div>
+          <label htmlFor="auto-clearance" className="mb-1 block text-sm font-medium text-ink">Do you hold a defined security clearance?</label>
+          <select id="auto-clearance" defaultValue={setup.securityClearance} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+            <option value="">Select</option>
+            {SECURITY_CLEARANCE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Work Authorization"
+        isOpen={openSection === 'workAuth'}
+        onToggle={() => toggle('workAuth')}
+        isFilled={filled.workAuth}
+      >
+        <div className="grid gap-3">
+          <div>
+            <label htmlFor="auto-us-auth" className="mb-1 block text-sm font-medium text-ink">US Work Authorization</label>
+            <select id="auto-us-auth" defaultValue={setup.usWorkAuth} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+              <option value="">Select</option>
+              {US_WORK_AUTH_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <FormField id="auto-canada-auth" label="Canada Work Authorization (Optional)" defaultValue={setup.canadaWorkAuth} placeholder="e.g. Citizen, PR, Work Permit" />
+        </div>
+        <fieldset className="mt-3">
+          <legend className="text-sm font-medium text-ink">Are you authorized to work in the country you are applying to?</legend>
+          <div className="mt-2 flex gap-4">
+            <label className="flex items-center gap-2">
+              <input type="radio" name="authorizedToWork" value="yes" defaultChecked={setup.authorizedToWork === 'yes'} className="size-4 text-accent focus:ring-focus" />
+              <span className="text-sm text-ink">Yes</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name="authorizedToWork" value="no" defaultChecked={setup.authorizedToWork === 'no'} className="size-4 text-accent focus:ring-focus" />
+              <span className="text-sm text-ink">No</span>
+            </label>
+          </div>
+        </fieldset>
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Logistics"
+        isOpen={openSection === 'logistics'}
+        onToggle={() => toggle('logistics')}
+        isFilled={filled.logistics}
+      >
+        <div className="grid gap-3">
+          <div>
+            <label htmlFor="auto-start" className="mb-1 block text-sm font-medium text-ink">When are you willing to start?</label>
+            <select id="auto-start" defaultValue={setup.willingToStart} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+              <option value="">Select</option>
+              {START_TIMELINE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="auto-schedule" className="mb-1 block text-sm font-medium text-ink">Work Schedule Availability</label>
+            <select id="auto-schedule" defaultValue={setup.workSchedule} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+              <option value="">Select</option>
+              {WORK_SCHEDULE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </div>
+        </div>
+        <label className="mt-3 flex items-center gap-2">
+          <input type="checkbox" defaultChecked={setup.willingToTravel} className="size-4 rounded border-input text-accent focus:ring-focus" />
+          <span className="text-sm text-ink">I am willing to travel for work.</span>
+        </label>
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="Background Questions"
+        isOpen={openSection === 'background'}
+        onToggle={() => toggle('background')}
+        isFilled={filled.background}
+      >
+        <div className="grid gap-5">
+          <fieldset>
+            <legend className="mb-2 text-sm font-medium text-ink">Is there anything that would prevent you from obtaining a Public Trust Clearance?</legend>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2">
+                <input type="radio" name="preventPublicTrust" value="yes" defaultChecked={setup.preventPublicTrust === 'yes'} className="size-4 text-accent focus:ring-focus" />
+                <span className="text-sm text-ink">Yes</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="radio" name="preventPublicTrust" value="no" defaultChecked={setup.preventPublicTrust === 'no'} className="size-4 text-accent focus:ring-focus" />
+                <span className="text-sm text-ink">No</span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend className="mb-2 text-sm font-medium text-ink">Have you ever been disciplined due to drug diversion?</legend>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2">
+                <input type="radio" name="drugDiversion" value="yes" defaultChecked={setup.drugDiversion === 'yes'} className="size-4 text-accent focus:ring-focus" />
+                <span className="text-sm text-ink">Yes</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="radio" name="drugDiversion" value="no" defaultChecked={setup.drugDiversion === 'no'} className="size-4 text-accent focus:ring-focus" />
+                <span className="text-sm text-ink">No</span>
+              </label>
+            </div>
+          </fieldset>
+          <div className="grid gap-3">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" defaultChecked={setup.drugTestConsent} className="size-4 rounded border-input text-accent focus:ring-focus" />
+              <span className="text-sm text-ink">I consent to drug testing if required by the employer.</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" defaultChecked={setup.backgroundCheckConsent} className="size-4 rounded border-input text-accent focus:ring-focus" />
+              <span className="text-sm text-ink">I consent to background checks if required.</span>
+            </label>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection
+        title="References"
+        isOpen={openSection === 'references'}
+        onToggle={() => toggle('references')}
+        isFilled={filled.references}
+      >
+        <p className="text-sm text-ink-muted">No references added yet.</p>
+      </CollapsibleSection>
+    </div>
+  )
+}
+
+function CollapsibleSection({ title, isOpen, onToggle, isFilled, children }: { readonly title: string; readonly isOpen: boolean; readonly onToggle: () => void; readonly isFilled?: boolean; readonly children: ReactNode }) {
+  return (
+    <div className={cn('rounded-lg border border-border bg-surface transition-opacity', isFilled && !isOpen && 'opacity-50')}>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex min-h-12 w-full items-center justify-between px-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        <span className={cn('text-sm font-semibold text-ink', isFilled && !isOpen && 'text-ink-muted line-through')}>{title}</span>
+        <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform duration-200', isOpen && 'rotate-180')} />
+      </button>
+      {isOpen ? (
+        <div className="border-t border-border px-4 pb-4 pt-3">{children}</div>
+      ) : null}
+    </div>
   )
 }
 

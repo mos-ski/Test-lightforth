@@ -1,4 +1,10 @@
-export type DashboardActionId = 'resume-tailor' | 'interview-practice' | 'interview-copilot' | 'auto-apply'
+export type DashboardActionId =
+  | 'resume-tailor'
+  | 'interview-practice'
+  | 'interview-copilot'
+  | 'coding-copilot'
+  | 'meeting-copilot'
+  | 'auto-apply'
 
 export type DashboardAction = {
   readonly id: DashboardActionId
@@ -7,6 +13,7 @@ export type DashboardAction = {
   readonly href: string
   readonly featured?: boolean
   readonly badge?: string
+  readonly locked?: boolean
 }
 
 export type DashboardNavItem = {

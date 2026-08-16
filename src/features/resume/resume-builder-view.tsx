@@ -315,11 +315,11 @@ function ChatSidebar({
   }, [messages, isTyping])
 
   return (
-    <aside className="flex w-full flex-col border-e border-border bg-surface lg:w-[21.25rem]">
+    <aside className="flex w-full flex-col overflow-hidden border-e border-border bg-surface max-h-[45vh] lg:h-full lg:max-h-none lg:w-[21.25rem]">
       <div className="border-b border-border p-3">
         <TabRail tab="chat" />
       </div>
-      <div className="flex min-h-[calc(100vh-7rem)] flex-1 flex-col">
+      <div className="flex flex-1 flex-col overflow-hidden">
         {messages.length === 0 ? (
           <ChatEmptyState />
         ) : (
@@ -397,16 +397,26 @@ const sectionFields: Record<ResumeSectionId, readonly { readonly id: string; rea
   ],
 }
 
-function SectionEditor({ session }: { readonly session: ResumeBuilderSession }) {
+function SectionEditor({
+  pendingSuggestion,
+  onSuggest,
+  onAccept,
+  onReject,
+}: {
+  readonly pendingSuggestion: boolean
+  readonly onSuggest: () => void
+  readonly onAccept: () => void
+  readonly onReject: () => void
+}) {
   const sections = Object.entries(sectionLabels) as ReadonlyArray<[ResumeSectionId, string]>
   const [expandedId, setExpandedId] = useState<ResumeSectionId | null>('professional-summary')
 
   return (
-    <aside className="relative flex w-full flex-col border-e border-border bg-surface lg:w-[21.25rem]">
+    <aside className="flex w-full flex-col overflow-hidden border-e border-border bg-surface max-h-[45vh] lg:h-full lg:max-h-none lg:w-[21.25rem]">
       <div className="border-b border-border p-3">
         <TabRail tab="create" />
       </div>
-      <div className="flex min-h-[calc(100vh-7rem)] flex-col">
+      <div className="flex flex-1 flex-col overflow-hidden">
         <div className="flex-1 overflow-auto px-3 py-1">
           {sections.map(([id, label]) => {
             const expanded = expandedId === id
@@ -435,7 +445,20 @@ function SectionEditor({ session }: { readonly session: ResumeBuilderSession }) 
                         )}
                       </div>
                     ))}
-                    <AiSuggestionLabel />
+                    {pendingSuggestion ? (
+                      <div className="flex gap-2">
+                        <button type="button" onClick={onReject} className="inline-flex min-h-8 items-center gap-1 rounded-pill border border-border px-3 text-xs font-semibold text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                          <X aria-hidden="true" className="size-3" />
+                          Reject All
+                        </button>
+                        <button type="button" onClick={onAccept} className="inline-flex min-h-8 items-center gap-1 rounded-pill bg-accent px-3 text-xs font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                          <Check aria-hidden="true" className="size-3" />
+                          Accept All
+                        </button>
+                      </div>
+                    ) : (
+                      <AiSuggestionLabel onClick={onSuggest} />
+                    )}
                   </div>
                 ) : null}
               </section>
@@ -449,35 +472,17 @@ function SectionEditor({ session }: { readonly session: ResumeBuilderSession }) 
           </button>
         </div>
       </div>
-      <div className="absolute end-3 top-20 z-10 w-64 rounded-lg border border-accent bg-surface shadow-panel">
-        <div className="flex items-center justify-between rounded-t-lg bg-brand-bar px-3 py-2 text-brand-bar-text">
-          <span className="inline-flex items-center gap-2 text-xs font-semibold">
-            <LightforthAiIcon className="size-3 shrink-0" />
-            Light AI
-          </span>
-          <button type="button" aria-label="Close AI suggestion" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <X aria-hidden="true" className="size-3" />
-          </button>
-        </div>
-        <div className="p-3 text-xs leading-5 text-ink-muted">
-          <p className="border-s-2 border-focus ps-3">{session.aiDraft}</p>
-          <button type="button" className="mt-3 inline-flex min-h-8 items-center gap-2 text-xs text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <Sparkles aria-hidden="true" className="size-3" />
-            Regenerate
-          </button>
-        </div>
-      </div>
     </aside>
   )
 }
 
 function TemplateSidebar({ templates, selectedTemplateId }: { readonly templates: readonly ResumeTemplate[]; readonly selectedTemplateId: string }) {
   return (
-    <aside className="flex w-full flex-col border-e border-border bg-surface lg:w-[21.25rem]">
+    <aside className="flex w-full flex-col overflow-hidden border-e border-border bg-surface max-h-[45vh] lg:h-full lg:max-h-none lg:w-[21.25rem]">
       <div className="border-b border-border p-3">
         <TabRail tab="template" />
       </div>
-      <div className="grid grid-cols-2 gap-3 overflow-auto p-3">
+      <div className="grid flex-1 grid-cols-2 gap-3 overflow-auto p-3">
         {templates.map((template) => {
           const isSelected = template.id === selectedTemplateId
           return (
@@ -764,12 +769,12 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     setPendingSuggestion(false)
   }
 
-  const showImproved = hasAcceptedChanges || pendingSuggestion || tab === 'create'
+  const showImproved = hasAcceptedChanges || pendingSuggestion
 
   return (
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="Build a Resume" action="download" onAtsClick={() => setAtsOpen(true)} />
-      <section className="relative flex min-h-[calc(100vh-3.5rem)] flex-col lg:flex-row">
+      <section className="relative flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden lg:flex-row">
         {tab === 'chat' ? (
           <ChatSidebar
             session={session}
@@ -783,7 +788,9 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
             onReject={handleReject}
           />
         ) : null}
-        {tab === 'create' ? <SectionEditor session={session} /> : null}
+        {tab === 'create' ? (
+          <SectionEditor pendingSuggestion={pendingSuggestion} onSuggest={() => setPendingSuggestion(true)} onAccept={handleAccept} onReject={handleReject} />
+        ) : null}
         {tab === 'template' ? <TemplateSidebar templates={templates} selectedTemplateId={session.selectedTemplateId} /> : null}
         <div className="relative flex-1 overflow-auto bg-canvas px-4 py-8 lg:px-8">
           <ZoomControls zoom={zoom} onChange={setZoom} />
@@ -794,7 +801,7 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
               <ClassicResume document={document} showImproved={showImproved} highlightChanges={pendingSuggestion} />
             )}
           </div>
-          {pendingSuggestion && tab === 'chat' ? (
+          {pendingSuggestion && (tab === 'chat' || tab === 'create') ? (
             <>
               <InlineChangeControls onAccept={handleAccept} onReject={handleReject} />
               <Tooltip title="Accept or Decline Changes" body="These changes only apply once you accept them — reject to keep your original wording." align="end" />

@@ -28,9 +28,22 @@ export const dashboardActions: readonly DashboardAction[] = [
   },
   {
     id: 'interview-copilot',
-    title: 'Start Interview or Meeting',
-    description: 'Live AI assistance for interviews, coding rounds, and meetings — real-time suggestions as the conversation happens.',
-    href: '/v3/interview-copilot',
+    title: 'Interview Copilot',
+    description: 'Live AI assistance during interviews — real-time suggestions as the conversation happens.',
+    href: '/v3/interview-copilot?mode=interview',
+  },
+  {
+    id: 'coding-copilot',
+    title: 'Coding Copilot',
+    description: 'Live AI assistance for coding interviews — real-time hints as you work through the problem.',
+    href: '/v3/interview-copilot?mode=coding',
+  },
+  {
+    id: 'meeting-copilot',
+    title: 'Meeting Copilot',
+    description: 'Live AI assistance during meetings — real-time notes and talking points as the conversation happens.',
+    href: '/v3/interview-copilot?mode=meeting',
+    locked: true,
   },
   {
     id: 'auto-apply',

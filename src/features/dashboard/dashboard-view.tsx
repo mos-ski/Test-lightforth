@@ -1,9 +1,9 @@
-import { Apple, ArrowRight, Bell, ChevronRight, CircleHelp, CreditCard, ExternalLink, Gift, LogOut, Mail, Menu, Monitor, PanelLeftClose, PanelLeftOpen, Play, Settings, User, X } from 'lucide-react'
+import { Apple, ArrowRight, Bell, ChevronRight, CircleHelp, Code2, CreditCard, ExternalLink, Gift, Lock, LogOut, Mail, Menu, Monitor, PanelLeftClose, PanelLeftOpen, Play, Settings, User, Video, X } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 import type { DashboardAction, DashboardActionId, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
 import type { UserIdentity } from '@/contracts/identity'
-import { cn, Dialog, DialogClose, DialogPopup, DialogTrigger, LightforthMark, SideMenu } from '@/ui'
+import { Button, cn, Dialog, DialogClose, DialogPopup, DialogTitle, DialogTrigger, LightforthMark, SideMenu } from '@/ui'
 import { BriefcaseActionIcon, CopilotActionIcon, MonitorActionIcon, ResumeActionIcon } from './dashboard-action-icons'
 import {
   AutoApplyIcon,
@@ -300,25 +300,25 @@ const actionIconById: Record<DashboardActionId, ReactNode> = {
   'resume-tailor': <ResumeActionIcon />,
   'interview-practice': <MonitorActionIcon />,
   'interview-copilot': <CopilotActionIcon />,
+  'coding-copilot': <Code2 aria-hidden="true" />,
+  'meeting-copilot': <Video aria-hidden="true" />,
   'auto-apply': <BriefcaseActionIcon />,
 }
 
-function ActionCard({ action }: { readonly action: DashboardAction }) {
-  return (
-    <a
-      href={action.href}
-      data-variant="rest"
-      data-featured={action.featured ? 'true' : undefined}
-      className={cn(
-        'group flex min-h-32 flex-col gap-3 rounded-lg border border-border bg-surface px-5 py-4 shadow-control transition duration-200 ease-out hover:border-accent hover:bg-accent-subtle focus-visible:border-accent focus-visible:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none sm:hover:-translate-y-0.5',
-      )}
-      aria-label={`${action.title}. ${action.description}`}
-    >
+function ActionCard({ action, onLockedClick }: { readonly action: DashboardAction; readonly onLockedClick: (action: DashboardAction) => void }) {
+  const locked = action.locked ?? false
+
+  const cardClassName = cn(
+    'group flex min-h-32 flex-col gap-3 rounded-lg border border-border bg-surface px-5 py-4 text-start shadow-control transition duration-200 ease-out hover:border-accent hover:bg-accent-subtle focus-visible:border-accent focus-visible:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none sm:hover:-translate-y-0.5',
+  )
+
+  const content = (
+    <>
       <span
         aria-hidden="true"
         className="size-4 text-ink transition-transform duration-200 group-hover:scale-110 group-focus-visible:scale-110 motion-reduce:transition-none [&>svg]:size-4"
       >
-        {actionIconById[action.id] ?? null}
+        {locked ? <Lock aria-hidden="true" /> : actionIconById[action.id] ?? null}
       </span>
       <div className="grid gap-1.5">
         <div className="flex flex-wrap items-center gap-2">
@@ -331,7 +331,61 @@ function ActionCard({ action }: { readonly action: DashboardAction }) {
         </div>
         <p className="text-xs font-medium leading-5 text-ink-muted">{action.description}</p>
       </div>
+    </>
+  )
+
+  if (locked) {
+    return (
+      <button
+        type="button"
+        data-variant="locked"
+        onClick={() => onLockedClick(action)}
+        className={cardClassName}
+        aria-label={`${action.title}. Requires a plan upgrade. ${action.description}`}
+      >
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <a
+      href={action.href}
+      data-variant="rest"
+      data-featured={action.featured ? 'true' : undefined}
+      className={cardClassName}
+      aria-label={`${action.title}. ${action.description}`}
+    >
+      {content}
     </a>
+  )
+}
+
+function UpgradeDialog({ action, onOpenChange }: { readonly action: DashboardAction | null; readonly onOpenChange: (open: boolean) => void }) {
+  return (
+    <Dialog open={action !== null} onOpenChange={onOpenChange}>
+      <DialogPopup aria-label="Upgrade to Premium">
+        <DialogClose />
+        <span aria-hidden="true" className="grid size-11 place-items-center rounded-xl border border-border bg-surface-raised text-ink-muted shadow-control [&>svg]:size-5">
+          <Lock aria-hidden="true" />
+        </span>
+        <DialogTitle className="mt-4">Upgrade to Premium</DialogTitle>
+        <p className="mt-1 text-sm text-ink-muted">
+          {action ? action.title : 'This feature'} is available on our Pro and Business plans. Upgrade your plan to unlock live AI assistance during meetings.
+        </p>
+        <div className="mt-6 flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Not now
+          </Button>
+          <a
+            href="/v3/billing"
+            className="inline-flex min-h-10 items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            Upgrade Plan
+          </a>
+        </div>
+      </DialogPopup>
+    </Dialog>
   )
 }
 
@@ -406,6 +460,7 @@ function InstallPrompt({ installPrompt }: { readonly installPrompt: DashboardIns
 
 export function DashboardView({ user, navItems, actions, installPrompt, creditBalance, isLoading = false, activeDropdown, creditNotice }: DashboardViewProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const [upgradeAction, setUpgradeAction] = useState<DashboardAction | null>(null)
 
   if (isLoading) {
     return <DashboardLoadingView />
@@ -429,7 +484,7 @@ export function DashboardView({ user, navItems, actions, installPrompt, creditBa
             <h1 className="text-2xl font-semibold leading-tight text-ink">Welcome, what would you like to do today?</h1>
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {actions.map((action) => (
-                <ActionCard key={action.id} action={action} />
+                <ActionCard key={action.id} action={action} onLockedClick={setUpgradeAction} />
               ))}
             </div>
           </div>
@@ -443,6 +498,8 @@ export function DashboardView({ user, navItems, actions, installPrompt, creditBa
           </div>
         </section>
       </div>
+
+      <UpgradeDialog action={upgradeAction} onOpenChange={(open) => { if (!open) setUpgradeAction(null) }} />
     </main>
   )
 }
