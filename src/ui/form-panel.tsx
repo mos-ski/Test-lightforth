@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
-import { FileText, X, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check, Pencil } from 'lucide-react'
+import { FileText, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check, Pencil } from 'lucide-react'
 import { Select } from '@base-ui-components/react/select'
 
 import { LightforthAiIcon } from './brand-mark'
@@ -99,7 +99,6 @@ export const UploadedFileStrip = forwardRef<HTMLDivElement, UploadedFileStripPro
         <span className="inline-flex min-w-0 items-center gap-1.5">
           <FileText aria-hidden="true" className="size-3.5 shrink-0" />
           <span className="truncate">{fileName}</span>
-          <X aria-hidden="true" className="size-2.5 shrink-0 text-ink-muted" />
         </span>
         <a
           href={changeHref}
