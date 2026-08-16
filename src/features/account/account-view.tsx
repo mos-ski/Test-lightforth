@@ -332,34 +332,37 @@ function AnnualToggle({ annual, onToggle }: { readonly annual: boolean; readonly
 function CreditUsageTable({ rows }: { readonly rows: readonly CreditUsageRow[] }) {
   return (
     <TitledPanel title="How credits works">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[36rem] border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-border bg-surface-subtle text-ink-muted">
-              <th className="px-4 py-2.5 text-start font-semibold">Feature</th>
-              <th className="px-4 py-2.5 text-start font-semibold">What triggers it</th>
-              <th className="px-4 py-2.5 text-start font-semibold">Credits</th>
-            </tr>
-          </thead>
-          <tbody className="text-ink">
-            {rows.map((row) => (
-              <tr key={row.feature} className="border-b border-border">
-                <td className="px-4 py-2.5 font-medium leading-5">{row.feature}</td>
-                <td className="px-4 py-2.5 leading-5 text-ink-muted">{row.trigger}</td>
-                <td className="px-4 py-2.5 leading-5">
-                  <span
-                    className={cn(
-                      'rounded-pill px-2.5 py-0.5 text-xs font-bold leading-4',
-                      row.free ? 'bg-positive-surface text-positive' : 'bg-surface-subtle text-ink',
-                    )}
-                  >
-                    {row.deducted}
-                  </span>
-                </td>
+      <div className="relative">
+        <div className="overflow-x-auto [scrollbar-width:thin]">
+          <table className="w-full min-w-[36rem] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-border bg-surface-subtle text-ink-muted">
+                <th className="px-4 py-2.5 text-start font-semibold">Feature</th>
+                <th className="px-4 py-2.5 text-start font-semibold">What triggers it</th>
+                <th className="px-4 py-2.5 text-start font-semibold">Credits</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="text-ink">
+              {rows.map((row) => (
+                <tr key={row.feature} className="border-b border-border">
+                  <td className="px-4 py-2.5 font-medium leading-5">{row.feature}</td>
+                  <td className="px-4 py-2.5 leading-5 text-ink-muted">{row.trigger}</td>
+                  <td className="px-4 py-2.5 leading-5">
+                    <span
+                      className={cn(
+                        'rounded-pill px-2.5 py-0.5 text-xs font-bold leading-4',
+                        row.free ? 'bg-positive-surface text-positive' : 'bg-surface-subtle text-ink',
+                      )}
+                    >
+                      {row.deducted}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="pointer-events-none absolute inset-y-0 end-0 w-8 bg-gradient-to-l from-surface to-transparent sm:hidden" />
       </div>
     </TitledPanel>
   )
@@ -456,8 +459,8 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
 
   return (
     <TitledPanel title="Usage Details">
-      <p className="text-3xl font-black">
-        {totalUsed} <span className="text-base font-medium text-ink-muted">credits used in last {dayRange} days</span>
+      <p className="text-2xl font-black sm:text-3xl">
+        {totalUsed} <span className="text-sm font-medium text-ink-muted sm:text-base">credits used in last {dayRange} days</span>
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
         <div className="relative">
@@ -509,6 +512,7 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
                 className="group relative flex shrink-0 flex-col items-center gap-2 px-0.5 pt-2"
                 onMouseEnter={() => setHoveredDay(day)}
                 onMouseLeave={() => setHoveredDay(null)}
+                onClick={() => setHoveredDay(hoveredDay === day ? null : day)}
               >
                 <div className={cn('relative flex w-7 flex-col-reverse overflow-hidden bg-surface-subtle transition-opacity', isHovered ? 'opacity-100' : 'opacity-80 group-hover:opacity-100')} style={{ blockSize: '160px' }}>
                   {usedFeatures.map((feature) => (

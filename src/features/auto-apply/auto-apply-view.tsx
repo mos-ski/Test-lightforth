@@ -857,7 +857,7 @@ function AgentStatsSummary({ stats }: { readonly stats: AgentSession['stats'] })
     { label: 'Applied', value: stats.applied },
   ]
   return (
-    <div className="grid gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {items.map((item) => (
         <div key={item.label} className="rounded-lg border border-border bg-surface p-4 shadow-control">
           <p className="text-xs font-semibold uppercase tracking-[0.3px] text-ink-muted">{item.label}</p>
@@ -870,7 +870,7 @@ function AgentStatsSummary({ stats }: { readonly stats: AgentSession['stats'] })
 
 function AgentStatusCards({ agents }: { readonly agents: AgentSession['agents'] }) {
   return (
-    <div className="grid gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {agents.filter((a) => a.name !== 'system').map((agent) => (
         <article key={agent.name} className="rounded-lg border border-border bg-surface p-4 shadow-control">
           <div className="flex items-center justify-between">
@@ -1289,7 +1289,6 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                     <span className="inline-flex items-center gap-1 text-ink">Next<ChevronRight aria-hidden="true" className="size-4" /></span>
                   </div>
                 </div>
-                </div>
               </div>
               {selectedJob ? <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} /> : null}
             </div>
@@ -1359,7 +1358,6 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                     </button>
                   </div>
                   <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
-                </div>
                 </div>
               </div>
               {selectedJob ? (
