@@ -6,8 +6,8 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
-  MessageCircle,
   Mic,
+  MicOff,
   Pause,
   PhoneOff,
   Play,
@@ -28,7 +28,6 @@ import type {
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
 import { AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
-import { useCameraStream } from '@/hooks/useCameraStream'
 import { useTypewriter } from '@/hooks/useTypewriter'
 
 export type InterviewUploadViewProps = {
@@ -526,20 +525,9 @@ const SIMULATED_ANSWERS: Record<string, string> = {
 
 function DraggableCandidatePiP({ name, imageSrc }: { readonly name: string; readonly imageSrc: string }) {
   const ref = useRef<HTMLButtonElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
   const [pos, setPos] = useState<{ readonly x: number; readonly y: number } | null>(null)
   const dragState = useRef<{ readonly startX: number; readonly startY: number; readonly originX: number; readonly originY: number } | null>(null)
   const draggedRef = useRef(false)
-  const { stream, request } = useCameraStream()
-
-  useEffect(() => {
-    void request({ video: true })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.srcObject = stream ?? null
-  }, [stream])
 
   useEffect(() => {
     function handleMove(event: PointerEvent) {
@@ -575,7 +563,7 @@ function DraggableCandidatePiP({ name, imageSrc }: { readonly name: string; read
     <button
       ref={ref}
       type="button"
-      aria-label={`${name} camera preview, drag to reposition`}
+      aria-label={`${name}, drag to reposition`}
       onPointerDown={handlePointerDown}
       onClick={(event) => {
         if (draggedRef.current) event.preventDefault()
@@ -583,13 +571,7 @@ function DraggableCandidatePiP({ name, imageSrc }: { readonly name: string; read
       className="fixed z-20 size-24 cursor-grab touch-none overflow-hidden rounded-full shadow-xl ring-2 ring-white/40 transition-shadow active:cursor-grabbing active:shadow-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus"
       style={pos ? { left: pos.x, top: pos.y } : { top: '5.5rem', right: '1rem' }}
     >
-      {stream ? (
-        <video ref={videoRef} autoPlay muted playsInline className="size-full scale-x-[-1] object-cover" />
-      ) : imageSrc ? (
-        <img src={imageSrc} alt="" className="size-full object-cover" />
-      ) : (
-        <Avatar name={name} size="xl" className="size-full text-2xl" />
-      )}
+      {imageSrc ? <img src={imageSrc} alt="" className="size-full object-cover" /> : <Avatar name={name} size="xl" className="size-full text-2xl" />}
     </button>
   )
 }
@@ -750,7 +732,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
   const [autoScroll, setAutoScroll] = useState(true)
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [fontSize, setFontSize] = useState(14)
-  const [showChat, setShowChat] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
   const chatRef = useRef<HTMLDivElement>(null)
   const phaseRef = useRef(phase)
@@ -855,83 +837,14 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
     return (
       <main className="min-h-screen bg-black text-white">
         <div
-          className="fixed inset-0 z-0 flex flex-col"
+          className="fixed inset-0 z-0 flex flex-col bg-gradient-to-b from-[#0b1220] to-black pt-[6.5rem] pb-[7.5rem]"
           onClick={phase === 'done' ? undefined : advanceSession}
         >
-          <img src={session.interviewer.imageSrc} alt="" className="absolute inset-0 size-full scale-110 object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-black/5 to-black/25" />
-        </div>
-
-        <div className="fixed inset-x-0 top-0 z-20 flex items-center justify-between gap-3 bg-gradient-to-b from-black/20 to-transparent px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <a href={voiceHref} aria-label="Back to interviewer voices" className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 text-white backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
-            <ArrowLeft aria-hidden="true" className="size-4" />
-          </a>
-          <div className="min-w-0 text-center">
-            <p className="truncate text-sm font-semibold leading-5">{session.title}</p>
-            <p className="text-xs leading-4 text-white/70">{session.timer} · {session.interviewer.label}</p>
-          </div>
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 backdrop-blur-sm" aria-hidden="true">
-            <SignalStrength label={session.signalLabel} />
-          </span>
-        </div>
-
-        {phase === 'ready' ? (
-          <p className="pointer-events-none fixed inset-x-0 top-1/2 z-10 -translate-y-1/2 px-8 text-center text-sm italic text-white/70">
-            Tap anywhere (or press Space) to begin…
-          </p>
-        ) : null}
-
-        <DraggableCandidatePiP name={session.candidate.name} imageSrc={session.candidate.imageSrc} />
-
-        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-center gap-6 bg-gradient-to-t from-black/25 to-transparent px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-10">
-          <button
-            type="button"
-            onClick={() => setShowSettings(true)}
-            aria-label="Session settings"
-            className="grid size-14 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          >
-            <Settings aria-hidden="true" className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowChat(true)}
-            aria-label="Open transcript"
-            className="grid size-14 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          >
-            <MessageCircle aria-hidden="true" className="size-5" />
-          </button>
-          <a
-            href={completeHref}
-            aria-label="End session"
-            className="grid size-14 place-items-center rounded-full bg-danger text-on-danger shadow-lg transition-colors hover:bg-danger/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          >
-            <PhoneOff aria-hidden="true" className="size-5" />
-          </a>
-        </div>
-
-        <div
-          className={cn('fixed inset-0 z-30 bg-black/60 transition-opacity duration-normal ease-default', showChat ? 'opacity-100' : 'pointer-events-none opacity-0')}
-          onClick={() => setShowChat(false)}
-          aria-hidden="true"
-        />
-        <div
-          className={cn(
-            'fixed inset-x-0 bottom-0 z-40 flex max-h-[75vh] flex-col rounded-t-panel border-t border-[var(--lf-live-border)] bg-[var(--lf-live-panel)] text-brand-bar-text shadow-2xl transition-transform duration-normal ease-default',
-            showChat ? 'translate-y-0' : 'translate-y-full',
-          )}
-          aria-hidden={!showChat}
-        >
-          <div className="flex shrink-0 items-center justify-between border-b border-[var(--lf-live-border)] px-5 py-4">
-            <h2 className="text-base font-semibold">Transcript</h2>
-            <button type="button" onClick={() => setShowChat(false)} aria-label="Close transcript" className="grid size-8 place-items-center rounded-soft text-ink-muted hover:text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <X aria-hidden="true" className="size-4" />
-            </button>
-          </div>
-          <div ref={chatRef} className="min-h-0 flex-1 overflow-y-auto p-4">
+          <div ref={chatRef} className="min-h-0 flex-1 overflow-y-auto px-4">
             <div className="grid auto-rows-min gap-3">
               {transcript.length === 0 ? (
-                <p className="text-sm leading-6 text-ink-muted">
-                  Your interviewer's questions and a log of your answers will appear here as the session runs — tap the background (or press Space) to begin.
+                <p className="text-sm italic leading-6 text-white/60">
+                  Your interviewer's questions and a log of your answers will appear here as the session runs — tap anywhere (or press Space) to begin.
                 </p>
               ) : (
                 transcript.map((turn) => (
@@ -955,6 +868,55 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
               ) : null}
             </div>
           </div>
+          <p className="pointer-events-none px-5 pb-1 text-center text-xs text-white/40">Tap anywhere to continue</p>
+        </div>
+
+        <div className="fixed inset-x-0 top-0 z-20 flex items-center justify-between gap-3 bg-gradient-to-b from-black/20 to-transparent px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
+          <a href={voiceHref} aria-label="Back to interviewer voices" className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 text-white backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
+            <ArrowLeft aria-hidden="true" className="size-4" />
+          </a>
+          <div className="min-w-0 text-center">
+            <p className="truncate text-sm font-semibold leading-5">{session.title}</p>
+            <p className="text-xs leading-4 text-white/70">{session.timer} · {session.interviewer.label}</p>
+          </div>
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 backdrop-blur-sm" aria-hidden="true">
+            <SignalStrength label={session.signalLabel} />
+          </span>
+        </div>
+
+        <DraggableCandidatePiP name={session.candidate.name} imageSrc={session.candidate.imageSrc} />
+
+        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-center gap-6 bg-gradient-to-t from-black/25 to-transparent px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-10">
+          <button
+            type="button"
+            onClick={() => setShowSettings(true)}
+            aria-label="Session settings"
+            className="grid size-14 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            <Settings aria-hidden="true" className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              setIsMuted((prev) => !prev)
+            }}
+            aria-label={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+            aria-pressed={isMuted}
+            className={cn(
+              'grid size-14 place-items-center rounded-full backdrop-blur-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60',
+              isMuted ? 'bg-danger/90 text-on-danger hover:bg-danger' : 'bg-white/15 text-white hover:bg-white/25',
+            )}
+          >
+            {isMuted ? <MicOff aria-hidden="true" className="size-5" /> : <Mic aria-hidden="true" className="size-5" />}
+          </button>
+          <a
+            href={completeHref}
+            aria-label="End session"
+            className="grid size-14 place-items-center rounded-full bg-danger text-on-danger shadow-lg transition-colors hover:bg-danger/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            <PhoneOff aria-hidden="true" className="size-5" />
+          </a>
         </div>
 
         <InterviewLiveSettingsModal
