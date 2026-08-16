@@ -624,8 +624,8 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
 
 
   return (
-    <main className="min-h-screen bg-[var(--lf-live-canvas)] text-brand-bar-text">
-      <header className="flex min-h-[57px] flex-wrap items-center justify-between gap-3 border-b border-[var(--lf-live-border)] bg-[var(--lf-live-header)] px-5 py-3">
+    <main className="flex h-screen flex-col overflow-hidden bg-[var(--lf-live-canvas)] text-brand-bar-text">
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[var(--lf-live-border)] bg-[var(--lf-live-header)] px-5 py-3">
         <div className="flex min-w-0 items-center gap-3">
           <a href={voiceHref} aria-label="Back to interviewer voices" className="grid size-7 shrink-0 place-items-center rounded-soft text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <ArrowLeft aria-hidden="true" className="size-4" />
@@ -639,7 +639,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           </a>
         </div>
       </header>
-      <div className="flex min-h-10 items-center justify-between border-b border-[var(--lf-live-border)] bg-[var(--lf-live-strip)] px-5">
+      <div className="flex shrink-0 items-center justify-between border-b border-[var(--lf-live-border)] bg-[var(--lf-live-strip)] px-5 py-1">
         <div className="flex items-center gap-4">
           <SignalStrength label={session.signalLabel} />
           <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
@@ -650,55 +650,55 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           Settings
         </button>
       </div>
-      <section className="grid gap-3 p-3 xl:grid-cols-[minmax(0,1fr)_28.5rem]">
-        <section className="min-w-0 overflow-hidden rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
-          <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
+      <section className="flex min-h-0 flex-1 flex-col gap-3 p-3 xl:flex-row">
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
+          <div className="flex shrink-0 items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
             <h2 className="inline-flex items-center gap-2 text-sm font-semibold leading-5">
               Live Simulator
               <span className="size-2 rounded-pill bg-danger" />
             </h2>
           </div>
           <div
-            className={cn('p-5', phase !== 'done' && 'cursor-pointer')}
+            className={cn('flex min-h-0 flex-1 items-center justify-center p-5', phase !== 'done' && 'cursor-pointer')}
             onClick={phase === 'done' ? undefined : advanceSession}
           >
-            <div className="grid min-h-[32rem] place-items-center gap-6 sm:min-h-[40rem] xl:h-[calc(100vh-16.8125rem)] xl:min-h-0">
-              <div className="grid w-full justify-center gap-6 sm:w-auto sm:grid-cols-2">
-                <ParticipantCard participant={session.interviewer} active={isSpeaking} />
-                <ParticipantCard participant={session.candidate} active={phase === 'answering'} />
-              </div>
+            <div className="grid w-full justify-center gap-6 sm:grid-cols-2">
+              <ParticipantCard participant={session.interviewer} active={isSpeaking} />
+              <ParticipantCard participant={session.candidate} active={phase === 'answering'} />
             </div>
           </div>
         </section>
-        <aside className="grid min-h-[32rem] grid-rows-[auto_1fr] rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)] xl:min-h-[calc(100vh-10.25rem)]">
-          <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
+        <aside className="flex min-h-0 flex-1 flex-col rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)] xl:w-[28.5rem] xl:flex-none">
+          <div className="flex shrink-0 items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
             <h2 className="text-sm font-medium leading-5">Transcript</h2>
           </div>
-          <div ref={chatRef} className="grid min-h-0 auto-rows-min content-start gap-3 overflow-y-auto p-4 sm:p-7">
-            {transcript.length === 0 ? (
-              <p className="text-sm leading-6 text-ink-muted">
-                Your interviewer's questions and a log of your answers will appear here as the session runs — press Space (or tap the interviewer) to begin.
-              </p>
-            ) : (
-              transcript.map((turn) => (
-                <article
-                  key={turn.id}
-                  className={cn(
-                    'max-w-[16.75rem] overflow-hidden text-sm leading-[22.75px] text-brand-bar-text shadow-control',
-                    turn.speaker === 'candidate' ? 'ms-auto rounded-bl-[16px] rounded-br-sm rounded-tl-[16px] rounded-tr-[16px] bg-accent' : 'rounded-bl-sm rounded-br-[16px] rounded-tl-[16px] rounded-tr-[16px] bg-[var(--lf-live-message)]',
-                  )}
-                >
-                  <p className="px-3.5 py-2.5">{turn.text}</p>
-                </article>
-              ))
-            )}
-            {phase === 'answering' ? (
-              <div className="ms-auto flex items-center gap-1.5 rounded-bl-[16px] rounded-br-sm rounded-tl-[16px] rounded-tr-[16px] bg-accent/40 px-3.5 py-2.5" role="status" aria-label="Recording your answer">
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className="size-1.5 animate-bounce rounded-pill bg-brand-bar-text motion-reduce:animate-none" style={{ animationDelay: `${i * 0.12}s` }} />
-                ))}
-              </div>
-            ) : null}
+          <div ref={chatRef} className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-7">
+            <div className="grid auto-rows-min gap-3">
+              {transcript.length === 0 ? (
+                <p className="text-sm leading-6 text-ink-muted">
+                  Your interviewer's questions and a log of your answers will appear here as the session runs — press Space (or tap the interviewer) to begin.
+                </p>
+              ) : (
+                transcript.map((turn) => (
+                  <article
+                    key={turn.id}
+                    className={cn(
+                      'max-w-[16.75rem] overflow-hidden text-sm leading-[22.75px] text-brand-bar-text shadow-control',
+                      turn.speaker === 'candidate' ? 'ms-auto rounded-bl-[16px] rounded-br-sm rounded-tl-[16px] rounded-tr-[16px] bg-accent' : 'rounded-bl-sm rounded-br-[16px] rounded-tl-[16px] rounded-tr-[16px] bg-[var(--lf-live-message)]',
+                    )}
+                  >
+                    <p className="px-3.5 py-2.5">{turn.text}</p>
+                  </article>
+                ))
+              )}
+              {phase === 'answering' ? (
+                <div className="ms-auto flex items-center gap-1.5 rounded-bl-[16px] rounded-br-sm rounded-tl-[16px] rounded-tr-[16px] bg-accent/40 px-3.5 py-2.5" role="status" aria-label="Recording your answer">
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className="size-1.5 animate-bounce rounded-pill bg-brand-bar-text motion-reduce:animate-none" style={{ animationDelay: `${i * 0.12}s` }} />
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </div>
         </aside>
       </section>
