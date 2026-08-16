@@ -33,6 +33,13 @@ export const dashboardActions: readonly DashboardAction[] = [
     href: '/v3/interview-copilot?mode=interview',
   },
   {
+    id: 'auto-apply',
+    title: 'Apply for Jobs',
+    description: 'Let Lightforth auto-apply to relevant roles based on your preferences no more job hunting stress.',
+    href: '/v3/auto-apply',
+    badge: 'BETA',
+  },
+  {
     id: 'coding-copilot',
     title: 'Coding Copilot',
     description: 'Live AI assistance for coding interviews — real-time hints as you work through the problem.',
@@ -44,13 +51,6 @@ export const dashboardActions: readonly DashboardAction[] = [
     description: 'Live AI assistance during meetings — real-time notes and talking points as the conversation happens.',
     href: '/v3/interview-copilot?mode=meeting',
     locked: true,
-  },
-  {
-    id: 'auto-apply',
-    title: 'Apply for Jobs',
-    description: 'Let Lightforth auto-apply to relevant roles based on your preferences no more job hunting stress.',
-    href: '/v3/auto-apply',
-    badge: 'BETA',
   },
 ]
 

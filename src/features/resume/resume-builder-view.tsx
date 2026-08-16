@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Check, ChevronDown, ChevronRight, Minus, Plus, Search, Send, Sparkles, Target, X } from 'lucide-react'
+import { Check, ChevronDown, HelpCircle, Minus, Plus, Send, Target, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
 import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker } from '@/ui'
@@ -219,9 +219,8 @@ function PromptChips({ prompts, onSelect }: { readonly prompts: readonly string[
             key={prompt}
             type="button"
             onClick={() => onSelect?.(prompt)}
-            className="inline-flex min-h-7 shrink-0 items-center gap-1 rounded-md border border-border bg-surface px-3 text-xs font-medium text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            className="inline-flex min-h-7 shrink-0 items-center rounded-md border border-border bg-surface px-3 text-xs font-medium text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
-            <Sparkles aria-hidden="true" className="size-3" />
             {prompt}
           </button>
         ))}
@@ -254,7 +253,53 @@ function ChatEmptyState() {
 
 type ChatMessage = { readonly id: string; readonly author: 'candidate' | 'assistant'; readonly text: string }
 
-function ChatComposer({ prompts, draft, onDraftChange, onSend }: { readonly prompts: readonly string[]; readonly draft: string; readonly onDraftChange: (value: string) => void; readonly onSend: () => void }) {
+const CHAT_PLACEHOLDER_EMPTY = 'Paste a job description here to get started…'
+const CHAT_PLACEHOLDER_ACTIVE = 'Message Lightforth AI...'
+
+function useTypedPlaceholder(text: string, enabled: boolean) {
+  const [display, setDisplay] = useState(enabled ? '' : text)
+
+  useEffect(() => {
+    if (!enabled) {
+      setDisplay(text)
+      return
+    }
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDisplay(text)
+      return
+    }
+    setDisplay('')
+    let index = 0
+    const id = window.setInterval(() => {
+      index++
+      setDisplay(text.slice(0, index))
+      if (index >= text.length) window.clearInterval(id)
+    }, 35)
+    return () => window.clearInterval(id)
+  }, [text, enabled])
+
+  return display
+}
+
+function ChatComposer({
+  prompts,
+  draft,
+  onDraftChange,
+  onSend,
+  hasMessages,
+  showTip,
+  onHelpClick,
+}: {
+  readonly prompts: readonly string[]
+  readonly draft: string
+  readonly onDraftChange: (value: string) => void
+  readonly onSend: () => void
+  readonly hasMessages: boolean
+  readonly showTip: boolean
+  readonly onHelpClick: () => void
+}) {
+  const typedPlaceholder = useTypedPlaceholder(CHAT_PLACEHOLDER_EMPTY, showTip)
+
   return (
     <div className="mt-auto">
       <PromptChips prompts={prompts} onSelect={onSend ? (prompt) => { onDraftChange(prompt); onSend() } : undefined} />
@@ -262,7 +307,13 @@ function ChatComposer({ prompts, draft, onDraftChange, onSend }: { readonly prom
         <label className="sr-only" htmlFor="resume-chat-message">
           Resume chat message
         </label>
-        <div className="relative rounded-2xl border border-border bg-surface p-3">
+        <div
+          id="walkthrough-chat-input"
+          className={cn(
+            'rounded-2xl border bg-surface p-3 transition-shadow duration-normal ease-default',
+            showTip ? 'border-accent shadow-[0_0_0_3px_var(--lf-accent-subtle)]' : 'border-border',
+          )}
+        >
           <textarea
             id="resume-chat-message"
             value={draft}
@@ -274,11 +325,29 @@ function ChatComposer({ prompts, draft, onDraftChange, onSend }: { readonly prom
               }
             }}
             className="min-h-16 w-full resize-none bg-surface text-sm text-ink outline-none placeholder:text-ink-muted"
-            placeholder="Paste a job description here to get started..."
+            placeholder={hasMessages ? CHAT_PLACEHOLDER_ACTIVE : showTip ? typedPlaceholder : CHAT_PLACEHOLDER_EMPTY}
           />
-          <button type="button" onClick={onSend} aria-label="Send resume message" className="absolute bottom-2 end-2 grid size-8 place-items-center rounded-lg bg-surface-subtle text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <Send aria-hidden="true" className="size-4" />
-          </button>
+          <div className="flex items-center justify-end gap-1.5 pt-2">
+            <button
+              type="button"
+              onClick={onHelpClick}
+              aria-label="Show tutorial"
+              className="grid size-8 shrink-0 place-items-center rounded-lg text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <HelpCircle aria-hidden="true" className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onSend}
+              aria-label="Send resume message"
+              className={cn(
+                'grid size-8 shrink-0 place-items-center rounded-lg bg-surface-subtle text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                showTip && !draft ? 'animate-pulse motion-reduce:animate-none' : '',
+              )}
+            >
+              <Send aria-hidden="true" className="size-4" />
+            </button>
+          </div>
         </div>
         <p className="pt-1 text-center text-xs text-ink-muted">Enter to send · Shift+Enter for newline</p>
       </div>
@@ -290,22 +359,28 @@ function ChatSidebar({
   session,
   messages,
   isTyping,
+  thinkingLabel,
   pendingSuggestion,
   draft,
   onDraftChange,
   onSend,
   onAccept,
   onReject,
+  showTip,
+  onHelpClick,
 }: {
   readonly session: ResumeBuilderSession
   readonly messages: readonly ChatMessage[]
   readonly isTyping: boolean
+  readonly thinkingLabel: string
   readonly pendingSuggestion: boolean
   readonly draft: string
   readonly onDraftChange: (value: string) => void
   readonly onSend: () => void
   readonly onAccept: () => void
   readonly onReject: () => void
+  readonly showTip: boolean
+  readonly onHelpClick: () => void
 }) {
   const chatRef = useRef<HTMLDivElement>(null)
 
@@ -336,10 +411,13 @@ function ChatSidebar({
               </div>
             ))}
             {isTyping ? (
-              <div className="flex items-center gap-1.5 rounded-2xl rounded-ss-sm bg-surface-subtle px-4 py-3" role="status" aria-label="Lightforth is responding">
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className="size-1.5 animate-bounce rounded-pill bg-ink-muted motion-reduce:animate-none" style={{ animationDelay: `${i * 0.12}s` }} />
-                ))}
+              <div className="flex items-center gap-2 rounded-2xl rounded-ss-sm bg-surface-subtle px-4 py-3" role="status" aria-label={thinkingLabel}>
+                <span className="flex items-center gap-1.5">
+                  {[0, 1, 2].map((i) => (
+                    <span key={i} className="size-1.5 animate-bounce rounded-pill bg-ink-muted motion-reduce:animate-none" style={{ animationDelay: `${i * 0.12}s` }} />
+                  ))}
+                </span>
+                <span className="text-xs font-medium text-ink-muted">{thinkingLabel}</span>
               </div>
             ) : null}
             {pendingSuggestion ? (
@@ -356,7 +434,15 @@ function ChatSidebar({
             ) : null}
           </div>
         )}
-        <ChatComposer prompts={session.promptSuggestions} draft={draft} onDraftChange={onDraftChange} onSend={onSend} />
+        <ChatComposer
+          prompts={session.promptSuggestions}
+          draft={draft}
+          onDraftChange={onDraftChange}
+          onSend={onSend}
+          hasMessages={messages.length > 0}
+          showTip={showTip}
+          onHelpClick={onHelpClick}
+        />
       </div>
     </aside>
   )
@@ -666,7 +752,7 @@ function ZoomControls({ zoom, onChange }: { readonly zoom: number; readonly onCh
 
 function InlineChangeControls({ onAccept, onReject }: { readonly onAccept: () => void; readonly onReject: () => void }) {
   return (
-    <div className="absolute end-40 top-36 hidden gap-2 lg:flex">
+    <div id="walkthrough-diff-actions" className="absolute end-40 top-36 hidden gap-2 lg:flex">
       <button type="button" onClick={onReject} aria-label="Decline change" className="grid size-8 place-items-center rounded-soft border border-border bg-surface text-ink-muted shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
         <X aria-hidden="true" className="size-4" />
       </button>
@@ -677,12 +763,76 @@ function InlineChangeControls({ onAccept, onReject }: { readonly onAccept: () =>
   )
 }
 
-function Tooltip({ title, body, align = 'start' }: { readonly title: string; readonly body: string; readonly align?: 'start' | 'end' }) {
+function WalkthroughTooltip({
+  targetId,
+  side = 'right',
+  title,
+  body,
+  actionLabel,
+  onAction,
+  onDismiss,
+}: {
+  readonly targetId: string
+  readonly side?: 'right' | 'left'
+  readonly title: string
+  readonly body: string
+  readonly actionLabel: string
+  readonly onAction: () => void
+  readonly onDismiss: () => void
+}) {
+  const [coords, setCoords] = useState<{ readonly top: number; readonly left: number } | null>(null)
+
+  useEffect(() => {
+    function updatePosition() {
+      const target = document.getElementById(targetId)
+      if (!target) {
+        setCoords(null)
+        return
+      }
+      const rect = target.getBoundingClientRect()
+      const offset = 16
+      const top = rect.top + rect.height / 2 - 48
+      const left = side === 'right' ? rect.right + offset : rect.left - offset - 288
+      setCoords({ top, left })
+    }
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    const timers = [100, 400, 1000].map((delay) => window.setTimeout(updatePosition, delay))
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+      timers.forEach((timer) => clearTimeout(timer))
+    }
+  }, [targetId, side])
+
+  if (!coords) return null
+
   return (
-    <aside className={cn('absolute z-10 hidden w-64 rounded-lg bg-brand-bar p-3 text-xs shadow-panel lg:block', align === 'start' ? 'bottom-8 start-8' : 'end-8 top-12')} aria-label={title}>
-      <h2 className="font-semibold text-brand-bar-text">{title}</h2>
-      <p className="mt-1 leading-5 text-surface-subtle">{body}</p>
-    </aside>
+    <div
+      role="status"
+      style={{ top: coords.top, left: coords.left }}
+      className="fixed z-20 hidden w-72 rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel lg:block"
+    >
+      <span aria-hidden="true" className={cn('absolute top-6 size-3 rotate-45 bg-live-header', side === 'right' ? '-start-1.5' : '-end-1.5')} />
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Dismiss tip"
+        className="absolute end-2 top-2 rounded p-1 text-brand-bar-text/60 hover:text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        <X aria-hidden="true" className="size-3" />
+      </button>
+      <h2 className="pe-5 text-sm font-bold">{title}</h2>
+      <p className="mt-1 text-xs leading-relaxed text-brand-bar-text/80">{body}</p>
+      <button
+        type="button"
+        onClick={onAction}
+        className="mt-3 inline-flex min-h-7 items-center rounded-lg bg-surface px-3 text-xs font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        {actionLabel}
+      </button>
+    </div>
   )
 }
 
@@ -797,6 +947,8 @@ function AtsScoreDrawer({
   )
 }
 
+const THINKING_LABELS = ['Thinking…', 'Reading your resume…', 'Fetching from your Knowledge Base…', 'Pulling the job description…']
+
 export function ResumeEditorView({ homeHref, document, session, templates, tab, chatState }: ResumeEditorViewProps) {
   const [messages, setMessages] = useState<readonly ChatMessage[]>(
     chatState === 'suggestions'
@@ -808,9 +960,12 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   )
   const [draft, setDraft] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [thinkingLabel, setThinkingLabel] = useState(THINKING_LABELS[0])
   const [pendingSuggestion, setPendingSuggestion] = useState(chatState === 'suggestions')
   const [hasAcceptedChanges, setHasAcceptedChanges] = useState(false)
   const [atsOpen, setAtsOpen] = useState(false)
+  const [dismissedSendTip, setDismissedSendTip] = useState(false)
+  const [dismissedAcceptTip, setDismissedAcceptTip] = useState(false)
   const [zoom, setZoom] = useState(() => {
     const parsed = parseInt(session.zoomLabel.replace('%', ''), 10)
     return Number.isFinite(parsed) ? parsed / 100 : 0.85
@@ -822,11 +977,18 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     setMessages((prev) => [...prev, { id: `msg-${Date.now()}`, author: 'candidate', text: trimmed }])
     setDraft('')
     setIsTyping(true)
+    let labelIndex = 0
+    setThinkingLabel(THINKING_LABELS[0])
+    const labelTimer = window.setInterval(() => {
+      labelIndex = (labelIndex + 1) % THINKING_LABELS.length
+      setThinkingLabel(THINKING_LABELS[labelIndex])
+    }, 1000)
     window.setTimeout(() => {
+      window.clearInterval(labelTimer)
       setMessages((prev) => [...prev, { id: `msg-${Date.now()}-ai`, author: 'assistant', text: "I've updated your resume based on that — review the highlighted changes below and accept or reject them." }])
       setIsTyping(false)
       setPendingSuggestion(true)
-    }, 900)
+    }, 4000)
   }
 
   function handleAccept() {
@@ -838,7 +1000,14 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     setPendingSuggestion(false)
   }
 
+  function handleShowTutorial() {
+    setDismissedSendTip(false)
+    setDismissedAcceptTip(false)
+  }
+
   const showImproved = hasAcceptedChanges || pendingSuggestion
+  const showSendTip = tab === 'chat' && messages.length === 0 && !dismissedSendTip
+  const showAcceptTip = pendingSuggestion && (tab === 'chat' || tab === 'create') && !dismissedAcceptTip
 
   return (
     <Workspace>
@@ -849,12 +1018,15 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
             session={session}
             messages={messages}
             isTyping={isTyping}
+            thinkingLabel={thinkingLabel}
             pendingSuggestion={pendingSuggestion}
             draft={draft}
             onDraftChange={setDraft}
             onSend={handleSend}
             onAccept={handleAccept}
             onReject={handleReject}
+            showTip={showSendTip}
+            onHelpClick={handleShowTutorial}
           />
         ) : null}
         {tab === 'create' ? (
@@ -873,10 +1045,30 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
           {pendingSuggestion && (tab === 'chat' || tab === 'create') ? (
             <>
               <InlineChangeControls onAccept={handleAccept} onReject={handleReject} />
-              <Tooltip title="Accept or Decline Changes" body="These changes only apply once you accept them — reject to keep your original wording." align="end" />
+              {showAcceptTip ? (
+                <WalkthroughTooltip
+                  targetId="walkthrough-diff-actions"
+                  side="left"
+                  title="Accept or Decline Changes"
+                  body="These changes only apply once you accept them — reject to keep your original wording."
+                  actionLabel="Got it"
+                  onAction={() => setDismissedAcceptTip(true)}
+                  onDismiss={() => setDismissedAcceptTip(true)}
+                />
+              ) : null}
             </>
           ) : null}
-          {messages.length === 0 && tab === 'chat' ? <Tooltip title="Send your First Message" body="Chat or paste a job description and Lightforth will rewrite your resume to match key words." /> : null}
+          {showSendTip ? (
+            <WalkthroughTooltip
+              targetId="walkthrough-chat-input"
+              side="right"
+              title="Send your First Message"
+              body="Chat or paste a job description and Lightforth will rewrite your resume to match key words."
+              actionLabel="I'm ready"
+              onAction={() => setDismissedSendTip(true)}
+              onDismiss={() => setDismissedSendTip(true)}
+            />
+          ) : null}
         </div>
       </section>
       <AtsScoreDrawer

@@ -1128,21 +1128,24 @@ function JobPreview({
   readonly applied?: boolean
 }) {
   return (
-    <aside className="w-full shrink-0 border-l border-border bg-surface p-8 shadow-control lg:w-[30rem]">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-base font-bold">{job.title}</h2>
-          <p className="mt-1 text-sm text-ink-muted">{job.company} {job.location ? `- ${job.location}` : ''}</p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close job preview"
-          className="grid size-10 place-items-center rounded-lg text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-        >
-          <X aria-hidden="true" className="size-5" />
-        </button>
-      </div>
+    <>
+      <div className="fixed inset-0 z-40 bg-overlay/60" onClick={onClose} aria-hidden="true" />
+      <aside className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-auto rounded-t-2xl border-t border-border bg-surface p-6 shadow-2xl">
+        <div className="mx-auto max-w-3xl">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-base font-bold">{job.title}</h2>
+              <p className="mt-1 text-sm text-ink-muted">{job.company} {job.location ? `- ${job.location}` : ''}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close job preview"
+              className="grid size-10 place-items-center rounded-lg text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <X aria-hidden="true" className="size-5" />
+            </button>
+          </div>
       <div className="mt-4 flex items-center gap-2">
         <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', applied ? 'bg-positive text-on-accent' : 'bg-warning-surface text-warning')}>{applied ? 'Applied' : 'NEW'}</span>
         <span className="text-sm text-ink-muted">{applied ? 'JUL 12 2026' : job.dateLabel}</span>
@@ -1180,7 +1183,9 @@ function JobPreview({
           </div>
         </>
       ) : null}
-    </aside>
+        </div>
+      </aside>
+    </>
   )
 }
 
