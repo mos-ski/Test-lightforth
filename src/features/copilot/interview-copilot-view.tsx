@@ -338,7 +338,7 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
               onChange={() => {}}
             />
             <label htmlFor="doc-upload" className="cursor-pointer">
-              <FileText aria-hidden="true" className="mx-auto size-8 text-ink-muted" />
+              <Plus aria-hidden="true" className="mx-auto size-6 text-ink-muted" />
               <p className="mt-2 text-sm font-medium text-ink">Upload a new document</p>
               <p className="mt-1 text-xs text-ink-muted">PDF, DOC, DOCX or TXT</p>
             </label>
