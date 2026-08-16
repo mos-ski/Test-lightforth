@@ -91,15 +91,31 @@ function PaperShell({ children, compact = false }: { readonly children: ReactNod
   )
 }
 
+function PageBreakLine({ top }: { readonly top: string }) {
+  return (
+    <div
+      className="pointer-events-none absolute start-0 end-0 z-10 flex items-center gap-2 border-b-2 border-dashed border-paper-muted/60 py-1"
+      style={{ top }}
+      aria-hidden="true"
+    >
+      <span className="bg-paper px-1 text-[10px] font-medium uppercase tracking-wide text-paper-muted">Page break</span>
+    </div>
+  )
+}
+
 function ResumePaper({ children, compact = false }: { readonly children: ReactNode; readonly compact?: boolean }) {
+  const pageHeight = compact ? '42.35rem' : '56.94rem'
   return (
     <article
       className={cn(
-        'mx-auto aspect-[8.5/11] w-full overflow-y-auto bg-paper p-10 font-serif text-paper-ink shadow-xl ring-1 ring-paper-ink/10',
+        'relative mx-auto w-full bg-paper p-10 font-serif text-paper-ink shadow-xl ring-1 ring-paper-ink/10',
         compact ? 'max-w-3xl' : 'max-w-[44rem]',
       )}
       aria-label="Resume preview"
     >
+      <PageBreakLine top={pageHeight} />
+      <PageBreakLine top={`calc(${pageHeight} * 2)`} />
+      <PageBreakLine top={`calc(${pageHeight} * 3)`} />
       {children}
     </article>
   )
@@ -614,12 +630,27 @@ function ExecutiveResume({ document }: { readonly document: ResumeDocument }) {
   )
 }
 
-function ZoomPill({ label }: { readonly label: string }) {
+function ZoomControls({ zoom, onChange }: { readonly zoom: number; readonly onChange: (zoom: number) => void }) {
+  const label = `${Math.round(zoom * 100)}%`
   return (
-    <div className="absolute end-4 top-4 hidden items-center gap-2 rounded-pill border border-border bg-surface px-3 py-1 text-xs font-medium text-ink-muted shadow-control lg:flex">
-      <Minus aria-hidden="true" className="size-3" />
-      {label}
-      <Plus aria-hidden="true" className="size-3" />
+    <div className="absolute end-4 top-4 z-10 hidden items-center gap-1 rounded-pill border border-border bg-surface px-2 py-1 text-xs font-medium text-ink-muted shadow-control lg:flex">
+      <button
+        type="button"
+        aria-label="Zoom out"
+        onClick={() => onChange(Math.max(0.5, Number((zoom - 0.1).toFixed(2))))}
+        className="grid size-6 place-items-center rounded-pill hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        <Minus aria-hidden="true" className="size-3" />
+      </button>
+      <span className="min-w-[2.5rem] text-center">{label}</span>
+      <button
+        type="button"
+        aria-label="Zoom in"
+        onClick={() => onChange(Math.min(1.5, Number((zoom + 0.1).toFixed(2))))}
+        className="grid size-6 place-items-center rounded-pill hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        <Plus aria-hidden="true" className="size-3" />
+      </button>
     </div>
   )
 }
@@ -702,6 +733,10 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   const [pendingSuggestion, setPendingSuggestion] = useState(chatState === 'suggestions')
   const [hasAcceptedChanges, setHasAcceptedChanges] = useState(false)
   const [atsOpen, setAtsOpen] = useState(false)
+  const [zoom, setZoom] = useState(() => {
+    const parsed = parseInt(session.zoomLabel.replace('%', ''), 10)
+    return Number.isFinite(parsed) ? parsed / 100 : 0.85
+  })
 
   function handleSend() {
     const trimmed = draft.trim()
@@ -747,12 +782,14 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
         {tab === 'create' ? <SectionEditor session={session} /> : null}
         {tab === 'template' ? <TemplateSidebar templates={templates} selectedTemplateId={session.selectedTemplateId} /> : null}
         <div className="relative flex-1 overflow-auto bg-canvas px-4 py-8 lg:px-8">
-          <ZoomPill label={session.zoomLabel} />
-          {tab === 'template' ? (
-            <ExecutiveResume document={document} />
-          ) : (
-            <ClassicResume document={document} showImproved={showImproved} highlightChanges={pendingSuggestion} />
-          )}
+          <ZoomControls zoom={zoom} onChange={setZoom} />
+          <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
+            {tab === 'template' ? (
+              <ExecutiveResume document={document} />
+            ) : (
+              <ClassicResume document={document} showImproved={showImproved} highlightChanges={pendingSuggestion} />
+            )}
+          </div>
           {pendingSuggestion && tab === 'chat' ? (
             <>
               <InlineChangeControls onAccept={handleAccept} onReject={handleReject} />

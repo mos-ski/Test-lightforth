@@ -6,7 +6,7 @@ export function ResumeHistoryPage() {
     <ResumeHistoryView
       homeHref="/v3/app"
       createHref="/v3/resume"
-      editorHref="/v3/resume/editor?tab=create"
+      editorHref="/v3/resume/editor?tab=chat"
       rows={resumeHistoryRows}
     />
   )
