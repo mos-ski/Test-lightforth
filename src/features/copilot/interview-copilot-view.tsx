@@ -496,6 +496,8 @@ function DraggableAvatar({ name }: { readonly name: string }) {
 }
 
 function CopilotLiveSettingsModal({
+  open,
+  onOpenChange,
   settingsTab,
   setSettingsTab,
   autoScroll,
@@ -507,8 +509,9 @@ function CopilotLiveSettingsModal({
   responseMode,
   setResponseMode,
   sessionTitle,
-  onClose,
 }: {
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
   readonly settingsTab: 'live' | 'session'
   readonly setSettingsTab: (tab: 'live' | 'session') => void
   readonly autoScroll: boolean
@@ -520,19 +523,18 @@ function CopilotLiveSettingsModal({
   readonly responseMode: 'auto' | 'manual'
   readonly setResponseMode: (mode: 'auto' | 'manual') => void
   readonly sessionTitle: string
-  readonly onClose: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#1a2332] text-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPopup aria-label="Session settings" className="border-white/10 bg-[#1a2332] text-white before:bg-white/20 sm:max-w-lg">
+        <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Settings</h2>
-          <button type="button" onClick={onClose} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30" aria-label="Close settings">
+          <button type="button" onClick={() => onOpenChange(false)} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30" aria-label="Close settings">
             <X aria-hidden="true" className="size-5" />
           </button>
         </div>
-        <div className="flex min-h-[28rem] flex-col sm:flex-row">
-          <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-white/10 p-4 sm:w-44 sm:flex-col sm:gap-0 sm:border-b-0 sm:border-r">
+        <div className="mt-4 flex max-h-[65vh] flex-col gap-4 overflow-y-auto sm:max-h-[26rem] sm:flex-row sm:gap-0">
+          <nav className="flex shrink-0 gap-1 overflow-x-auto sm:w-44 sm:flex-col sm:gap-0 sm:border-r sm:border-white/10 sm:pe-4">
             <button
               type="button"
               onClick={() => setSettingsTab('live')}
@@ -554,7 +556,7 @@ function CopilotLiveSettingsModal({
               Session
             </button>
           </nav>
-          <div className="flex-1 p-6">
+          <div className="flex-1 sm:ps-6">
             {settingsTab === 'live' ? (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -662,8 +664,8 @@ function CopilotLiveSettingsModal({
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </DialogPopup>
+    </Dialog>
   )
 }
 
@@ -1416,22 +1418,21 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           </div>
         </div>
 
-        {showSettings ? (
-          <CopilotLiveSettingsModal
-            settingsTab={settingsTab}
-            setSettingsTab={setSettingsTab}
-            autoScroll={autoScroll}
-            setAutoScroll={setAutoScroll}
-            scrollSpeed={scrollSpeed}
-            setScrollSpeed={setScrollSpeed}
-            fontSize={fontSize}
-            setFontSize={setFontSize}
-            responseMode={responseMode}
-            setResponseMode={setResponseMode}
-            sessionTitle={session.title}
-            onClose={() => setShowSettings(false)}
-          />
-        ) : null}
+        <CopilotLiveSettingsModal
+          open={showSettings}
+          onOpenChange={setShowSettings}
+          settingsTab={settingsTab}
+          setSettingsTab={setSettingsTab}
+          autoScroll={autoScroll}
+          setAutoScroll={setAutoScroll}
+          scrollSpeed={scrollSpeed}
+          setScrollSpeed={setScrollSpeed}
+          fontSize={fontSize}
+          setFontSize={setFontSize}
+          responseMode={responseMode}
+          setResponseMode={setResponseMode}
+          sessionTitle={session.title}
+        />
       </main>
     )
   }
@@ -1557,22 +1558,21 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
         </aside>
       </section>
 
-      {showSettings ? (
-        <CopilotLiveSettingsModal
-          settingsTab={settingsTab}
-          setSettingsTab={setSettingsTab}
-          autoScroll={autoScroll}
-          setAutoScroll={setAutoScroll}
-          scrollSpeed={scrollSpeed}
-          setScrollSpeed={setScrollSpeed}
-          fontSize={fontSize}
-          setFontSize={setFontSize}
-          responseMode={responseMode}
-          setResponseMode={setResponseMode}
-          sessionTitle={session.title}
-          onClose={() => setShowSettings(false)}
-        />
-      ) : null}
+      <CopilotLiveSettingsModal
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        settingsTab={settingsTab}
+        setSettingsTab={setSettingsTab}
+        autoScroll={autoScroll}
+        setAutoScroll={setAutoScroll}
+        scrollSpeed={scrollSpeed}
+        setScrollSpeed={setScrollSpeed}
+        fontSize={fontSize}
+        setFontSize={setFontSize}
+        responseMode={responseMode}
+        setResponseMode={setResponseMode}
+        sessionTitle={session.title}
+      />
     </main>
   )
 }
