@@ -96,10 +96,10 @@ export const interviewLiveSession: InterviewLiveSession = {
 }
 
 export const reportSteps: readonly InterviewReportStep[] = [
-  { id: 'recording', label: 'Processing call recording', status: 'complete' },
-  { id: 'transcript', label: 'Fetching transcript and audio', status: 'complete' },
-  { id: 'analysis', label: 'Analyzing performance', status: 'complete' },
-  { id: 'feedback', label: 'Generating coaching feedback', status: 'active' },
+  { id: 'recording', label: 'Processing call recording', status: 'active' },
+  { id: 'transcript', label: 'Fetching transcript and audio', status: 'pending' },
+  { id: 'analysis', label: 'Analyzing performance', status: 'pending' },
+  { id: 'feedback', label: 'Generating coaching feedback', status: 'pending' },
 ]
 
 export const interviewHistoryRows: readonly InterviewHistoryRow[] = [
