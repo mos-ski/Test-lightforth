@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { ResumeUploadView } from '@/features/resume/resume-builder-view'
 import { getDefaultResumePreference } from '@/lib/resume-preference'
-import { resumeHistoryRows } from '@/mocks/resume'
+import { resumeBuilderSession, resumeHistoryRows } from '@/mocks/resume'
 
 export function ResumeUploadPage() {
   const navigate = useNavigate()
@@ -24,6 +24,7 @@ export function ResumeUploadPage() {
       homeHref="/v3/app"
       configureHref="/v3/resume/configure"
       historyHref="/v3/resume/history"
+      uploadedFileName={resumeBuilderSession.uploadedFileName}
       savedResumes={resumeHistoryRows}
     />
   )

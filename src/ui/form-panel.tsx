@@ -4,6 +4,7 @@ import { Select } from '@base-ui-components/react/select'
 
 import { LightforthAiIcon } from './brand-mark'
 import { cn } from './cn'
+import { Dialog, DialogPopup, DialogTitle } from './dialog'
 
 function ScrollCue() {
   const [visible, setVisible] = useState(false)
@@ -40,8 +41,6 @@ function ScrollCue() {
 export type FormUploadedFile = {
   readonly fileName: string
   readonly changeHref: string
-  readonly defaultChecked?: boolean
-  readonly onDefaultChange?: (checked: boolean) => void
   readonly onChangeClick?: () => void
 }
 
@@ -67,8 +66,6 @@ export const FormPanel = forwardRef<HTMLFormElement, FormPanelProps>(
             <UploadedFileStrip
               fileName={uploadedFile.fileName}
               changeHref={uploadedFile.changeHref}
-              defaultChecked={uploadedFile.defaultChecked}
-              onDefaultChange={uploadedFile.onDefaultChange}
               onChangeClick={uploadedFile.onChangeClick}
             />
           ) : null}
@@ -86,50 +83,110 @@ export const FormPanel = forwardRef<HTMLFormElement, FormPanelProps>(
 export type UploadedFileStripProps = {
   readonly fileName: string
   readonly changeHref: string
-  readonly defaultChecked?: boolean
-  readonly onDefaultChange?: (checked: boolean) => void
   readonly onChangeClick?: () => void
   readonly className?: string
 }
 
 export const UploadedFileStrip = forwardRef<HTMLDivElement, UploadedFileStripProps>(
-  function UploadedFileStrip({ fileName, changeHref, defaultChecked, onDefaultChange, onChangeClick, className, ...props }, ref) {
+  function UploadedFileStrip({ fileName, changeHref, onChangeClick, className, ...props }, ref) {
     return (
       <div
         ref={ref}
         data-slot="uploaded-file-strip"
-        className={cn('mx-auto grid w-[calc(100%-4rem)] max-w-[26rem] gap-1 rounded-b-lg bg-accent-subtle px-4 py-1.5 text-xs font-normal leading-none text-ink-muted', className)}
+        className={cn('mx-auto flex min-h-8 w-[calc(100%-4rem)] max-w-[26rem] items-center justify-between gap-3 rounded-b-lg bg-accent-subtle px-4 py-1 text-xs font-normal leading-none text-ink-muted', className)}
         {...props}
       >
-        <div className="flex min-h-6 items-center justify-between gap-3">
-          <span className="inline-flex min-w-0 items-center gap-1.5">
-            <FileText aria-hidden="true" className="size-3.5 shrink-0" />
-            <span className="truncate">{fileName}</span>
-            <X aria-hidden="true" className="size-2.5 shrink-0 text-ink-muted" />
-          </span>
-          <a
-            href={changeHref}
-            onClick={onChangeClick}
-            className="shrink-0 text-[10.5px] font-semibold leading-5 text-accent underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          >
-            Change
-          </a>
-        </div>
-        {onDefaultChange ? (
-          <label className="flex min-h-5 items-center gap-1.5 text-[10.5px] font-medium leading-4 text-ink-muted">
-            <input
-              type="checkbox"
-              checked={defaultChecked ?? false}
-              onChange={(event) => onDefaultChange(event.target.checked)}
-              className="size-3.5 shrink-0 rounded-sm border-input text-accent focus:ring-1 focus:ring-focus focus:ring-offset-0"
-            />
-            Always use this resume
-          </label>
-        ) : null}
+        <span className="inline-flex min-w-0 items-center gap-1.5">
+          <FileText aria-hidden="true" className="size-3.5 shrink-0" />
+          <span className="truncate">{fileName}</span>
+          <X aria-hidden="true" className="size-2.5 shrink-0 text-ink-muted" />
+        </span>
+        <a
+          href={changeHref}
+          onClick={onChangeClick}
+          className="shrink-0 text-[10.5px] font-semibold leading-5 text-accent underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          Change
+        </a>
       </div>
     )
   },
 )
+
+export type UploadedFileDialogProps = {
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly fileName: string
+  readonly continueHref: string
+  readonly defaultChecked?: boolean
+  readonly onDefaultChange?: (checked: boolean) => void
+}
+
+export function UploadedFileDialog({ open, onOpenChange, fileName, continueHref, defaultChecked, onDefaultChange }: UploadedFileDialogProps) {
+  const [progress, setProgress] = useState(0)
+  const ready = progress >= 100
+
+  useEffect(() => {
+    if (!open) {
+      setProgress(0)
+      return
+    }
+    setProgress(0)
+    const start = Date.now()
+    const duration = 1100
+    let frame: number
+
+    function tick() {
+      const pct = Math.min(100, Math.round(((Date.now() - start) / duration) * 100))
+      setProgress(pct)
+      if (pct < 100) frame = requestAnimationFrame(tick)
+    }
+
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [open])
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPopup aria-label="Resume uploaded">
+        <DialogTitle>Resume uploaded</DialogTitle>
+        <div className="mt-4 flex items-center gap-3 rounded-lg border border-border bg-surface-subtle px-4 py-3">
+          <FileText aria-hidden="true" className="size-5 shrink-0 text-ink-muted" />
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{fileName}</span>
+          {ready ? <Check aria-hidden="true" className="size-4 shrink-0 text-positive" /> : null}
+        </div>
+        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-pill bg-surface-subtle" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+          <div className="h-full rounded-pill bg-accent transition-[width] duration-100 ease-linear" style={{ width: `${progress}%` }} />
+        </div>
+        <label
+          className={cn(
+            'mt-5 flex min-h-6 items-center gap-2 text-sm font-medium text-ink transition-opacity duration-normal ease-default',
+            ready ? 'opacity-100' : 'pointer-events-none opacity-0',
+          )}
+        >
+          <input
+            type="checkbox"
+            checked={defaultChecked ?? false}
+            onChange={(event) => onDefaultChange?.(event.target.checked)}
+            disabled={!ready}
+            className="size-4 shrink-0 rounded-sm border-input text-accent focus:ring-1 focus:ring-focus focus:ring-offset-0"
+          />
+          Always use this resume
+        </label>
+        <a
+          href={ready ? continueHref : undefined}
+          aria-disabled={!ready}
+          className={cn(
+            'mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control transition-opacity duration-normal ease-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+            !ready && 'pointer-events-none opacity-50',
+          )}
+        >
+          Continue
+        </a>
+      </DialogPopup>
+    </Dialog>
+  )
+}
 
 export type FormPanelFooterProps = {
   readonly backHref: string

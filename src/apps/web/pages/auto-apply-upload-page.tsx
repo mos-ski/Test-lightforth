@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { AutoApplyUploadView } from '@/features/auto-apply/auto-apply-view'
 import { getDefaultResumePreference } from '@/lib/resume-preference'
+import { autoApplySetup } from '@/mocks/auto-apply'
 import { resumeHistoryRows } from '@/mocks/resume'
 
 export function AutoApplyUploadPage() {
@@ -24,6 +25,7 @@ export function AutoApplyUploadPage() {
       homeHref="/v3/app"
       contactHref="/v3/auto-apply/contact"
       agentHref="/v3/auto-apply/agent"
+      uploadedFileName={autoApplySetup.uploadedFileName}
       savedResumes={resumeHistoryRows}
     />
   )

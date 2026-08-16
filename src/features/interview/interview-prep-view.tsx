@@ -29,7 +29,7 @@ import type {
 } from '@/contracts/interview.draft'
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
-import { AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
+import { AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger, UploadedFileDialog } from '@/ui'
 import { useCameraStream } from '@/hooks/useCameraStream'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 import { useTypewriter } from '@/hooks/useTypewriter'
@@ -38,6 +38,7 @@ export type InterviewUploadViewProps = {
   readonly homeHref: string
   readonly configureHref: string
   readonly historyHref: string
+  readonly uploadedFileName: string
   readonly savedResumes: readonly ResumeHistoryRow[]
 }
 
@@ -144,8 +145,10 @@ function FooterActions({
   )
 }
 
-export function InterviewUploadView({ homeHref, configureHref, historyHref, savedResumes }: InterviewUploadViewProps) {
+export function InterviewUploadView({ homeHref, configureHref, historyHref, uploadedFileName, savedResumes }: InterviewUploadViewProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
 
   return (
     <Workspace>
@@ -155,7 +158,7 @@ export function InterviewUploadView({ homeHref, configureHref, historyHref, save
           <SourcePicker
             title="Upload a resume"
             options={[
-              { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', href: configureHref },
+              { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', onClick: () => setUploadDialogOpen(true) },
               { label: 'Use Lightforth Resume', icon: <LightforthAiIcon className="size-5" />, emphasis: 'strong', onClick: () => setPickerOpen(true) },
             ]}
             historyLink={{ label: 'View interview history', href: historyHref }}
@@ -172,7 +175,21 @@ export function InterviewUploadView({ homeHref, configureHref, historyHref, save
         emptyLabel="No saved resumes yet. Upload one to get started."
         icon={<LightforthAiIcon className="size-4" />}
         onSelect={() => {
-          window.location.href = configureHref
+          setPickerOpen(false)
+          setUploadDialogOpen(true)
+        }}
+      />
+
+      <UploadedFileDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        fileName={uploadedFileName}
+        continueHref={configureHref}
+        defaultChecked={useAsDefault}
+        onDefaultChange={(checked) => {
+          setUseAsDefault(checked)
+          if (checked) setDefaultResumePreference(uploadedFileName)
+          else clearDefaultResumePreference()
         }}
       />
     </Workspace>
@@ -184,7 +201,6 @@ const INTERVIEW_AI_SUGGESTION =
 
 export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, session, knowledgeBaseDocuments = [] }: InterviewConfigureViewProps) {
   const [additionalContext, setAdditionalContext] = useState(session.additionalContext)
-  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
   const [selectedDocIds, setSelectedDocIds] = useState<ReadonlySet<string>>(new Set())
   const [pickerOpen, setPickerOpen] = useState(false)
   const [draftDocIds, setDraftDocIds] = useState<ReadonlySet<string>>(new Set())
@@ -220,12 +236,6 @@ export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, sessio
           uploadedFile={{
             fileName: session.uploadedFileName,
             changeHref: uploadHref,
-            defaultChecked: useAsDefault,
-            onDefaultChange: (checked) => {
-              setUseAsDefault(checked)
-              if (checked) setDefaultResumePreference(session.uploadedFileName)
-              else clearDefaultResumePreference()
-            },
             onChangeClick: () => clearDefaultResumePreference(),
           }}
           footer={<FormPanelFooter backHref={uploadHref} nextHref={voiceHref} />}

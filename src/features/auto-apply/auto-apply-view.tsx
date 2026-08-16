@@ -34,6 +34,7 @@ import {
   ReviewSummaryList,
   ShellBar,
   SourcePicker,
+  UploadedFileDialog,
 } from '@/ui'
 import { useAgentSession, type AgentSession, type FeedEvent, type FeedLink } from '@/hooks/useAgentSession'
 
@@ -41,6 +42,7 @@ export type AutoApplyUploadViewProps = {
   readonly homeHref: string
   readonly contactHref: string
   readonly agentHref: string
+  readonly uploadedFileName: string
   readonly savedResumes: readonly ResumeHistoryRow[]
 }
 
@@ -121,8 +123,10 @@ function Tag({ children }: { readonly children: ReactNode }) {
   return <span className="rounded-full bg-accent-subtle px-2 py-1 text-xs font-medium text-accent-text">{children}</span>
 }
 
-export function AutoApplyUploadView({ homeHref, contactHref, agentHref, savedResumes }: AutoApplyUploadViewProps) {
+export function AutoApplyUploadView({ homeHref, contactHref, agentHref, uploadedFileName, savedResumes }: AutoApplyUploadViewProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
 
   return (
     <Workspace>
@@ -132,7 +136,7 @@ export function AutoApplyUploadView({ homeHref, contactHref, agentHref, savedRes
           <SourcePicker
             title="Upload a resume"
             options={[
-              { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', href: contactHref },
+              { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', onClick: () => setUploadDialogOpen(true) },
               { label: 'Use Lightforth Resume', icon: <LightforthAiIcon className="size-5" />, emphasis: 'strong', onClick: () => setPickerOpen(true) },
             ]}
             historyLink={{ label: 'Continue to saved agent', href: agentHref }}
@@ -149,7 +153,21 @@ export function AutoApplyUploadView({ homeHref, contactHref, agentHref, savedRes
         emptyLabel="No saved resumes yet. Upload one to get started."
         icon={<LightforthAiIcon className="size-4" />}
         onSelect={() => {
-          window.location.href = contactHref
+          setPickerOpen(false)
+          setUploadDialogOpen(true)
+        }}
+      />
+
+      <UploadedFileDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        fileName={uploadedFileName}
+        continueHref={contactHref}
+        defaultChecked={useAsDefault}
+        onDefaultChange={(checked) => {
+          setUseAsDefault(checked)
+          if (checked) setDefaultResumePreference(uploadedFileName)
+          else clearDefaultResumePreference()
         }}
       />
     </Workspace>
@@ -157,7 +175,6 @@ export function AutoApplyUploadView({ homeHref, contactHref, agentHref, savedRes
 }
 
 export function AutoApplySetupStepView({ homeHref, backHref, nextHref, setup, step }: AutoApplySetupStepViewProps) {
-  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
   const copy = {
     contact: { title: 'Contact Information', count: '1/4' },
     preferences: { title: 'Job Preferences', count: '2/4' },
@@ -176,12 +193,6 @@ export function AutoApplySetupStepView({ homeHref, backHref, nextHref, setup, st
               ? {
                   fileName: setup.uploadedFileName,
                   changeHref: backHref,
-                  defaultChecked: useAsDefault,
-                  onDefaultChange: (checked) => {
-                    setUseAsDefault(checked)
-                    if (checked) setDefaultResumePreference(setup.uploadedFileName)
-                    else clearDefaultResumePreference()
-                  },
                   onChangeClick: () => clearDefaultResumePreference(),
                 }
               : undefined

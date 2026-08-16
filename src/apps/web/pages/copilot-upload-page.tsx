@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { CopilotMode } from '@/contracts/copilot.draft'
 import { CopilotUploadView } from '@/features/copilot/interview-copilot-view'
 import { getDefaultResumePreference } from '@/lib/resume-preference'
+import { copilotSetup } from '@/mocks/copilot'
 import { resumeHistoryRows } from '@/mocks/resume'
 
 const VALID_MODES: readonly CopilotMode[] = ['interview', 'coding', 'meeting']
@@ -35,6 +36,7 @@ export function CopilotUploadPage() {
       configureHref="/v3/interview-copilot/configure"
       historyHref="/v3/interview-copilot/history"
       mode={mode}
+      uploadedFileName={copilotSetup.uploadedFileName}
       savedResumes={resumeHistoryRows}
     />
   )
