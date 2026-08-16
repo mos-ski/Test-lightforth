@@ -283,16 +283,6 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
                   { label: 'C++', value: 'c++' },
                 ]}
               />
-              <FormSelectField
-                id="copilot-difficulty-coding"
-                label="Difficulty"
-                defaultValue={setup.difficulty.toLowerCase()}
-                options={[
-                  { label: 'Easy', value: 'easy' },
-                  { label: 'Medium', value: 'medium' },
-                  { label: 'Hard', value: 'hard' },
-                ]}
-              />
               <FormField id="copilot-target-role-coding" label="Target Role" defaultValue={setup.targetRole} />
               <FormField id="copilot-company-coding" label="Company Name" defaultValue={setup.companyName} />
             </div>
