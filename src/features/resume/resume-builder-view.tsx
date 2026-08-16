@@ -31,6 +31,7 @@ export type ResumeEditorViewProps = {
 export type ResumeHistoryViewProps = {
   readonly homeHref: string
   readonly createHref: string
+  readonly editorHref: string
   readonly rows: readonly ResumeHistoryRow[]
 }
 
@@ -766,7 +767,7 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   )
 }
 
-export function ResumeHistoryView({ homeHref, createHref, rows }: ResumeHistoryViewProps) {
+export function ResumeHistoryView({ homeHref, createHref, editorHref, rows }: ResumeHistoryViewProps) {
   return (
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="History" />
@@ -778,6 +779,9 @@ export function ResumeHistoryView({ homeHref, createHref, rows }: ResumeHistoryV
           rows={rows}
           itemLabel={(row) => row.title}
           className="mx-auto max-w-7xl"
+          onRowClick={() => {
+            window.location.href = editorHref
+          }}
           columns={[
             { key: 'title', label: 'Title', className: 'w-[18rem]', render: (row) => <span className="font-medium">{row.title}</span> },
             {
