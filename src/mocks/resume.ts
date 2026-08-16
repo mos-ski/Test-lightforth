@@ -18,6 +18,20 @@ export const resumeDocument: ResumeDocument = {
     { label: 'Section coverage', score: 76 },
     { label: 'Quantified impact', score: 68 },
   ],
+  atsContext:
+    'Your resume scores well on structure and keyword coverage, but it can be stronger on quantified impact and feature-specific terminology for the role you are targeting.',
+  atsStrengths: [
+    'Strong product-management keyword density and clear, scannable job titles.',
+    'Well-structured sections that ATS parsers can read without confusion.',
+    'Relevant fintech and AI-platform experience that matches common job requirements.',
+  ],
+  atsGaps: [
+    'Add more hard numbers to your experience bullets, such as revenue, user-growth percentages, or time saved.',
+    'Include skills and tools from the job description that are missing from your skills list.',
+    'Shorten the professional summary to three or four lines and lead with the target role.',
+  ],
+  atsPrompt:
+    'Rewrite my experience bullets to include specific metrics and outcomes, and tailor my professional summary for a Senior Product Manager role at a fintech company. Keep the tone confident and concise.',
   roles: [
     {
       company: 'Lightforth',

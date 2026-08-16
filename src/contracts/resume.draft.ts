@@ -31,6 +31,10 @@ export type ResumeDocument = {
   readonly improvedSummary: string
   readonly atsScore: number
   readonly atsBreakdown: readonly { readonly label: string; readonly score: number }[]
+  readonly atsContext: string
+  readonly atsStrengths: readonly string[]
+  readonly atsGaps: readonly string[]
+  readonly atsPrompt: string
   readonly roles: readonly ResumeRole[]
   readonly education: readonly ResumeEducation[]
   readonly skills: readonly string[]

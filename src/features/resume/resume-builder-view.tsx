@@ -686,8 +686,36 @@ function Tooltip({ title, body, align = 'start' }: { readonly title: string; rea
   )
 }
 
-function AtsScoreDrawer({ open, onOpenChange, atsScore, atsBreakdown }: { readonly open: boolean; readonly onOpenChange: (open: boolean) => void; readonly atsScore: number; readonly atsBreakdown: readonly { readonly label: string; readonly score: number }[] }) {
+function AtsScoreDrawer({
+  open,
+  onOpenChange,
+  atsScore,
+  atsBreakdown,
+  atsContext,
+  atsStrengths,
+  atsGaps,
+  atsPrompt,
+}: {
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly atsScore: number
+  readonly atsBreakdown: readonly { readonly label: string; readonly score: number }[]
+  readonly atsContext: string
+  readonly atsStrengths: readonly string[]
+  readonly atsGaps: readonly string[]
+  readonly atsPrompt: string
+}) {
   const grade = atsScore >= 80 ? 'Excellent match' : atsScore >= 60 ? 'Good match' : 'Needs work'
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy() {
+    if (typeof navigator === 'undefined') return
+    navigator.clipboard.writeText(atsPrompt).then(() => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPopup placement="end" aria-label="ATS score breakdown">
@@ -695,7 +723,7 @@ function AtsScoreDrawer({ open, onOpenChange, atsScore, atsBreakdown }: { readon
           <DialogTitle className="text-base">ATS Score</DialogTitle>
           <DialogClose className="static" />
         </div>
-        <div className="grid gap-5 p-5">
+        <div className="grid gap-6 overflow-y-auto p-5">
           <div className="flex items-center gap-4">
             <div
               aria-hidden="true"
@@ -709,6 +737,9 @@ function AtsScoreDrawer({ open, onOpenChange, atsScore, atsBreakdown }: { readon
               <p className="mt-0.5 text-xs text-ink-muted">Based on the job description you pasted</p>
             </div>
           </div>
+
+          <p className="text-sm leading-6 text-ink-muted">{atsContext}</p>
+
           <div className="grid gap-3">
             {atsBreakdown.map((item) => (
               <div key={item.label}>
@@ -722,6 +753,44 @@ function AtsScoreDrawer({ open, onOpenChange, atsScore, atsBreakdown }: { readon
               </div>
             ))}
           </div>
+
+          <section className="grid gap-2">
+            <h3 className="text-sm font-semibold text-ink">What is working</h3>
+            <ul className="grid gap-2">
+              {atsStrengths.map((strength) => (
+                <li key={strength} className="text-sm leading-6 text-ink-muted">
+                  {strength}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="grid gap-2">
+            <h3 className="text-sm font-semibold text-ink">What is missing</h3>
+            <ul className="grid gap-2">
+              {atsGaps.map((gap) => (
+                <li key={gap} className="text-sm leading-6 text-ink-muted">
+                  {gap}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="grid gap-2">
+            <h3 className="text-sm font-semibold text-ink">Suggested fix</h3>
+            <div className="rounded-lg border border-border bg-surface-subtle p-3">
+              <p className="text-sm leading-6 text-ink">{atsPrompt}</p>
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="inline-flex min-h-8 items-center rounded-lg bg-accent px-3 text-xs font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                >
+                  {copied ? 'Copied' : 'Copy prompt'}
+                </button>
+              </div>
+            </div>
+          </section>
         </div>
       </DialogPopup>
     </Dialog>
@@ -810,7 +879,16 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
           {messages.length === 0 && tab === 'chat' ? <Tooltip title="Send your First Message" body="Chat or paste a job description and Lightforth will rewrite your resume to match key words." /> : null}
         </div>
       </section>
-      <AtsScoreDrawer open={atsOpen} onOpenChange={setAtsOpen} atsScore={document.atsScore} atsBreakdown={document.atsBreakdown} />
+      <AtsScoreDrawer
+        open={atsOpen}
+        onOpenChange={setAtsOpen}
+        atsScore={document.atsScore}
+        atsBreakdown={document.atsBreakdown}
+        atsContext={document.atsContext}
+        atsStrengths={document.atsStrengths}
+        atsGaps={document.atsGaps}
+        atsPrompt={document.atsPrompt}
+      />
     </Workspace>
   )
 }

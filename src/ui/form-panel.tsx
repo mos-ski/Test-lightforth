@@ -445,7 +445,7 @@ export const ReviewSummaryList = forwardRef<HTMLDivElement, ReviewSummaryListPro
     const [expandedId, setExpandedId] = useState<string | null>(null)
 
     return (
-      <div ref={ref} data-slot="review-summary-list" className={cn('grid min-w-0 gap-2', className)} {...props}>
+      <div ref={ref} data-slot="review-summary-list" className={cn('grid min-w-0 gap-3', className)} {...props}>
         {rows.map((row) => {
           const isExpanded = expandedId === row.id
           return (
@@ -453,19 +453,19 @@ export const ReviewSummaryList = forwardRef<HTMLDivElement, ReviewSummaryListPro
               <button
                 type="button"
                 onClick={() => setExpandedId(isExpanded ? null : row.id)}
-                className="flex min-h-14 w-full items-center gap-3 p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                className="flex min-h-16 w-full items-center gap-4 p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
               >
-                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent-subtle">
+                <span className="grid size-11 shrink-0 place-items-center rounded-lg bg-accent-subtle">
                   {row.icon ?? <FileText aria-hidden="true" className="size-5 text-accent" />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold leading-5 text-ink">{row.title}</span>
-                  <span className="mt-0.5 block truncate text-xs leading-4 text-ink-muted">{row.value}</span>
+                  <span className="mt-1 block text-xs leading-4 text-ink-muted line-clamp-2">{row.value}</span>
                 </span>
                 <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform duration-200', isExpanded && 'rotate-180')} />
               </button>
               {isExpanded && row.details ? (
-                <div className="border-t border-border px-3 pb-3 pt-3">
+                <div className="border-t border-border px-4 pb-4 pt-4">
                   <div className="text-sm leading-6 text-ink-muted">{row.details}</div>
                   {row.href ? (
                     <a href={row.href} className="mt-3 inline-flex min-h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">

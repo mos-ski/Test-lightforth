@@ -259,15 +259,12 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
 }
 
 function PreferencesForm({ setup }: { readonly setup: AutoApplySetup }) {
-  const formatSalary = (val: number) => `$${Math.round(val / 1000)}k`
-  const withCommas = (val: string) => {
-    const num = val.replace(/[^0-9]/g, '')
-    if (!num) return ''
-    return Number(num).toLocaleString('en-US')
-  }
   const SALARY_MIN = 20000
   const SALARY_MAX = 300000
   const toPercent = (val: number) => ((val - SALARY_MIN) / (SALARY_MAX - SALARY_MIN)) * 100
+  const formatK = (val: number) => `$${Math.round(val / 1000)}k`
+  const formatComma = (val: number) => val.toLocaleString('en-US')
+  const parseRaw = (input: string) => Number(input.replace(/[^0-9]/g, ''))
 
   const [roles, setRoles] = useState<string[]>([...setup.desiredRole])
   const [roleSearch, setRoleSearch] = useState('')
@@ -277,11 +274,12 @@ function PreferencesForm({ setup }: { readonly setup: AutoApplySetup }) {
   const [locOpen, setLocOpen] = useState(false)
   const [salaryMin, setSalaryMin] = useState(setup.salary.min)
   const [salaryMax, setSalaryMax] = useState(setup.salary.max)
-  const [salaryMinInput, setSalaryMinInput] = useState(formatSalary(setup.salary.min))
-  const [salaryMaxInput, setSalaryMaxInput] = useState(formatSalary(setup.salary.max))
+  const [editingMin, setEditingMin] = useState(false)
+  const [editingMax, setEditingMax] = useState(false)
   const [expSearch, setExpSearch] = useState('')
   const [expOpen, setExpOpen] = useState(false)
   const [experience, setExperience] = useState(setup.experienceLevel)
+  const [openSection, setOpenSection] = useState<string | null>('role')
 
   const ROLE_OPTIONS = [
     'Product Manager', 'Senior Product Manager', 'Product Lead', 'Product Owner',
@@ -298,13 +296,10 @@ function PreferencesForm({ setup }: { readonly setup: AutoApplySetup }) {
   const filteredRoles = ROLE_OPTIONS.filter((r) => r.toLowerCase().includes(roleSearch.toLowerCase()) && !roles.includes(r))
 
   const addRole = (role: string) => {
-    if (role && roles.length < 5 && !roles.includes(role)) {
-      setRoles([...roles, role])
-    }
+    if (role && roles.length < 5 && !roles.includes(role)) setRoles([...roles, role])
     setRoleSearch('')
     setRoleOpen(false)
   }
-
   const removeRole = (role: string) => setRoles(roles.filter((r) => r !== role))
 
   const LOCATION_OPTIONS = [
@@ -318,298 +313,182 @@ function PreferencesForm({ setup }: { readonly setup: AutoApplySetup }) {
   const filteredLocations = LOCATION_OPTIONS.filter((l) => l.toLowerCase().includes(locSearch.toLowerCase()) && !locations.includes(l))
 
   const addLocation = (loc: string) => {
-    if (loc && locations.length < 5 && !locations.includes(loc)) {
-      setLocations([...locations, loc])
-    }
+    if (loc && locations.length < 5 && !locations.includes(loc)) setLocations([...locations, loc])
     setLocSearch('')
     setLocOpen(false)
   }
-
   const removeLocation = (loc: string) => setLocations(locations.filter((l) => l !== loc))
 
   const filteredExps = EXPERIENCE_LEVELS.filter((e) => e.toLowerCase().includes(expSearch.toLowerCase()))
 
+  const toggle = (key: string) => setOpenSection((prev) => prev === key ? null : key)
+
   return (
-    <div className="grid gap-5">
-      {/* Desired Role - searchable select with pills below */}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-ink">Desired Role <span className="text-ink-muted">(up to 5)</span></label>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setRoleOpen(!roleOpen)}
-            className="flex min-h-10 w-full items-center justify-between rounded-lg border border-input bg-surface px-3 text-left text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus"
-          >
-            <span className="text-ink-muted">Search roles...</span>
-            <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', roleOpen && 'rotate-180')} />
-          </button>
-          {roleOpen ? (
-            <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
-              <div className="border-b border-border p-2">
-                <input
-                  type="text"
-                  value={roleSearch}
-                  onChange={(e) => setRoleSearch(e.target.value)}
-                  placeholder="Search roles..."
-                  autoFocus
-                  className="w-full rounded-md border border-input bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus"
-                />
-              </div>
-              <div className="max-h-48 overflow-y-auto p-1">
-                {filteredRoles.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => addRole(opt)}
-                    className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
-                  >
-                    {opt}
-                  </button>
+    <div className="grid gap-2">
+      {/* Section 1: Role & Experience */}
+      <CollapsibleSection title="Role & Experience" isOpen={openSection === 'role'} onToggle={() => toggle('role')}>
+        <div className="grid gap-4">
+          {/* Desired Role */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink">Desired Role <span className="text-ink-muted">(up to 5)</span></label>
+            <div className="relative">
+              <button type="button" onClick={() => setRoleOpen(!roleOpen)} className="flex min-h-10 w-full items-center justify-between rounded-lg border border-input bg-surface px-3 text-left text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+                <span className="text-ink-muted">Search roles...</span>
+                <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', roleOpen && 'rotate-180')} />
+              </button>
+              {roleOpen ? (
+                <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
+                  <div className="border-b border-border p-2">
+                    <input type="text" value={roleSearch} onChange={(e) => setRoleSearch(e.target.value)} placeholder="Search roles..." autoFocus className="w-full rounded-md border border-input bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus" />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto p-1">
+                    {filteredRoles.map((opt) => (
+                      <button key={opt} type="button" onClick={() => addRole(opt)} className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus">{opt}</button>
+                    ))}
+                    {filteredRoles.length === 0 ? <p className="px-3 py-2 text-sm text-ink-muted">No results</p> : null}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+            {roles.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {roles.map((role) => (
+                  <span key={role} className="inline-flex items-center gap-1 rounded-md bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent">
+                    {role}
+                    <button type="button" onClick={() => removeRole(role)} className="rounded-full p-0.5 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus" aria-label={`Remove ${role}`}><X aria-hidden="true" className="size-3" /></button>
+                  </span>
                 ))}
-                {filteredRoles.length === 0 ? <p className="px-3 py-2 text-sm text-ink-muted">No results</p> : null}
               </div>
-            </div>
-          ) : null}
+            ) : null}
+            {roles.length >= 5 ? <p className="mt-1 text-xs text-ink-muted">Maximum 5 roles reached</p> : null}
+          </div>
+          {/* Experience Level */}
+          <div className="relative">
+            <label className="mb-1 block text-sm font-medium text-ink">Experience Level</label>
+            <button type="button" onClick={() => setExpOpen(!expOpen)} className="flex min-h-10 w-full items-center justify-between rounded-lg border border-input bg-surface px-3 text-left text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+              <span className={experience ? '' : 'text-ink-muted'}>{experience || 'Search and select level'}</span>
+              <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', expOpen && 'rotate-180')} />
+            </button>
+            {expOpen ? (
+              <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
+                <div className="border-b border-border p-2">
+                  <input type="text" value={expSearch} onChange={(e) => setExpSearch(e.target.value)} placeholder="Search experience..." autoFocus className="w-full rounded-md border border-input bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus" />
+                </div>
+                <div className="max-h-48 overflow-y-auto p-1">
+                  {filteredExps.map((opt) => (
+                    <button key={opt} type="button" onClick={() => { setExperience(opt); setExpOpen(false); setExpSearch('') }} className={cn('flex w-full items-center rounded-md px-3 py-2 text-left text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus', experience === opt ? 'bg-accent-subtle text-accent font-medium' : 'text-ink hover:bg-surface-subtle')}>
+                      {experience === opt ? <Check aria-hidden="true" className="mr-2 size-4" /> : <span className="mr-2 size-4" />}
+                      {opt}
+                    </button>
+                  ))}
+                  {filteredExps.length === 0 ? <p className="px-3 py-2 text-sm text-ink-muted">No results</p> : null}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
-        {roles.length > 0 ? (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {roles.map((role) => (
-              <span key={role} className="inline-flex items-center gap-1 rounded-md bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent">
-                {role}
-                <button type="button" onClick={() => removeRole(role)} className="rounded-full p-0.5 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus" aria-label={`Remove ${role}`}>
-                  <X aria-hidden="true" className="size-3" />
-                </button>
-              </span>
-            ))}
-          </div>
-        ) : null}
-        {roles.length >= 5 ? <p className="mt-1 text-xs text-ink-muted">Maximum 5 roles reached</p> : null}
-      </div>
+      </CollapsibleSection>
 
-      {/* Experience Level - searchable select */}
-      <div className="relative">
-        <label className="mb-1 block text-sm font-medium text-ink">Experience Level</label>
-        <button
-          type="button"
-          onClick={() => setExpOpen(!expOpen)}
-          className="flex min-h-10 w-full items-center justify-between rounded-lg border border-input bg-surface px-3 text-left text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus"
-        >
-          <span className={experience ? '' : 'text-ink-muted'}>{experience || 'Search and select level'}</span>
-          <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', expOpen && 'rotate-180')} />
-        </button>
-        {expOpen ? (
-          <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
-            <div className="border-b border-border p-2">
-              <input
-                type="text"
-                value={expSearch}
-                onChange={(e) => setExpSearch(e.target.value)}
-                placeholder="Search experience..."
-                autoFocus
-                className="w-full rounded-md border border-input bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus"
-              />
-            </div>
-            <div className="max-h-48 overflow-y-auto p-1">
-              {filteredExps.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => { setExperience(opt); setExpOpen(false); setExpSearch('') }}
-                  className={cn(
-                    'flex w-full items-center rounded-md px-3 py-2 text-left text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus',
-                    experience === opt ? 'bg-accent-subtle text-accent font-medium' : 'text-ink hover:bg-surface-subtle',
-                  )}
-                >
-                  {experience === opt ? <Check aria-hidden="true" className="mr-2 size-4" /> : <span className="mr-2 size-4" />}
-                  {opt}
-                </button>
-              ))}
-              {filteredExps.length === 0 ? <p className="px-3 py-2 text-sm text-ink-muted">No results</p> : null}
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Salary Range Slider */}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-ink">Salary Range</label>
-        <div className="rounded-lg border border-border bg-surface p-4">
+      {/* Section 2: Salary */}
+      <CollapsibleSection title="Salary Range" isOpen={openSection === 'salary'} onToggle={() => toggle('salary')}>
+        <div className="rounded-lg border border-border bg-surface-subtle p-4">
           <div className="mb-3 flex items-center justify-between text-sm">
-            <input
-              type="tel"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={salaryMinInput.includes(',') ? salaryMinInput : withCommas(salaryMinInput)}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^0-9]/g, '')
-                setSalaryMinInput(raw)
-              }}
-              onFocus={() => setSalaryMinInput(withCommas(String(salaryMin)))}
-              onBlur={() => {
-                const num = Number(salaryMinInput.replace(/[^0-9]/g, ''))
-                if (!isNaN(num) && num >= SALARY_MIN && num < salaryMax) {
-                  const snapped = Math.round(num / 5000) * 5000
-                  setSalaryMin(snapped)
-                  setSalaryMinInput(formatSalary(snapped))
-                } else {
-                  setSalaryMinInput(formatSalary(salaryMin))
-                }
-              }}
-              className="w-20 rounded border border-transparent bg-surface-subtle px-2 py-0.5 text-center font-semibold text-ink outline-none hover:border-input focus:border-focus focus:ring-1 focus:ring-focus"
-            />
+            {editingMin ? (
+              <input
+                type="tel" inputMode="numeric" pattern="[0-9]*" autoFocus
+                value={formatComma(salaryMin)}
+                onChange={(e) => { const raw = parseRaw(e.target.value); if (!isNaN(raw)) setSalaryMin(raw) }}
+                onBlur={() => setEditingMin(false)}
+                onKeyDown={(e) => { if (e.key === 'Enter') setEditingMin(false) }}
+                className="w-24 rounded border border-input bg-surface px-2 py-0.5 text-center font-semibold text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus"
+              />
+            ) : (
+              <button type="button" onClick={() => setEditingMin(true)} className="w-24 rounded border border-transparent px-2 py-0.5 text-center font-semibold text-ink hover:border-input focus:border-focus focus:ring-1 focus:ring-focus">{formatK(salaryMin)}</button>
+            )}
             <span className="text-ink-muted">to</span>
-            <input
-              type="tel"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={salaryMaxInput.includes(',') ? salaryMaxInput : withCommas(salaryMaxInput)}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^0-9]/g, '')
-                setSalaryMaxInput(raw)
-              }}
-              onFocus={() => setSalaryMaxInput(withCommas(String(salaryMax)))}
-              onBlur={() => {
-                const num = Number(salaryMaxInput.replace(/[^0-9]/g, ''))
-                if (!isNaN(num) && num > salaryMin && num <= SALARY_MAX) {
-                  const snapped = Math.round(num / 5000) * 5000
-                  setSalaryMax(snapped)
-                  setSalaryMaxInput(formatSalary(snapped))
-                } else {
-                  setSalaryMaxInput(formatSalary(salaryMax))
-                }
-              }}
-              className="w-20 rounded border border-transparent bg-surface-subtle px-2 py-0.5 text-center font-semibold text-ink outline-none hover:border-input focus:border-focus focus:ring-1 focus:ring-focus"
-            />
+            {editingMax ? (
+              <input
+                type="tel" inputMode="numeric" pattern="[0-9]*" autoFocus
+                value={formatComma(salaryMax)}
+                onChange={(e) => { const raw = parseRaw(e.target.value); if (!isNaN(raw)) setSalaryMax(raw) }}
+                onBlur={() => setEditingMax(false)}
+                onKeyDown={(e) => { if (e.key === 'Enter') setEditingMax(false) }}
+                className="w-24 rounded border border-input bg-surface px-2 py-0.5 text-center font-semibold text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus"
+              />
+            ) : (
+              <button type="button" onClick={() => setEditingMax(true)} className="w-24 rounded border border-transparent px-2 py-0.5 text-center font-semibold text-ink hover:border-input focus:border-focus focus:ring-1 focus:ring-focus">{formatK(salaryMax)}</button>
+            )}
           </div>
           <div className="relative h-6">
             <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-surface-subtle" />
-            <div
-              className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent"
-              style={{ left: `${toPercent(salaryMin)}%`, right: `${100 - toPercent(salaryMax)}%` }}
-            />
-            <input
-              type="range"
-              min={SALARY_MIN}
-              max={SALARY_MAX}
-              step={5000}
-              value={salaryMax}
-              onChange={(e) => { const v = Number(e.target.value); if (v > salaryMin) { setSalaryMax(v); setSalaryMaxInput(formatSalary(v)) } }}
-              className="absolute inset-0 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110 [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-surface"
-            />
-            <input
-              type="range"
-              min={SALARY_MIN}
-              max={SALARY_MAX}
-              step={5000}
-              value={salaryMin}
-              onChange={(e) => { const v = Number(e.target.value); if (v < salaryMax) { setSalaryMin(v); setSalaryMinInput(formatSalary(v)) } }}
-              className="absolute inset-0 z-10 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110 [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-surface"
-            />
+            <div className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent" style={{ left: `${toPercent(salaryMin)}%`, right: `${100 - toPercent(salaryMax)}%` }} />
+            <input type="range" min={SALARY_MIN} max={SALARY_MAX} step={5000} value={salaryMax} onChange={(e) => { const v = Number(e.target.value); if (v > salaryMin) setSalaryMax(v) }} className="absolute inset-0 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-surface" />
+            <input type="range" min={SALARY_MIN} max={SALARY_MAX} step={5000} value={salaryMin} onChange={(e) => { const v = Number(e.target.value); if (v < salaryMax) setSalaryMin(v) }} className="absolute inset-0 z-10 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-surface" />
           </div>
         </div>
-      </div>
+      </CollapsibleSection>
 
-      {/* Locations - searchable multi-select */}
-      <div>
-        <label className="mb-1 block text-sm font-medium text-ink">Preferred Locations <span className="text-ink-muted">(up to 5)</span></label>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setLocOpen(!locOpen)}
-            className="flex min-h-10 w-full items-center justify-between rounded-lg border border-input bg-surface px-3 text-left text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus"
-          >
-            <span className="text-ink-muted">Search locations...</span>
-            <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', locOpen && 'rotate-180')} />
-          </button>
-          {locOpen ? (
-            <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
-              <div className="border-b border-border p-2">
-                <input
-                  type="text"
-                  value={locSearch}
-                  onChange={(e) => setLocSearch(e.target.value)}
-                  placeholder="Search locations..."
-                  autoFocus
-                  className="w-full rounded-md border border-input bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus"
-                />
-              </div>
-              <div className="max-h-48 overflow-y-auto p-1">
-                {filteredLocations.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => addLocation(opt)}
-                    className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
-                  >
-                    {opt}
-                  </button>
-                ))}
-                {filteredLocations.length === 0 ? <p className="px-3 py-2 text-sm text-ink-muted">No results</p> : null}
-              </div>
+      {/* Section 3: Location & Type */}
+      <CollapsibleSection title="Location & Type" isOpen={openSection === 'location'} onToggle={() => toggle('location')}>
+        <div className="grid gap-4">
+          {/* Locations */}
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink">Preferred Locations <span className="text-ink-muted">(up to 5)</span></label>
+            <div className="relative">
+              <button type="button" onClick={() => setLocOpen(!locOpen)} className="flex min-h-10 w-full items-center justify-between rounded-lg border border-input bg-surface px-3 text-left text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
+                <span className="text-ink-muted">Search locations...</span>
+                <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', locOpen && 'rotate-180')} />
+              </button>
+              {locOpen ? (
+                <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-surface shadow-lg">
+                  <div className="border-b border-border p-2">
+                    <input type="text" value={locSearch} onChange={(e) => setLocSearch(e.target.value)} placeholder="Search locations..." autoFocus className="w-full rounded-md border border-input bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-focus focus:ring-1 focus:ring-focus" />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto p-1">
+                    {filteredLocations.map((opt) => (
+                      <button key={opt} type="button" onClick={() => addLocation(opt)} className="flex w-full items-center rounded-md px-3 py-2 text-left text-sm text-ink hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus">{opt}</button>
+                    ))}
+                    {filteredLocations.length === 0 ? <p className="px-3 py-2 text-sm text-ink-muted">No results</p> : null}
+                  </div>
+                </div>
+              ) : null}
             </div>
-          ) : null}
-        </div>
-        {locations.length > 0 ? (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {locations.map((loc) => (
-              <span key={loc} className="inline-flex items-center gap-1 rounded-md bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent">
-                {loc}
-                <button type="button" onClick={() => removeLocation(loc)} className="rounded-full p-0.5 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus" aria-label={`Remove ${loc}`}>
-                  <X aria-hidden="true" className="size-3" />
-                </button>
-              </span>
-            ))}
+            {locations.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {locations.map((loc) => (
+                  <span key={loc} className="inline-flex items-center gap-1 rounded-md bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent">
+                    {loc}
+                    <button type="button" onClick={() => removeLocation(loc)} className="rounded-full p-0.5 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus" aria-label={`Remove ${loc}`}><X aria-hidden="true" className="size-3" /></button>
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            {locations.length >= 5 ? <p className="mt-1 text-xs text-ink-muted">Maximum 5 locations reached</p> : null}
           </div>
-        ) : null}
-        {locations.length >= 5 ? <p className="mt-1 text-xs text-ink-muted">Maximum 5 locations reached</p> : null}
-      </div>
-
-      {/* Employment Type */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-ink">Employment Type</label>
-        <div className="flex flex-wrap gap-2">
-          {EMPLOYMENT_TYPES.map((t) => (
-            <button
-              key={t}
-              type="button"
-              className={cn(
-                'rounded-full border px-4 py-1.5 text-sm transition-colors',
-                setup.employmentTypes.includes(t)
-                  ? 'border-accent bg-accent-subtle text-accent font-medium'
-                  : 'border-border text-ink hover:border-accent/40',
-              )}
-            >
-              {t}
-            </button>
-          ))}
+          {/* Employment Type */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ink">Employment Type</label>
+            <div className="flex flex-wrap gap-2">
+              {EMPLOYMENT_TYPES.map((t) => (
+                <button key={t} type="button" className={cn('rounded-full border px-4 py-1.5 text-sm transition-colors', setup.employmentTypes.includes(t) ? 'border-accent bg-accent-subtle text-accent font-medium' : 'border-border text-ink hover:border-accent/40')}>{t}</button>
+              ))}
+            </div>
+          </div>
+          {/* Location Type */}
+          <div>
+            <label className="mb-2 block text-sm font-medium text-ink">Job Location Type</label>
+            <div className="flex flex-wrap gap-2">
+              {LOCATION_TYPES.map((t) => (
+                <button key={t} type="button" className={cn('rounded-full border px-4 py-1.5 text-sm transition-colors', setup.locationTypes.includes(t) ? 'border-accent bg-accent-subtle text-accent font-medium' : 'border-border text-ink hover:border-accent/40')}>{t}</button>
+              ))}
+            </div>
+          </div>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" defaultChecked={setup.openToRelocate} className="size-4 rounded border-input text-accent focus:ring-focus" />
+            <span className="text-sm text-ink">I am open to relocating</span>
+          </label>
         </div>
-      </div>
-
-      {/* Location Type */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-ink">Job Location Type</label>
-        <div className="flex flex-wrap gap-2">
-          {LOCATION_TYPES.map((t) => (
-            <button
-              key={t}
-              type="button"
-              className={cn(
-                'rounded-full border px-4 py-1.5 text-sm transition-colors',
-                setup.locationTypes.includes(t)
-                  ? 'border-accent bg-accent-subtle text-accent font-medium'
-                  : 'border-border text-ink hover:border-accent/40',
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <label className="flex items-center gap-2">
-        <input type="checkbox" defaultChecked={setup.openToRelocate} className="size-4 rounded border-input text-accent focus:ring-focus" />
-        <span className="text-sm text-ink">I am open to relocating</span>
-      </label>
+      </CollapsibleSection>
     </div>
   )
 }
