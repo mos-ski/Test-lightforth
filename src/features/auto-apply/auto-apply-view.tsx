@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
-import { ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, RefreshCw, Search, Send, X, Zap, Trash2, Download, Mail } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, RefreshCw, Search, Send, X, Zap, Trash2, Download, Mail } from 'lucide-react'
 
-import type { AutoApplyApplication, AutoApplyJob, AutoApplySetup } from '@/contracts/auto-apply.draft'
+import type { AutoApplyApplication, AutoApplyJob, AutoApplyOutcome, AutoApplySetup } from '@/contracts/auto-apply.draft'
 import {
   DEFAULT_AUTO_APPLY_SETUP,
   EMPLOYMENT_TYPES,
@@ -17,7 +17,23 @@ import {
   WORK_SCHEDULE_OPTIONS,
 } from '@/contracts/auto-apply.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
-import { cn, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ReviewSummaryList, ShellBar, SourcePicker } from '@/ui'
+import {
+  cn,
+  Dialog,
+  DialogDescription,
+  DialogPopup,
+  DialogTitle,
+  FormField,
+  FormPanel,
+  FormPanelFooter,
+  FormSelectField,
+  FormTextArea,
+  LightforthAiIcon,
+  ListPickerDialog,
+  ReviewSummaryList,
+  ShellBar,
+  SourcePicker,
+} from '@/ui'
 import { useAgentSession, type AgentSession, type FeedEvent, type FeedLink } from '@/hooks/useAgentSession'
 
 export type AutoApplyUploadViewProps = {
@@ -422,8 +438,8 @@ function PreferencesForm({ setup }: { readonly setup: AutoApplySetup }) {
           <div className="relative h-6">
             <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-surface-subtle" />
             <div className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent" style={{ left: `${toPercent(salaryMin)}%`, right: `${100 - toPercent(salaryMax)}%` }} />
-            <input type="range" min={SALARY_MIN} max={SALARY_MAX} step={5000} value={salaryMax} onChange={(e) => { const v = Number(e.target.value); if (v > salaryMin) setSalaryMax(v) }} className="absolute inset-0 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-surface" />
-            <input type="range" min={SALARY_MIN} max={SALARY_MAX} step={5000} value={salaryMin} onChange={(e) => { const v = Number(e.target.value); if (v < salaryMax) setSalaryMin(v) }} className="absolute inset-0 z-10 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-surface [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-surface" />
+            <input type="range" min={SALARY_MIN} max={SALARY_MAX} step={5000} value={salaryMax} onChange={(e) => { const v = Number(e.target.value); if (v > salaryMin) setSalaryMax(v) }} className="absolute inset-0 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-white" />
+            <input type="range" min={SALARY_MIN} max={SALARY_MAX} step={5000} value={salaryMin} onChange={(e) => { const v = Number(e.target.value); if (v < salaryMax) setSalaryMin(v) }} className="absolute inset-0 z-10 w-full cursor-pointer appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:size-5 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-accent [&::-moz-range-thumb]:bg-white" />
           </div>
         </div>
       </CollapsibleSection>
@@ -517,13 +533,13 @@ function ContactForm({ setup }: { readonly setup: AutoApplySetup }) {
           <FormField id="auto-phone" label="Phone" defaultValue={setup.phone} placeholder="+1" />
           <FormField id="auto-first-name" label="First Name" defaultValue={setup.firstName} required />
           <FormField id="auto-last-name" label="Last Name" defaultValue={setup.lastName} required />
-          <div>
-            <label htmlFor="auto-gender" className="mb-1 block text-sm font-medium text-ink">Gender</label>
-            <select id="auto-gender" defaultValue={setup.gender} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select gender</option>
-              {GENDER_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-gender"
+            label="Gender"
+            defaultValue={setup.gender}
+            placeholder="Select gender"
+            options={GENDER_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
           <div>
             <label htmlFor="auto-dob" className="mb-1 block text-sm font-medium text-ink">Date of Birth</label>
             <input
@@ -590,28 +606,25 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
         isFilled={filled.demographics}
       >
         <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label htmlFor="auto-race" className="mb-1 block text-sm font-medium text-ink">Race/Ethnicity</label>
-            <select id="auto-race" defaultValue={setup.race} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {RACE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-race"
+            label="Race/Ethnicity"
+            defaultValue={setup.race}
+            options={RACE_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
           <FormField id="auto-citizenship" label="Citizenship" defaultValue={setup.citizenship} placeholder="e.g. USA, Canada" />
-          <div>
-            <label htmlFor="auto-veteran" className="mb-1 block text-sm font-medium text-ink">Veteran Status</label>
-            <select id="auto-veteran" defaultValue={setup.veteran} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {VETERAN_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="auto-disability" className="mb-1 block text-sm font-medium text-ink">Disability Status</label>
-            <select id="auto-disability" defaultValue={setup.disability} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {DISABILITY_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-veteran"
+            label="Veteran Status"
+            defaultValue={setup.veteran}
+            options={VETERAN_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
+          <FormSelectField
+            id="auto-disability"
+            label="Disability Status"
+            defaultValue={setup.disability}
+            options={DISABILITY_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
         </div>
       </CollapsibleSection>
 
@@ -621,13 +634,12 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
         onToggle={() => toggle('security')}
         isFilled={filled.security}
       >
-        <div>
-          <label htmlFor="auto-clearance" className="mb-1 block text-sm font-medium text-ink">Do you hold a defined security clearance?</label>
-          <select id="auto-clearance" defaultValue={setup.securityClearance} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-            <option value="">Select</option>
-            {SECURITY_CLEARANCE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-        </div>
+        <FormSelectField
+          id="auto-clearance"
+          label="Do you hold a defined security clearance?"
+          defaultValue={setup.securityClearance}
+          options={SECURITY_CLEARANCE_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+        />
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -637,13 +649,12 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
         isFilled={filled.workAuth}
       >
         <div className="grid gap-3">
-          <div>
-            <label htmlFor="auto-us-auth" className="mb-1 block text-sm font-medium text-ink">US Work Authorization</label>
-            <select id="auto-us-auth" defaultValue={setup.usWorkAuth} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {US_WORK_AUTH_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-us-auth"
+            label="US Work Authorization"
+            defaultValue={setup.usWorkAuth}
+            options={US_WORK_AUTH_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
           <FormField id="auto-canada-auth" label="Canada Work Authorization (Optional)" defaultValue={setup.canadaWorkAuth} placeholder="e.g. Citizen, PR, Work Permit" />
         </div>
         <fieldset className="mt-3">
@@ -668,20 +679,18 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
         isFilled={filled.logistics}
       >
         <div className="grid gap-3">
-          <div>
-            <label htmlFor="auto-start" className="mb-1 block text-sm font-medium text-ink">When are you willing to start?</label>
-            <select id="auto-start" defaultValue={setup.willingToStart} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {START_TIMELINE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="auto-schedule" className="mb-1 block text-sm font-medium text-ink">Work Schedule Availability</label>
-            <select id="auto-schedule" defaultValue={setup.workSchedule} className="min-h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm text-ink outline-none focus:border-focus focus:ring-2 focus:ring-focus">
-              <option value="">Select</option>
-              {WORK_SCHEDULE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </div>
+          <FormSelectField
+            id="auto-start"
+            label="When are you willing to start?"
+            defaultValue={setup.willingToStart}
+            options={START_TIMELINE_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
+          <FormSelectField
+            id="auto-schedule"
+            label="Work Schedule Availability"
+            defaultValue={setup.workSchedule}
+            options={WORK_SCHEDULE_OPTIONS.map((opt) => ({ label: opt, value: opt }))}
+          />
         </div>
         <label className="mt-3 flex items-center gap-2">
           <input type="checkbox" defaultChecked={setup.willingToTravel} className="size-4 rounded border-input text-accent focus:ring-focus" />
@@ -1019,18 +1028,32 @@ function JobSearch({ onRefresh }: { readonly onRefresh?: () => void }) {
   )
 }
 
+function OutcomeBadge({ outcome }: { readonly outcome: AutoApplyOutcome }) {
+  if (outcome === 'success') {
+    return <span className="shrink-0 rounded-lg bg-positive-surface px-4 py-2 text-sm font-medium text-positive">Success</span>
+  }
+  if (outcome === 'failed') {
+    return <span className="shrink-0 rounded-lg bg-danger-surface px-4 py-2 text-sm font-medium text-danger">Failed</span>
+  }
+  return <span className="shrink-0 rounded-lg bg-warning-surface px-4 py-2 text-sm font-medium text-warning">Needs Review</span>
+}
+
 function JobList({
   jobs,
   selectedJob,
   onSelectJob,
   selectedIds,
   onSelectionChange,
+  variant = 'jobs',
+  onReview,
 }: {
   readonly jobs: readonly AutoApplyJob[]
   readonly selectedJob?: AutoApplyJob
   readonly onSelectJob: (job: AutoApplyJob) => void
   readonly selectedIds?: ReadonlySet<string>
   readonly onSelectionChange?: (ids: ReadonlySet<string>) => void
+  readonly variant?: 'jobs' | 'applied'
+  readonly onReview?: (job: AutoApplyJob) => void
 }) {
   const [internalSelected, setInternalSelected] = useState<ReadonlySet<string>>(new Set())
   const selected = selectedIds ?? internalSelected
@@ -1056,11 +1079,12 @@ function JobList({
       <div className="grid gap-1 pt-5">
         {jobs.map((job) => {
           const isSelected = selected.has(job.id)
+          const isReviewRow = variant === 'applied' && job.outcome === 'needs-review'
           return (
             <button
               key={job.id}
               type="button"
-              onClick={() => onSelectJob(job)}
+              onClick={() => (isReviewRow ? onReview?.(job) : onSelectJob(job))}
               className={cn(
                 'group/row flex w-full items-start gap-4 border-b border-border px-[16px] py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
                 isSelected ? 'bg-accent/10' : 'hover:bg-surface-subtle',
@@ -1086,12 +1110,12 @@ function JobList({
                   {job.dateLabel} - {job.source}
                 </span>
               </span>
-              {job.status === 'applied' ? (
+              {variant === 'applied' && job.outcome ? (
+                <OutcomeBadge outcome={job.outcome} />
+              ) : job.status === 'applied' ? (
                 <span className="shrink-0 rounded-lg bg-accent-subtle px-4 py-2 text-sm font-medium text-accent-text">Applied</span>
               ) : (
-                <span role="img" aria-label="Apply" className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-on-accent">
-                  <Check aria-hidden="true" className="size-4" />
-                </span>
+                <span className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent">Apply</span>
               )}
             </button>
           )
@@ -1269,44 +1293,41 @@ function FilterDropdown({
       {open ? (
         <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-border bg-surface p-4 shadow-panel">
           <div className="grid gap-4">
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-ink-muted">Location</label>
-              <select
-                value={filters.location}
-                onChange={(e) => onFiltersChange({ ...filters, location: e.target.value })}
-                className="min-h-10 rounded-lg border border-input bg-surface px-3 text-sm text-ink focus:border-focus focus:ring-2 focus:ring-focus"
-              >
-                <option value="all">All locations</option>
-                <option value="remote">Remote</option>
-                <option value="onsite">Onsite</option>
-                <option value="hybrid">Hybrid</option>
-              </select>
-            </div>
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-ink-muted">Match score</label>
-              <select
-                value={filters.matchMin}
-                onChange={(e) => onFiltersChange({ ...filters, matchMin: Number(e.target.value) })}
-                className="min-h-10 rounded-lg border border-input bg-surface px-3 text-sm text-ink focus:border-focus focus:ring-2 focus:ring-focus"
-              >
-                <option value={0}>Any match</option>
-                <option value={90}>90%+</option>
-                <option value={80}>80%+</option>
-                <option value={70}>70%+</option>
-              </select>
-            </div>
-            <div className="grid gap-1.5">
-              <label className="text-xs font-semibold text-ink-muted">Status</label>
-              <select
-                value={filters.status}
-                onChange={(e) => onFiltersChange({ ...filters, status: e.target.value })}
-                className="min-h-10 rounded-lg border border-input bg-surface px-3 text-sm text-ink focus:border-focus focus:ring-2 focus:ring-focus"
-              >
-                <option value="all">All statuses</option>
-                <option value="new">New</option>
-                <option value="applied">Applied</option>
-              </select>
-            </div>
+            <FormSelectField
+              id="auto-apply-filter-location"
+              label="Location"
+              value={filters.location}
+              onValueChange={(value) => onFiltersChange({ ...filters, location: value })}
+              options={[
+                { label: 'All locations', value: 'all' },
+                { label: 'Remote', value: 'remote' },
+                { label: 'Onsite', value: 'onsite' },
+                { label: 'Hybrid', value: 'hybrid' },
+              ]}
+            />
+            <FormSelectField
+              id="auto-apply-filter-match"
+              label="Match score"
+              value={String(filters.matchMin)}
+              onValueChange={(value) => onFiltersChange({ ...filters, matchMin: Number(value) })}
+              options={[
+                { label: 'Any match', value: '0' },
+                { label: '90%+', value: '90' },
+                { label: '80%+', value: '80' },
+                { label: '70%+', value: '70' },
+              ]}
+            />
+            <FormSelectField
+              id="auto-apply-filter-status"
+              label="Status"
+              value={filters.status}
+              onValueChange={(value) => onFiltersChange({ ...filters, status: value })}
+              options={[
+                { label: 'All statuses', value: 'all' },
+                { label: 'New', value: 'new' },
+                { label: 'Applied', value: 'applied' },
+              ]}
+            />
             {activeCount > 0 ? (
               <button
                 type="button"
@@ -1411,6 +1432,104 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
   )
 }
 
+function RetryApplicationModal({
+  job,
+  open,
+  onOpenChange,
+}: {
+  readonly job: AutoApplyJob | undefined
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+}) {
+  const [usWorkAuth, setUsWorkAuth] = useState('')
+  const [willingToStart, setWillingToStart] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        onOpenChange(nextOpen)
+        if (nextOpen) {
+          setUsWorkAuth('')
+          setWillingToStart('')
+          setSubmitted(false)
+        }
+      }}
+    >
+      <DialogPopup aria-label="Retry application">
+        {job ? (
+          submitted ? (
+            <>
+              <div className="flex items-center gap-3">
+                <CheckCircle2 aria-hidden="true" className="size-6 shrink-0 text-positive" />
+                <DialogTitle>Application resubmitted</DialogTitle>
+              </div>
+              <DialogDescription className="text-ink">
+                We&apos;ve resubmitted your application to {job.company} with the updated information. We&apos;ll let you know once we hear back.
+              </DialogDescription>
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                Done
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-3">
+                <AlertTriangle aria-hidden="true" className="size-6 shrink-0 text-warning" />
+                <DialogTitle>Needs Review</DialogTitle>
+              </div>
+              <DialogDescription className="text-ink">
+                {job.reviewNote ?? 'This application needs some missing information before it can be retried.'}
+              </DialogDescription>
+              <p className="mt-3 text-sm text-ink-muted">{job.title} · {job.company}</p>
+              <div className="mt-5 grid gap-4">
+                <FormSelectField
+                  id="retry-us-work-auth"
+                  label="US Work Authorization"
+                  placeholder="Select status"
+                  value={usWorkAuth}
+                  onValueChange={setUsWorkAuth}
+                  options={US_WORK_AUTH_OPTIONS.map((option) => ({ label: option, value: option }))}
+                />
+                <FormSelectField
+                  id="retry-start-timeline"
+                  label="Willing to Start"
+                  placeholder="Select timeline"
+                  value={willingToStart}
+                  onValueChange={setWillingToStart}
+                  options={START_TIMELINE_OPTIONS.map((option) => ({ label: option, value: option }))}
+                />
+              </div>
+              <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!usWorkAuth || !willingToStart}
+                  onClick={() => setSubmitted(true)}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Send aria-hidden="true" className="size-4" />
+                  Retry Application
+                </button>
+              </div>
+            </>
+          )
+        ) : null}
+      </DialogPopup>
+    </Dialog>
+  )
+}
+
 // ─── Applied View ─────────────────────────────────────────────────────────────
 
 export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, application }: AutoApplyAppliedViewProps) {
@@ -1418,8 +1537,12 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [reviewJob, setReviewJob] = useState<AutoApplyJob | undefined>(undefined)
+  const [retryOpen, setRetryOpen] = useState(false)
 
-  const allJobs = jobs.map((job) => (job.id === application.job.id ? application.job : job))
+  const allJobs = jobs
+    .map((job) => (job.id === application.job.id ? application.job : job))
+    .filter((job) => job.status === 'applied')
   const filtered = applyJobFilters(allJobs, search, filters)
 
   return (
@@ -1468,7 +1591,16 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                     </button>
                   </div>
                   <div className="-mx-[16px] sm:mx-0">
-                    <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
+                    <JobList
+                      jobs={filtered}
+                      selectedJob={selectedJob}
+                      onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)}
+                      variant="applied"
+                      onReview={(job) => {
+                        setReviewJob(job)
+                        setRetryOpen(true)
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -1483,6 +1615,7 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
           </div>
         </div>
       </section>
+      <RetryApplicationModal job={reviewJob} open={retryOpen} onOpenChange={setRetryOpen} />
     </Workspace>
   )
 }
