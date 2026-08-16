@@ -463,50 +463,19 @@ type ChatMessage = { readonly id: string; readonly author: 'candidate' | 'assist
 const CHAT_PLACEHOLDER_EMPTY = 'Send a message for more adjustments…'
 const CHAT_PLACEHOLDER_ACTIVE = 'Message Lightforth AI...'
 
-function useTypedPlaceholder(text: string, enabled: boolean) {
-  const [display, setDisplay] = useState(enabled ? '' : text)
-
-  useEffect(() => {
-    if (!enabled) {
-      setDisplay(text)
-      return
-    }
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setDisplay(text)
-      return
-    }
-    setDisplay('')
-    let index = 0
-    const id = window.setInterval(() => {
-      index++
-      setDisplay(text.slice(0, index))
-      if (index >= text.length) window.clearInterval(id)
-    }, 35)
-    return () => window.clearInterval(id)
-  }, [text, enabled])
-
-  return display
-}
-
 function ChatComposer({
   prompts,
   draft,
   onDraftChange,
   onSend,
   hasMessages,
-  showTip,
-  onHelpClick,
 }: {
   readonly prompts: readonly string[]
   readonly draft: string
   readonly onDraftChange: (value: string) => void
   readonly onSend: () => void
   readonly hasMessages: boolean
-  readonly showTip: boolean
-  readonly onHelpClick: () => void
 }) {
-  const typedPlaceholder = useTypedPlaceholder(CHAT_PLACEHOLDER_EMPTY, showTip)
-
   return (
     <div className="mt-auto">
       <PromptChips prompts={prompts} onSelect={onSend ? (prompt) => { onDraftChange(prompt); onSend() } : undefined} />
@@ -516,10 +485,7 @@ function ChatComposer({
         </label>
         <div
           id="walkthrough-chat-input"
-          className={cn(
-            'rounded-2xl border bg-surface p-3 transition-shadow duration-normal ease-default',
-            showTip ? 'border-accent shadow-[0_0_0_3px_var(--lf-accent-subtle)]' : 'border-border',
-          )}
+          className="rounded-2xl border border-border bg-surface p-3"
         >
           <textarea
             id="resume-chat-message"
@@ -532,25 +498,14 @@ function ChatComposer({
               }
             }}
             className="min-h-16 w-full resize-none bg-surface text-sm text-ink outline-none placeholder:text-ink-muted"
-            placeholder={hasMessages ? CHAT_PLACEHOLDER_ACTIVE : showTip ? typedPlaceholder : CHAT_PLACEHOLDER_EMPTY}
+            placeholder={hasMessages ? CHAT_PLACEHOLDER_ACTIVE : CHAT_PLACEHOLDER_EMPTY}
           />
-          <div className="flex items-center justify-end gap-1.5 pt-2">
-            <button
-              type="button"
-              onClick={onHelpClick}
-              aria-label="Show tutorial"
-              className="grid size-8 shrink-0 place-items-center rounded-lg text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <HelpCircle aria-hidden="true" className="size-4" />
-            </button>
+          <div className="flex items-center justify-end pt-2">
             <button
               type="button"
               onClick={onSend}
               aria-label="Send resume message"
-              className={cn(
-                'grid size-8 shrink-0 place-items-center rounded-lg bg-surface-subtle text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-                showTip && !draft ? 'animate-pulse motion-reduce:animate-none' : '',
-              )}
+              className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-subtle text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               <Send aria-hidden="true" className="size-4" />
             </button>
@@ -573,8 +528,6 @@ function ChatSidebar({
   onSend,
   onAccept,
   onReject,
-  showTip,
-  onHelpClick,
 }: {
   readonly session: ResumeBuilderSession
   readonly messages: readonly ChatMessage[]
@@ -586,8 +539,6 @@ function ChatSidebar({
   readonly onSend: () => void
   readonly onAccept: () => void
   readonly onReject: () => void
-  readonly showTip: boolean
-  readonly onHelpClick: () => void
 }) {
   const chatRef = useRef<HTMLDivElement>(null)
 
@@ -647,8 +598,6 @@ function ChatSidebar({
           onDraftChange={onDraftChange}
           onSend={onSend}
           hasMessages={messages.length > 0}
-          showTip={showTip}
-          onHelpClick={onHelpClick}
         />
       </div>
     </aside>
@@ -1380,8 +1329,7 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   const [pendingSuggestion, setPendingSuggestion] = useState(hasJd || chatState === 'suggestions')
   const [hasAcceptedChanges, setHasAcceptedChanges] = useState(false)
   const [atsOpen, setAtsOpen] = useState(false)
-  const [dismissedSendTip, setDismissedSendTip] = useState(false)
-  const [dismissedAcceptTip, setDismissedAcceptTip] = useState(false)
+  const [showPostAcceptTip, setShowPostAcceptTip] = useState(false)
   const [typedSummary, setTypedSummary] = useState<string | null>(null)
   const { type: typeSummary, isTyping: isTypingSummary } = useTypewriter()
   const [zoom, setZoom] = useState(() => {
@@ -1422,22 +1370,17 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     setPendingSuggestion(false)
     setTypedSummary(null)
     setPreviewOpen(false)
+    setShowPostAcceptTip(true)
   }
 
   function handleReject() {
     setPendingSuggestion(false)
     setTypedSummary(null)
     setPreviewOpen(false)
-  }
-
-  function handleShowTutorial() {
-    setDismissedSendTip(false)
-    setDismissedAcceptTip(false)
+    setShowPostAcceptTip(true)
   }
 
   const showImproved = hasAcceptedChanges || pendingSuggestion
-  const showSendTip = tab === 'chat' && messages.length === 0 && !dismissedSendTip && !hasJd
-  const showAcceptTip = pendingSuggestion && (tab === 'chat' || tab === 'create') && !dismissedAcceptTip
   const changes: readonly SuggestionChange[] = pendingSuggestion
     ? [
         { id: 'professional-summary', section: 'Professional Summary', before: document.summary, after: document.improvedSummary },
@@ -1472,8 +1415,6 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
             onSend={handleSend}
             onAccept={handleAccept}
             onReject={handleReject}
-            showTip={showSendTip}
-            onHelpClick={handleShowTutorial}
           />
         ) : null}
         {tab === 'create' ? (
@@ -1502,30 +1443,17 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
             )}
           </div>
           {pendingSuggestion && (tab === 'chat' || tab === 'create') ? (
-            <>
-              <InlineChangeControls onAccept={handleAccept} onReject={handleReject} />
-              {showAcceptTip ? (
-                <WalkthroughTooltip
-                  targetId="walkthrough-diff-actions"
-                  side="left"
-                  title="Accept or Decline Changes"
-                  body="These changes only apply once you accept them — reject to keep your original wording."
-                  actionLabel="Got it"
-                  onAction={() => setDismissedAcceptTip(true)}
-                  onDismiss={() => setDismissedAcceptTip(true)}
-                />
-              ) : null}
-            </>
+            <InlineChangeControls onAccept={handleAccept} onReject={handleReject} />
           ) : null}
-          {showSendTip ? (
+          {showPostAcceptTip ? (
             <WalkthroughTooltip
               targetId="walkthrough-chat-input"
               side="right"
-              title="Send more messages"
-              body="Ask for rewrites, tone changes, or keyword targeting — Lightforth will update your resume in real time."
+              title="Keep refining"
+              body="Ask for more rewrites, accept the changes, or keep editing — your resume updates in real time."
               actionLabel="Got it"
-              onAction={() => setDismissedSendTip(true)}
-              onDismiss={() => setDismissedSendTip(true)}
+              onAction={() => setShowPostAcceptTip(false)}
+              onDismiss={() => setShowPostAcceptTip(false)}
             />
           ) : null}
         </div>
