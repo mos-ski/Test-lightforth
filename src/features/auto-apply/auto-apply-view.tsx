@@ -1089,7 +1089,9 @@ function JobList({
               {job.status === 'applied' ? (
                 <span className="shrink-0 rounded-lg bg-accent-subtle px-4 py-2 text-sm font-medium text-accent-text">Applied</span>
               ) : (
-                <span className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent">Apply</span>
+                <span role="img" aria-label="Apply" className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-on-accent">
+                  <Check aria-hidden="true" className="size-4" />
+                </span>
               )}
             </button>
           )
@@ -1348,16 +1350,16 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
   return (
     <Workspace>
       <Header homeHref={homeHref} />
-      <section className="p-4 lg:p-8">
+      <section className="px-0 py-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           <div className="min-h-[56rem] bg-surface shadow-panel">
-            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
+            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-4 sm:px-8">
               <h1 className="text-xl font-medium leading-5 text-ink">Jobs</h1>
               <a href={setupHref} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 Update Preference
               </a>
             </div>
-            <div className="p-8">
+            <div className="p-4 sm:p-8">
               <div className="border-b border-border">
                 <nav aria-label="Auto apply sections" className="flex gap-6 text-sm font-medium">
                   <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>
@@ -1421,16 +1423,16 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
   return (
     <Workspace>
       <Header homeHref={homeHref} />
-      <section className="p-4 lg:p-8">
+      <section className="px-0 py-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           <div className="min-h-[56rem] bg-surface shadow-panel">
-            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
+            <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-4 sm:px-8">
               <h1 className="text-xl font-medium leading-5 text-ink">Applied</h1>
               <a href={setupHref} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 Update Preference
               </a>
             </div>
-            <div className="p-8">
+            <div className="p-4 sm:p-8">
               <div className="border-b border-border">
                 <nav aria-label="Auto apply sections" className="flex gap-6 text-sm font-medium">
                   <a href={setupHref} className="min-h-11 border-b-2 border-transparent px-1 pb-2 text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Set Up</a>

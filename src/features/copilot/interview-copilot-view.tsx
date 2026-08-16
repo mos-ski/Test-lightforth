@@ -710,7 +710,7 @@ function copilotResponseFor(prompt: string): string {
 
 function TranscriptBubble({ speaker, text, kind, fontSize }: { readonly speaker: string; readonly text: string; readonly kind: 'speaker' | 'ai'; readonly fontSize: number }) {
   return (
-    <div className={cn('rounded-lg p-3', kind === 'ai' ? 'border border-focus/40 bg-accent-subtle/40' : 'bg-[var(--lf-live-message)]')}>
+    <div className={cn('rounded-lg p-3', kind === 'ai' ? 'bg-accent-subtle/60' : 'bg-[var(--lf-live-message)]')}>
       <p className="mb-1.5 truncate text-[11px] font-bold uppercase tracking-wide text-ink-muted">{speaker}</p>
       <p className="whitespace-pre-wrap break-words text-brand-bar-text" style={{ fontSize: `${fontSize}px` }}>{text}</p>
     </div>
@@ -1056,8 +1056,15 @@ function CopilotCodingPanel({
 }
 
 export function CopilotLiveView({ completeHref, session, isLoading = false, transcriptBank = [], codingBank = [] }: CopilotLiveViewProps) {
-  const [liveResponse, setLiveResponse] = useState<string | null>(null)
+  type AiAssistantMessage = { readonly id: string; readonly role: 'user' | 'assistant'; readonly text: string }
+  const [assistantMessages, setAssistantMessages] = useState<readonly AiAssistantMessage[]>([])
   const [draft, setDraft] = useState('')
+  const assistantScrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = assistantScrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [assistantMessages])
   const [showSettings, setShowSettings] = useState(false)
   const [settingsTab, setSettingsTab] = useState<'live' | 'session'>('live')
   const [autoScroll, setAutoScroll] = useState(true)
@@ -1073,8 +1080,11 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
   function handleSend() {
     const trimmed = draft.trim()
     if (!trimmed) return
-    setLiveResponse(copilotResponseFor(trimmed))
+    const userMsg: AiAssistantMessage = { id: `aam-${Date.now()}`, role: 'user', text: trimmed }
+    setAssistantMessages((prev) => [...prev, userMsg])
     setDraft('')
+    const aiMsg: AiAssistantMessage = { id: `aam-${Date.now()}-ai`, role: 'assistant', text: copilotResponseFor(trimmed) }
+    setAssistantMessages((prev) => [...prev, aiMsg])
   }
 
   return (
@@ -1132,24 +1142,43 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
                 <X aria-hidden="true" className="size-4" />
               </button>
             </div>
-            <div className="flex min-h-0 flex-col justify-end gap-1.5 overflow-y-auto px-4 pb-2">
-              {liveResponse ? (
-                <div className="mt-2 rounded-lg border border-focus/40 bg-accent-subtle/40 p-3">
-                  <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-ink-muted">Lightforth AI</p>
-                  <p className="text-xs leading-relaxed text-brand-bar-text">{liveResponse}</p>
+            <div ref={assistantScrollRef} className="flex min-h-0 flex-col gap-2.5 overflow-y-auto px-4 py-3">
+              {assistantMessages.length === 0 ? (
+                <div className="flex flex-1 flex-col justify-end gap-1.5">
+                  {session.prompts.map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => {
+                        const userMsg: AiAssistantMessage = { id: `aam-${Date.now()}`, role: 'user', text: prompt }
+                        setAssistantMessages((prev) => [...prev, userMsg])
+                        const aiMsg: AiAssistantMessage = { id: `aam-${Date.now()}-ai`, role: 'assistant', text: copilotResponseFor(prompt) }
+                        setAssistantMessages((prev) => [...prev, aiMsg])
+                      }}
+                      className="inline-flex min-h-[27px] items-center gap-1 rounded-[3px] border border-[var(--lf-live-control-border)] px-2.5 py-1 text-start text-[10px] font-medium leading-[15px] text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                    >
+                      <ChevronRight aria-hidden="true" className="size-2.5" />
+                      <span className="truncate">{prompt}</span>
+                    </button>
+                  ))}
                 </div>
-              ) : null}
-              {session.prompts.map((prompt) => (
-                <button
-                  key={prompt}
-                  type="button"
-                  onClick={() => setLiveResponse(copilotResponseFor(prompt))}
-                  className="inline-flex min-h-[27px] items-center gap-1 rounded-[3px] border border-[var(--lf-live-control-border)] px-2.5 py-1 text-start text-[10px] font-medium leading-[15px] text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                >
-                  <ChevronRight aria-hidden="true" className="size-2.5" />
-                  <span className="truncate">{prompt}</span>
-                </button>
-              ))}
+              ) : (
+                <>
+                  {assistantMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={cn(
+                        'max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed',
+                        msg.role === 'user'
+                          ? 'ms-auto rounded-ee-sm bg-[var(--lf-live-control-border)] text-brand-bar-text'
+                          : 'rounded-ss-sm bg-[var(--lf-live-message)] text-brand-bar-text'
+                      )}
+                    >
+                      {msg.text}
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
             <label className="border-t border-[var(--lf-live-border)] p-3">
               <span className="sr-only">Ask AI anything</span>

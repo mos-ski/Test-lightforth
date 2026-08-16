@@ -793,6 +793,105 @@ function InlineChangeControls({ onAccept, onReject }: { readonly onAccept: () =>
   )
 }
 
+type SuggestionChange = {
+  readonly id: string
+  readonly section: string
+  readonly before: string
+  readonly after: string
+}
+
+function SuggestionBottomSheet({
+  open,
+  onClose,
+  changes,
+  typedSummary,
+  isTypingSummary,
+  onAccept,
+  onReject,
+}: {
+  readonly open: boolean
+  readonly onClose: () => void
+  readonly changes: readonly SuggestionChange[]
+  readonly typedSummary: string | null
+  readonly isTypingSummary: boolean
+  readonly onAccept: () => void
+  readonly onReject: () => void
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    function handleScroll() {
+      const scrollLeft = el!.scrollLeft
+      const cardWidth = el!.offsetWidth * 0.85
+      const idx = Math.round(scrollLeft / cardWidth)
+      setActiveIndex(Math.min(idx, changes.length - 1))
+    }
+    el.addEventListener('scroll', handleScroll, { passive: true })
+    return () => el.removeEventListener('scroll', handleScroll)
+  }, [changes.length])
+
+  if (!open || changes.length === 0) return null
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-50 md:hidden" role="dialog" aria-label="AI suggestions">
+      <div className="absolute inset-0 bg-overlay/60" onClick={onClose} />
+      <div className="relative flex max-h-[80vh] flex-col rounded-t-2xl bg-surface shadow-2xl">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2">
+            <LightforthAiIcon className="size-4" />
+            <span className="text-sm font-semibold text-ink">AI Suggestions</span>
+            <span className="rounded-pill bg-accent-subtle px-2 py-0.5 text-[10px] font-bold text-accent-text">{changes.length}</span>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close suggestions" className="grid size-8 place-items-center rounded-soft text-ink-muted hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <X aria-hidden="true" className="size-4" />
+          </button>
+        </div>
+
+        <div ref={scrollRef} className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {changes.map((change, i) => (
+            <div key={change.id} className="w-[85%] shrink-0 snap-center rounded-xl border border-border bg-surface-subtle p-4">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-accent">{change.section}</p>
+              {i === 0 && typedSummary !== null ? (
+                <>
+                  <p className="mb-2 text-xs text-ink-muted">Updated:</p>
+                  <p className="text-sm leading-6 text-ink">{typedSummary}</p>
+                </>
+              ) : (
+                <>
+                  <p className="mb-1 text-xs font-medium text-ink-muted">Before</p>
+                  <p className="mb-3 text-sm leading-6 text-ink-muted line-clamp-3">{change.before}</p>
+                  <p className="mb-1 text-xs font-medium text-ink">After</p>
+                  <p className="text-sm leading-6 text-ink">{change.after}</p>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-center gap-1.5 px-4 py-2">
+          {changes.map((_, i) => (
+            <span key={i} className={cn('size-1.5 rounded-pill transition-colors', i === activeIndex ? 'bg-accent' : 'bg-border')} />
+          ))}
+        </div>
+
+        <div className="flex gap-2 border-t border-border px-4 py-3">
+          <button type="button" onClick={onReject} className="flex-1 inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-border text-sm font-semibold text-ink-muted hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <X aria-hidden="true" className="size-3.5" />
+            Reject All
+          </button>
+          <button type="button" onClick={onAccept} className="flex-1 inline-flex min-h-10 items-center justify-center gap-1 rounded-lg bg-accent text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <Check aria-hidden="true" className="size-3.5" />
+            Accept All
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function WalkthroughTooltip({
   targetId,
   side = 'right',

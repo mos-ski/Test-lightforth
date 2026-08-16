@@ -1012,7 +1012,7 @@ export function InterviewReportView({ homeHref, scenariosHref, practiceHref, rep
       <InterviewHeader homeHref={homeHref} current="Interview Prep" historyHref={scenariosHref} />
       <section className="px-4 pb-16">
         <div className="mx-auto flex max-w-[64rem] flex-col gap-4 pt-8">
-          <article className="w-full border border-border bg-surface shadow-panel">
+          <article className="w-full bg-surface shadow-panel">
             <div className="flex min-h-[5rem] items-center border-b border-border px-8">
               <h1 className="text-xl font-medium leading-5 text-ink">Report</h1>
             </div>
