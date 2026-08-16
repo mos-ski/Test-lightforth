@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
-import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, FileText, MessageCircle, Pause, PhoneOff, Play, Plus, Send, Settings, Users, Video, X } from 'lucide-react'
+import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, FileText, MessageCircle, Pause, PhoneOff, Play, Plus, Send, Settings, Users, Video, VideoOff, X } from 'lucide-react'
 
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
@@ -495,18 +495,22 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
   )
 }
 
-function DraggableAvatar({ name }: { readonly name: string }) {
+function DraggableAvatar({ name, videoEnabled }: { readonly name: string; readonly videoEnabled: boolean }) {
   const ref = useRef<HTMLButtonElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [pos, setPos] = useState<{ readonly x: number; readonly y: number } | null>(null)
   const dragState = useRef<{ readonly startX: number; readonly startY: number; readonly originX: number; readonly originY: number } | null>(null)
   const draggedRef = useRef(false)
-  const { stream, request } = useCameraStream()
+  const { stream, request, stop } = useCameraStream()
 
   useEffect(() => {
-    void request({ video: true })
+    if (videoEnabled) {
+      void request({ video: true })
+    } else {
+      stop()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [videoEnabled])
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.srcObject = stream ?? null
@@ -1470,6 +1474,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
   const [responseMode, setResponseMode] = useState<'auto' | 'manual'>('manual')
   const [activityLabel, setActivityLabel] = useState(session.activityLabel)
   const [showChat, setShowChat] = useState(false)
+  const [videoEnabled, setVideoEnabled] = useState(true)
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
 
   useEffect(() => {
@@ -1530,9 +1535,9 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           </span>
         </div>
 
-        {session.mode === 'interview' ? <DraggableAvatar name="You" /> : null}
+        {session.mode === 'interview' ? <DraggableAvatar name="You" videoEnabled={videoEnabled} /> : null}
 
-        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-center gap-6 bg-gradient-to-t from-black/80 to-transparent px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-10">
+        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-center gap-4 bg-gradient-to-t from-black/80 to-transparent px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-10">
           <button
             type="button"
             onClick={() => setShowSettings(true)}
@@ -1549,6 +1554,20 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           >
             <MessageCircle aria-hidden="true" className="size-5" />
           </button>
+          {session.mode === 'interview' ? (
+            <button
+              type="button"
+              onClick={() => setVideoEnabled((prev) => !prev)}
+              aria-label={videoEnabled ? 'Turn off video' : 'Turn on video'}
+              aria-pressed={!videoEnabled}
+              className={cn(
+                'grid size-14 place-items-center rounded-full backdrop-blur-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60',
+                !videoEnabled ? 'bg-danger/90 text-on-danger hover:bg-danger' : 'bg-white/15 text-white hover:bg-white/25',
+              )}
+            >
+              {videoEnabled ? <Video aria-hidden="true" className="size-5" /> : <VideoOff aria-hidden="true" className="size-5" />}
+            </button>
+          ) : null}
           <a
             href={completeHref}
             aria-label="End session"
