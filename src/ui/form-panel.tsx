@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
+import { forwardRef, useEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
 import { FileText, X, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check, Pencil } from 'lucide-react'
 import { Select } from '@base-ui-components/react/select'
 
@@ -421,39 +421,97 @@ export type PermissionStepsProps = {
   readonly startHref?: string
   readonly startLabel?: string
   readonly className?: string
+  readonly onRequestPermission?: (stepId: string) => void
+  readonly pendingStepId?: string | null
+  readonly grantedStepIds?: ReadonlySet<string>
+  readonly errorStepId?: string | null
+  readonly errorMessage?: string
+  readonly videoStepId?: string
+  readonly videoStream?: MediaStream | null
 }
 
 export const PermissionSteps = forwardRef<HTMLDivElement, PermissionStepsProps>(
-  function PermissionSteps({ steps, actionHref, previewSrc, startHref, startLabel = 'Start', className, ...props }, ref) {
+  function PermissionSteps(
+    {
+      steps,
+      actionHref,
+      previewSrc,
+      startHref,
+      startLabel = 'Start',
+      className,
+      onRequestPermission,
+      pendingStepId,
+      grantedStepIds,
+      errorStepId,
+      errorMessage = 'Permission was denied. Check your browser settings and try again.',
+      videoStepId = 'video',
+      videoStream,
+      ...props
+    },
+    ref,
+  ) {
+    const videoRef = useRef<HTMLVideoElement>(null)
+
+    useEffect(() => {
+      if (videoRef.current) videoRef.current.srcObject = videoStream ?? null
+    }, [videoStream])
+
     return (
       <div ref={ref} data-slot="permission-steps" className={cn('grid gap-4', className)} {...props}>
-        {steps.map((step, index) => (
-          <section key={step.id} className="grid gap-3 rounded-lg border border-border bg-surface p-3 shadow-control">
-            <div className="flex items-start gap-3">
-              <span className={cn('grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold', step.status === 'complete' ? 'bg-positive-surface text-positive' : 'bg-accent text-on-accent')}>
-                {step.status === 'complete' ? <Check aria-hidden="true" className="size-4" /> : index + 1}
-              </span>
-              <span className="min-w-0">
-                <span className="block text-sm font-semibold leading-5 text-ink">{step.title}</span>
-                <span className="mt-1 block text-xs font-medium leading-5 text-ink-muted">{step.description}</span>
-              </span>
-            </div>
-            {previewSrc && (step.id === 'screen' || step.id === 'video') ? <img src={previewSrc} alt="" className="aspect-video w-full rounded-lg object-cover" /> : null}
-            {step.status !== 'complete' ? (
-              <a
-                href={actionHref}
-                aria-disabled={step.status === 'disabled'}
-                className={cn(
-                  'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-                  step.status === 'disabled' ? 'pointer-events-none bg-muted text-on-accent opacity-50' : 'bg-accent text-on-accent shadow-control',
-                )}
-              >
-                {step.icon ?? <ArrowRight aria-hidden="true" className="size-5" />}
-                {step.actionLabel}
-              </a>
-            ) : null}
-          </section>
-        ))}
+        {steps.map((step, index) => {
+          const isGranted = grantedStepIds?.has(step.id) ?? false
+          const status = isGranted ? 'complete' : step.status
+          const isPending = pendingStepId === step.id
+          const hasError = errorStepId === step.id
+          const showLiveVideo = step.id === videoStepId && videoStream
+          return (
+            <section key={step.id} className="grid gap-3 rounded-lg border border-border bg-surface p-3 shadow-control">
+              <div className="flex items-start gap-3">
+                <span className={cn('grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold', status === 'complete' ? 'bg-positive-surface text-positive' : 'bg-accent text-on-accent')}>
+                  {status === 'complete' ? <Check aria-hidden="true" className="size-4" /> : index + 1}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold leading-5 text-ink">{step.title}</span>
+                  <span className="mt-1 block text-xs font-medium leading-5 text-ink-muted">{step.description}</span>
+                </span>
+              </div>
+              {showLiveVideo ? (
+                <video ref={videoRef} autoPlay muted playsInline className="aspect-video w-full scale-x-[-1] rounded-lg bg-black object-cover" />
+              ) : previewSrc && step.id === videoStepId ? (
+                <img src={previewSrc} alt="" className="aspect-video w-full rounded-lg object-cover" />
+              ) : null}
+              {hasError ? <p className="text-xs font-medium text-danger">{errorMessage}</p> : null}
+              {status !== 'complete' ? (
+                onRequestPermission ? (
+                  <button
+                    type="button"
+                    disabled={step.status === 'disabled' || isPending}
+                    onClick={() => onRequestPermission(step.id)}
+                    className={cn(
+                      'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                      step.status === 'disabled' ? 'pointer-events-none bg-muted text-on-accent opacity-50' : 'bg-accent text-on-accent shadow-control disabled:opacity-70',
+                    )}
+                  >
+                    {step.icon ?? <ArrowRight aria-hidden="true" className="size-5" />}
+                    {isPending ? 'Requesting…' : step.actionLabel}
+                  </button>
+                ) : (
+                  <a
+                    href={actionHref}
+                    aria-disabled={step.status === 'disabled'}
+                    className={cn(
+                      'inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                      step.status === 'disabled' ? 'pointer-events-none bg-muted text-on-accent opacity-50' : 'bg-accent text-on-accent shadow-control',
+                    )}
+                  >
+                    {step.icon ?? <ArrowRight aria-hidden="true" className="size-5" />}
+                    {step.actionLabel}
+                  </a>
+                )
+              ) : null}
+            </section>
+          )
+        })}
         {startHref ? (
           <a href={startHref} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             {startLabel}
