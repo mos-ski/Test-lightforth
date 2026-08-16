@@ -184,6 +184,7 @@ export const resumeDocument: ResumeDocument = {
 export const resumeBuilderSession: ResumeBuilderSession = {
   id: 'builder-session-1',
   uploadedFileName: 'adewale_damola_PM_resume.pdf',
+  uploadedFileUrl: '/v3-assets/sample-resume.pdf',
   resumeName: 'John Doe',
   companyName: 'Google',
   jobDescription: 'Use this space to include job description details, portfolio notes, or anything the interviewer should probe...',

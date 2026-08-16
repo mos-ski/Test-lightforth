@@ -25,6 +25,7 @@ export function ResumeUploadPage() {
       configureHref="/v3/resume/configure"
       historyHref="/v3/resume/history"
       uploadedFileName={resumeBuilderSession.uploadedFileName}
+      uploadedFileUrl={resumeBuilderSession.uploadedFileUrl}
       savedResumes={resumeHistoryRows}
     />
   )

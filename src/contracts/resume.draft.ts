@@ -95,6 +95,7 @@ export type ResumeHistoryRow = {
 export type ResumeBuilderSession = {
   readonly id: string
   readonly uploadedFileName: string
+  readonly uploadedFileUrl?: string
   readonly resumeName: string
   readonly companyName: string
   readonly jobDescription: string
