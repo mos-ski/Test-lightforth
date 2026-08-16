@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
 import { ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, RefreshCw, Search, Send, X, Zap, Trash2, Download, Mail } from 'lucide-react'
 
 import type { AutoApplyApplication, AutoApplyJob, AutoApplySetup } from '@/contracts/auto-apply.draft'
@@ -795,7 +795,7 @@ function AppShell({
     <Workspace>
       <Header homeHref={homeHref} />
       <section className="p-4 lg:p-8">
-        <div className="mx-auto min-h-[56rem] max-w-7xl border border-border bg-surface shadow-panel">
+        <div className="mx-auto min-h-[56rem] max-w-7xl bg-surface shadow-panel">
           <div className="border-b border-border px-8 py-8">
             <h1 className="text-xl font-medium">{title}</h1>
           </div>
@@ -1062,7 +1062,7 @@ function JobList({
               type="button"
               onClick={() => onSelectJob(job)}
               className={cn(
-                'group/row grid w-full grid-cols-[auto_1fr_auto] items-start gap-x-4 gap-y-1.5 border-b border-border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+                'group/row flex w-full items-start gap-4 border-b border-border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
                 isSelected ? 'bg-accent/10' : 'hover:bg-surface-subtle',
               )}
             >
@@ -1074,20 +1074,23 @@ function JobList({
               >
                 {job.company.slice(0, 2).toUpperCase()}
               </span>
-              <span className="flex min-w-0 flex-wrap items-center gap-2">
-                <span className="font-semibold text-ink">{job.title}</span>
-                <span className="rounded px-2 py-0.5 text-[10px] font-bold text-positive bg-positive-surface">{job.matchPercent}% MATCH</span>
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-ink">{job.title}</span>
+                  <span className="rounded px-2 py-0.5 text-[10px] font-bold text-positive bg-positive-surface">{job.matchPercent}% MATCH</span>
+                </span>
+                <span className="mt-1 block text-xs text-ink-muted">
+                  {job.company} - {job.location} - {job.type}
+                </span>
+                <span className="mt-1 block text-xs text-ink-muted">
+                  {job.dateLabel} - {job.source}
+                </span>
               </span>
               {job.status === 'applied' ? (
                 <span className="shrink-0 rounded-lg bg-accent-subtle px-4 py-2 text-sm font-medium text-accent-text">Applied</span>
               ) : (
                 <span className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-on-accent">Apply</span>
               )}
-              <span className="col-span-3 text-xs text-ink-muted">
-                {job.company} - {job.location} - {job.type}
-                <br />
-                {job.dateLabel} - {job.source}
-              </span>
             </button>
           )
         })}
@@ -1220,23 +1223,134 @@ function JobPreview({
   )
 }
 
+type JobFilters = {
+  readonly location: string
+  readonly matchMin: number
+  readonly status: string
+}
+
+const DEFAULT_FILTERS: JobFilters = { location: 'all', matchMin: 0, status: 'all' }
+
+function FilterDropdown({
+  filters,
+  onFiltersChange,
+}: {
+  readonly filters: JobFilters
+  readonly onFiltersChange: (f: JobFilters) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const activeCount = (filters.location !== 'all' ? 1 : 0) + (filters.matchMin > 0 ? 1 : 0) + (filters.status !== 'all' ? 1 : 0)
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={cn(
+          'inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+          activeCount > 0 ? 'border-accent bg-accent-subtle text-accent-text' : 'border-input bg-surface text-ink-muted hover:bg-surface-subtle hover:text-ink',
+        )}
+      >
+        <Filter aria-hidden="true" className="size-4" />
+        Filter{activeCount > 0 ? ` (${activeCount})` : ''}
+      </button>
+      {open ? (
+        <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-border bg-surface p-4 shadow-panel">
+          <div className="grid gap-4">
+            <div className="grid gap-1.5">
+              <label className="text-xs font-semibold text-ink-muted">Location</label>
+              <select
+                value={filters.location}
+                onChange={(e) => onFiltersChange({ ...filters, location: e.target.value })}
+                className="min-h-10 rounded-lg border border-input bg-surface px-3 text-sm text-ink focus:border-focus focus:ring-2 focus:ring-focus"
+              >
+                <option value="all">All locations</option>
+                <option value="remote">Remote</option>
+                <option value="onsite">Onsite</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <label className="text-xs font-semibold text-ink-muted">Match score</label>
+              <select
+                value={filters.matchMin}
+                onChange={(e) => onFiltersChange({ ...filters, matchMin: Number(e.target.value) })}
+                className="min-h-10 rounded-lg border border-input bg-surface px-3 text-sm text-ink focus:border-focus focus:ring-2 focus:ring-focus"
+              >
+                <option value={0}>Any match</option>
+                <option value={90}>90%+</option>
+                <option value={80}>80%+</option>
+                <option value={70}>70%+</option>
+              </select>
+            </div>
+            <div className="grid gap-1.5">
+              <label className="text-xs font-semibold text-ink-muted">Status</label>
+              <select
+                value={filters.status}
+                onChange={(e) => onFiltersChange({ ...filters, status: e.target.value })}
+                className="min-h-10 rounded-lg border border-input bg-surface px-3 text-sm text-ink focus:border-focus focus:ring-2 focus:ring-focus"
+              >
+                <option value="all">All statuses</option>
+                <option value="new">New</option>
+                <option value="applied">Applied</option>
+              </select>
+            </div>
+            {activeCount > 0 ? (
+              <button
+                type="button"
+                onClick={() => onFiltersChange(DEFAULT_FILTERS)}
+                className="min-h-9 rounded-lg border border-border px-3 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle"
+              >
+                Clear all filters
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function applyJobFilters(jobs: readonly AutoApplyJob[], search: string, filters: JobFilters): readonly AutoApplyJob[] {
+  return jobs.filter((j) => {
+    const matchesSearch =
+      j.title.toLowerCase().includes(search.toLowerCase()) ||
+      j.company.toLowerCase().includes(search.toLowerCase())
+    const matchesLocation =
+      filters.location === 'all' ||
+      (filters.location === 'remote' && j.location.toLowerCase().includes('remote')) ||
+      (filters.location === 'onsite' && !j.location.toLowerCase().includes('remote') && !j.location.toLowerCase().includes('hybrid')) ||
+      (filters.location === 'hybrid' && j.location.toLowerCase().includes('hybrid'))
+    const matchesMatch = j.matchPercent >= filters.matchMin
+    const matchesStatus = filters.status === 'all' || j.status === filters.status
+    return matchesSearch && matchesLocation && matchesMatch && matchesStatus
+  })
+}
+
 export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, selectedJob: initialSelectedJob }: AutoApplyJobsViewProps) {
   const [selectedJob, setSelectedJob] = useState<AutoApplyJob | undefined>(initialSelectedJob)
   const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const filtered = jobs.filter(
-    (j) =>
-      j.title.toLowerCase().includes(search.toLowerCase()) ||
-      j.company.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filtered = applyJobFilters(jobs, search, filters)
 
   return (
     <Workspace>
       <Header homeHref={homeHref} />
       <section className="p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
-          <div className="min-h-[56rem] border border-border bg-surface shadow-panel">
+          <div className="min-h-[56rem] bg-surface shadow-panel">
             <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
               <h1 className="text-xl font-medium leading-5 text-ink">Jobs</h1>
               <a href={setupHref} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
@@ -1265,13 +1379,7 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                         placeholder="Search by title or company"
                       />
                     </label>
-                    <button
-                      type="button"
-                      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-input bg-surface px-4 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                    >
-                      <Filter aria-hidden="true" className="size-4" />
-                      Filter
-                    </button>
+                    <FilterDropdown filters={filters} onFiltersChange={setFilters} />
                     <button
                       type="button"
                       onClick={() => setRefreshKey((k) => k + 1)}
@@ -1304,21 +1412,18 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
 export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, application }: AutoApplyAppliedViewProps) {
   const [selectedJob, setSelectedJob] = useState<AutoApplyJob | undefined>(application.job)
   const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS)
   const [refreshKey, setRefreshKey] = useState(0)
 
   const allJobs = jobs.map((job) => (job.id === application.job.id ? application.job : job))
-  const filtered = allJobs.filter(
-    (j) =>
-      j.title.toLowerCase().includes(search.toLowerCase()) ||
-      j.company.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filtered = applyJobFilters(allJobs, search, filters)
 
   return (
     <Workspace>
       <Header homeHref={homeHref} />
       <section className="p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
-          <div className="min-h-[56rem] border border-border bg-surface shadow-panel">
+          <div className="min-h-[56rem] bg-surface shadow-panel">
             <div className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
               <h1 className="text-xl font-medium leading-5 text-ink">Applied</h1>
               <a href={setupHref} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
@@ -1347,6 +1452,7 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                         placeholder="Search applied jobs"
                       />
                     </label>
+                    <FilterDropdown filters={filters} onFiltersChange={setFilters} />
                     <button
                       type="button"
                       onClick={() => setRefreshKey((k) => k + 1)}
