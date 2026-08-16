@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Send, Target, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Send, Target, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
 import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, UploadedFileDialog } from '@/ui'
@@ -315,6 +315,10 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
   const effectiveJd = jobDescription.trim() || GENERIC_JOB_DESCRIPTION
   const editorUrl = `${editorHref}?jd=${encodeURIComponent(effectiveJd)}`
 
+  function handleContinue() {
+    window.location.href = editorUrl
+  }
+
   return (
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="Build a Resume" />
@@ -327,7 +331,22 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
             changeHref: uploadHref,
             onChangeClick: () => clearDefaultResumePreference(),
           }}
-          footer={<FormPanelFooter backHref={uploadHref} nextHref={editorUrl} />}
+          footer={
+            <footer className="flex items-center justify-between gap-4 border-t border-border px-6 py-4">
+              <a href={uploadHref} className="inline-flex min-h-11 items-center gap-1 rounded-lg py-2.5 text-base font-semibold leading-6 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <ArrowLeft aria-hidden="true" className="size-4" />
+                Back
+              </a>
+              <button
+                type="button"
+                onClick={handleContinue}
+                className="inline-flex min-h-11 items-center justify-center gap-3 rounded-lg bg-accent px-4 py-2.5 text-base font-semibold leading-6 text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                Continue
+                <ArrowRight aria-hidden="true" className="size-5" />
+              </button>
+            </footer>
+          }
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <FormField id="resume-name" label="Resume Name" placeholder="e.g. Senior PM Resume" />
