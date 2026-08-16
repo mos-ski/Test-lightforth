@@ -33,5 +33,13 @@ export function useCameraStream() {
     }
   }, [])
 
-  return { stream, status, request }
+  const stop = useCallback(() => {
+    setStream((prev) => {
+      prev?.getTracks().forEach((track) => track.stop())
+      return null
+    })
+    setStatus('idle')
+  }, [])
+
+  return { stream, status, request, stop }
 }

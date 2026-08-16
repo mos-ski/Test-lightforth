@@ -12,6 +12,8 @@ import {
   PhoneOff,
   Play,
   Settings,
+  Video,
+  VideoOff,
   Volume2,
   X,
 } from 'lucide-react'
@@ -28,6 +30,7 @@ import type {
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
 import { AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
+import { useCameraStream } from '@/hooks/useCameraStream'
 import { useTypewriter } from '@/hooks/useTypewriter'
 
 export type InterviewUploadViewProps = {
@@ -523,11 +526,26 @@ const SIMULATED_ANSWERS: Record<string, string> = {
     'I see the biggest opportunity in expanding the platform with API integrations. Right now customers have to manually export data to connect their existing tools. If we offered native integrations with the top five tools in our space, we could reduce churn by making the product stickier and open up a new acquisition channel through partner listings.',
 }
 
-function DraggableCandidatePiP({ name, imageSrc }: { readonly name: string; readonly imageSrc: string }) {
+function DraggableCandidatePiP({ name, imageSrc, videoEnabled }: { readonly name: string; readonly imageSrc: string; readonly videoEnabled: boolean }) {
   const ref = useRef<HTMLButtonElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [pos, setPos] = useState<{ readonly x: number; readonly y: number } | null>(null)
   const dragState = useRef<{ readonly startX: number; readonly startY: number; readonly originX: number; readonly originY: number } | null>(null)
   const draggedRef = useRef(false)
+  const { stream, request, stop } = useCameraStream()
+
+  useEffect(() => {
+    if (videoEnabled) {
+      void request({ video: true })
+    } else {
+      stop()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoEnabled])
+
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.srcObject = stream ?? null
+  }, [stream])
 
   useEffect(() => {
     function handleMove(event: PointerEvent) {
@@ -571,7 +589,13 @@ function DraggableCandidatePiP({ name, imageSrc }: { readonly name: string; read
       className="fixed z-20 size-24 cursor-grab touch-none overflow-hidden rounded-full shadow-xl ring-2 ring-white/40 transition-shadow active:cursor-grabbing active:shadow-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus"
       style={pos ? { left: pos.x, top: pos.y } : { top: '5.5rem', right: '1rem' }}
     >
-      {imageSrc ? <img src={imageSrc} alt="" className="size-full object-cover" /> : <Avatar name={name} size="xl" className="size-full text-2xl" />}
+      {stream ? (
+        <video ref={videoRef} autoPlay muted playsInline className="size-full scale-x-[-1] object-cover" />
+      ) : imageSrc ? (
+        <img src={imageSrc} alt="" className="size-full object-cover" />
+      ) : (
+        <Avatar name={name} size="xl" className="size-full text-2xl" />
+      )}
     </button>
   )
 }
@@ -733,6 +757,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [fontSize, setFontSize] = useState(14)
   const [isMuted, setIsMuted] = useState(false)
+  const [videoEnabled, setVideoEnabled] = useState(true)
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
   const chatRef = useRef<HTMLDivElement>(null)
   const phaseRef = useRef(phase)
@@ -884,9 +909,9 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           </span>
         </div>
 
-        <DraggableCandidatePiP name={session.candidate.name} imageSrc={session.candidate.imageSrc} />
+        <DraggableCandidatePiP name={session.candidate.name} imageSrc={session.candidate.imageSrc} videoEnabled={videoEnabled} />
 
-        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-center gap-6 bg-gradient-to-t from-black/25 to-transparent px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-10">
+        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-center gap-4 bg-gradient-to-t from-black/25 to-transparent px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-10">
           <button
             type="button"
             onClick={() => setShowSettings(true)}
@@ -909,6 +934,21 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
             )}
           >
             {isMuted ? <MicOff aria-hidden="true" className="size-5" /> : <Mic aria-hidden="true" className="size-5" />}
+          </button>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              setVideoEnabled((prev) => !prev)
+            }}
+            aria-label={videoEnabled ? 'Turn off video' : 'Turn on video'}
+            aria-pressed={!videoEnabled}
+            className={cn(
+              'grid size-14 place-items-center rounded-full backdrop-blur-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60',
+              !videoEnabled ? 'bg-danger/90 text-on-danger hover:bg-danger' : 'bg-white/15 text-white hover:bg-white/25',
+            )}
+          >
+            {videoEnabled ? <Video aria-hidden="true" className="size-5" /> : <VideoOff aria-hidden="true" className="size-5" />}
           </button>
           <a
             href={completeHref}
