@@ -123,7 +123,7 @@ export const UploadedFileStrip = forwardRef<HTMLDivElement, UploadedFileStripPro
               onChange={(event) => onDefaultChange(event.target.checked)}
               className="size-3.5 shrink-0 rounded-sm border-input text-accent focus:ring-1 focus:ring-focus focus:ring-offset-0"
             />
-            Default to use
+            Always use this resume
           </label>
         ) : null}
       </div>
