@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Check, ChevronDown, HelpCircle, Minus, Plus, Send, Target, X } from 'lucide-react'
+import { Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Send, Target, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
 import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker } from '@/ui'
@@ -58,13 +58,29 @@ function BuilderHeader({
   readonly action?: 'download'
   readonly onAtsClick?: () => void
 }) {
+  const [downloadOpen, setDownloadOpen] = useState(false)
+  const downloadRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (downloadRef.current && !downloadRef.current.contains(e.target as Node)) setDownloadOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const downloadOptions = [
+    { label: 'Download as PDF', value: 'pdf', icon: <FileText aria-hidden="true" className="size-4" /> },
+    { label: 'Download as DOCX', value: 'docx', icon: <FileText aria-hidden="true" className="size-4" /> },
+    { label: 'Download as TXT', value: 'txt', icon: <FileText aria-hidden="true" className="size-4" /> },
+  ]
+
   return (
     <ShellBar
       homeHref={homeHref}
       current={current}
       closeHref={action === 'download' ? undefined : homeHref}
       closeLabel="Close resume builder"
-      action={action === 'download' ? { label: 'Download', href: '/v3/resume/download' } : undefined}
     >
       {onAtsClick ? (
         <button
@@ -75,6 +91,78 @@ function BuilderHeader({
           <Target aria-hidden="true" className="size-4" />
           ATS Score
         </button>
+      ) : null}
+      {action === 'download' ? (
+        <>
+          <div ref={downloadRef} className="relative hidden sm:block">
+            <button
+              type="button"
+              onClick={() => setDownloadOpen(!downloadOpen)}
+              className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <Download aria-hidden="true" className="size-4" />
+              Download
+              <ChevronDown aria-hidden="true" className={cn('size-4 transition-transform', downloadOpen && 'rotate-180')} />
+            </button>
+            {downloadOpen ? (
+              <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-border bg-surface py-1 shadow-panel">
+                {downloadOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setDownloadOpen(false)}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:bg-surface-subtle"
+                  >
+                    {option.icon}
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={() => setDownloadOpen(true)}
+            className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control sm:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <Download aria-hidden="true" className="size-4" />
+            Download
+          </button>
+        </>
+      ) : null}
+
+      {downloadOpen ? (
+        <div className="fixed inset-0 z-50 sm:hidden">
+          <div className="fixed inset-0 bg-overlay" onClick={() => setDownloadOpen(false)} />
+          <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-xl border border-b-0 border-border bg-surface shadow-panel">
+            <div className="flex shrink-0 items-center justify-center px-6 pt-3 pb-2">
+              <div className="h-1 w-10 rounded-full bg-muted" />
+            </div>
+            <div className="px-6 pb-6">
+              <h3 className="text-base font-semibold text-ink">Download resume</h3>
+              <div className="mt-4 grid gap-1">
+                {downloadOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setDownloadOpen(false)}
+                    className="flex min-h-12 items-center gap-3 rounded-lg px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle"
+                  >
+                    {option.icon}
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setDownloadOpen(false)}
+                className="mt-3 flex min-h-12 w-full items-center justify-center rounded-lg border border-border text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </ShellBar>
   )
