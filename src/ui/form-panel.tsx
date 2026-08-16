@@ -438,7 +438,7 @@ export const PermissionSteps = forwardRef<HTMLDivElement, PermissionStepsProps>(
                 <span className="mt-1 block text-xs font-medium leading-5 text-ink-muted">{step.description}</span>
               </span>
             </div>
-            {previewSrc && step.id === 'screen' ? <img src={previewSrc} alt="" className="aspect-video w-full rounded-lg object-cover" /> : null}
+            {previewSrc && (step.id === 'screen' || step.id === 'video') ? <img src={previewSrc} alt="" className="aspect-video w-full rounded-lg object-cover" /> : null}
             {step.status !== 'complete' ? (
               <a
                 href={actionHref}

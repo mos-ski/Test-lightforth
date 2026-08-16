@@ -415,17 +415,31 @@ export function CopilotPreferencesView({ homeHref, configureHref, shareHref, set
 }
 
 export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, previewSrc, actionLabel, mode }: CopilotPermissionViewProps) {
-  const permissionSteps = steps.map((step) => ({
-    ...step,
-    iconSrc: step.id === 'screen' ? '/v3-assets/figma/form-screen.svg' : '/v3-assets/figma/form-mic.svg',
-  }))
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1279px)')
+    const handler = (event: MediaQueryListEvent) => setIsMobile(event.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  const permissionSteps = steps.map((step) => {
+    if (isMobile && step.id === 'screen') {
+      return { ...step, id: 'video', title: 'Turn on your video', description: 'Required - shows your camera during the call', actionLabel: 'Turn on Video' }
+    }
+    if (isMobile && step.id === 'microphone') {
+      return { ...step, title: 'Connect your audio', description: 'Required - connects to your call audio', actionLabel: 'Connect Audio' }
+    }
+    return step
+  })
 
   return (
     <Workspace>
       <CopilotHeader homeHref={homeHref} current={copilotModeMeta[mode].label} />
       <section className="px-4 py-9">
         <FormPanel
-          title="Share your screen"
+          title={isMobile ? 'Turn on video & audio' : 'Share your screen'}
           step="3/3"
           footer={previewSrc ? undefined : <FormPanelFooter backHref={backHref} nextHref={nextHref} />}
         >
@@ -1344,7 +1358,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
             <div className="size-full bg-gradient-to-b from-[#0b1220] to-black" />
           ) : (
             <>
-              <img src={session.screenPreviewSrc} alt="" className="size-full object-cover" />
+              <img src={session.screenPreviewSrc} alt="" className="size-full scale-125 object-cover object-top" />
               <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/80" />
             </>
           )}
