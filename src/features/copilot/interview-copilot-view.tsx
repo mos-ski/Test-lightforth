@@ -5,6 +5,7 @@ import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
 import { useCameraStream } from '@/hooks/useCameraStream'
 import { useTypewriter } from '@/hooks/useTypewriter'
+import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 import type {
   CopilotCodingTurn,
   CopilotHistoryRow,
@@ -214,6 +215,7 @@ const COPILOT_AI_SUGGESTION =
 export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, setup, knowledgeBaseDocuments }: CopilotConfigureViewProps) {
   const mode = setup.mode
   const [additionalContext, setAdditionalContext] = useState(setup.additionalContext)
+  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
   const [selectedDocIds, setSelectedDocIds] = useState<ReadonlySet<string>>(new Set())
   const [pickerOpen, setPickerOpen] = useState(false)
   const [draftDocIds, setDraftDocIds] = useState<ReadonlySet<string>>(new Set())
@@ -246,7 +248,21 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
         <FormPanel
           title={copilotModeMeta[mode].panelTitle}
           step={mode === 'coding' ? undefined : '1/3'}
-          uploadedFile={mode !== 'coding' ? { fileName: setup.uploadedFileName, changeHref: uploadHref } : undefined}
+          uploadedFile={
+            mode !== 'coding'
+              ? {
+                  fileName: setup.uploadedFileName,
+                  changeHref: uploadHref,
+                  defaultChecked: useAsDefault,
+                  onDefaultChange: (checked) => {
+                    setUseAsDefault(checked)
+                    if (checked) setDefaultResumePreference(setup.uploadedFileName)
+                    else clearDefaultResumePreference()
+                  },
+                  onChangeClick: () => clearDefaultResumePreference(),
+                }
+              : undefined
+          }
           footer={<FormPanelFooter backHref={uploadHref} nextHref={preferencesHref} nextLabel={mode === 'coding' ? 'Start Session' : undefined} />}
         >
           {mode === 'interview' ? (

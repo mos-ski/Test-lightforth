@@ -40,6 +40,9 @@ function ScrollCue() {
 export type FormUploadedFile = {
   readonly fileName: string
   readonly changeHref: string
+  readonly defaultChecked?: boolean
+  readonly onDefaultChange?: (checked: boolean) => void
+  readonly onChangeClick?: () => void
 }
 
 export type FormPanelProps = Omit<FormHTMLAttributes<HTMLFormElement>, 'title'> & {
@@ -60,7 +63,15 @@ export const FormPanel = forwardRef<HTMLFormElement, FormPanelProps>(
             <h1 className="text-xl font-medium leading-7 text-ink">{title}</h1>
             {step ? <span className="text-sm font-medium leading-5 text-ink-muted">{step}</span> : null}
           </header>
-          {uploadedFile ? <UploadedFileStrip fileName={uploadedFile.fileName} changeHref={uploadedFile.changeHref} /> : null}
+          {uploadedFile ? (
+            <UploadedFileStrip
+              fileName={uploadedFile.fileName}
+              changeHref={uploadedFile.changeHref}
+              defaultChecked={uploadedFile.defaultChecked}
+              onDefaultChange={uploadedFile.onDefaultChange}
+              onChangeClick={uploadedFile.onChangeClick}
+            />
+          ) : null}
           <div data-slot="form-panel-body" className="grid gap-3 px-6 py-8 sm:px-8">
             {children}
           </div>
@@ -75,26 +86,46 @@ export const FormPanel = forwardRef<HTMLFormElement, FormPanelProps>(
 export type UploadedFileStripProps = {
   readonly fileName: string
   readonly changeHref: string
+  readonly defaultChecked?: boolean
+  readonly onDefaultChange?: (checked: boolean) => void
+  readonly onChangeClick?: () => void
   readonly className?: string
 }
 
 export const UploadedFileStrip = forwardRef<HTMLDivElement, UploadedFileStripProps>(
-  function UploadedFileStrip({ fileName, changeHref, className, ...props }, ref) {
+  function UploadedFileStrip({ fileName, changeHref, defaultChecked, onDefaultChange, onChangeClick, className, ...props }, ref) {
     return (
       <div
         ref={ref}
         data-slot="uploaded-file-strip"
-        className={cn('mx-auto flex min-h-8 w-[calc(100%-4rem)] max-w-[26rem] items-center justify-between gap-3 rounded-b-lg bg-accent-subtle px-4 py-1 text-xs font-normal leading-none text-ink-muted', className)}
+        className={cn('mx-auto grid w-[calc(100%-4rem)] max-w-[26rem] gap-1 rounded-b-lg bg-accent-subtle px-4 py-1.5 text-xs font-normal leading-none text-ink-muted', className)}
         {...props}
       >
-        <span className="inline-flex min-w-0 items-center gap-1.5">
-          <FileText aria-hidden="true" className="size-3.5 shrink-0" />
-          <span className="truncate">{fileName}</span>
-          <X aria-hidden="true" className="size-2.5 shrink-0 text-ink-muted" />
-        </span>
-        <a href={changeHref} className="shrink-0 text-[10.5px] font-semibold leading-5 text-accent underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          Change
-        </a>
+        <div className="flex min-h-6 items-center justify-between gap-3">
+          <span className="inline-flex min-w-0 items-center gap-1.5">
+            <FileText aria-hidden="true" className="size-3.5 shrink-0" />
+            <span className="truncate">{fileName}</span>
+            <X aria-hidden="true" className="size-2.5 shrink-0 text-ink-muted" />
+          </span>
+          <a
+            href={changeHref}
+            onClick={onChangeClick}
+            className="shrink-0 text-[10.5px] font-semibold leading-5 text-accent underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            Change
+          </a>
+        </div>
+        {onDefaultChange ? (
+          <label className="flex min-h-5 items-center gap-1.5 text-[10.5px] font-medium leading-4 text-ink-muted">
+            <input
+              type="checkbox"
+              checked={defaultChecked ?? false}
+              onChange={(event) => onDefaultChange(event.target.checked)}
+              className="size-3.5 shrink-0 rounded-sm border-input text-accent focus:ring-1 focus:ring-focus focus:ring-offset-0"
+            />
+            Default to use
+          </label>
+        ) : null}
       </div>
     )
   },

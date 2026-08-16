@@ -4,6 +4,7 @@ import { Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Send, 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
 import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker } from '@/ui'
 import { useTypewriter } from '@/hooks/useTypewriter'
+import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 
 export type ResumeUploadViewProps = {
   readonly homeHref: string
@@ -263,6 +264,7 @@ const RESUME_JOB_DESCRIPTION_SUGGESTION =
 
 export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session }: ResumeConfigureViewProps) {
   const [jobDescription, setJobDescription] = useState(session.jobDescription)
+  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
   const { type, isTyping } = useTypewriter()
 
   function handleAiSuggestion() {
@@ -277,7 +279,17 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
         <FormPanel
           title="Configure your Resume"
           step="1/2"
-          uploadedFile={{ fileName: session.uploadedFileName, changeHref: uploadHref }}
+          uploadedFile={{
+            fileName: session.uploadedFileName,
+            changeHref: uploadHref,
+            defaultChecked: useAsDefault,
+            onDefaultChange: (checked) => {
+              setUseAsDefault(checked)
+              if (checked) setDefaultResumePreference(session.uploadedFileName)
+              else clearDefaultResumePreference()
+            },
+            onChangeClick: () => clearDefaultResumePreference(),
+          }}
           footer={<FormPanelFooter backHref={uploadHref} nextHref={editorHref} />}
         >
           <div className="grid gap-3 sm:grid-cols-2">

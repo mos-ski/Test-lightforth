@@ -31,6 +31,7 @@ import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
 import { AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
 import { useCameraStream } from '@/hooks/useCameraStream'
+import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 import { useTypewriter } from '@/hooks/useTypewriter'
 
 export type InterviewUploadViewProps = {
@@ -183,6 +184,7 @@ const INTERVIEW_AI_SUGGESTION =
 
 export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, session, knowledgeBaseDocuments = [] }: InterviewConfigureViewProps) {
   const [additionalContext, setAdditionalContext] = useState(session.additionalContext)
+  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
   const [selectedDocIds, setSelectedDocIds] = useState<ReadonlySet<string>>(new Set())
   const [pickerOpen, setPickerOpen] = useState(false)
   const [draftDocIds, setDraftDocIds] = useState<ReadonlySet<string>>(new Set())
@@ -215,7 +217,17 @@ export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, sessio
         <FormPanel
           title="Configure your interview"
           step="1/2"
-          uploadedFile={{ fileName: session.uploadedFileName, changeHref: uploadHref }}
+          uploadedFile={{
+            fileName: session.uploadedFileName,
+            changeHref: uploadHref,
+            defaultChecked: useAsDefault,
+            onDefaultChange: (checked) => {
+              setUseAsDefault(checked)
+              if (checked) setDefaultResumePreference(session.uploadedFileName)
+              else clearDefaultResumePreference()
+            },
+            onChangeClick: () => clearDefaultResumePreference(),
+          }}
           footer={<FormPanelFooter backHref={uploadHref} nextHref={voiceHref} />}
         >
           <div className="grid gap-3 sm:grid-cols-2">
