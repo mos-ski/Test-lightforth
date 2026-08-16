@@ -743,32 +743,40 @@ function ClassicResume({
       <section className="mt-5">
         <h2 className="border-b border-paper-ink pb-1 text-sm font-bold uppercase tracking-wide">Experience</h2>
         <div className="grid gap-5 pt-3">
-          {document.roles.map((role, roleIndex) => (
-            <article key={`${role.company}-${role.period}`}>
-              <div className="flex items-start justify-between gap-4 text-xs">
-                <div>
-                  <h3 className="font-bold">{role.company}</h3>
-                  <p className="italic text-paper-muted">{role.location}</p>
-                  <p className="italic">{role.title}</p>
+          {document.roles.map((role, roleIndex) => {
+            const bullets =
+              showImproved && roleIndex === 0
+                ? role.bullets.map((bullet, index) => (index < 2 ? document.improvedFirstRoleBullets[index] ?? bullet : bullet))
+                : role.bullets
+            return (
+              <article key={`${role.company}-${role.period}`}>
+                <div className="flex items-start justify-between gap-4 text-xs">
+                  <div>
+                    <h3 className="font-bold">{role.company}</h3>
+                    <p className="italic text-paper-muted">{role.location}</p>
+                    <p className="italic">{role.title}</p>
+                  </div>
+                  <p className="shrink-0 text-end text-paper-muted">{role.period}</p>
                 </div>
-                <p className="shrink-0 text-end text-paper-muted">{role.period}</p>
-              </div>
-              <ul className="mt-2 list-disc space-y-1.5 ps-5 text-xs leading-5">
-                {role.bullets.map((bullet, index) => (
-                  <li key={bullet} className={cn(highlightChanges && roleIndex === 0 && index < 2 ? 'bg-accent-subtle text-accent-text' : '')}>
-                    {bullet}
-                  </li>
-                ))}
-              </ul>
-            </article>
-          ))}
+                <ul className="mt-2 list-disc space-y-1.5 ps-5 text-xs leading-5">
+                  {bullets.map((bullet, index) => (
+                    <li key={bullet} className={cn(highlightChanges && roleIndex === 0 && index < 2 ? 'bg-accent-subtle text-accent-text' : '')}>
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            )
+          })}
         </div>
       </section>
       <section className="mt-5">
         <h2 className="border-b border-paper-ink pb-1 text-sm font-bold uppercase tracking-wide">Skills</h2>
         <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-          {document.skills.slice(0, 14).map((skill) => (
-            <span key={skill}>{skill}</span>
+          {(showImproved ? document.improvedSkills : document.skills).slice(0, showImproved ? 22 : 14).map((skill) => (
+            <span key={skill} className={cn(highlightChanges && !document.skills.includes(skill) ? 'bg-accent-subtle font-semibold text-accent-text' : undefined)}>
+              {skill}
+            </span>
           ))}
         </div>
       </section>
@@ -1321,7 +1329,21 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   const showSendTip = tab === 'chat' && messages.length === 0 && !dismissedSendTip
   const showAcceptTip = pendingSuggestion && (tab === 'chat' || tab === 'create') && !dismissedAcceptTip
   const changes: readonly SuggestionChange[] = pendingSuggestion
-    ? [{ id: 'professional-summary', section: 'Professional Summary', before: document.summary, after: document.improvedSummary }]
+    ? [
+        { id: 'professional-summary', section: 'Professional Summary', before: document.summary, after: document.improvedSummary },
+        {
+          id: 'experience-highlights',
+          section: `Experience — ${document.roles[0]?.company ?? 'Current Role'}`,
+          before: document.roles[0]?.bullets.slice(0, 2).join(' ') ?? '',
+          after: document.improvedFirstRoleBullets.join(' '),
+        },
+        {
+          id: 'skills',
+          section: 'Skills',
+          before: document.skills.join(', '),
+          after: document.improvedSkills.join(', '),
+        },
+      ]
     : []
 
   return (

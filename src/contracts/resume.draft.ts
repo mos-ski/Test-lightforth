@@ -36,8 +36,11 @@ export type ResumeDocument = {
   readonly atsGaps: readonly string[]
   readonly atsPrompt: string
   readonly roles: readonly ResumeRole[]
+  /** Tailored rewrites of roles[0].bullets[0] and [1] — the AI suggestion targets the current role's top two highlights. */
+  readonly improvedFirstRoleBullets: readonly string[]
   readonly education: readonly ResumeEducation[]
   readonly skills: readonly string[]
+  readonly improvedSkills: readonly string[]
   readonly certifications: readonly ResumeCertification[]
   readonly projects: readonly ResumeProject[]
   readonly languages: readonly ResumeLanguage[]
