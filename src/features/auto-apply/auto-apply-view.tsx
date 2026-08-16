@@ -17,6 +17,7 @@ import {
   WORK_SCHEDULE_OPTIONS,
 } from '@/contracts/auto-apply.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
+import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 import {
   cn,
   Dialog,
@@ -156,6 +157,7 @@ export function AutoApplyUploadView({ homeHref, contactHref, agentHref, savedRes
 }
 
 export function AutoApplySetupStepView({ homeHref, backHref, nextHref, setup, step }: AutoApplySetupStepViewProps) {
+  const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
   const copy = {
     contact: { title: 'Contact Information', count: '1/4' },
     preferences: { title: 'Job Preferences', count: '2/4' },
@@ -169,7 +171,21 @@ export function AutoApplySetupStepView({ homeHref, backHref, nextHref, setup, st
         <FormPanel
           title={copy.title}
           step={copy.count}
-          uploadedFile={step === 'contact' ? { fileName: setup.uploadedFileName, changeHref: backHref } : undefined}
+          uploadedFile={
+            step === 'contact'
+              ? {
+                  fileName: setup.uploadedFileName,
+                  changeHref: backHref,
+                  defaultChecked: useAsDefault,
+                  onDefaultChange: (checked) => {
+                    setUseAsDefault(checked)
+                    if (checked) setDefaultResumePreference(setup.uploadedFileName)
+                    else clearDefaultResumePreference()
+                  },
+                  onChangeClick: () => clearDefaultResumePreference(),
+                }
+              : undefined
+          }
           footer={<FormPanelFooter backHref={backHref} nextHref={nextHref} />}
         >
           {step === 'contact' ? (
