@@ -24,6 +24,7 @@ import type {
 } from '@/contracts/interview.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
 import { AiSuggestionAction, Badge, cn, DataTable, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui'
+import { useTypewriter } from '@/hooks/useTypewriter'
 
 export type InterviewUploadViewProps = {
   readonly homeHref: string
@@ -175,6 +176,12 @@ const INTERVIEW_AI_SUGGESTION =
 
 export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, session }: InterviewConfigureViewProps) {
   const [additionalContext, setAdditionalContext] = useState(session.additionalContext)
+  const { type, isTyping } = useTypewriter()
+
+  function handleAiSuggestion() {
+    const base = additionalContext
+    type(INTERVIEW_AI_SUGGESTION, (partial) => setAdditionalContext(base + partial))
+  }
 
   return (
     <Workspace>
@@ -216,8 +223,9 @@ export function InterviewConfigureView({ homeHref, uploadHref, voiceHref, sessio
             label="Additional context"
             value={additionalContext}
             onChange={(event) => setAdditionalContext(event.target.value)}
+            className={cn(isTyping && 'ring-2 ring-accent shadow-[0_0_0_4px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
           />
-          <AiSuggestionAction onClick={() => setAdditionalContext((prev) => `${prev}${INTERVIEW_AI_SUGGESTION}`)} />
+          <AiSuggestionAction onClick={handleAiSuggestion} disabled={isTyping} />
         </FormPanel>
       </section>
     </Workspace>

@@ -3,6 +3,7 @@ import { Check, ChevronDown, HelpCircle, Minus, Plus, Send, Target, X } from 'lu
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
 import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker } from '@/ui'
+import { useTypewriter } from '@/hooks/useTypewriter'
 
 export type ResumeUploadViewProps = {
   readonly homeHref: string
@@ -169,7 +170,18 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref, savedRe
   )
 }
 
+const RESUME_JOB_DESCRIPTION_SUGGESTION =
+  ' Looking for a Senior Product Manager with 5+ years of experience shipping AI-powered products, strong SQL and A/B testing skills, and a track record of driving measurable growth metrics.'
+
 export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session }: ResumeConfigureViewProps) {
+  const [jobDescription, setJobDescription] = useState(session.jobDescription)
+  const { type, isTyping } = useTypewriter()
+
+  function handleAiSuggestion() {
+    const base = jobDescription
+    type(RESUME_JOB_DESCRIPTION_SUGGESTION, (partial) => setJobDescription(base + partial))
+  }
+
   return (
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="Build a Resume" />
@@ -184,8 +196,14 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
             <FormField id="resume-name" label="Resume Name" defaultValue={session.resumeName} />
             <FormField id="company-name" label="Company Name" defaultValue={session.companyName} />
           </div>
-          <FormTextArea id="resume-job-description" label="Enter Job Description" defaultValue={session.jobDescription} />
-          <AiSuggestionAction />
+          <FormTextArea
+            id="resume-job-description"
+            label="Enter Job Description"
+            value={jobDescription}
+            onChange={(event) => setJobDescription(event.target.value)}
+            className={cn(isTyping && 'ring-2 ring-accent shadow-[0_0_0_4px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
+          />
+          <AiSuggestionAction onClick={handleAiSuggestion} disabled={isTyping} />
         </FormPanel>
       </section>
     </Workspace>
@@ -603,10 +621,14 @@ function ClassicResume({
   document,
   showImproved,
   highlightChanges,
+  typedSummary,
+  isTypingSummary,
 }: {
   readonly document: ResumeDocument
   readonly showImproved: boolean
   readonly highlightChanges: boolean
+  readonly typedSummary?: string | null
+  readonly isTypingSummary?: boolean
 }) {
   return (
     <ResumePaper>
@@ -618,8 +640,17 @@ function ClassicResume({
       </header>
       <section className="mt-5">
         <h2 className="border-b border-paper-ink pb-1 text-sm font-bold uppercase tracking-wide">Professional Summary</h2>
-        <p className={cn('mt-2 text-xs italic leading-5', highlightChanges ? 'bg-accent-subtle text-accent-text' : 'text-paper-ink')}>
-          {showImproved ? document.improvedSummary : document.summary}
+        <p
+          className={cn(
+            'mt-2 rounded-sm text-xs italic leading-5 transition-shadow duration-normal ease-default',
+            highlightChanges ? 'bg-accent-subtle text-accent-text' : 'text-paper-ink',
+            isTypingSummary && 'shadow-[0_0_0_3px_var(--lf-accent-subtle)]',
+          )}
+        >
+          {typedSummary !== null && typedSummary !== undefined ? typedSummary : showImproved ? document.improvedSummary : document.summary}
+          {isTypingSummary ? (
+            <span aria-hidden="true" className="ms-0.5 inline-block h-3 w-px animate-pulse bg-accent-text align-middle motion-reduce:animate-none" />
+          ) : null}
         </p>
       </section>
       <section className="mt-5">
@@ -966,10 +997,17 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   const [atsOpen, setAtsOpen] = useState(false)
   const [dismissedSendTip, setDismissedSendTip] = useState(false)
   const [dismissedAcceptTip, setDismissedAcceptTip] = useState(false)
+  const [typedSummary, setTypedSummary] = useState<string | null>(null)
+  const { type: typeSummary, isTyping: isTypingSummary } = useTypewriter()
   const [zoom, setZoom] = useState(() => {
     const parsed = parseInt(session.zoomLabel.replace('%', ''), 10)
     return Number.isFinite(parsed) ? parsed / 100 : 0.85
   })
+
+  function revealSuggestion() {
+    setPendingSuggestion(true)
+    typeSummary(document.improvedSummary, setTypedSummary, { durationMs: 1000 })
+  }
 
   function handleSend() {
     const trimmed = draft.trim()
@@ -987,17 +1025,19 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
       window.clearInterval(labelTimer)
       setMessages((prev) => [...prev, { id: `msg-${Date.now()}-ai`, author: 'assistant', text: "I've updated your resume based on that — review the highlighted changes below and accept or reject them." }])
       setIsTyping(false)
-      setPendingSuggestion(true)
+      revealSuggestion()
     }, 4000)
   }
 
   function handleAccept() {
     setHasAcceptedChanges(true)
     setPendingSuggestion(false)
+    setTypedSummary(null)
   }
 
   function handleReject() {
     setPendingSuggestion(false)
+    setTypedSummary(null)
   }
 
   function handleShowTutorial() {
@@ -1030,7 +1070,7 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
           />
         ) : null}
         {tab === 'create' ? (
-          <SectionEditor pendingSuggestion={pendingSuggestion} onSuggest={() => setPendingSuggestion(true)} onAccept={handleAccept} onReject={handleReject} />
+          <SectionEditor pendingSuggestion={pendingSuggestion} onSuggest={revealSuggestion} onAccept={handleAccept} onReject={handleReject} />
         ) : null}
         {tab === 'template' ? <TemplateSidebar templates={templates} selectedTemplateId={session.selectedTemplateId} /> : null}
         <div className="relative flex-1 overflow-auto bg-canvas px-4 py-8 lg:px-8">
@@ -1039,7 +1079,13 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
             {tab === 'template' ? (
               <ExecutiveResume document={document} />
             ) : (
-              <ClassicResume document={document} showImproved={showImproved} highlightChanges={pendingSuggestion} />
+              <ClassicResume
+                document={document}
+                showImproved={showImproved}
+                highlightChanges={pendingSuggestion}
+                typedSummary={typedSummary}
+                isTypingSummary={isTypingSummary}
+              />
             )}
           </div>
           {pendingSuggestion && (tab === 'chat' || tab === 'create') ? (

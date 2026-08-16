@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, Fi
 
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
+import { useTypewriter } from '@/hooks/useTypewriter'
 import type {
   CopilotCodingTurn,
   CopilotHistoryRow,
@@ -212,6 +213,12 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
   const [pickerOpen, setPickerOpen] = useState(false)
   const [draftDocIds, setDraftDocIds] = useState<ReadonlySet<string>>(new Set())
   const selectedDocuments = knowledgeBaseDocuments.filter((doc) => selectedDocIds.has(doc.id))
+  const { type, isTyping } = useTypewriter()
+
+  function handleAiSuggestion() {
+    const base = additionalContext
+    type(COPILOT_AI_SUGGESTION, (partial) => setAdditionalContext(base + partial))
+  }
 
   function openDocumentPicker() {
     setDraftDocIds(selectedDocIds)
@@ -313,8 +320,9 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
             label="Additional context"
             value={additionalContext}
             onChange={(event) => setAdditionalContext(event.target.value)}
+            className={cn(isTyping && 'ring-2 ring-accent shadow-[0_0_0_4px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
           />
-          <AiSuggestionAction onClick={() => setAdditionalContext((prev) => `${prev}${COPILOT_AI_SUGGESTION}`)} />
+          <AiSuggestionAction onClick={handleAiSuggestion} disabled={isTyping} />
         </FormPanel>
       </section>
 
