@@ -1,5 +1,5 @@
 import { forwardRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
-import { Sparkles, FileText, X, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check, Plus } from 'lucide-react'
+import { FileText, X, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check } from 'lucide-react'
 
 import { cn } from './cn'
 
@@ -229,11 +229,11 @@ export const AiSuggestionAction = forwardRef<HTMLButtonElement, AiSuggestionActi
         ref={ref}
         data-slot="ai-suggestion-action"
         type={type}
-        className={cn('ms-auto inline-flex min-h-7 items-center gap-1 rounded-soft px-1 text-sm font-semibold leading-5 text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', className)}
+        className={cn('ms-auto inline-flex min-h-7 items-center gap-1.5 rounded-soft px-1 text-sm font-bold leading-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', className)}
         {...props}
       >
-        <Sparkles aria-hidden="true" className="size-4 stroke-[1.75]" />
-        {children}
+        <img aria-hidden="true" src="/v3-assets/Vector.svg" alt="" className="size-3.5 shrink-0" />
+        <span className="bg-gradient-to-r from-accent to-accent-tertiary bg-clip-text text-transparent">{children}</span>
       </button>
     )
   },
@@ -241,28 +241,31 @@ export const AiSuggestionAction = forwardRef<HTMLButtonElement, AiSuggestionActi
 
 export type DocumentDropActionProps = {
   readonly label?: string
-  readonly actionLabel?: string
   readonly hint?: string
-  readonly actionHref: string
+  readonly actionHref?: string
+  readonly onTrigger?: () => void
+  readonly children?: ReactNode
   readonly className?: string
 }
 
 export const DocumentDropAction = forwardRef<HTMLElement, DocumentDropActionProps>(
-  function DocumentDropAction({ label = 'Documents', actionLabel = 'Add Documents', hint = 'Add context, notes, or other docs', actionHref, className, ...props }, ref) {
+  function DocumentDropAction({ label = 'Documents', hint = 'Add context, notes, or other docs', actionHref, onTrigger, children, className, ...props }, ref) {
+    const dropzoneClassName = 'grid min-h-20 place-items-center rounded-lg border border-dashed border-input bg-surface-subtle px-4 py-6 text-center text-sm font-medium text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus'
+
     return (
       <section ref={ref} data-slot="document-drop-action" className={cn('grid gap-2', className)} aria-labelledby="document-drop-title" {...props}>
-        <div className="flex items-center justify-between gap-3">
-          <h2 id="document-drop-title" className="text-sm font-medium leading-5 text-ink">
-            {label} <span className="font-normal text-ink-muted">(optional)</span>
-          </h2>
-          <a href={actionHref} className="inline-flex min-h-8 items-center gap-1 rounded-lg px-1 text-sm font-semibold text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-            <Plus aria-hidden="true" className="size-5" />
-            {actionLabel}
+        <h2 id="document-drop-title" className="text-sm font-medium leading-5 text-ink">
+          {label} <span className="font-normal text-ink-muted">(optional)</span>
+        </h2>
+        {actionHref ? (
+          <a href={actionHref} className={dropzoneClassName}>
+            {children ?? hint}
           </a>
-        </div>
-        <a href={actionHref} className="grid min-h-20 place-items-center rounded-lg border border-dashed border-input bg-surface-subtle px-4 py-6 text-center text-sm font-medium text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-          {hint}
-        </a>
+        ) : (
+          <button type="button" onClick={onTrigger} className={dropzoneClassName}>
+            {children ?? hint}
+          </button>
+        )}
       </section>
     )
   },

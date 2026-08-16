@@ -19,6 +19,7 @@
   --color-info: var(--lf-info);
   --color-info-surface: var(--lf-info-surface);
   --color-accent-secondary: var(--lf-accent-secondary);
+  --color-accent-tertiary: var(--lf-accent-tertiary);
   --color-positive: var(--lf-positive);
   --color-positive-surface: var(--lf-positive-surface);
   --color-warning: var(--lf-warning);
@@ -111,6 +112,7 @@
     --lf-info: #0276ca;
     --lf-info-surface: #eff8ff;
     --lf-accent-secondary: #7c3aed;
+    --lf-accent-tertiary: #db2777;
     --lf-positive: #157f3b;
     --lf-positive-surface: #ecfdf3;
     --lf-warning: #733f12;
@@ -201,6 +203,7 @@
     --lf-info: #b9e0ff;
     --lf-info-surface: #10243d;
     --lf-accent-secondary: #a78bfa;
+    --lf-accent-tertiary: #f472b6;
     --lf-positive: #7ee2a8;
     --lf-positive-surface: #102818;
     --lf-warning: #f6d66f;
@@ -292,6 +295,7 @@
       --lf-info: #b9e0ff;
       --lf-info-surface: #10243d;
       --lf-accent-secondary: #a78bfa;
+      --lf-accent-tertiary: #f472b6;
       --lf-positive: #7ee2a8;
       --lf-positive-surface: #102818;
       --lf-warning: #f6d66f;

@@ -775,6 +775,7 @@ export function InterviewHistoryView({ homeHref, createHref, reportHref, rows }:
           action={{ label: 'Create New', href: createHref }}
           rows={rows}
           itemLabel={(row) => row.title}
+          selectable={false}
           className="mx-auto max-w-7xl"
           onRowClick={(row) => { window.location.href = `${reportHref}?id=${row.id}` }}
           columns={[

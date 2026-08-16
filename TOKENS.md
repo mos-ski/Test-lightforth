@@ -56,6 +56,7 @@ All colors are defined in `src/tokens/theme.css` and `src/tokens/tokens.ts` with
 | `info` | `text-info` | Informational |
 | `info-surface` | `bg-info-surface` | Informational background |
 | `accent-secondary` | `bg-accent-secondary` | Secondary decorative accent (violet) — used for feature-branded gradient tiles like Tutorial cards, never for interactive/semantic UI |
+| `accent-tertiary` | `bg-accent-tertiary` | Third decorative accent (pink) — combines with `accent`/`accent-secondary` for the 3-stop AI-suggestion gradient (icon + text), never for interactive/semantic UI |
 
 ### Overlay & Brand
 

@@ -254,7 +254,11 @@ function DashboardHeader({
       <div className="flex items-center gap-2">
         <MobileNavDrawer navItems={navItems} />
         <a href="/v3" className="inline-flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus" aria-label="Lightforth home">
-          <LightforthMark className="h-7 w-auto text-brand-mark" />
+          {collapsed ? (
+            <img src="/v3-assets/Logo%20icon.svg" alt="" className="size-7" />
+          ) : (
+            <LightforthMark className="h-7 w-auto text-brand-mark" />
+          )}
         </a>
         <button
           type="button"

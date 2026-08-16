@@ -463,13 +463,14 @@ export function ResumeHistoryView({ homeHref, createHref, rows }: ResumeHistoryV
   return (
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="History" />
-      <section className="px-4 py-8 lg:px-60">
+      <section className="px-4 py-8 lg:px-12 xl:px-24">
         <DataTable
           title="Past Resumes"
           searchLabel="Search past resumes"
           action={{ label: 'Create New', href: createHref }}
           rows={rows}
           itemLabel={(row) => row.title}
+          className="mx-auto max-w-7xl"
           columns={[
             { key: 'title', label: 'Title', className: 'w-[18rem]', render: (row) => <span className="font-medium">{row.title}</span> },
             {

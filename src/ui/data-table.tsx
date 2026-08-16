@@ -50,6 +50,8 @@ export type DataTableProps<TRow extends { readonly id: string }> = {
   readonly onPageChange?: (page: number) => void
   readonly className?: string
   readonly minTableWidthClassName?: string
+  readonly selectable?: boolean
+  readonly bare?: boolean
 }
 
 function defaultFilterRow<TRow>(row: TRow, query: string): boolean {
@@ -57,12 +59,14 @@ function defaultFilterRow<TRow>(row: TRow, query: string): boolean {
   return Object.values(row).some((val) => String(val).toLowerCase().includes(lower))
 }
 
-function SkeletonRow({ colSpan }: { readonly colSpan: number }) {
+function SkeletonRow({ colSpan, selectable }: { readonly colSpan: number; readonly selectable: boolean }) {
   return (
     <tr className="border-b border-border">
-      <td className="px-4 py-3">
-        <div className="size-7 rounded bg-surface-subtle animate-skeleton-pulse" />
-      </td>
+      {selectable ? (
+        <td className="px-4 py-3">
+          <div className="size-7 rounded bg-surface-subtle animate-skeleton-pulse" />
+        </td>
+      ) : null}
       {Array.from({ length: colSpan }).map((_, i) => (
         <td key={i} className="px-4 py-3">
           <div className="h-4 w-3/4 rounded bg-surface-subtle animate-skeleton-pulse" style={{ animationDelay: `${i * 80}ms` }} />
@@ -95,6 +99,8 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
     onPageChange,
     className,
     minTableWidthClassName = 'min-w-[56rem]',
+    selectable = true,
+    bare = false,
   }: DataTableProps<TRow>, ref) {
     const defaultPageSize = 8
     const [internalPage, setInternalPage] = useState(1)
@@ -158,24 +164,8 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
     const visibleRows = isSelfPaginated ? sortedRows.slice((internalPage - 1) * defaultPageSize, internalPage * defaultPageSize) : sortedRows
     const handlePageChange = onPageChange ?? (isSelfPaginated ? setInternalPage : undefined)
 
-    return (
-      <article ref={ref} data-slot="data-table" className={cn('bg-surface shadow-panel', className)}>
-        {title || action ? (
-          <header className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
-            {title ? <h1 className="text-xl font-medium leading-5 text-ink">{title}</h1> : <span />}
-            {action ? (
-              <a
-                href={action.href}
-                className="inline-flex min-h-10 items-center justify-center gap-3 rounded-lg bg-accent px-4 py-2 text-base font-semibold leading-6 text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-              >
-                <span className="shrink-0 [&>svg]:size-5">{action.icon ?? <Plus aria-hidden="true" />}</span>
-                {action.label}
-              </a>
-            ) : null}
-          </header>
-        ) : null}
-
-        <div className="p-8">
+    const content = (
+      <>
           <label className="relative block w-full max-w-[24rem]">
             <span className="sr-only">{searchLabel}</span>
             <Search aria-hidden="true" className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-ink-muted" />
@@ -191,17 +181,19 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
             <table className={cn('w-full border-collapse text-sm', minTableWidthClassName)}>
               <thead>
                 <tr className="border-b border-border bg-surface-subtle text-ink-muted">
-                  <th className="w-12 px-4 py-2.5 text-start font-semibold">
-                    <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">
-                      <span className="sr-only">Select all rows</span>
-                      <input
-                        type="checkbox"
-                        className="size-3.5 rounded border-input text-accent focus:ring-focus"
-                        checked={visibleRows.length > 0 && selectedIds.size === visibleRows.length}
-                        onChange={toggleAll}
-                      />
-                    </label>
-                  </th>
+                  {selectable ? (
+                    <th className="w-12 px-4 py-2.5 text-start font-semibold">
+                      <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">
+                        <span className="sr-only">Select all rows</span>
+                        <input
+                          type="checkbox"
+                          className="size-3.5 rounded border-input text-accent focus:ring-focus"
+                          checked={visibleRows.length > 0 && selectedIds.size === visibleRows.length}
+                          onChange={toggleAll}
+                        />
+                      </label>
+                    </th>
+                  ) : null}
                   {columns.map((column) => {
                     const isSortable = column.sortable !== false
                     const isSorted = sortColumn === column.key
@@ -237,10 +229,10 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
               </thead>
               <tbody className="text-ink">
                 {loading ? (
-                  Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} colSpan={columns.length} />)
+                  Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} colSpan={columns.length} selectable={selectable} />)
                 ) : visibleRows.length === 0 ? (
                   <tr>
-                    <td colSpan={columns.length + 1} className="px-3 py-12 text-center text-ink-muted">
+                    <td colSpan={selectable ? columns.length + 1 : columns.length} className="px-3 py-12 text-center text-ink-muted">
                       No items found.
                     </td>
                   </tr>
@@ -258,25 +250,27 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                         style={{ animationDelay: `${index * 40}ms` }}
                         onClick={onRowClick ? () => onRowClick(row) : undefined}
                       >
-                        <td className="px-4 py-2.5">
-                          <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">
-                            <span className="sr-only">{`Select ${itemLabel(row)}`}</span>
-                            <input
-                              type="checkbox"
-                              className="sr-only"
-                              checked={isSelected}
-                              onChange={() => toggleRow(row.id)}
-                            />
-                            {isSelected ? (
-                              <Check aria-hidden="true" className="size-3.5 text-accent" />
-                            ) : (
-                              <>
-                                <FileText aria-hidden="true" className="size-3.5 text-ink-muted group-hover/row:hidden" />
-                                <span aria-hidden="true" className="hidden size-3.5 rounded border border-ink-muted group-hover/row:block" />
-                              </>
-                            )}
-                          </label>
-                        </td>
+                        {selectable ? (
+                          <td className="px-4 py-2.5">
+                            <label className="grid size-7 place-items-center rounded-soft focus-within:ring-2 focus-within:ring-focus">
+                              <span className="sr-only">{`Select ${itemLabel(row)}`}</span>
+                              <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={isSelected}
+                                onChange={() => toggleRow(row.id)}
+                              />
+                              {isSelected ? (
+                                <Check aria-hidden="true" className="size-3.5 text-accent" />
+                              ) : (
+                                <>
+                                  <FileText aria-hidden="true" className="size-3.5 text-ink-muted group-hover/row:hidden" />
+                                  <span aria-hidden="true" className="hidden size-3.5 rounded border border-ink-muted group-hover/row:block" />
+                                </>
+                              )}
+                            </label>
+                          </td>
+                        ) : null}
                       {columns.map((column) => (
                         <td key={column.key} className={cn('max-w-0 truncate whitespace-nowrap px-4 py-2.5 leading-5', column.className)} title={String(itemLabel(row))}>
                           {column.render(row)}
@@ -321,17 +315,17 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
             </footer>
           ) : null}
 
-          {selectedIds.size > 0 ? (
+          {selectable && selectedIds.size > 0 ? (
             <div className="flex items-center justify-between border-t border-border bg-accent/10 px-6 py-3">
               <span className="text-sm font-semibold text-ink">{selectedIds.size} item{selectedIds.size > 1 ? 's' : ''} selected</span>
               <div className="flex items-center gap-3">
                 <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                   <Download aria-hidden="true" className="size-4" />
-                  Export
+                  Download
                 </button>
                 <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                  <Mail aria-hidden="true" className="size-4" />
-                  Email
+                  <Pencil aria-hidden="true" className="size-4" />
+                  Edit
                 </button>
                 <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-danger bg-danger-surface px-4 text-sm font-medium text-danger transition-colors hover:bg-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                   <Trash2 aria-hidden="true" className="size-4" />
@@ -340,7 +334,35 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
               </div>
             </div>
           ) : null}
+      </>
+    )
+
+    if (bare) {
+      return (
+        <div ref={ref as unknown as React.Ref<HTMLDivElement>} data-slot="data-table" className={className}>
+          {content}
         </div>
+      )
+    }
+
+    return (
+      <article ref={ref} data-slot="data-table" className={cn('bg-surface shadow-panel', className)}>
+        {title || action ? (
+          <header className="flex min-h-[5rem] items-center justify-between gap-4 border-b border-border px-8">
+            {title ? <h1 className="text-xl font-medium leading-5 text-ink">{title}</h1> : <span />}
+            {action ? (
+              <a
+                href={action.href}
+                className="inline-flex min-h-10 items-center justify-center gap-3 rounded-lg bg-accent px-4 py-2 text-base font-semibold leading-6 text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                <span className="shrink-0 [&>svg]:size-5">{action.icon ?? <Plus aria-hidden="true" />}</span>
+                {action.label}
+              </a>
+            ) : null}
+          </header>
+        ) : null}
+
+        <div className="p-8">{content}</div>
       </article>
     )
   },

@@ -1,5 +1,7 @@
+import { Download, Pencil, Trash2 } from 'lucide-react'
+
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
-import { DataTable, FormPanel, FormPanelFooter, FormTextArea, OptionStack, ShellBar } from '@/ui'
+import { DataTable, FormPanel, FormPanelFooter, FormTextArea, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, OptionStack, ShellBar } from '@/ui'
 
 export type DocumentsViewProps = {
   readonly homeHref: string
@@ -19,11 +21,22 @@ export type DocumentsManualViewProps = {
   readonly nextHref: string
 }
 
-function MoreButton({ label }: { readonly label: string }) {
+function RowActionsMenu({ label }: { readonly label: string }) {
   return (
-    <button type="button" aria-label={label} className="grid size-6 place-items-center rounded-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-      <img aria-hidden="true" src="/v3-assets/figma/table-more.svg" alt="" className="size-4 object-contain" />
-    </button>
+    <Menu>
+      <MenuTrigger
+        aria-label={label}
+        className="grid size-6 place-items-center rounded-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        <img aria-hidden="true" src="/v3-assets/figma/table-more.svg" alt="" className="size-4 object-contain" />
+      </MenuTrigger>
+      <MenuContent>
+        <MenuItem icon={<Download aria-hidden="true" />}>Download</MenuItem>
+        <MenuItem icon={<Pencil aria-hidden="true" />}>Edit</MenuItem>
+        <MenuSeparator />
+        <MenuItem variant="danger" icon={<Trash2 aria-hidden="true" />}>Delete</MenuItem>
+      </MenuContent>
+    </Menu>
   )
 }
 
@@ -49,7 +62,7 @@ export function DocumentsView({ homeHref, addHref, rows }: DocumentsViewProps) {
             },
             { key: 'size-or-url', label: 'Size/URL', className: 'w-[14rem]', render: (row) => row.sizeOrUrl },
             { key: 'added', label: 'Added', className: 'w-[18rem]', render: (row) => row.addedAtLabel },
-            { key: 'action', label: 'Action', className: 'w-[5rem]', sortable: false, render: (row) => <MoreButton label={`Open actions for ${row.name}`} /> },
+            { key: 'action', label: 'Action', className: 'w-[5rem]', sortable: false, render: (row) => <RowActionsMenu label={`Open actions for ${row.name}`} /> },
           ]}
         />
       </section>

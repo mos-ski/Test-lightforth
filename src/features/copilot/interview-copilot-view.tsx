@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, Pause, Play, Plus, Send, Settings, Users, Video, X } from 'lucide-react'
+import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, FileText, Pause, Play, Plus, Send, Settings, Users, Video, X } from 'lucide-react'
 
+import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type {
   CopilotCodingTurn,
   CopilotHistoryRow,
@@ -16,8 +17,14 @@ import type {
 import {
   AiSuggestionAction,
   Badge,
+  Button,
+  Checkbox,
   cn,
   DataTable,
+  Dialog,
+  DialogClose,
+  DialogPopup,
+  DialogTitle,
   DocumentDropAction,
   ExampleResponseCard,
   FormChoiceGroup,
@@ -74,6 +81,7 @@ export type CopilotConfigureViewProps = {
   readonly uploadHref: string
   readonly preferencesHref: string
   readonly setup: CopilotSetup
+  readonly knowledgeBaseDocuments: readonly ContextDocumentRow[]
 }
 
 export type CopilotPreferencesViewProps = {
@@ -192,9 +200,27 @@ export function CopilotUploadView({ homeHref, configureHref, historyHref }: Copi
 const COPILOT_AI_SUGGESTION =
   ' Ask the interviewer how success is measured in the first 90 days, and be ready to walk through one metric you personally moved.'
 
-export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, setup }: CopilotConfigureViewProps) {
-  const [mode, setMode] = useState<CopilotMode>(setup.mode)
+export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, setup, knowledgeBaseDocuments }: CopilotConfigureViewProps) {
+  const mode = setup.mode
   const [additionalContext, setAdditionalContext] = useState(setup.additionalContext)
+  const [selectedDocIds, setSelectedDocIds] = useState<ReadonlySet<string>>(new Set())
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [draftDocIds, setDraftDocIds] = useState<ReadonlySet<string>>(new Set())
+  const selectedDocuments = knowledgeBaseDocuments.filter((doc) => selectedDocIds.has(doc.id))
+
+  function openDocumentPicker() {
+    setDraftDocIds(selectedDocIds)
+    setPickerOpen(true)
+  }
+
+  function toggleDraftDoc(id: string) {
+    setDraftDocIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   return (
     <Workspace>
@@ -206,7 +232,6 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
           uploadedFile={{ fileName: setup.uploadedFileName, changeHref: uploadHref }}
           footer={<FormPanelFooter backHref={uploadHref} nextHref={preferencesHref} />}
         >
-          <CopilotModeTabs mode={mode} onModeChange={setMode} />
           {mode === 'interview' ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <FormSelectField
@@ -266,7 +291,18 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
               <FormTextArea id="copilot-meeting-agenda" label="Agenda" defaultValue={setup.meetingAgenda ?? ''} />
             </div>
           )}
-          <DocumentDropAction actionHref="/v3/documents/add" />
+          <DocumentDropAction onTrigger={openDocumentPicker} hint="Add from Knowledge Base">
+            {selectedDocuments.length > 0 ? (
+              <span className="flex flex-wrap justify-center gap-2">
+                {selectedDocuments.map((doc) => (
+                  <span key={doc.id} className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface px-3 py-1 text-xs font-medium text-ink">
+                    <FileText aria-hidden="true" className="size-3.5 text-ink-muted" />
+                    {doc.name}
+                  </span>
+                ))}
+              </span>
+            ) : undefined}
+          </DocumentDropAction>
           <FormTextArea
             id="copilot-additional-context"
             label="Additional context"
@@ -276,6 +312,39 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
           <AiSuggestionAction onClick={() => setAdditionalContext((prev) => `${prev}${COPILOT_AI_SUGGESTION}`)} />
         </FormPanel>
       </section>
+
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogPopup aria-label="Add documents from Knowledge Base">
+          <DialogClose />
+          <DialogTitle>Add from Knowledge Base</DialogTitle>
+          <p className="mt-1 text-sm text-ink-muted">Select the documents you want Copilot to use as context for this session.</p>
+          <div className="mt-4 grid max-h-80 gap-1 overflow-y-auto">
+            {knowledgeBaseDocuments.length === 0 ? (
+              <p className="py-6 text-center text-sm text-ink-muted">No documents in your Knowledge Base yet.</p>
+            ) : (
+              knowledgeBaseDocuments.map((doc) => (
+                <label key={doc.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 hover:bg-surface-subtle">
+                  <Checkbox checked={draftDocIds.has(doc.id)} onCheckedChange={() => toggleDraftDoc(doc.id)} aria-label={doc.name} />
+                  <FileText aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{doc.name}</span>
+                  <span className="shrink-0 text-xs text-ink-muted">{doc.sizeOrUrl}</span>
+                </label>
+              ))
+            )}
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <Button variant="ghost" onClick={() => setPickerOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                setSelectedDocIds(draftDocIds)
+                setPickerOpen(false)
+              }}
+            >
+              Add Selected
+            </Button>
+          </div>
+        </DialogPopup>
+      </Dialog>
     </Workspace>
   )
 }
@@ -1296,6 +1365,9 @@ export function CopilotHistoryView({ homeHref, createHref, reportHref, rows }: C
             </nav>
             <DataTable
               searchLabel="Search copilot history"
+              selectable={false}
+              bare
+              className="mt-6"
               rows={filteredRows}
               itemLabel={(row) => row.title}
               onRowClick={(row) => { window.location.href = `${reportHref}?id=${row.id}` }}

@@ -2,7 +2,6 @@ import { AlertTriangle, Apple, Check, ChevronDown, Copy, ExternalLink, EyeOff, M
 import { useEffect, useState, type ReactNode } from 'react'
 
 import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile, TutorialItem } from '@/contracts/account.draft'
-import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import {
   Button,
   cn,
@@ -31,7 +30,6 @@ export type BillingViewProps = {
   readonly homeHref: string
   readonly plans: readonly BillingPlanCard[]
   readonly usageRows: readonly CreditUsageRow[]
-  readonly documentRows: readonly ContextDocumentRow[]
 }
 
 export type CreditHistoryViewProps = {
@@ -331,7 +329,43 @@ function AnnualToggle({ annual, onToggle }: { readonly annual: boolean; readonly
   )
 }
 
-export function BillingView({ homeHref, plans, documentRows }: BillingViewProps) {
+function CreditUsageTable({ rows }: { readonly rows: readonly CreditUsageRow[] }) {
+  return (
+    <TitledPanel title="How credits works">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[36rem] border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-border bg-surface-subtle text-ink-muted">
+              <th className="px-4 py-2.5 text-start font-semibold">Feature</th>
+              <th className="px-4 py-2.5 text-start font-semibold">What triggers it</th>
+              <th className="px-4 py-2.5 text-start font-semibold">Credits</th>
+            </tr>
+          </thead>
+          <tbody className="text-ink">
+            {rows.map((row) => (
+              <tr key={row.feature} className="border-b border-border">
+                <td className="px-4 py-2.5 font-medium leading-5">{row.feature}</td>
+                <td className="px-4 py-2.5 leading-5 text-ink-muted">{row.trigger}</td>
+                <td className="px-4 py-2.5 leading-5">
+                  <span
+                    className={cn(
+                      'rounded-pill px-2.5 py-0.5 text-xs font-bold leading-4',
+                      row.free ? 'bg-positive-surface text-positive' : 'bg-surface-subtle text-ink',
+                    )}
+                  >
+                    {row.deducted}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </TitledPanel>
+  )
+}
+
+export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
   const [annual, setAnnual] = useState(false)
   const currentPlan = plans.find((plan) => plan.current) ?? plans[0]
   const currentIndex = currentPlan ? plans.indexOf(currentPlan) : 0
@@ -377,23 +411,7 @@ export function BillingView({ homeHref, plans, documentRows }: BillingViewProps)
             </div>
           </TitledPanel>
 
-          <DataTable
-            title="How credits works"
-            rows={documentRows}
-            itemLabel={(row) => row.name}
-            minTableWidthClassName="min-w-[54rem]"
-            columns={[
-              { key: 'name', label: 'Name', className: 'w-[18rem]', render: (row) => <span className="font-medium">{row.name}</span> },
-              {
-                key: 'kind',
-                label: 'Type',
-                className: 'w-[9rem]',
-                render: (row) => <span className="rounded-pill bg-surface-subtle px-2.5 py-0.5 text-xs font-bold leading-4 text-ink">{row.kind}</span>,
-              },
-              { key: 'size-or-url', label: 'Size/URL', className: 'w-[14rem]', render: (row) => row.sizeOrUrl },
-              { key: 'added', label: 'Added', className: 'w-[18rem]', render: (row) => row.addedAtLabel },
-            ]}
-          />
+          <CreditUsageTable rows={usageRows} />
         </div>
       </ContentShell>
     </AppWorkspace>
@@ -505,6 +523,7 @@ export function CreditHistoryView({ homeHref, billingHref, rows }: CreditHistory
             title="Credit History"
             rows={rows}
             itemLabel={(row) => row.feature}
+            selectable={false}
             minTableWidthClassName="min-w-[54rem]"
             columns={[
               { key: 'feature', label: 'Feature', className: 'w-[14rem]', render: (row) => <span className="font-semibold">{row.feature}</span> },
@@ -727,6 +746,7 @@ function ReferralSettings({ referrals, activeTab }: { readonly referrals: readon
         searchLabel="Search referrals"
         rows={referrals}
         itemLabel={(row) => row.name}
+        selectable={false}
         columns={[
           { key: 'id', label: 'S/N', className: 'w-[6rem]', render: (row) => row.id },
           { key: 'name', label: 'Name', className: 'w-[14rem]', render: (row) => <span className="font-semibold">{row.name}</span> },
