@@ -30,7 +30,7 @@ export const StepIndicator = forwardRef<HTMLOListElement, StepIndicatorProps>(
         ref={ref}
         data-slot="step-indicator"
         className={cn(
-          'flex items-center gap-3',
+          'flex flex-wrap items-center gap-3',
           orientation === 'vertical' ? 'flex-col items-start' : '',
           className,
         )}

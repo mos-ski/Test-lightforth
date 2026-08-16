@@ -1,17 +1,10 @@
-import { createContext, forwardRef, useContext, type HTMLAttributes, type ReactNode } from 'react'
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react'
 import { Radio } from '@base-ui-components/react/radio'
+import { RadioGroup as BaseRadioGroup } from '@base-ui-components/react/radio-group'
 
 import { cn } from './cn'
 
-type RadioGroupContextValue = {
-  readonly value?: string
-  readonly onValueChange?: (value: string) => void
-  readonly name: string
-}
-
-const RadioGroupContext = createContext<RadioGroupContextValue>({ name: '' })
-
-export type RadioGroupProps = HTMLAttributes<HTMLDivElement> & {
+export type RadioGroupProps = Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> & {
   readonly value?: string
   readonly onValueChange?: (value: string) => void
   readonly label?: string
@@ -21,35 +14,35 @@ export type RadioGroupProps = HTMLAttributes<HTMLDivElement> & {
 
 export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
   function RadioGroup({ value, onValueChange, label, name, className, children, ...props }, ref) {
-    const groupName = name || 'radio-group'
     return (
-      <RadioGroupContext.Provider value={{ value, onValueChange, name: groupName }}>
-        <div ref={ref} data-slot="radio-group" role="radiogroup" className={cn('grid gap-2', className)} {...props}>
-          {label ? <span className="text-sm font-medium text-ink">{label}</span> : null}
-          {children}
-        </div>
-      </RadioGroupContext.Provider>
+      <BaseRadioGroup
+        ref={ref}
+        value={value}
+        onValueChange={(next) => onValueChange?.(next as string)}
+        name={name}
+        data-slot="radio-group"
+        aria-label={label}
+        className={cn('grid gap-2', className)}
+        {...props}
+      >
+        {label ? <span className="text-sm font-medium text-ink">{label}</span> : null}
+        {children}
+      </BaseRadioGroup>
     )
   },
 )
 
-export type RadioGroupItemProps = HTMLAttributes<HTMLButtonElement> & {
+export type RadioGroupItemProps = HTMLAttributes<HTMLSpanElement> & {
   readonly value: string
   readonly itemLabel?: string
 }
 
-export const RadioGroupItem = forwardRef<HTMLButtonElement, RadioGroupItemProps>(
+export const RadioGroupItem = forwardRef<HTMLElement, RadioGroupItemProps>(
   function RadioGroupItem({ value, itemLabel, className, ...props }, ref) {
-    const ctx = useContext(RadioGroupContext)
-    const checked = ctx.value === value
-
     const radioEl = (
       <Radio.Root
         ref={ref}
         value={value}
-        checked={checked}
-        onCheckedChange={() => ctx.onValueChange?.(value)}
-        name={ctx.name}
         data-slot="radio-group-item"
         className={cn(
           'relative grid size-4 shrink-0 place-items-center rounded-full border border-input bg-surface transition-colors duration-normal ease-default before:absolute before:-inset-3.5 before:content-[""] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface data-[checked]:border-accent disabled:cursor-not-allowed disabled:opacity-50',
