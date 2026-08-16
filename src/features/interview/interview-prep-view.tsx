@@ -70,9 +70,8 @@ export type InterviewCompleteViewProps = {
 
 export type InterviewPreparingReportViewProps = {
   readonly homeHref: string
-  readonly completeHref: string
-  readonly reportHref: string
   readonly steps: readonly InterviewReportStep[]
+  readonly onComplete?: () => void
 }
 
 export type InterviewHistoryViewProps = {
@@ -1096,35 +1095,83 @@ export function InterviewCompleteView({ homeHref, sessionHref, preparingReportHr
   )
 }
 
-export function InterviewPreparingReportView({ homeHref, completeHref, reportHref, steps }: InterviewPreparingReportViewProps) {
+export function InterviewPreparingReportView({ homeHref, steps, onComplete }: InterviewPreparingReportViewProps) {
+  type StepStatus = InterviewReportStep['status']
+  const [statusById, setStatusById] = useState<Record<string, StepStatus>>(() => {
+    const initial: Record<string, StepStatus> = {}
+    steps.forEach((step, index) => {
+      initial[step.id] = index === 0 ? 'active' : 'pending'
+    })
+    return initial
+  })
+  const [showSkeleton, setShowSkeleton] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+    async function run() {
+      for (let i = 0; i < steps.length; i++) {
+        await wait(900)
+        if (cancelled) return
+        setStatusById((prev) => {
+          const next = { ...prev, [steps[i].id]: 'complete' as StepStatus }
+          const upcoming = steps[i + 1]
+          if (upcoming) next[upcoming.id] = 'active'
+          return next
+        })
+      }
+      await wait(400)
+      if (cancelled) return
+      setShowSkeleton(true)
+      await wait(1600)
+      if (cancelled) return
+      onComplete?.()
+    }
+
+    void run()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <Workspace>
       <InterviewHeader homeHref={homeHref} current="Interview Prep" />
       <section className="px-4 py-12">
-        <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
+        <div className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
           <div className="flex items-center justify-center gap-2 border-b border-border px-8 py-8">
             <h1 className="text-xl font-medium">Preparing your coaching report...</h1>
             <span className="text-sm text-ink-muted">1/2</span>
           </div>
           <div className="grid gap-4 p-8">
             <div className="grid gap-4">
-              {steps.map((step) => (
-                <div key={step.id} className="flex items-center gap-3">
-                  <span className={cn('grid size-8 place-items-center rounded-full', step.status === 'complete' ? 'bg-positive text-on-accent' : step.status === 'active' ? 'bg-accent-subtle text-accent-text' : 'bg-surface-subtle text-ink-muted')}>
-                    {step.status === 'complete' ? <Check aria-hidden="true" className="size-4" /> : <span className={cn('size-2.5 rounded-full', step.status === 'active' ? 'bg-accent' : 'bg-muted')} />}
-                  </span>
-                  <span className="text-sm font-semibold">{step.label}</span>
-                </div>
-              ))}
+              {steps.map((step) => {
+                const status = statusById[step.id] ?? step.status
+                return (
+                  <div key={step.id} className="flex items-center gap-3">
+                    <span className={cn('grid size-8 place-items-center rounded-full transition-colors duration-normal ease-default', status === 'complete' ? 'bg-positive text-on-accent' : status === 'active' ? 'bg-accent-subtle text-accent-text' : 'bg-surface-subtle text-ink-muted')}>
+                      {status === 'complete' ? (
+                        <Check aria-hidden="true" className="size-4" />
+                      ) : (
+                        <span className={cn('size-2.5 rounded-full', status === 'active' ? 'bg-accent animate-pulse motion-reduce:animate-none' : 'bg-muted')} />
+                      )}
+                    </span>
+                    <span className={cn('text-sm font-semibold transition-colors duration-normal ease-default', status === 'pending' && 'text-ink-muted')}>{step.label}</span>
+                  </div>
+                )
+              })}
             </div>
-            <div className="mt-2 grid gap-3">
-              <div className="h-20 rounded-panel bg-surface-subtle" />
-              <div className="h-28 rounded-panel bg-surface-subtle" />
-              <div className="h-16 rounded-panel bg-surface-subtle" />
-            </div>
+            {showSkeleton ? (
+              <div className="mt-2 grid gap-3" role="status" aria-label="Loading your coaching report">
+                <div className="h-20 animate-pulse rounded-panel bg-surface-subtle motion-reduce:animate-none" />
+                <div className="h-28 animate-pulse rounded-panel bg-surface-subtle motion-reduce:animate-none" />
+                <div className="h-16 animate-pulse rounded-panel bg-surface-subtle motion-reduce:animate-none" />
+              </div>
+            ) : null}
           </div>
-          <FooterActions backHref={completeHref} continueHref={reportHref} continueLabel="Continue" />
-        </form>
+        </div>
       </section>
     </Workspace>
   )
