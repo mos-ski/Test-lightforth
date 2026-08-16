@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, FileText, Pause, Play, Plus, Send, Settings, Users, Video, X } from 'lucide-react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import { ArrowLeft, ArrowUpDown, ChevronDown, ChevronRight, ChevronUp, Code2, FileText, MessageCircle, Pause, PhoneOff, Play, Plus, Send, Settings, Users, Video, X } from 'lucide-react'
 
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
@@ -18,6 +18,7 @@ import type {
 } from '@/contracts/copilot.draft'
 import {
   AiSuggestionAction,
+  Avatar,
   Badge,
   Button,
   Checkbox,
@@ -438,6 +439,231 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
         </FormPanel>
       </section>
     </Workspace>
+  )
+}
+
+function DraggableAvatar({ name }: { readonly name: string }) {
+  const ref = useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = useState<{ readonly x: number; readonly y: number } | null>(null)
+  const dragState = useRef<{ readonly startX: number; readonly startY: number; readonly originX: number; readonly originY: number } | null>(null)
+  const draggedRef = useRef(false)
+
+  useEffect(() => {
+    function handleMove(event: PointerEvent) {
+      if (!dragState.current || !ref.current) return
+      draggedRef.current = true
+      const { startX, startY, originX, originY } = dragState.current
+      const size = ref.current.offsetWidth
+      const maxX = window.innerWidth - size - 12
+      const maxY = window.innerHeight - size - 12
+      const nextX = Math.min(Math.max(originX + (event.clientX - startX), 12), Math.max(maxX, 12))
+      const nextY = Math.min(Math.max(originY + (event.clientY - startY), 12), Math.max(maxY, 12))
+      setPos({ x: nextX, y: nextY })
+    }
+    function handleUp() {
+      dragState.current = null
+    }
+    window.addEventListener('pointermove', handleMove)
+    window.addEventListener('pointerup', handleUp)
+    return () => {
+      window.removeEventListener('pointermove', handleMove)
+      window.removeEventListener('pointerup', handleUp)
+    }
+  }, [])
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (!ref.current) return
+    draggedRef.current = false
+    const rect = ref.current.getBoundingClientRect()
+    dragState.current = { startX: event.clientX, startY: event.clientY, originX: rect.left, originY: rect.top }
+  }
+
+  return (
+    <button
+      ref={ref}
+      type="button"
+      aria-label={`${name} camera preview, drag to reposition`}
+      onPointerDown={handlePointerDown}
+      onClick={(event) => {
+        if (draggedRef.current) event.preventDefault()
+      }}
+      className="fixed z-20 size-24 cursor-grab touch-none rounded-full shadow-xl ring-2 ring-white/40 transition-shadow active:cursor-grabbing active:shadow-2xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus"
+      style={pos ? { left: pos.x, top: pos.y } : { top: '5.5rem', right: '1rem' }}
+    >
+      <Avatar name={name} size="xl" className="size-full text-2xl" />
+    </button>
+  )
+}
+
+function CopilotLiveSettingsModal({
+  settingsTab,
+  setSettingsTab,
+  autoScroll,
+  setAutoScroll,
+  scrollSpeed,
+  setScrollSpeed,
+  fontSize,
+  setFontSize,
+  responseMode,
+  setResponseMode,
+  sessionTitle,
+  onClose,
+}: {
+  readonly settingsTab: 'live' | 'session'
+  readonly setSettingsTab: (tab: 'live' | 'session') => void
+  readonly autoScroll: boolean
+  readonly setAutoScroll: (value: boolean) => void
+  readonly scrollSpeed: number
+  readonly setScrollSpeed: (value: number) => void
+  readonly fontSize: number
+  readonly setFontSize: (value: number) => void
+  readonly responseMode: 'auto' | 'manual'
+  readonly setResponseMode: (mode: 'auto' | 'manual') => void
+  readonly sessionTitle: string
+  readonly onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#1a2332] text-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+          <h2 className="text-lg font-semibold">Settings</h2>
+          <button type="button" onClick={onClose} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30" aria-label="Close settings">
+            <X aria-hidden="true" className="size-5" />
+          </button>
+        </div>
+        <div className="flex min-h-[28rem] flex-col sm:flex-row">
+          <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-white/10 p-4 sm:w-44 sm:flex-col sm:gap-0 sm:border-b-0 sm:border-r">
+            <button
+              type="button"
+              onClick={() => setSettingsTab('live')}
+              className={cn(
+                'shrink-0 rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-colors sm:w-full',
+                settingsTab === 'live' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white',
+              )}
+            >
+              Live Controls
+            </button>
+            <button
+              type="button"
+              onClick={() => setSettingsTab('session')}
+              className={cn(
+                'shrink-0 rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-colors sm:mt-1 sm:w-full',
+                settingsTab === 'session' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white',
+              )}
+            >
+              Session
+            </button>
+          </nav>
+          <div className="flex-1 p-6">
+            {settingsTab === 'live' ? (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">Auto-scroll</p>
+                    <p className="mt-0.5 text-xs text-slate-400">Follows the latest answer; scroll up to pause</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={autoScroll}
+                    onClick={() => setAutoScroll(!autoScroll)}
+                    className={cn('relative flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition-colors', autoScroll ? 'bg-green-500' : 'bg-white/20')}
+                  >
+                    <span className={cn('block h-5 w-5 rounded-full bg-white shadow transition-transform', autoScroll ? 'translate-x-5' : 'translate-x-0')} />
+                  </button>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">Auto-scroll speed</p>
+                    <span className="text-sm text-slate-400">{scrollSpeed}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={5}
+                    value={scrollSpeed}
+                    onChange={(e) => setScrollSpeed(Number(e.target.value))}
+                    className="mt-2 w-full accent-[#3b82f6]"
+                  />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold">Font size</p>
+                    <span className="text-sm text-slate-400">{fontSize}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={12}
+                    max={20}
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="mt-2 w-full accent-[#3b82f6]"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Response</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="flex rounded-lg border border-white/20">
+                      <button
+                        type="button"
+                        onClick={() => setResponseMode('auto')}
+                        className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', responseMode === 'auto' ? 'bg-[#3b82f6] text-white' : 'text-slate-400 hover:text-white')}
+                      >
+                        Auto
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setResponseMode('manual')}
+                        className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', responseMode === 'manual' ? 'bg-[#3b82f6] text-white' : 'text-slate-400 hover:text-white')}
+                      >
+                        Manual
+                      </button>
+                    </div>
+                    <span className="text-xs text-slate-400">{responseMode === 'auto' ? 'Answers automatically' : 'Press Space to answer'}</span>
+                  </div>
+                </div>
+                {responseMode === 'manual' ? (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold">Response key</p>
+                      <p className="mt-0.5 text-xs text-slate-400">Press this key to get an answer</p>
+                    </div>
+                    <span className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium">Space</span>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-400">Role</span>
+                  <span className="text-sm font-semibold">{sessionTitle}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-400">Resume</span>
+                  <span className="text-sm font-semibold">Lightforth Resume</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-400">Skip setup</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={false}
+                    className="relative flex h-6 w-11 shrink-0 items-center rounded-full bg-white/20 px-0.5 transition-colors"
+                  >
+                    <span className="block h-5 w-5 rounded-full bg-white shadow translate-x-0 transition-transform" />
+                  </button>
+                </div>
+                <div className="border-t border-white/10 pt-4">
+                  <button type="button" className="w-full rounded-lg border border-white/20 px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
+                    Reset — show setup next time
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -1084,6 +1310,15 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
   const [fontSize, setFontSize] = useState(14)
   const [responseMode, setResponseMode] = useState<'auto' | 'manual'>('manual')
   const [activityLabel, setActivityLabel] = useState(session.activityLabel)
+  const [showChat, setShowChat] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1279px)')
+    const handler = (event: MediaQueryListEvent) => setIsMobile(event.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   if (isLoading) {
     return <CopilotLiveLoadingView />
@@ -1097,6 +1332,108 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
     setDraft('')
     const aiMsg: AiAssistantMessage = { id: `aam-${Date.now()}-ai`, role: 'assistant', text: copilotResponseFor(trimmed) }
     setAssistantMessages((prev) => [...prev, aiMsg])
+  }
+
+  if (isMobile) {
+    return (
+      <main className="min-h-screen bg-black text-white">
+        <div className="fixed inset-0 z-0">
+          {session.mode === 'coding' ? (
+            <div className="size-full bg-gradient-to-b from-[#0b1220] to-black" />
+          ) : (
+            <>
+              <img src={session.screenPreviewSrc} alt="" className="size-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/80" />
+            </>
+          )}
+        </div>
+
+        <div className="fixed inset-x-0 top-0 z-20 flex items-center justify-between gap-3 bg-gradient-to-b from-black/70 to-transparent px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
+          <a href={completeHref} aria-label="Back from live copilot" className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 text-white backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
+            <ArrowLeft aria-hidden="true" className="size-4" />
+          </a>
+          <div className="min-w-0 text-center">
+            <p className="truncate text-sm font-semibold leading-5">{session.title}</p>
+            <p className="text-xs leading-4 text-white/70">{session.timer} · {activityLabel}</p>
+          </div>
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 backdrop-blur-sm" aria-hidden="true">
+            <LiveSignal label={session.signalLabel} />
+          </span>
+        </div>
+
+        {session.mode === 'interview' ? <DraggableAvatar name="You" /> : null}
+
+        <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-center gap-6 bg-gradient-to-t from-black/80 to-transparent px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-10">
+          <button
+            type="button"
+            onClick={() => setShowSettings(true)}
+            aria-label="Session settings"
+            className="grid size-14 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            <Settings aria-hidden="true" className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowChat(true)}
+            aria-label="Open chat"
+            className="grid size-14 place-items-center rounded-full bg-white/15 text-white backdrop-blur-md transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            <MessageCircle aria-hidden="true" className="size-5" />
+          </button>
+          <a
+            href={completeHref}
+            aria-label="End session"
+            className="grid size-14 place-items-center rounded-full bg-danger text-on-danger shadow-lg transition-colors hover:bg-danger/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            <PhoneOff aria-hidden="true" className="size-5" />
+          </a>
+        </div>
+
+        <div
+          className={cn('fixed inset-0 z-30 bg-black/60 transition-opacity duration-normal ease-default', showChat ? 'opacity-100' : 'pointer-events-none opacity-0')}
+          onClick={() => setShowChat(false)}
+          aria-hidden="true"
+        />
+        <div
+          className={cn(
+            'fixed inset-x-0 bottom-0 z-40 flex max-h-[75vh] flex-col rounded-t-panel border-t border-[var(--lf-live-border)] bg-[var(--lf-live-panel)] text-brand-bar-text shadow-2xl transition-transform duration-normal ease-default',
+            showChat ? 'translate-y-0' : 'translate-y-full',
+          )}
+          aria-hidden={!showChat}
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-[var(--lf-live-border)] px-5 py-4">
+            <h2 className="text-base font-semibold">Chat</h2>
+            <button type="button" onClick={() => setShowChat(false)} aria-label="Close chat" className="grid size-8 place-items-center rounded-soft text-ink-muted hover:text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <X aria-hidden="true" className="size-4" />
+            </button>
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            {session.mode === 'coding' ? (
+              <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} />
+            ) : (
+              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} />
+            )}
+          </div>
+        </div>
+
+        {showSettings ? (
+          <CopilotLiveSettingsModal
+            settingsTab={settingsTab}
+            setSettingsTab={setSettingsTab}
+            autoScroll={autoScroll}
+            setAutoScroll={setAutoScroll}
+            scrollSpeed={scrollSpeed}
+            setScrollSpeed={setScrollSpeed}
+            fontSize={fontSize}
+            setFontSize={setFontSize}
+            responseMode={responseMode}
+            setResponseMode={setResponseMode}
+            sessionTitle={session.title}
+            onClose={() => setShowSettings(false)}
+          />
+        ) : null}
+      </main>
+    )
   }
 
   return (
@@ -1221,147 +1558,20 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
       </section>
 
       {showSettings ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setShowSettings(false)}>
-          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#1a2332] text-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-              <h2 className="text-lg font-semibold">Settings</h2>
-              <button type="button" onClick={() => setShowSettings(false)} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30" aria-label="Close settings">
-                <X aria-hidden="true" className="size-5" />
-              </button>
-            </div>
-            <div className="flex min-h-[28rem]">
-              <nav className="w-44 shrink-0 border-r border-white/10 p-4">
-                <button
-                  type="button"
-                  onClick={() => setSettingsTab('live')}
-                  className={cn(
-                    'w-full rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-colors',
-                    settingsTab === 'live' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white',
-                  )}
-                >
-                  Live Controls
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSettingsTab('session')}
-                  className={cn(
-                    'mt-1 w-full rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-colors',
-                    settingsTab === 'session' ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white',
-                  )}
-                >
-                  Session
-                </button>
-              </nav>
-              <div className="flex-1 p-6">
-                {settingsTab === 'live' ? (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold">Auto-scroll</p>
-                        <p className="mt-0.5 text-xs text-slate-400">Follows the latest answer; scroll up to pause</p>
-                      </div>
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={autoScroll}
-                        onClick={() => setAutoScroll(!autoScroll)}
-                        className={cn('relative flex h-6 w-11 shrink-0 items-center rounded-full px-0.5 transition-colors', autoScroll ? 'bg-green-500' : 'bg-white/20')}
-                      >
-                        <span className={cn('block h-5 w-5 rounded-full bg-white shadow transition-transform', autoScroll ? 'translate-x-5' : 'translate-x-0')} />
-                      </button>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold">Auto-scroll speed</p>
-                        <span className="text-sm text-slate-400">{scrollSpeed}</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={1}
-                        max={5}
-                        value={scrollSpeed}
-                        onChange={(e) => setScrollSpeed(Number(e.target.value))}
-                        className="mt-2 w-full accent-[#3b82f6]"
-                      />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold">Font size</p>
-                        <span className="text-sm text-slate-400">{fontSize}</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={12}
-                        max={20}
-                        value={fontSize}
-                        onChange={(e) => setFontSize(Number(e.target.value))}
-                        className="mt-2 w-full accent-[#3b82f6]"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">Response</p>
-                      <div className="mt-2 flex items-center gap-3">
-                        <div className="flex rounded-lg border border-white/20">
-                          <button
-                            type="button"
-                            onClick={() => setResponseMode('auto')}
-                            className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', responseMode === 'auto' ? 'bg-[#3b82f6] text-white' : 'text-slate-400 hover:text-white')}
-                          >
-                            Auto
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setResponseMode('manual')}
-                            className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', responseMode === 'manual' ? 'bg-[#3b82f6] text-white' : 'text-slate-400 hover:text-white')}
-                          >
-                            Manual
-                          </button>
-                        </div>
-                        <span className="text-xs text-slate-400">{responseMode === 'auto' ? 'Answers automatically' : 'Press Space to answer'}</span>
-                      </div>
-                    </div>
-                    {responseMode === 'manual' ? (
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold">Response key</p>
-                          <p className="mt-0.5 text-xs text-slate-400">Press this key to get an answer</p>
-                        </div>
-                        <span className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium">Space</span>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="space-y-5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-400">Role</span>
-                      <span className="text-sm font-semibold">{session.title}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-400">Resume</span>
-                      <span className="text-sm font-semibold">Lightforth Resume</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-slate-400">Skip setup</span>
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={false}
-                        className="relative flex h-6 w-11 shrink-0 items-center rounded-full bg-white/20 px-0.5 transition-colors"
-                      >
-                        <span className="block h-5 w-5 rounded-full bg-white shadow translate-x-0 transition-transform" />
-                      </button>
-                    </div>
-                    <div className="border-t border-white/10 pt-4">
-                      <button type="button" className="w-full rounded-lg border border-white/20 px-4 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30">
-                        Reset — show setup next time
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <CopilotLiveSettingsModal
+          settingsTab={settingsTab}
+          setSettingsTab={setSettingsTab}
+          autoScroll={autoScroll}
+          setAutoScroll={setAutoScroll}
+          scrollSpeed={scrollSpeed}
+          setScrollSpeed={setScrollSpeed}
+          fontSize={fontSize}
+          setFontSize={setFontSize}
+          responseMode={responseMode}
+          setResponseMode={setResponseMode}
+          sessionTitle={session.title}
+          onClose={() => setShowSettings(false)}
+        />
       ) : null}
     </main>
   )
