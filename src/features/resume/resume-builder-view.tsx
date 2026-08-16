@@ -2,12 +2,13 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Check, ChevronDown, ChevronRight, Minus, Plus, Search, Send, Sparkles, Target, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
-import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, ShellBar, SourcePicker } from '@/ui'
+import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker } from '@/ui'
 
 export type ResumeUploadViewProps = {
   readonly homeHref: string
   readonly configureHref: string
   readonly historyHref: string
+  readonly savedResumes: readonly ResumeHistoryRow[]
 }
 
 export type ResumeConfigureViewProps = {
@@ -40,6 +41,8 @@ const sectionLabels: Record<ResumeSectionId, string> = {
   education: 'Education',
   skills: 'Skills',
   certifications: 'Certifications',
+  projects: 'Projects',
+  languages: 'Languages',
 }
 
 function BuilderHeader({
@@ -81,6 +84,14 @@ function Workspace({ children }: { readonly children: ReactNode }) {
 
 function PaperShell({ children, compact = false }: { readonly children: ReactNode; readonly compact?: boolean }) {
   return (
+    <article className={cn('mx-auto min-h-[56rem] w-full bg-surface p-8 shadow-panel', compact ? 'max-w-3xl' : 'max-w-[44rem]')} aria-label="Resume preview">
+      {children}
+    </article>
+  )
+}
+
+function ResumePaper({ children, compact = false }: { readonly children: ReactNode; readonly compact?: boolean }) {
+  return (
     <article
       className={cn(
         'mx-auto aspect-[8.5/11] w-full overflow-y-auto bg-paper p-10 font-serif text-paper-ink shadow-xl ring-1 ring-paper-ink/10',
@@ -95,14 +106,16 @@ function PaperShell({ children, compact = false }: { readonly children: ReactNod
 
 function AiSuggestionLabel() {
   return (
-    <span className="inline-flex items-center gap-1 text-sm font-semibold text-accent-text">
-      <Sparkles aria-hidden="true" className="size-4" />
-      AI Suggestion
+    <span className="inline-flex items-center gap-1.5 text-sm font-bold">
+      <LightforthAiIcon className="size-3.5 shrink-0" />
+      <span className="bg-gradient-to-r from-accent to-accent-tertiary bg-clip-text text-transparent">AI Suggestion</span>
     </span>
   )
 }
 
-export function ResumeUploadView({ homeHref, configureHref, historyHref }: ResumeUploadViewProps) {
+export function ResumeUploadView({ homeHref, configureHref, historyHref, savedResumes }: ResumeUploadViewProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+
   return (
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="Build a Resume" />
@@ -110,17 +123,27 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref }: Resum
         <PaperShell>
           <SourcePicker
             title="Upload a resume"
-            actionLabel="Click to upload"
-            idleText="or drag and drop"
-            meta="PDF, DOC, DOCX or TXT"
             options={[
-              { label: 'Upload a Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-upload.svg' },
-              { label: 'Use Lightforth Resume', href: configureHref, iconSrc: '/v3-assets/figma/upload-option-lightforth.svg', emphasis: 'strong' },
+              { label: 'Upload a Resume', hint: 'PDF, DOC, DOCX or TXT', href: configureHref },
+              { label: 'Use Lightforth Resume', icon: <LightforthAiIcon className="size-5" />, emphasis: 'strong', onClick: () => setPickerOpen(true) },
             ]}
             historyLink={{ label: 'View past resumes', href: historyHref }}
           />
         </PaperShell>
       </section>
+
+      <ListPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        title="Use a Lightforth Resume"
+        description="Pick a resume from your history to continue with."
+        items={savedResumes.map((resume) => ({ id: resume.id, title: resume.title, subtitle: resume.company, meta: `ATS ${resume.atsScore}` }))}
+        emptyLabel="No saved resumes yet. Upload one to get started."
+        icon={<LightforthAiIcon className="size-4" />}
+        onSelect={() => {
+          window.location.href = configureHref
+        }}
+      />
     </Workspace>
   )
 }
@@ -342,6 +365,15 @@ const sectionFields: Record<ResumeSectionId, readonly { readonly id: string; rea
     { id: 'cert-name', label: 'Certification', placeholder: 'AWS Certified Cloud Practitioner' },
     { id: 'cert-issuer', label: 'Issuing Organization', placeholder: 'Amazon Web Services' },
   ],
+  projects: [
+    { id: 'project-name', label: 'Project Name', placeholder: 'AI Career Platform' },
+    { id: 'project-description', label: 'Description', placeholder: 'Brief overview of the project, your role, and measurable outcomes...', multiline: true },
+    { id: 'project-year', label: 'Year', placeholder: '2024' },
+  ],
+  languages: [
+    { id: 'language', label: 'Language', placeholder: 'English' },
+    { id: 'proficiency', label: 'Proficiency', placeholder: 'Native / Fluent / Conversational' },
+  ],
 }
 
 function SectionEditor({ session }: { readonly session: ResumeBuilderSession }) {
@@ -399,7 +431,7 @@ function SectionEditor({ session }: { readonly session: ResumeBuilderSession }) 
       <div className="absolute end-3 top-20 z-10 w-64 rounded-lg border border-accent bg-surface shadow-panel">
         <div className="flex items-center justify-between rounded-t-lg bg-brand-bar px-3 py-2 text-brand-bar-text">
           <span className="inline-flex items-center gap-2 text-xs font-semibold">
-            <Sparkles aria-hidden="true" className="size-3" />
+            <LightforthAiIcon className="size-3 shrink-0" />
             Light AI
           </span>
           <button type="button" aria-label="Close AI suggestion" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
@@ -465,7 +497,7 @@ function ClassicResume({
   readonly highlightChanges: boolean
 }) {
   return (
-    <PaperShell>
+    <ResumePaper>
       <header className="border-b border-paper-ink pb-4 text-center">
         <h1 className="text-3xl font-bold tracking-wide">{document.candidateName}</h1>
         <p className="mt-2 text-xs text-paper-muted">
@@ -522,13 +554,38 @@ function ClassicResume({
           </div>
         ))}
       </section>
-    </PaperShell>
+      <section className="mt-5">
+        <h2 className="border-b border-paper-ink pb-1 text-sm font-bold uppercase tracking-wide">Projects</h2>
+        <div className="grid gap-4 pt-3">
+          {document.projects.map((project) => (
+            <article key={project.name}>
+              <div className="flex items-start justify-between gap-4 text-xs">
+                <h3 className="font-bold">{project.name}</h3>
+                <p className="shrink-0 text-end text-paper-muted">{project.year}</p>
+              </div>
+              <p className="mt-1 text-xs leading-5 text-paper-ink">{project.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="mt-5">
+        <h2 className="border-b border-paper-ink pb-1 text-sm font-bold uppercase tracking-wide">Languages</h2>
+        <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
+          {document.languages.map((item) => (
+            <div key={item.language} className="flex justify-between gap-2">
+              <span className="font-medium">{item.language}</span>
+              <span className="text-paper-muted">{item.proficiency}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </ResumePaper>
   )
 }
 
 function ExecutiveResume({ document }: { readonly document: ResumeDocument }) {
   return (
-    <PaperShell compact>
+    <ResumePaper compact>
       <header className="pb-4">
         <h1 className="text-2xl font-bold tracking-wide">{document.candidateName}</h1>
         <p className="mt-2 text-xs text-paper-muted">{document.email} | {document.location} | {document.linkedinUrl} | {document.portfolioUrl}</p>
@@ -540,6 +597,8 @@ function ExecutiveResume({ document }: { readonly document: ResumeDocument }) {
           ['Education', `${document.education[0]?.school ?? ''} - ${document.education[0]?.degree ?? ''}`],
           ['Skills', document.skills.join(' · ')],
           ['Certifications', document.certifications.map((item) => `${item.name}, ${item.issuer}`).join(' · ')],
+          ['Projects', document.projects.map((item) => `${item.name} (${item.year})`).join(' · ')],
+          ['Languages', document.languages.map((item) => `${item.language}: ${item.proficiency}`).join(' · ')],
         ].map(([title, body]) => (
           <section key={title} className="grid grid-cols-[1rem_1fr] gap-3">
             <span className="mt-1 size-2 rounded-soft border border-paper-ink" />
@@ -550,7 +609,7 @@ function ExecutiveResume({ document }: { readonly document: ResumeDocument }) {
           </section>
         ))}
       </div>
-    </PaperShell>
+    </ResumePaper>
   )
 }
 

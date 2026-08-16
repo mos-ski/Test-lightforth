@@ -82,7 +82,10 @@ export const resumeDocument: ResumeDocument = {
       ],
     },
   ],
-  education: [{ school: 'University of Ilorin', degree: 'BSc Agriculture', year: '2019' }],
+  education: [
+    { school: 'University of Ilorin', degree: 'BSc Agriculture', year: '2019' },
+    { school: 'Lagos Business School', degree: 'Certificate in Entrepreneurship & Innovation', year: '2021' },
+  ],
   skills: [
     'Product Strategy & Vision',
     'Market Expansion',
@@ -103,7 +106,37 @@ export const resumeDocument: ResumeDocument = {
     'Jira & Project Management Tools',
     'Figma & Design Tools',
   ],
-  certifications: [{ name: 'Product Management Professional (PMP) Certification', issuer: 'Udemy', year: '2024' }],
+  certifications: [
+    { name: 'Product Management Professional (PMP) Certification', issuer: 'Udemy', year: '2024' },
+    { name: 'Certified Scrum Product Owner (CSPO)', issuer: 'Scrum Alliance', year: '2023' },
+    { name: 'Google Data Analytics Professional Certificate', issuer: 'Coursera', year: '2022' },
+    { name: 'AWS Certified Cloud Practitioner', issuer: 'Amazon Web Services', year: '2021' },
+  ],
+  projects: [
+    {
+      name: 'Lightforth AI Career Platform',
+      description:
+        'Product-led design and launch of an AI-powered career platform combining resume building, interview preparation, and a real-time interview copilot. Grew the beta community to 5,000+ users, achieved a 4.6/5 user satisfaction score, and established the foundation for a freemium monetization model.',
+      year: '2024',
+    },
+    {
+      name: 'DeeXoptions Merchant Ecosystem',
+      description:
+        'End-to-end delivery of a payment and merchant-services ecosystem including wallet, POS integration, merchant analytics dashboard, and developer APIs. Scaled monthly transaction volume to a $150k-$200k run rate while expanding banking partner coverage from 3 to 12 institutions.',
+      year: '2023',
+    },
+    {
+      name: 'NexaPay Mobile Wallet MVP',
+      description:
+        'Launched a mobile wallet MVP with peer-to-peer transfers, savings goals, and budgeting features, acquiring 10,000+ users in the first 6 months and laying the groundwork for the company\'s fintech product roadmap.',
+      year: '2021',
+    },
+  ],
+  languages: [
+    { language: 'English', proficiency: 'Native' },
+    { language: 'Yoruba', proficiency: 'Native' },
+    { language: 'French', proficiency: 'Professional working proficiency' },
+  ],
 }
 
 export const resumeBuilderSession: ResumeBuilderSession = {

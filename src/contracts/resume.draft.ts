@@ -17,6 +17,8 @@ export type ResumeSectionId =
   | 'education'
   | 'skills'
   | 'certifications'
+  | 'projects'
+  | 'languages'
 
 export type ResumeDocument = {
   readonly id: string
@@ -33,6 +35,19 @@ export type ResumeDocument = {
   readonly education: readonly ResumeEducation[]
   readonly skills: readonly string[]
   readonly certifications: readonly ResumeCertification[]
+  readonly projects: readonly ResumeProject[]
+  readonly languages: readonly ResumeLanguage[]
+}
+
+export type ResumeProject = {
+  readonly name: string
+  readonly description: string
+  readonly year: string
+}
+
+export type ResumeLanguage = {
+  readonly language: string
+  readonly proficiency: string
 }
 
 export type ResumeRole = {
