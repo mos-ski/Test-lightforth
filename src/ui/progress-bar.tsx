@@ -1,38 +1,77 @@
-import { forwardRef, type HTMLAttributes, type ReactNode } from 'react'
+import { forwardRef, type HTMLAttributes } from 'react'
 
 import { cn } from './cn'
 
-export type ProgressBarProps = HTMLAttributes<HTMLDivElement> & {
-  readonly value: number
+export type ProgressSize = 'sm' | 'md' | 'lg'
+
+export type ProgressProps = HTMLAttributes<HTMLDivElement> & {
+  readonly value?: number
   readonly max?: number
+  readonly size?: ProgressSize
+  readonly color?: 'accent' | 'positive' | 'warning' | 'danger'
   readonly label?: string
   readonly showValue?: boolean
-  readonly color?: 'accent' | 'positive' | 'warning' | 'danger'
+  readonly indeterminate?: boolean
 }
 
-const colorClasses: Record<string, string> = {
+const sizeStyles: Record<ProgressSize, string> = {
+  sm: 'h-1',
+  md: 'h-2',
+  lg: 'h-3',
+}
+
+const colorStyles: Record<string, string> = {
   accent: 'bg-accent',
   positive: 'bg-positive',
   warning: 'bg-warning',
   danger: 'bg-danger',
 }
 
-export const ProgressBar = forwardRef<HTMLDivElement, ProgressBarProps>(
-  function ProgressBar({ value, max = 100, label, showValue = false, color = 'accent', className, ...props }, ref) {
-    const percent = Math.min(100, Math.max(0, (value / max) * 100))
+export const ProgressBar = forwardRef<HTMLDivElement, ProgressProps>(
+  function ProgressBar(
+    {
+      className,
+      value = 0,
+      max = 100,
+      size = 'md',
+      color = 'accent',
+      label,
+      showValue = false,
+      indeterminate = false,
+      ...props
+    },
+    ref,
+  ) {
+    const percentage = Math.min(Math.max((value / max) * 100, 0), 100)
 
     return (
-      <div ref={ref} data-slot="progress-bar" className="grid gap-1" {...props}>
+      <div ref={ref} data-slot="progress" className={cn('flex flex-col gap-1.5', className)} {...props}>
         {(label || showValue) && (
-          <div className="flex items-center justify-between text-sm">
-            {label ? <span className="font-medium text-ink">{label}</span> : null}
-            {showValue ? <span className="text-ink-muted">{Math.round(percent)}%</span> : null}
+          <div className="flex items-center justify-between">
+            {label && <span className="text-sm font-medium text-ink">{label}</span>}
+            {showValue && (
+              <span className="text-sm text-ink-muted">{Math.round(percentage)}%</span>
+            )}
           </div>
         )}
-        <div className="h-2 overflow-hidden rounded-pill bg-surface-subtle">
+        <div
+          role="progressbar"
+          aria-valuenow={value}
+          aria-valuemin={0}
+          aria-valuemax={max}
+          aria-label={label}
+          className={cn(
+            'w-full overflow-hidden rounded-full bg-muted',
+            sizeStyles[size],
+          )}
+        >
           <div
-            className={cn('h-full rounded-pill transition-all duration-normal ease-default', colorClasses[color])}
-            style={{ inlineSize: `${percent}%` }}
+            className={cn(
+              'h-full rounded-full transition-all duration-normal ease-default',
+              colorStyles[color],
+              indeterminate && 'w-full animate-indeterminate',
+            )}
+            style={indeterminate ? undefined : { width: `${percentage}%` }}
           />
         </div>
       </div>

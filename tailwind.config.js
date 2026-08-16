@@ -124,6 +124,26 @@ const config: Config = {
         normal: 'var(--lf-tracking-normal)',
         wide: 'var(--lf-tracking-wide)',
       },
+      keyframes: {
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
+        indeterminate: {
+          '0%': { transform: 'translateX(-100%)' },
+          '50%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+      animation: {
+        'accordion-down': 'accordion-down 200ms ease-out',
+        'accordion-up': 'accordion-up 200ms ease-out',
+        indeterminate: 'indeterminate 1.5s ease-in-out infinite',
+      },
       transitionDuration: {
         fast: 'var(--lf-duration-fast)',
         normal: 'var(--lf-duration-normal)',
