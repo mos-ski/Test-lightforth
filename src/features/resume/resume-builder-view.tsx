@@ -337,7 +337,11 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
               </label>
               <button
                 type="button"
-                onClick={() => setShowTip(true)}
+                onClick={() => {
+                  setShowTip(true)
+                  setJobDescription('')
+                  type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
+                }}
                 aria-label="Show help tooltip"
                 className="inline-flex items-center justify-center rounded-full p-0.5 text-muted transition-colors hover:bg-accent-subtle hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
               >
