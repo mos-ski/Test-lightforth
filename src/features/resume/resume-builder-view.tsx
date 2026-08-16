@@ -339,9 +339,9 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
                 type="button"
                 onClick={() => setShowTip(true)}
                 aria-label="Show help tooltip"
-                className="inline-flex size-4 items-center justify-center rounded-full bg-muted/30 text-[10px] font-bold text-muted transition-colors hover:bg-accent-subtle hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                className="inline-flex items-center justify-center rounded-full p-0.5 text-muted transition-colors hover:bg-accent-subtle hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
               >
-                ?
+                <HelpCircle aria-hidden="true" className="size-4" />
               </button>
             </div>
             <div className="relative mt-1.5">
