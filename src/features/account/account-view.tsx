@@ -57,7 +57,7 @@ function ContentShell({ children }: { readonly children: ReactNode }) {
 
 function TitledPanel({ title, action, children }: { readonly title: string; readonly action?: ReactNode; readonly children: ReactNode }) {
   return (
-    <article className="w-full bg-surface shadow-panel">
+    <article className="w-full min-w-0 bg-surface shadow-panel">
       <div className="flex min-h-[5rem] flex-wrap items-center justify-between gap-3 border-b border-border px-4 sm:px-6 lg:px-8">
         <h1 className="text-lg font-medium leading-5 text-ink sm:text-xl">{title}</h1>
         {action}
