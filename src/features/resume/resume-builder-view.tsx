@@ -253,7 +253,6 @@ function ChatEmptyState() {
     <div className="grid flex-1 place-items-center p-6 text-center">
       <div className="max-w-[15rem]">
         <p className="text-sm font-bold text-ink">Paste a job description, or ask for a rewrite</p>
-        <p className="mt-2 text-xs leading-5 text-ink-muted">Lightforth tailors your resume to match it — then you decide what to keep.</p>
         <ol className="mt-4 grid gap-2 text-start text-xs text-ink-muted">
           <li className="flex items-start gap-2">
             <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-pill bg-accent-subtle text-[11px] font-bold text-accent-text">1</span>
