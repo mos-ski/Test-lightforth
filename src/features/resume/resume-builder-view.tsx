@@ -286,17 +286,16 @@ const GENERIC_JOB_DESCRIPTION =
   'We are looking for a motivated and detail-oriented professional to join our growing team. In this role, you will collaborate with cross-functional teams to drive projects from conception to delivery. You will analyse data, identify opportunities for improvement, and implement strategies that support business growth. The ideal candidate brings strong communication skills, a proactive mindset, and the ability to manage multiple priorities in a fast-paced environment. Experience with modern tools and frameworks, a passion for continuous learning, and a track record of delivering measurable results will set you apart.'
 
 export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session }: ResumeConfigureViewProps) {
-  const [jobDescription, setJobDescription] = useState(session.jobDescription)
+  const [jobDescription, setJobDescription] = useState('')
   const { type, isTyping } = useTypewriter()
-  const prefilled = useRef(false)
   const [showTip, setShowTip] = useState(true)
   const tipRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (prefilled.current) return
-    prefilled.current = true
-    setJobDescription('')
-    type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
+    const timer = window.setTimeout(() => {
+      type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
+    }, 150)
+    return () => window.clearTimeout(timer)
   }, [])
 
   useEffect(() => {
