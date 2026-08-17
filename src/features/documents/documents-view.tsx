@@ -67,22 +67,26 @@ export function DocumentsView({ homeHref, addHref, rows }: DocumentsViewProps) {
               label: 'Action',
               className: 'w-[5rem]',
               sortable: false,
+              hideInMobileDetail: true,
               render: (row) => <RowActionsMenu label={`Open actions for ${row.name}`} />,
-              mobileRender: (row) => (
-                <div className="flex items-center justify-end gap-1">
-                  <button type="button" aria-label={`Download ${row.name}`} className="grid size-8 place-items-center rounded-soft text-ink-muted hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                    <Download aria-hidden="true" className="size-4" />
-                  </button>
-                  <button type="button" aria-label={`Edit ${row.name}`} className="grid size-8 place-items-center rounded-soft text-ink-muted hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                    <Pencil aria-hidden="true" className="size-4" />
-                  </button>
-                  <button type="button" aria-label={`Delete ${row.name}`} className="grid size-8 place-items-center rounded-soft text-danger hover:bg-danger-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                    <Trash2 aria-hidden="true" className="size-4" />
-                  </button>
-                </div>
-              ),
             },
           ]}
+          rowActions={() => (
+            <>
+              <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <Download aria-hidden="true" className="size-4" />
+                Download
+              </button>
+              <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <Pencil aria-hidden="true" className="size-4" />
+                Edit
+              </button>
+              <button type="button" className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-danger bg-danger-surface px-4 text-sm font-medium text-danger transition-colors hover:bg-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <Trash2 aria-hidden="true" className="size-4" />
+                Delete
+              </button>
+            </>
+          )}
         />
       </section>
     </div>

@@ -14,8 +14,8 @@ export type DataTableColumn<TRow> = {
   readonly sortable?: boolean
   readonly sortValue?: (row: TRow) => string | number
   readonly render: (row: TRow) => ReactNode
-  /** Alternate render used in the mobile row-detail sheet — use this when `render` returns a nested popover/menu, since those render behind the sheet's own overlay on mobile. */
-  readonly mobileRender?: (row: TRow) => ReactNode
+  /** Omit this column from the mobile row-detail sheet's field list — use for a column whose `render` is a popover/menu (pair with `rowActions` on DataTable instead). */
+  readonly hideInMobileDetail?: boolean
 }
 
 export type DataTableAction = {
@@ -46,6 +46,8 @@ export type DataTableProps<TRow extends { readonly id: string }> = {
   readonly sortDirection?: DataTableSortDirection
   readonly onSort?: (column: string) => void
   readonly onRowClick?: (row: TRow) => void
+  /** Rendered as a labeled button row in the mobile row-detail sheet — use this for row actions instead of a `render` column when they're a popover/menu, since those render behind the sheet's own overlay on mobile. */
+  readonly rowActions?: (row: TRow) => ReactNode
   readonly selectedIds?: ReadonlySet<string>
   readonly onSelectionChange?: (ids: ReadonlySet<string>) => void
   readonly loading?: boolean
@@ -95,6 +97,7 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
     sortDirection,
     onSort,
     onRowClick,
+    rowActions,
     selectedIds: controlledSelectedIds,
     onSelectionChange,
     loading = false,
@@ -375,13 +378,16 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                 <>
                   <DialogTitle>{itemLabel(mobileDetailRow)}</DialogTitle>
                   <dl className="mt-4 grid gap-3">
-                    {columns.map((column) => (
+                    {columns.filter((column) => !column.hideInMobileDetail).map((column) => (
                       <div key={column.key} className="flex items-start justify-between gap-4 border-b border-border pb-3 text-sm">
                         <dt className="shrink-0 text-ink-muted">{column.label}</dt>
-                        <dd className="min-w-0 text-end font-medium text-ink">{(column.mobileRender ?? column.render)(mobileDetailRow)}</dd>
+                        <dd className="min-w-0 text-end font-medium text-ink">{column.render(mobileDetailRow)}</dd>
                       </div>
                     ))}
                   </dl>
+                  {rowActions ? (
+                    <div className="mt-4 flex flex-wrap items-center gap-2">{rowActions(mobileDetailRow)}</div>
+                  ) : null}
                   {onRowClick ? (
                     <button
                       type="button"
