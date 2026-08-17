@@ -7,6 +7,7 @@ import { PLANS, annualMonthlyEquivalent, type BillingCycle, type PlanId } from '
 import { MarketingLayout } from '../MarketingLayout'
 
 const OFFER_SECONDS = 10 * 60
+const FIRST_TIME_DISCOUNT_PERCENT = 10
 
 const PLAN_BULLETS: Record<PlanId, string[]> = {
   starter: ['Resume Builder', 'Resume downloads', '15 credits / month'],
@@ -82,6 +83,8 @@ export default function PricingPage() {
   const offerExpired = offerSecondsLeft === 0
   const priceFor = (monthlyPrice: number) => (isAnnual ? annualMonthlyEquivalent(monthlyPrice) : monthlyPrice)
   const selectedPlan = PLANS.find((plan) => plan.id === selectedMobilePlan) ?? PLANS[1]
+  const proPlan = PLANS.find((plan) => plan.id === 'pro') ?? PLANS[1]
+  const proDiscountedPrice = Math.ceil(proPlan.monthlyPrice * (1 - FIRST_TIME_DISCOUNT_PERCENT / 100))
   const claimOffer = () => {
     if (!offerExpired) navigate('/checkout/pro')
   }
@@ -137,14 +140,21 @@ export default function PricingPage() {
   return (
     <MarketingLayout>
       <section className="border-b border-slate-800 bg-slate-950 pt-16 text-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-3">
-            <span className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">Today only</span>
-            <p className="text-sm font-semibold">
-              Start Pro for <span className="text-sky-300">$10 today</span>, then renew at $49/month.
+        <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-3">
+          <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
+            <p className="sr-only">
+              First-time sign-up offer: subscribe to Pro today and get {FIRST_TIME_DISCOUNT_PERCENT}% off — just ${proDiscountedPrice}/month instead of ${proPlan.monthlyPrice}/month. Offer available on Pro only, for first-time sign-ups only.
             </p>
+            <div aria-hidden="true" className={cn('flex w-max items-center gap-16 whitespace-nowrap text-sm font-semibold', offerExpired ? '' : 'animate-marquee')}>
+              {[0, 1].map((copyIndex) => (
+                <span key={copyIndex} className="flex items-center gap-3">
+                  <span className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">First-time offer</span>
+                  Subscribe to Pro today and get <span className="text-sky-300">{FIRST_TIME_DISCOUNT_PERCENT}% off</span> — just ${proDiscountedPrice}/month instead of ${proPlan.monthlyPrice}/month. Pro plan only, for first-time sign-ups only.
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex shrink-0 flex-wrap items-center gap-3">
             <span className="rounded-full border border-sky-300/40 bg-white/10 px-3 py-1 text-sm font-bold text-sky-100">
               Ends in {formatOfferTime(offerSecondsLeft)}
             </span>
@@ -154,7 +164,7 @@ export default function PricingPage() {
               disabled={offerExpired}
               className="inline-flex h-9 items-center rounded-full bg-white px-4 text-sm font-bold text-slate-950 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {offerExpired ? 'Offer ended' : 'Claim Pro offer'}
+              {offerExpired ? 'Offer ended' : 'Take the Offer'}
               <ArrowRight className="ml-2 h-4 w-4" />
             </button>
           </div>
@@ -360,12 +370,12 @@ export default function PricingPage() {
             >
               <X className="h-5 w-5" />
             </button>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0494fc]">Limited-time Pro offer</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0494fc]">First-time sign-up offer</p>
             <h2 id="pro-offer-title" className="mt-3 text-3xl font-black leading-tight text-slate-950">
-              Take the Pro plan for just $10 if you start today.
+              Take {FIRST_TIME_DISCOUNT_PERCENT}% off Pro if you start today.
             </h2>
             <p className="mt-4 text-sm leading-6 text-slate-600">
-              Use Pro for the first month at $10, then continue at $49/month. The offer window closes when the countdown ends.
+              Subscribe to Pro now and pay ${proDiscountedPrice}/month instead of ${proPlan.monthlyPrice}/month. Available on the Pro plan only, for first-time sign-ups. The offer window closes when the countdown ends.
             </p>
             <div className="mt-5 rounded-xl bg-slate-950 px-5 py-4 text-center text-white">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-300">Offer ends in</p>
@@ -373,7 +383,7 @@ export default function PricingPage() {
             </div>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Button size="lg" className="flex-1 rounded-full" onClick={claimOffer}>
-                Claim Pro offer
+                Take the Offer
               </Button>
               <Button
                 size="lg"

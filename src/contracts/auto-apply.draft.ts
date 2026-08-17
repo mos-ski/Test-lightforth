@@ -76,7 +76,7 @@ export const DEFAULT_AUTO_APPLY_SETUP: AutoApplySetup = {
   drugDiversion: 'no',
 };
 
-export type AutoApplyOutcome = 'success' | 'needs-review' | 'failed';
+export type AutoApplyOutcome = 'success' | 'needs-review' | 'failed' | 'closed';
 
 export type AutoApplyJob = {
   readonly id: string;

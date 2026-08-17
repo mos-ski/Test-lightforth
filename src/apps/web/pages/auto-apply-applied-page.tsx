@@ -1,4 +1,5 @@
 import { autoApplyApplication, autoApplyJobs } from '@/mocks/auto-apply'
+import { resumeDocument } from '@/mocks/resume'
 import { AutoApplyAppliedView } from '@/features/auto-apply/auto-apply-view'
 
 export function AutoApplyAppliedPage() {
@@ -12,6 +13,7 @@ export function AutoApplyAppliedPage() {
       resumeHistoryHref="/v3/resume/history"
       jobs={autoApplyJobs}
       application={autoApplyApplication}
+      resumePreview={resumeDocument}
     />
   )
 }

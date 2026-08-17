@@ -1,4 +1,5 @@
 import { autoApplyJobs } from '@/mocks/auto-apply'
+import { resumeDocument } from '@/mocks/resume'
 import { AutoApplyJobsView } from '@/features/auto-apply/auto-apply-view'
 
 export function AutoApplyJobsPage({ selectedJobId }: { readonly selectedJobId?: string }) {
@@ -15,6 +16,7 @@ export function AutoApplyJobsPage({ selectedJobId }: { readonly selectedJobId?: 
       jobs={autoApplyJobs}
       selectedJob={selectedJob}
       isPremiumUser={false}
+      resumePreview={resumeDocument}
     />
   )
 }
