@@ -3,6 +3,10 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile, TutorialItem } from '@/contracts/account.draft'
 import {
+  Accordion,
+  AccordionItem,
+  AccordionPanel,
+  AccordionTrigger,
   Button,
   cn,
   CreditCard,
@@ -381,6 +385,34 @@ function AnnualToggle({ annual, onToggle }: { readonly annual: boolean; readonly
   )
 }
 
+const billingFaqs: readonly { readonly question: string; readonly answer: string }[] = [
+  { question: 'What does a credit cover?', answer: 'Every feature — Resume Builder, Auto-Apply, Interview Prep, and Interview Copilot — deducts 1 credit per completed action. Lightforth only deducts credits for successful actions, so a failed Auto-Apply submission does not use one.' },
+  { question: 'Do unused credits roll over to next month?', answer: 'No. Your credit balance resets to your plan’s monthly allowance on your renewal date. Unused credits from the previous cycle do not carry forward.' },
+  { question: 'What’s the difference between monthly and annual billing?', answer: 'Annual billing charges you once a year at a 20% discount off the monthly rate. Monthly billing charges the full rate every month. You can switch between them at any time using the toggle above the plan cards.' },
+  { question: 'Can I change plans at any time?', answer: 'Yes. Upgrades take effect immediately and unlock the new plan’s features right away. Downgrades take effect at the start of your next billing cycle, so you keep your current plan’s benefits until then.' },
+  { question: 'How do I cancel my subscription?', answer: 'Use the Cancel Subscription button above. You’ll keep full access until your current billing period ends, after which your account moves to the Free plan. You can renew at any time before then.' },
+  { question: 'What happens to my data if I cancel?', answer: 'Your saved resumes, cover letters, application history, and interview reports stay in your account. You just lose access to paid features like Auto-Apply and Copilot sessions until you resubscribe.' },
+  { question: 'Is the first-time offer available more than once?', answer: 'No. The $10 first-time Pro offer is available once per account, only before the countdown on this page expires. After it’s redeemed or the timer runs out, your plan renews at the regular price.' },
+  { question: 'What payment methods do you accept?', answer: 'We accept all major debit and credit cards. Payments are processed securely and your card details are never stored on Lightforth’s servers.' },
+  { question: 'Do you offer refunds?', answer: 'We don’t offer refunds for partial billing periods, but you can cancel at any time to stop future charges — you’ll keep access through the end of the period you already paid for.' },
+  { question: 'Can I get more credits without upgrading my plan?', answer: 'Yes. Use the Get Free Credits link above to earn bonus credits through referrals, or purchase a one-time top-up from the credit usage details page.' },
+]
+
+function BillingFaqSection() {
+  return (
+    <TitledPanel title="Frequently Asked Questions">
+      <Accordion className="border-t border-border">
+        {billingFaqs.map((faq, index) => (
+          <AccordionItem key={faq.question} value={String(index)}>
+            <AccordionTrigger>{faq.question}</AccordionTrigger>
+            <AccordionPanel>{faq.answer}</AccordionPanel>
+          </AccordionItem>
+        ))}
+      </Accordion>
+    </TitledPanel>
+  )
+}
+
 function CreditUsageTable({ rows }: { readonly rows: readonly CreditUsageRow[] }) {
   return (
     <TitledPanel title="How credits works">
@@ -547,6 +579,8 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
           </TitledPanel>
 
           <CreditUsageTable rows={usageRows} />
+
+          <BillingFaqSection />
         </div>
       </ContentShell>
     </AppWorkspace>
