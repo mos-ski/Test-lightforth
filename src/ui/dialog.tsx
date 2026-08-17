@@ -41,7 +41,7 @@ export const DialogBackdrop = forwardRef<HTMLDivElement, DialogBackdropProps>(
   },
 )
 
-export type DialogPopupPlacement = 'center' | 'start' | 'end'
+export type DialogPopupPlacement = 'center' | 'start' | 'end' | 'end-sheet'
 
 export type DialogPopupProps = HTMLAttributes<HTMLDivElement> & {
   readonly placement?: DialogPopupPlacement
@@ -55,6 +55,9 @@ const popupPlacements: Record<DialogPopupPlacement, string> = {
     '-translate-x-full fixed inset-y-0 start-0 z-modal h-full w-72 max-w-[85vw] overflow-y-auto border-e border-border bg-surface shadow-xl transition-transform duration-normal ease-default focus-visible:outline-none data-[open]:translate-x-0 rtl:translate-x-full rtl:data-[open]:translate-x-0 motion-reduce:transition-none',
   end:
     'translate-x-full fixed inset-y-0 end-0 z-modal h-full w-80 max-w-[90vw] overflow-y-auto border-s border-border bg-surface shadow-xl transition-transform duration-normal ease-default focus-visible:outline-none data-[open]:translate-x-0 rtl:-translate-x-full rtl:data-[open]:translate-x-0 motion-reduce:transition-none',
+  // Mobile: bottom sheet, same as `center`. lg+: side panel from the end edge, same as `end`.
+  'end-sheet':
+    'fixed inset-x-0 bottom-0 z-modal max-h-[85vh] w-full overflow-y-auto rounded-t-panel border-t border-border bg-surface shadow-xl transition-transform duration-normal ease-default focus-visible:outline-none before:absolute before:inset-x-0 before:top-2 before:mx-auto before:h-1 before:w-10 before:rounded-pill before:bg-border before:content-[""] data-[ending-style]:translate-y-full data-[starting-style]:translate-y-full motion-reduce:transition-none lg:inset-x-auto lg:inset-y-0 lg:start-auto lg:end-0 lg:h-full lg:max-h-none lg:w-80 lg:max-w-[90vw] lg:translate-x-full lg:translate-y-0 lg:rounded-none lg:border-t-0 lg:border-s lg:before:hidden lg:data-[open]:translate-x-0 lg:data-[ending-style]:translate-y-0 lg:data-[starting-style]:translate-y-0 lg:rtl:-translate-x-full lg:rtl:data-[open]:translate-x-0',
 }
 
 export const DialogPopup = forwardRef<HTMLDivElement, DialogPopupProps>(

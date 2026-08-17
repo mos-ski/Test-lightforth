@@ -1224,7 +1224,7 @@ function AtsScoreDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPopup placement="center" aria-label="ATS score breakdown" className="flex max-h-[85vh] flex-col p-0 sm:max-h-[calc(100vh-4rem)]">
+      <DialogPopup placement="end-sheet" aria-label="ATS score breakdown" className="flex max-h-[85vh] flex-col p-0 lg:max-h-none">
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
           <DialogTitle className="text-base">ATS Score</DialogTitle>
           <DialogClose className="static" />
