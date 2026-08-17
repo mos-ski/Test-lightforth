@@ -1226,9 +1226,9 @@ function JobPreview({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-overlay" onClick={onClose} aria-hidden="true" />
-      <aside className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90vh] flex-col overflow-hidden rounded-t-xl border border-b-0 border-border bg-surface shadow-panel">
-        <div className="flex shrink-0 items-center justify-between px-6 pt-4 pb-2">
+      <div className="fixed inset-0 z-40 bg-overlay lg:hidden" onClick={onClose} aria-hidden="true" />
+      <aside className="fixed inset-x-0 bottom-0 z-50 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-xl border border-b-0 border-border bg-surface shadow-panel lg:static lg:z-auto lg:h-full lg:w-[26rem] lg:max-h-none lg:shrink-0 lg:rounded-none lg:border-0 lg:border-s lg:shadow-none">
+        <div className="flex shrink-0 items-center justify-between px-6 pt-4 pb-2 lg:hidden">
           <div className="mx-auto h-1 w-10 rounded-full bg-muted" aria-hidden="true" />
         </div>
         <div className="flex items-center justify-between px-6 pb-4">
@@ -1547,7 +1547,7 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                 </nav>
               </div>
               <div className="flex gap-6 pt-5">
-                <div className="min-w-0 w-full">
+                <div className="min-w-0 flex-1">
                   <div className="mb-3 flex gap-2">
                     <label className="relative block flex-1">
                       <span className="sr-only">Search by title or company</span>
@@ -1587,8 +1587,8 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                     <span className="inline-flex items-center gap-1 text-ink">Next<ChevronRight aria-hidden="true" className="size-4" /></span>
                   </div>
                 </div>
+                {selectedJob ? <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} resumePreview={resumePreview} /> : null}
               </div>
-              {selectedJob ? <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} resumePreview={resumePreview} /> : null}
             </div>
           </div>
         </div>
@@ -1871,7 +1871,7 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                 </nav>
               </div>
               <div className="flex gap-6 pt-5">
-                <div className="min-w-0 w-full">
+                <div className="min-w-0 flex-1">
                   <div className="mb-3 flex gap-2">
                     <label className="relative block flex-1">
                       <span className="sr-only">Search applied jobs</span>
@@ -1907,15 +1907,15 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                     />
                   </div>
                 </div>
+                {selectedJob ? (
+                  <JobPreview
+                    job={selectedJob}
+                    onClose={() => setSelectedJob(undefined)}
+                    applied
+                    resumePreview={resumePreview}
+                  />
+                ) : null}
               </div>
-              {selectedJob ? (
-                <JobPreview
-                  job={selectedJob}
-                  onClose={() => setSelectedJob(undefined)}
-                  applied
-                  resumePreview={resumePreview}
-                />
-              ) : null}
             </div>
           </div>
         </div>

@@ -17,6 +17,15 @@ import {
   Switch,
 } from '@/ui'
 
+const PRO_OFFER_SECONDS = 10 * 60
+const PRO_OFFER_PRICE = 10
+
+function formatOfferTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+}
+
 export type DownloadsViewProps = {
   readonly homeHref: string
   readonly downloads: readonly DownloadItem[]
@@ -168,17 +177,24 @@ function PlanCard({
   currentIndex,
   index,
   cardRef,
+  offerAvailable = false,
+  offerApplied = false,
+  onApplyOffer,
 }: {
   readonly plan: BillingPlanCard
   readonly annual: boolean
   readonly currentIndex: number
   readonly index: number
   readonly cardRef?: (el: HTMLElement | null) => void
+  readonly offerAvailable?: boolean
+  readonly offerApplied?: boolean
+  readonly onApplyOffer?: () => void
 }) {
   const price = annual ? plan.annualPrice : plan.price
   const cadence = annual ? plan.annualCadence : plan.cadence
   const isCurrent = plan.current === true
   const actionLabel = isCurrent ? 'Current Plan' : index < currentIndex ? 'Downgrade' : 'Upgrade'
+  const offerActive = offerAvailable && offerApplied
 
   return (
     <article
@@ -192,12 +208,38 @@ function PlanCard({
         <h3 className="text-lg font-bold">{plan.name}</h3>
         {isCurrent ? <span className="rounded-pill border border-positive bg-positive-surface px-2.5 py-0.5 text-xs font-semibold text-positive">Current</span> : null}
       </div>
-      <p className="mt-6 text-2xl font-black">
-        {price} <span className="text-sm font-medium text-ink-muted">{cadence}</span>
-      </p>
+      {offerActive ? (
+        <>
+          <p className="mt-6 flex items-baseline gap-2">
+            <span className="text-base font-semibold text-ink-muted line-through">{price}</span>
+            <span className="text-2xl font-black text-accent">${PRO_OFFER_PRICE}</span>
+          </p>
+          <p className="mt-1 text-sm font-medium text-positive">First-time offer applied — then {price} {cadence}</p>
+        </>
+      ) : (
+        <p className="mt-6 text-2xl font-black">
+          {price} <span className="text-sm font-medium text-ink-muted">{cadence}</span>
+        </p>
+      )}
+      {offerAvailable && !offerApplied ? (
+        <button
+          type="button"
+          onClick={onApplyOffer}
+          className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-pill bg-accent-subtle px-3 py-1 text-xs font-bold text-accent-text transition-colors hover:bg-accent-muted"
+        >
+          First-time offer: Apply for ${PRO_OFFER_PRICE}
+        </button>
+      ) : null}
       <p className="mt-6 font-bold">{plan.credits}</p>
       <p className="mt-4 min-h-14 text-sm leading-6 text-ink-muted">{plan.description}</p>
-      {isCurrent ? (
+      {offerActive ? (
+        <a
+          href="/v3/billing"
+          className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-soft bg-accent px-4 py-2.5 text-sm font-medium text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          Subscribe for ${PRO_OFFER_PRICE}
+        </a>
+      ) : isCurrent ? (
         <span className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-soft border border-input px-4 py-2.5 text-sm font-medium text-ink-muted opacity-60">
           Current Plan
         </span>
@@ -386,6 +428,16 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
   const cardRefs = useRef<Partial<Record<string, HTMLElement>>>({})
   const recommendedPlanId = (plans.find((plan) => plan.popular) ?? plans[0])?.id
   const [activePlanId, setActivePlanId] = useState<string | undefined>(recommendedPlanId)
+  const [proOfferSecondsLeft, setProOfferSecondsLeft] = useState(PRO_OFFER_SECONDS)
+  const [proOfferApplied, setProOfferApplied] = useState(false)
+  const proOfferExpired = proOfferSecondsLeft === 0
+
+  useEffect(() => {
+    const countdown = window.setInterval(() => {
+      setProOfferSecondsLeft((seconds) => Math.max(0, seconds - 1))
+    }, 1000)
+    return () => window.clearInterval(countdown)
+  }, [])
 
   useEffect(() => {
     const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
@@ -453,6 +505,16 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
           </TitledPanel>
 
           <TitledPanel title="Billing & Subscription" action={<AnnualToggle annual={annual} onToggle={() => setAnnual((prev) => !prev)} />}>
+            {!proOfferExpired ? (
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-accent-muted bg-accent-subtle px-4 py-3 sm:px-5">
+                <p className="text-sm font-medium text-accent-text">
+                  <span className="font-bold uppercase tracking-wide">First-time offer</span> — get Pro for just ${PRO_OFFER_PRICE} today.
+                </p>
+                <span className="rounded-pill bg-surface px-3 py-1 text-xs font-bold text-accent-text shadow-control">
+                  Ends in {formatOfferTime(proOfferSecondsLeft)}
+                </span>
+              </div>
+            ) : null}
             <div
               ref={carouselRef}
               className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:snap-none md:grid-cols-2 md:overflow-visible md:pb-0 lg:grid-cols-3"
@@ -468,6 +530,9 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
                     if (el) cardRefs.current[plan.id] = el
                     else delete cardRefs.current[plan.id]
                   }}
+                  offerAvailable={plan.id === 'pro' && !proOfferExpired}
+                  offerApplied={proOfferApplied}
+                  onApplyOffer={() => setProOfferApplied(true)}
                 />
               ))}
             </div>
