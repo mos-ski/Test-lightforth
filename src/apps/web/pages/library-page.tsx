@@ -97,9 +97,10 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
-function Section({ title, children }: { readonly title: string; readonly children: React.ReactNode }) {
+function Section({ id, title, children }: { readonly id?: string; readonly title: string; readonly children: React.ReactNode }) {
+  const sectionId = id ?? title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
   return (
-    <section className="grid min-w-0 gap-4">
+    <section id={sectionId} className="grid min-w-0 gap-4 scroll-mt-20">
       <h2 className="text-xl font-semibold text-ink">{title}</h2>
       <div className="min-w-0 rounded-panel border border-border bg-surface p-6 shadow-panel">{children}</div>
     </section>
@@ -140,6 +141,40 @@ const stepItems: readonly StepItem[] = [
   { id: '3', label: 'Review', status: 'pending' },
 ]
 
+const sections = [
+  { id: 'colors', label: 'Colors' },
+  { id: 'typography', label: 'Typography' },
+  { id: 'button', label: 'Button' },
+  { id: 'badge', label: 'Badge' },
+  { id: 'avatar', label: 'Avatar' },
+  { id: 'chip', label: 'Chip' },
+  { id: 'divider', label: 'Divider' },
+  { id: 'card', label: 'Card' },
+  { id: 'statcard', label: 'StatCard' },
+  { id: 'progressbar', label: 'ProgressBar' },
+  { id: 'skeleton', label: 'Skeleton' },
+  { id: 'spinner', label: 'Spinner' },
+  { id: 'stepindicator', label: 'StepIndicator' },
+  { id: 'breadcrumbs', label: 'Breadcrumbs' },
+  { id: 'tabs', label: 'Tabs' },
+  { id: 'form-controls', label: 'Form Controls' },
+  { id: 'tooltip', label: 'Tooltip' },
+  { id: 'dialog', label: 'Dialog' },
+  { id: 'toast', label: 'Toast' },
+  { id: 'datatable', label: 'DataTable' },
+  { id: 'emptystate', label: 'EmptyState' },
+  { id: 'themeswitch', label: 'ThemeSwitch' },
+  { id: 'separator', label: 'Separator' },
+  { id: 'slider', label: 'Slider' },
+  { id: 'accordion', label: 'Accordion' },
+  { id: 'collapsible', label: 'Collapsible' },
+  { id: 'popover', label: 'Popover' },
+  { id: 'menu-dropdown', label: 'Menu' },
+  { id: 'scrollarea', label: 'ScrollArea' },
+  { id: 'sheet-drawer', label: 'Sheet' },
+  { id: 'navigator', label: 'Navigator' },
+] as const
+
 export function LibraryPage() {
   return (
     <ErrorBoundary>
@@ -159,16 +194,34 @@ function LibraryPageInner() {
   const [popoverOpen, setPopoverOpen] = useState(false)
 
   return (
-    <main className="min-h-screen bg-canvas px-6 py-10 text-ink">
-      <Toaster />
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-10">
-          <p className="text-sm font-semibold uppercase tracking-wide text-accent-text">Design System</p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-normal">Lightforth Component Library</h1>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-ink-muted">
-            Every UI primitive, its variants, and all states. Use this as the reference for building screens.
-          </p>
-        </div>
+    <div className="flex min-h-screen bg-canvas text-ink">
+      <aside className="sticky top-0 hidden h-screen w-56 shrink-0 overflow-y-auto border-e border-border bg-surface px-4 py-6 lg:block">
+        <p className="mb-1 text-xs font-bold uppercase tracking-wide text-ink-muted">Library</p>
+        <nav className="mt-3 grid gap-0.5">
+          {sections.map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="rounded-lg px-3 py-1.5 text-sm text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink"
+            >
+              {s.label}
+            </a>
+          ))}
+        </nav>
+      </aside>
+      <main className="min-h-screen flex-1 px-6 py-10">
+        <Toaster />
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-10 flex items-start justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-accent-text">Design System</p>
+              <h1 className="mt-3 text-4xl font-semibold tracking-normal">Lightforth Component Library</h1>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-ink-muted">
+                Every UI primitive, its variants, and all states. Use this as the reference for building screens.
+              </p>
+            </div>
+            <ThemeSwitch className="mt-2" />
+          </div>
 
         <div className="grid gap-8">
           {/* Colors */}
@@ -626,5 +679,6 @@ function LibraryPageInner() {
         </div>
       </div>
     </main>
+    </div>
   )
 }
