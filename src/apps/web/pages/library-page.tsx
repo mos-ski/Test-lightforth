@@ -924,70 +924,96 @@ function LibraryPageInner() {
           {/* Banner */}
           <Section title="Banner">
             <div className="grid gap-3">
-              <div className="flex items-center justify-between rounded-xl bg-accent-subtle px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="size-5 text-accent" />
-                  <p className="text-sm text-ink"><span className="font-semibold">Low credits.</span> You have 3 credits remaining. Upgrade to keep using AI features.</p>
-                </div>
-                <button className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent transition-colors hover:bg-accent-hover">Upgrade</button>
+              <div role="status" className="flex min-h-9 items-center gap-1 rounded-b-xl bg-accent-subtle ps-6 pe-3 text-sm font-semibold text-accent shadow-control">
+                <p className="min-w-0 flex-1 truncate leading-6">5 More credits left!</p>
+                <a href="#billing" className="shrink-0 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Upgrade</a>
+                <button type="button" aria-label="Dismiss" className="grid size-6 shrink-0 place-items-center rounded-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"><X className="size-4" /></button>
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-danger-surface px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle className="size-5 text-danger" />
-                  <p className="text-sm text-ink"><span className="font-semibold">No credits left.</span> Upgrade to Pro to continue using AI features.</p>
-                </div>
-                <button className="shrink-0 rounded-lg bg-danger px-3 py-1.5 text-xs font-semibold text-on-danger transition-colors hover:bg-danger-hover">Get Credits</button>
-              </div>
-              <div className="flex items-center justify-between rounded-xl bg-positive-surface px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="size-5 text-positive" />
-                  <p className="text-sm text-ink"><span className="font-semibold">Welcome!</span> Your account is set up. Start by uploading your resume.</p>
-                </div>
-                <button className="shrink-0 rounded-lg bg-positive px-3 py-1.5 text-xs font-semibold text-on-accent transition-colors hover:opacity-90">Get Started</button>
+              <div role="status" className="flex min-h-9 items-center gap-1 rounded-b-xl bg-danger ps-6 pe-3 text-sm font-semibold text-on-danger shadow-control">
+                <p className="min-w-0 flex-1 truncate leading-6">0 credits remaining today</p>
+                <a href="#billing" className="shrink-0 underline underline-offset-2 text-on-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Upgrade</a>
+                <button type="button" aria-label="Dismiss" className="grid size-6 shrink-0 place-items-center rounded-soft text-on-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"><X className="size-4" /></button>
               </div>
             </div>
           </Section>
 
           {/* Pricing Card */}
           <Section title="Pricing Card">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-xl border border-border bg-surface p-6 shadow-panel">
-                <p className="text-sm font-semibold text-ink">Free</p>
-                <p className="mt-2 text-3xl font-bold text-ink">$0</p>
-                <p className="text-xs text-ink-muted">forever</p>
-                <ul className="mt-4 grid gap-2 text-sm text-ink-muted">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> 5 resume edits</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Basic templates</li>
-                  <li className="flex items-center gap-2 text-ink-muted/50"><XCircle className="size-4" /> Auto Apply</li>
-                  <li className="flex items-center gap-2 text-ink-muted/50"><XCircle className="size-4" /> Interview Copilot</li>
-                </ul>
-                <button className="mt-6 w-full rounded-lg border border-border bg-surface py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle">Current Plan</button>
+            <div className="rounded-panel bg-surface p-4 shadow-panel">
+              <div className="grid gap-4 md:grid-cols-3">
+                <article className="flex flex-col rounded-panel border border-border bg-surface p-6">
+                  <div className="flex min-h-8 items-center gap-2 border-b border-border pb-4">
+                    <h3 className="text-lg font-semibold text-ink">Starter</h3>
+                  </div>
+                  <div className="flex flex-1 flex-col pt-5">
+                    <div className="flex flex-wrap items-end gap-1">
+                      <span className="text-4xl font-semibold leading-tight text-ink">$27</span>
+                      <span className="pb-2 text-sm font-medium text-ink">per month</span>
+                    </div>
+                    <p className="mt-5 text-sm font-semibold text-ink">15 Credits</p>
+                    <p className="mt-3 text-sm leading-5 text-ink-muted">You can do up to 15 total actions per month, in any combination.</p>
+                    <div className="mt-6">
+                      <Button variant="secondary" className="w-full">Subscribe</Button>
+                    </div>
+                    <ul className="mt-6 grid gap-2 text-sm leading-5 text-ink-muted">
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Resume builder</li>
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Resume downloads</li>
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> AI suggestions</li>
+                    </ul>
+                    <p className="mt-3 text-sm italic leading-5 text-ink-muted">Ideal for light or occasional job applications</p>
+                  </div>
+                </article>
+                <article className="flex flex-col rounded-panel border border-border bg-accent-subtle p-6">
+                  <div className="flex min-h-8 items-center gap-2 border-b border-border pb-4">
+                    <h3 className="text-lg font-semibold text-ink">Pro</h3>
+                    <Badge>Popular</Badge>
+                  </div>
+                  <div className="flex flex-1 flex-col pt-5">
+                    <div className="flex flex-wrap items-end gap-1">
+                      <span className="text-4xl font-semibold leading-tight text-ink">$49</span>
+                      <span className="pb-2 text-sm font-medium text-ink">per month</span>
+                    </div>
+                    <p className="mt-5 text-sm font-semibold text-ink">50 Credits</p>
+                    <p className="mt-3 text-sm leading-5 text-ink-muted">More credits, more freedom. Every feature still costs 1 credit per use.</p>
+                    <div className="mt-6">
+                      <Button className="w-full">Subscribe</Button>
+                    </div>
+                    <ul className="mt-6 grid gap-2 text-sm leading-5 text-ink-muted">
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Everything in Starter</li>
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Auto-Apply agents</li>
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> AI interview prep</li>
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Interview & Coding Copilot</li>
+                    </ul>
+                    <p className="mt-3 text-sm italic leading-5 text-ink-muted">Best for users who want AI and autopilot help consistently</p>
+                  </div>
+                </article>
+                <article className="flex flex-col rounded-panel border border-border bg-surface p-6">
+                  <div className="flex min-h-8 items-center gap-2 border-b border-border pb-4">
+                    <h3 className="text-lg font-semibold text-ink">Premium</h3>
+                  </div>
+                  <div className="flex flex-1 flex-col pt-5">
+                    <div className="flex flex-wrap items-end gap-1">
+                      <span className="text-4xl font-semibold leading-tight text-ink">$79</span>
+                      <span className="pb-2 text-sm font-medium text-ink">per month</span>
+                    </div>
+                    <p className="mt-5 text-sm font-semibold text-ink">100 Credits</p>
+                    <p className="mt-3 text-sm leading-5 text-ink-muted">Built for power users who apply daily or want maximum automation.</p>
+                    <div className="mt-6">
+                      <Button variant="secondary" className="w-full">Subscribe</Button>
+                    </div>
+                    <ul className="mt-6 grid gap-2 text-sm leading-5 text-ink-muted">
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Everything in Pro</li>
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Meeting Copilot</li>
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Automate job applications</li>
+                      <li className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 size-4 shrink-0" /> Priority support</li>
+                    </ul>
+                    <p className="mt-3 text-sm italic leading-5 text-ink-muted">Best value for serious job hunters</p>
+                  </div>
+                </article>
               </div>
-              <div className="relative rounded-xl border-2 border-accent bg-surface p-6 shadow-panel">
-                <span className="absolute -top-3 end-4 rounded-full bg-accent px-3 py-0.5 text-[10px] font-bold uppercase text-on-accent">Popular</span>
-                <p className="text-sm font-semibold text-accent">Pro</p>
-                <p className="mt-2 text-3xl font-bold text-ink">$10<span className="text-sm text-ink-muted">/mo</span></p>
-                <p className="text-xs text-ink-muted">billed monthly</p>
-                <ul className="mt-4 grid gap-2 text-sm text-ink-muted">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> 300 credits/mo</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> AI resume tailoring</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Auto Apply (100/mo)</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Interview Copilot</li>
-                </ul>
-                <button className="mt-6 w-full rounded-lg bg-accent py-2 text-sm font-semibold text-on-accent shadow-control transition-colors hover:bg-accent-hover">Upgrade</button>
-              </div>
-              <div className="rounded-xl border border-border bg-surface p-6 shadow-panel">
-                <p className="text-sm font-semibold text-ink">Business</p>
-                <p className="mt-2 text-3xl font-bold text-ink">$29<span className="text-sm text-ink-muted">/mo</span></p>
-                <p className="text-xs text-ink-muted">billed monthly</p>
-                <ul className="mt-4 grid gap-2 text-sm text-ink-muted">
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> 1000 credits/mo</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Unlimited resumes</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Unlimited Auto Apply</li>
-                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Priority support</li>
-                </ul>
-                <button className="mt-6 w-full rounded-lg border border-border bg-surface py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle">Contact Sales</button>
-              </div>
+              <p className="mt-4 rounded-b-panel border border-warning bg-warning-surface px-4 py-3 text-sm text-warning">
+                Every feature uses 1 credit. Use your credits however you like.
+              </p>
             </div>
           </Section>
 
