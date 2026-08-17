@@ -2,6 +2,8 @@
 | ----- | --------- | ---------- | -------------- | ----- |
 | `/v3` | `src/apps/web/pages/route-index-page.tsx` | Static route data | Review index | Links to each v3 web screen implemented so far. |
 | `/v3/auth/sign-in` | `src/features/identity/sign-in-view.tsx` | `SignInViewProps` | Default, unauthenticated entry | Pure view. App page wires mock values and navigation callbacks. |
+| `/v3/auth/create-account` | `src/features/identity/sign-up-view.tsx` | `SignUpViewProps` | Default sign-up form | Pure view. App page wires mock values and navigation callbacks. |
+| `/v3/auth/forgot-password` | `src/features/identity/forgot-password-view.tsx` | `ForgotPasswordViewProps` | Request-reset form, "check your email" confirmation | Pure view; owns its own submitted/not-submitted state locally. |
 | `/v3/auth/choose-plan` | `src/features/billing/plan-selection-view.tsx` | `PlanSelectionViewProps` | Default, selected plan, monthly/annual | Pure view. App page wires fixture plan catalog and local route-level state. |
 | `/v3/app` | `src/features/dashboard/dashboard-view.tsx` | `DashboardViewProps` | Default signed-in dashboard, loading skeleton, responsive collapsed layout, hover/focus action-card state, help dropdown, credit dropdown, empty-credit banner, low-credit banner | Pure view. App page wires candidate session fixture, dashboard actions, sidebar nav, credit count, install prompt, `state=loading`, `dropdown=help\|credits`, and `credit=empty\|low`. |
 | `/v3/documents` | `src/features/documents/documents-view.tsx` | `DocumentsViewProps` | Add-context table, search field, add-document action, document type badges, row actions, pagination | Pure view. App page wires typed context-document fixtures. |

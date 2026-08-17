@@ -62,7 +62,26 @@ export function DocumentsView({ homeHref, addHref, rows }: DocumentsViewProps) {
             },
             { key: 'size-or-url', label: 'Size/URL', className: 'w-[14rem]', render: (row) => row.sizeOrUrl },
             { key: 'added', label: 'Added', className: 'w-[18rem]', render: (row) => row.addedAtLabel },
-            { key: 'action', label: 'Action', className: 'w-[5rem]', sortable: false, render: (row) => <RowActionsMenu label={`Open actions for ${row.name}`} /> },
+            {
+              key: 'action',
+              label: 'Action',
+              className: 'w-[5rem]',
+              sortable: false,
+              render: (row) => <RowActionsMenu label={`Open actions for ${row.name}`} />,
+              mobileRender: (row) => (
+                <div className="flex items-center justify-end gap-1">
+                  <button type="button" aria-label={`Download ${row.name}`} className="grid size-8 place-items-center rounded-soft text-ink-muted hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                    <Download aria-hidden="true" className="size-4" />
+                  </button>
+                  <button type="button" aria-label={`Edit ${row.name}`} className="grid size-8 place-items-center rounded-soft text-ink-muted hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                    <Pencil aria-hidden="true" className="size-4" />
+                  </button>
+                  <button type="button" aria-label={`Delete ${row.name}`} className="grid size-8 place-items-center rounded-soft text-danger hover:bg-danger-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                    <Trash2 aria-hidden="true" className="size-4" />
+                  </button>
+                </div>
+              ),
+            },
           ]}
         />
       </section>

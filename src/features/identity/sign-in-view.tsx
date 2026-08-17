@@ -8,9 +8,10 @@ export type SignInViewProps = {
   readonly onSubmit: () => void
   readonly onGoogleSignIn: () => void
   readonly createAccountHref: string
+  readonly forgotPasswordHref: string
 }
 
-export function SignInView({ emailValue, passwordValue, onSubmit, onGoogleSignIn, createAccountHref }: SignInViewProps) {
+export function SignInView({ emailValue, passwordValue, onSubmit, onGoogleSignIn, createAccountHref, forgotPasswordHref }: SignInViewProps) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     onSubmit()
@@ -34,7 +35,23 @@ export function SignInView({ emailValue, passwordValue, onSubmit, onGoogleSignIn
               <FormDividerLabel>OR</FormDividerLabel>
 
               <FormField id="v3-auth-email" label="Email" type="email" value={emailValue} readOnly />
-              <FormField id="v3-auth-password" label="Password" type="password" value={passwordValue} readOnly />
+              <div className="grid gap-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <label htmlFor="v3-auth-password" className="text-sm font-medium leading-5 text-ink">
+                    Password
+                  </label>
+                  <a href={forgotPasswordHref} className="text-sm font-semibold text-accent underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                    Forgot password?
+                  </a>
+                </div>
+                <input
+                  id="v3-auth-password"
+                  type="password"
+                  value={passwordValue}
+                  readOnly
+                  className="min-h-11 rounded-lg border border-input bg-surface px-3 py-2.5 text-sm leading-6 text-ink shadow-control outline-none placeholder:text-ink-muted transition-colors duration-normal ease-default focus:border-focus focus:ring-2 focus:ring-focus"
+                />
+              </div>
               <button type="submit" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 Sign In
               </button>

@@ -14,6 +14,8 @@ export type DataTableColumn<TRow> = {
   readonly sortable?: boolean
   readonly sortValue?: (row: TRow) => string | number
   readonly render: (row: TRow) => ReactNode
+  /** Alternate render used in the mobile row-detail sheet — use this when `render` returns a nested popover/menu, since those render behind the sheet's own overlay on mobile. */
+  readonly mobileRender?: (row: TRow) => ReactNode
 }
 
 export type DataTableAction = {
@@ -376,7 +378,7 @@ export const DataTable = forwardRef<HTMLElement, DataTableProps<{ readonly id: s
                     {columns.map((column) => (
                       <div key={column.key} className="flex items-start justify-between gap-4 border-b border-border pb-3 text-sm">
                         <dt className="shrink-0 text-ink-muted">{column.label}</dt>
-                        <dd className="min-w-0 text-end font-medium text-ink">{column.render(mobileDetailRow)}</dd>
+                        <dd className="min-w-0 text-end font-medium text-ink">{(column.mobileRender ?? column.render)(mobileDetailRow)}</dd>
                       </div>
                     ))}
                   </dl>

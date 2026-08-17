@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
-import { ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check, Pencil } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check, FileText, Pencil } from 'lucide-react'
 import { Select } from '@base-ui-components/react/select'
 
 import { LightforthAiIcon } from './brand-mark'

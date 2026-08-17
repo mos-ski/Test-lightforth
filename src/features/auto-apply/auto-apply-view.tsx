@@ -106,7 +106,7 @@ function Header({ homeHref, current = 'Auto Apply', actionHref }: { readonly hom
       current={current}
       closeHref={homeHref}
       closeLabel="Close auto apply"
-      secondaryAction={actionHref ? { label: 'Update Preference', href: actionHref, iconSrc: '/v3-assets/figma/sidebar-briefcase.svg' } : undefined}
+      secondaryAction={actionHref ? { label: 'Update Preference', href: actionHref, icon: <img aria-hidden="true" src="/v3-assets/figma/sidebar-briefcase.svg" alt="" className="size-5" /> } : undefined}
     />
   )
 }
@@ -230,7 +230,7 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
                 id: 'resume',
                 title: 'Resume',
                 value: setup.uploadedFileName,
-                iconSrc: '/v3-assets/figma/form-review-resume.svg',
+                icon: <img aria-hidden="true" src="/v3-assets/figma/form-review-resume.svg" alt="" className="size-5" />,
                 href: contactHref,
                 details: (
                   <div className="grid gap-1">
@@ -242,7 +242,7 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
                 id: 'contact',
                 title: 'Contact Information',
                 value: `${setup.firstName} ${setup.lastName} - ${setup.email} - ${setup.country}`,
-                iconSrc: '/v3-assets/figma/form-review-contact.svg',
+                icon: <img aria-hidden="true" src="/v3-assets/figma/form-review-contact.svg" alt="" className="size-5" />,
                 href: contactHref,
                 details: (
                   <div className="grid gap-1">
@@ -262,7 +262,7 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
                 id: 'preferences',
                 title: 'Job Preferences',
                 value: `${setup.desiredRole.join(', ')}, ${setup.experienceLevel} - $${Math.round(setup.salary.min / 1000)}k–$${Math.round(setup.salary.max / 1000)}k`,
-                iconSrc: '/v3-assets/figma/form-review-briefcase.svg',
+                icon: <img aria-hidden="true" src="/v3-assets/figma/form-review-briefcase.svg" alt="" className="size-5" />,
                 href: '/v3/auto-apply/preferences',
                 details: (
                   <div className="grid gap-1">
@@ -280,7 +280,7 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
                 id: 'additional',
                 title: 'Additional Info',
                 value: `${setup.willingToStart} - ${setup.usWorkAuth || 'Not set'}`,
-                iconSrc: '/v3-assets/figma/form-review-info.svg',
+                icon: <img aria-hidden="true" src="/v3-assets/figma/form-review-info.svg" alt="" className="size-5" />,
                 href: additionalHref,
                 details: (
                   <div className="grid gap-1">
