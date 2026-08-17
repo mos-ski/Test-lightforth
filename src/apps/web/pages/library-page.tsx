@@ -1067,7 +1067,7 @@ function LibraryPageInner() {
             <div className="rounded-xl border border-border bg-surface p-4">
               <p className="text-sm text-ink">We are looking for a motivated and detail-oriented professional to join our growing team. In this role, you will collaborate with cross-functional teams to drive projects from conception to delivery.<span className="inline-block h-3.5 w-px animate-pulse bg-accent-text align-middle" /></p>
             </div>
-            <p className="mt-2 text-xs text-ink-muted">Use the useTypewriter hook: const { type, isTyping } = useTypewriter()</p>
+            <p className="mt-2 text-xs text-ink-muted">{'Use the useTypewriter hook: const { type, isTyping } = useTypewriter()'}</p>
           </Section>
         </div>
       </div>
