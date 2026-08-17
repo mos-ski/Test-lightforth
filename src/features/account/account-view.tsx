@@ -14,6 +14,7 @@ import {
   DialogTrigger,
   SelectField,
   ShellBar,
+  Switch,
 } from '@/ui'
 
 export type DownloadsViewProps = {
@@ -331,16 +332,7 @@ function CancelSubscriptionDialog({ renewalLabel }: { readonly renewalLabel: str
 function AnnualToggle({ annual, onToggle }: { readonly annual: boolean; readonly onToggle: () => void }) {
   return (
     <div className="flex items-center gap-3 text-sm font-semibold text-ink">
-      <button
-        type="button"
-        role="switch"
-        aria-checked={annual}
-        aria-label="Toggle annual billing"
-        onClick={onToggle}
-        className={cn('relative h-6 w-9 shrink-0 rounded-pill border transition-colors duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus', annual ? 'border-accent bg-accent' : 'border-border bg-surface-subtle')}
-      >
-        <span className={cn('absolute top-0.5 size-5 rounded-pill bg-surface shadow-control transition-transform duration-normal', annual ? 'translate-x-3.5' : 'translate-x-0.5')} />
-      </button>
+      <Switch checked={annual} onCheckedChange={onToggle} aria-label="Toggle annual billing" />
       Annual
       <span className="rounded-pill border border-positive bg-positive-surface px-2 py-0.5 text-xs font-medium text-positive">(save 20%)</span>
     </div>

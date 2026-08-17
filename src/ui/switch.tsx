@@ -9,16 +9,18 @@ export type SwitchProps = {
   readonly label?: string
   readonly disabled?: boolean
   readonly className?: string
+  readonly 'aria-label'?: string
 }
 
 export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
-  function Switch({ checked, onCheckedChange, label, disabled, className }, ref) {
+  function Switch({ checked, onCheckedChange, label, disabled, className, ...rest }, ref) {
     const switchEl = (
       <BaseSwitch.Root
         ref={ref}
         checked={checked}
         onCheckedChange={onCheckedChange}
         disabled={disabled}
+        aria-label={rest['aria-label'] ?? label}
         data-slot="switch"
         className={cn(
           'group inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-muted transition-colors duration-normal ease-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50',
