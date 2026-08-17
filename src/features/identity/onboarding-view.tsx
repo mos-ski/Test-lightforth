@@ -33,10 +33,10 @@ export function OnboardingProfileView({ homeHref, backHref, nextHref, emailValue
           className="max-w-[36rem]"
           footer={<FormPanelFooter backHref={backHref} nextHref={nextHref} nextLabel="Next" />}
         >
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-3">
             <FormField id="onboarding-first-name" label="First Name" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
             <FormField id="onboarding-last-name" label="Last Name" value={lastName} onChange={(event) => setLastName(event.target.value)} />
-            <div className="grid gap-1.5 sm:col-span-2">
+            <div className="col-span-2 grid gap-1.5">
               <label htmlFor="onboarding-email" className="text-sm font-medium leading-5 text-ink">
                 Email
               </label>
@@ -54,7 +54,9 @@ export function OnboardingProfileView({ homeHref, backHref, nextHref, emailValue
                 </span>
               </div>
             </div>
-            <FormField id="onboarding-phone" label="Phone Number" type="tel" placeholder="+1 (555) 000-0000" value={phone} onChange={(event) => setPhone(event.target.value)} />
+            <div className="col-span-2">
+              <FormField id="onboarding-phone" label="Phone Number" type="tel" placeholder="+1 (555) 000-0000" value={phone} onChange={(event) => setPhone(event.target.value)} />
+            </div>
             <FormField id="onboarding-country" label="Country" placeholder="e.g. United States" value={country} onChange={(event) => setCountry(event.target.value)} />
             <FormField id="onboarding-city" label="City" placeholder="e.g. Austin" value={city} onChange={(event) => setCity(event.target.value)} />
             <FormField id="onboarding-state" label="State" placeholder="e.g. Texas" value={state} onChange={(event) => setState(event.target.value)} />
