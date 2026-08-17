@@ -43,7 +43,7 @@ export const billingPlans: readonly BillingPlanCard[] = [
     annualCadence: 'per year',
     credits: '15 Credits',
     description: 'The budget tier to get your job hunt started with the essentials.',
-    features: ['15 credits per month', 'Resume builder', 'Cover letter features', 'Download resumes'],
+    features: ['15 credits per month', 'Resume builder', 'Download resumes'],
     note: 'Ideal for light or occasional job applications',
   },
   {

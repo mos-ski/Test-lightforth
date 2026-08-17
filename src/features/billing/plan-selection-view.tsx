@@ -68,13 +68,16 @@ function PlanCard({
         <p className="mt-5 text-sm font-semibold text-ink">{plan.credits} Credits</p>
         <p className="mt-3 text-sm leading-5 text-ink-muted">{plan.description}</p>
 
-        {plan.popular ? (
-          <div className="mt-6">
-            <Button className="w-full" onClick={() => onSelectPlan(plan.id)} aria-label={subscribeLabel}>
-              Subscribe
-            </Button>
-          </div>
-        ) : null}
+        <div className="mt-6">
+          <Button
+            variant={plan.popular ? 'primary' : 'secondary'}
+            className="w-full"
+            onClick={() => onSelectPlan(plan.id)}
+            aria-label={subscribeLabel}
+          >
+            Subscribe
+          </Button>
+        </div>
 
         <ul className="mt-6 grid gap-2 text-sm leading-5 text-ink-muted">
           {plan.features.map((feature) => (

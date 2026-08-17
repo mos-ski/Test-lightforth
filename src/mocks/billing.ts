@@ -36,7 +36,6 @@ export const authPlanFixtures: readonly BillingPlanFixture[] = [
     description: 'You can do up to 15 total actions per month, in any combination.',
     features: [
       'Resume builder',
-      'Cover letter tools',
       'Resume downloads',
       'AI suggestions',
     ],

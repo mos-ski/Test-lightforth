@@ -9,13 +9,13 @@ import { MarketingLayout } from '../MarketingLayout'
 const OFFER_SECONDS = 10 * 60
 
 const PLAN_BULLETS: Record<PlanId, string[]> = {
-  starter: ['Resume Builder', 'Cover letter tools', 'Resume downloads', '15 credits / month'],
+  starter: ['Resume Builder', 'Resume downloads', '15 credits / month'],
   pro: ['Everything in Starter', 'Auto-Apply (Scout, Filter, Tailor & Driver agents)', 'AI Interview Prep', 'Interview & Coding Copilot', '50 credits / month'],
   premium: ['Everything in Pro', 'Meeting Copilot', 'Automate job applications with a daily quota', 'Priority response speed', '100 credits / month'],
 }
 
 const PLAN_SUMMARIES: Record<PlanId, string> = {
-  starter: 'For light resume and cover letter work.',
+  starter: 'For light resume work.',
   pro: 'For active job seekers applying and interviewing every week.',
   premium: 'For high-volume searches and heavier interview seasons.',
 }
@@ -28,7 +28,6 @@ const FEATURE_GROUPS: { label: string; rows: [string, FeatureValue, FeatureValue
     rows: [
       ['Monthly credits', '15', '50', '100'],
       ['Resume Builder', true, true, true],
-      ['Cover letter tools', true, true, true],
       ['Resume downloads', true, true, true],
     ],
   },

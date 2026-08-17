@@ -26,7 +26,7 @@ export const PLANS: PlanConfig[] = [
     monthlyPrice: 27,
     credits: 15,
     popular: false,
-    bullets: ['Resume builder', 'Cover letter features', 'Download resumes'],
+    bullets: ['Resume builder', 'Download resumes'],
     bestForNote: 'Ideal for light or occasional job applications',
     appFeatures: ['resume'],
     unlockedUseCases: [],
