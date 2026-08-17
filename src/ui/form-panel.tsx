@@ -1,10 +1,26 @@
 import { forwardRef, useEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
-import { FileText, ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check, Pencil } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check, Pencil } from 'lucide-react'
 import { Select } from '@base-ui-components/react/select'
 
 import { LightforthAiIcon } from './brand-mark'
 import { cn } from './cn'
 import { Dialog, DialogPopup, DialogTitle } from './dialog'
+
+function ResumeFileIcon({ className }: { readonly className?: string }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
+      <g clipPath="url(#resume-file-clip)">
+        <path d="M7.79293 1.34766H3.59883C3.28101 1.34766 2.97622 1.47391 2.75149 1.69863C2.52676 1.92336 2.40051 2.22816 2.40051 2.54597V12.1325C2.40051 12.4503 2.52676 12.7551 2.75149 12.9798C2.97622 13.2046 3.28101 13.3308 3.59883 13.3308H10.7887C11.1065 13.3308 11.4113 13.2046 11.6361 12.9798C11.8608 12.7551 11.987 12.4503 11.987 12.1325V5.54176L7.79293 1.34766Z" fill="#EA4335" stroke="#EA4335" strokeWidth="1.12342" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M7.79004 1.34766V5.54176H11.9841" fill="white" stroke="#EA4335" strokeWidth="1.12342" strokeLinecap="round" strokeLinejoin="round" />
+      </g>
+      <defs>
+        <clipPath id="resume-file-clip">
+          <rect width="14.3798" height="14.3798" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+  )
+}
 
 function ScrollCue() {
   const [visible, setVisible] = useState(false)
@@ -97,7 +113,7 @@ export const UploadedFileStrip = forwardRef<HTMLDivElement, UploadedFileStripPro
         {...props}
       >
         <span className="inline-flex min-w-0 items-center gap-1.5">
-          <FileText aria-hidden="true" className="size-3.5 shrink-0" />
+          <ResumeFileIcon className="size-3.5 shrink-0" />
           <span className="truncate">{fileName}</span>
         </span>
         <a
@@ -116,12 +132,13 @@ export type UploadedFileDialogProps = {
   readonly open: boolean
   readonly onOpenChange: (open: boolean) => void
   readonly fileName: string
+  readonly fileUrl?: string
   readonly continueHref: string
   readonly defaultChecked?: boolean
   readonly onDefaultChange?: (checked: boolean) => void
 }
 
-export function UploadedFileDialog({ open, onOpenChange, fileName, continueHref, defaultChecked, onDefaultChange }: UploadedFileDialogProps) {
+export function UploadedFileDialog({ open, onOpenChange, fileName, fileUrl, continueHref, defaultChecked, onDefaultChange }: UploadedFileDialogProps) {
   const [progress, setProgress] = useState(0)
   const ready = progress >= 100
 
@@ -147,10 +164,29 @@ export function UploadedFileDialog({ open, onOpenChange, fileName, continueHref,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPopup aria-label="Resume uploaded">
+      <DialogPopup aria-label="Resume uploaded" className="sm:max-w-lg">
         <DialogTitle>Resume uploaded</DialogTitle>
+        <div className="mt-4 overflow-hidden rounded-lg border border-border">
+          {fileUrl ? (
+            <iframe
+              src={fileUrl}
+              title={`Preview of ${fileName}`}
+              className="h-64 w-full bg-surface-subtle"
+            />
+          ) : (
+            <div className="flex h-64 flex-col items-center justify-center gap-3 bg-surface-subtle px-6 text-center">
+              <div className="grid size-14 place-items-center rounded-xl bg-accent-subtle">
+                <ResumeFileIcon className="size-7" />
+              </div>
+              <div className="grid gap-1">
+                <p className="text-sm font-medium text-ink">{fileName}</p>
+                <p className="text-xs text-ink-muted">PDF document — preview available after processing</p>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="mt-4 flex items-center gap-3 rounded-lg border border-border bg-surface-subtle px-4 py-3">
-          <FileText aria-hidden="true" className="size-5 shrink-0 text-ink-muted" />
+          <ResumeFileIcon className="size-5 shrink-0" />
           <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">{fileName}</span>
           {ready ? <Check aria-hidden="true" className="size-4 shrink-0 text-positive" /> : null}
         </div>

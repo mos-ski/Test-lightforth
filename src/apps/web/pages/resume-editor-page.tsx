@@ -28,6 +28,7 @@ export function ResumeEditorPage() {
   const params = new URLSearchParams(search)
   const tab = readTab(params.get('tab'))
   const chatState = tab === 'chat' ? readChatState(params.get('state')) : 'empty'
+  const jd = params.get('jd') ?? undefined
 
   return (
     <ResumeEditorView
@@ -38,6 +39,7 @@ export function ResumeEditorPage() {
       templates={resumeTemplates}
       tab={tab}
       chatState={chatState}
+      jd={jd}
     />
   )
 }

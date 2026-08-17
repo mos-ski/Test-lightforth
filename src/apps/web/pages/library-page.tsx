@@ -4,9 +4,19 @@ import {
   FileText,
   Sparkles,
   Upload,
+  ChevronRight,
+  Menu,
+  Settings,
+  Home,
+  BarChart3,
 } from 'lucide-react'
 
 import {
+  Accordion,
+  AccordionItem,
+  AccordionHeader,
+  AccordionTrigger,
+  AccordionPanel,
   Avatar,
   Badge,
   Breadcrumbs,
@@ -14,6 +24,9 @@ import {
   Card,
   Checkbox,
   Chip,
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsiblePanel,
   DataTable,
   Divider,
   Dialog,
@@ -22,12 +35,28 @@ import {
   DialogClose,
   DialogPopup,
   EmptyState,
+  Menu as DropdownMenu,
+  MenuTrigger,
+  MenuContent,
+  MenuItem,
+  Navigator,
+  NavigatorGroup,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
   ProgressBar,
   RadioGroup,
   RadioGroupItem,
+  ScrollArea,
   SearchInput,
   SelectField,
+  Separator,
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetClose,
   Skeleton,
+  Slider,
   Spinner,
   StatCard,
   StepIndicator,
@@ -37,6 +66,7 @@ import {
   TabsTrigger,
   TabsContent,
   TextField,
+  ThemeSwitch,
   Tooltip,
   TooltipTrigger,
   TooltipContent,
@@ -45,6 +75,7 @@ import {
 } from '@/ui'
 import type {
   DataTableColumn,
+  NavigatorItem,
   StepItem,
 } from '@/ui'
 
@@ -122,6 +153,9 @@ function LibraryPageInner() {
   const [radioValue, setRadioValue] = useState('pro')
   const [searchValue, setSearchValue] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [sliderValue, setSliderValue] = useState([40])
+  const [popoverOpen, setPopoverOpen] = useState(false)
 
   return (
     <main className="min-h-screen bg-canvas px-6 py-10 text-ink">
@@ -420,6 +454,173 @@ function LibraryPageInner() {
               description="Add context documents to help AI understand your background."
               action={<Button>Add Document</Button>}
             />
+          </Section>
+
+          {/* ThemeSwitch */}
+          <Section title="ThemeSwitch">
+            <Row label="Toggle theme">
+              <ThemeSwitch />
+              <ThemeSwitch size="sm" />
+            </Row>
+          </Section>
+
+          {/* Separator */}
+          <Section title="Separator">
+            <div className="grid gap-4">
+              <p className="text-sm text-ink-muted">Content above</p>
+              <Separator />
+              <p className="text-sm text-ink-muted">Content below</p>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-ink-muted">Left</span>
+                <Separator orientation="vertical" className="h-6" />
+                <span className="text-sm text-ink-muted">Right</span>
+              </div>
+            </div>
+          </Section>
+
+          {/* Slider */}
+          <Section title="Slider">
+            <div className="grid gap-6">
+              <Slider
+                value={sliderValue}
+                onValueChange={setSliderValue}
+                min={0}
+                max={100}
+                label="Volume"
+                showValue
+              />
+              <Slider
+                defaultValue={[50]}
+                min={0}
+                max={100}
+                label="Price range"
+                minLabel="$0"
+                maxLabel="$100"
+              />
+            </div>
+          </Section>
+
+          {/* Accordion */}
+          <Section title="Accordion">
+            <Accordion defaultValue={['item-1']}>
+              <AccordionItem value="item-1">
+                <AccordionHeader>
+                  <AccordionTrigger>What is Lightforth?</AccordionTrigger>
+                </AccordionHeader>
+                <AccordionPanel>
+                  Lightforth is an AI-powered career platform that helps you build resumes, prepare for interviews, and auto-apply to jobs.
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem value="item-2">
+                <AccordionHeader>
+                  <AccordionTrigger>How does the copilot work?</AccordionTrigger>
+                </AccordionHeader>
+                <AccordionPanel>
+                  The copilot guides you through interview prep, live coding exercises, and meeting preparation with real-time AI assistance.
+                </AccordionPanel>
+              </AccordionItem>
+              <AccordionItem value="item-3">
+                <AccordionHeader>
+                  <AccordionTrigger>What plans are available?</AccordionTrigger>
+                </AccordionHeader>
+                <AccordionPanel>
+                  We offer Free, Pro, and Business plans with different credit allocations and feature access levels.
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
+          </Section>
+
+          {/* Collapsible */}
+          <Section title="Collapsible">
+            <Collapsible>
+              <CollapsibleTrigger render={<button className="flex items-center gap-2 text-sm font-medium text-ink hover:text-accent" />}>
+                <ChevronRight className="size-4 transition-transform [[data-open]&]:rotate-90" />
+                Show details
+              </CollapsibleTrigger>
+              <CollapsiblePanel>
+                <div className="mt-2 rounded-lg bg-surface-subtle p-4 text-sm text-ink-muted">
+                  This is the collapsible content. It can contain anything — text, forms, other components.
+                </div>
+              </CollapsiblePanel>
+            </Collapsible>
+          </Section>
+
+          {/* Popover */}
+          <Section title="Popover">
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger render={<Button variant="secondary">Open Popover</Button>} />
+              <PopoverContent side="bottom">
+                <div className="grid gap-2">
+                  <p className="text-sm font-medium text-ink">Quick actions</p>
+                  <p className="text-sm text-ink-muted">This is a popover with some content and actions.</p>
+                  <Button size="sm" onClick={() => setPopoverOpen(false)}>Got it</Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </Section>
+
+          {/* Menu (Dropdown) */}
+          <Section title="Menu (Dropdown)">
+            <DropdownMenu>
+              <MenuTrigger render={<Button variant="secondary">Open Menu</Button>} />
+              <MenuContent align="start">
+                <MenuItem icon={<Home />}>Dashboard</MenuItem>
+                <MenuItem icon={<BarChart3 />}>Analytics</MenuItem>
+                <MenuItem icon={<Settings />}>Settings</MenuItem>
+                <MenuSeparator />
+                <MenuItem variant="danger">Sign out</MenuItem>
+              </MenuContent>
+            </DropdownMenu>
+          </Section>
+
+          {/* ScrollArea */}
+          <Section title="ScrollArea">
+            <ScrollArea className="h-40 w-full rounded-lg border border-border">
+              <div className="grid gap-3 p-4">
+                {Array.from({ length: 20 }, (_, i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-lg bg-surface-subtle p-3">
+                    <Avatar name={`U${i + 1}`} size="sm" />
+                    <div>
+                      <p className="text-sm font-medium text-ink">User {i + 1}</p>
+                      <p className="text-xs text-ink-muted">user{i + 1}@example.com</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </Section>
+
+          {/* Sheet (Drawer) */}
+          <Section title="Sheet (Drawer)">
+            <Button onClick={() => setSheetOpen(true)}>Open Sheet</Button>
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetContent side="right">
+                <SheetTitle>Settings</SheetTitle>
+                <div className="mt-4 grid gap-4">
+                  <TextField id="sheet-name" label="Name" placeholder="Enter your name" />
+                  <TextField id="sheet-email" label="Email" placeholder="Enter your email" />
+                  <div className="flex justify-end gap-3 pt-4">
+                    <SheetClose render={<Button variant="secondary" />}>Cancel</SheetClose>
+                    <Button onClick={() => { setSheetOpen(false); toast.success('Saved!') }}>Save</Button>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </Section>
+
+          {/* Navigator */}
+          <Section title="Navigator">
+            <div className="overflow-hidden rounded-lg border border-border">
+              <Navigator
+                logo={<span className="text-lg font-bold text-ink">LF</span>}
+                items={[
+                  { id: 'home', label: 'Home', icon: <Home />, href: '#', active: true },
+                  { id: 'analytics', label: 'Analytics', icon: <BarChart3 />, href: '#' },
+                  { id: 'settings', label: 'Settings', icon: <Settings />, href: '#' },
+                ]}
+                footer={<p className="text-xs text-muted">v1.0.0</p>}
+              />
+            </div>
           </Section>
         </div>
       </div>

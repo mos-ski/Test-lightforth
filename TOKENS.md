@@ -68,6 +68,26 @@ All colors are defined in `src/tokens/theme.css` and `src/tokens/tokens.ts` with
 | `overlay` | `bg-overlay` | Modal overlay |
 | `brand-bar` | `bg-brand-bar` | Top navigation bar |
 | `brand-bar-text` | `text-brand-bar-text` | Nav bar text |
+| `brand-mark` | `text-brand-mark` | Logo mark color |
+| `brand-mark-accent` | `text-brand-mark-accent` | Logo mark accent |
+
+### Live Canvas (Interview/Copilot)
+
+| Token | Tailwind | Purpose |
+|---|---|---|
+| `live-canvas` | `bg-live-canvas` | Live session background |
+| `live-header` | `bg-live-header` | Live session header |
+| `live-strip` | `bg-live-strip` | Live status strip |
+| `live-panel` | `bg-live-panel` | Live session panel |
+| `live-border` | `border-live-border` | Live session borders |
+| `live-message` | `bg-live-message` | Chat message background |
+| `live-scrim` | `bg-live-scrim` | Screen share scrim |
+| `live-avatar-neutral` | `bg-live-avatar-neutral` | Neutral avatar tint |
+| `live-avatar-warm` | `bg-live-avatar-warm` | Warm avatar tint |
+| `live-workspace` | `bg-live-workspace` | Live workspace background |
+| `live-divider` | `bg-live-divider` | Live session dividers |
+| `live-panel-header` | `bg-live-panel-header` | Live panel header background |
+| `live-control-border` | `border-live-control-border` | Live control borders |
 
 ## Radius
 

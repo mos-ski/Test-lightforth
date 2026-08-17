@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Check, ChevronDown, Download, FileText, Minus, Plus, Send, Target, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Send, Target, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
 import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, UploadedFileDialog } from '@/ui'
 import { useTypewriter } from '@/hooks/useTypewriter'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
-import { clearPendingResumeJobDescription, getPendingResumeJobDescription, setPendingResumeJobDescription } from '@/lib/resume-job-description'
 
 export type ResumeUploadViewProps = {
   readonly homeHref: string
   readonly configureHref: string
   readonly historyHref: string
   readonly uploadedFileName: string
-  readonly savedResumes: readonly ResumeHistoryRow[]
+  readonly uploadedFileUrl?: string
+  readonly savedResumes: readonly { readonly id: string; readonly title: string; readonly company: string; readonly atsScore: number }[]
 }
 
 export type ResumeConfigureViewProps = {
@@ -30,6 +30,7 @@ export type ResumeEditorViewProps = {
   readonly templates: readonly ResumeTemplate[]
   readonly tab: ResumeBuilderTab
   readonly chatState: ResumeChatState
+  readonly jd?: string
 }
 
 export type ResumeHistoryViewProps = {
@@ -182,7 +183,7 @@ function AiSuggestionLabel({ onClick }: { readonly onClick?: () => void }) {
   )
 }
 
-export function ResumeUploadView({ homeHref, configureHref, historyHref, uploadedFileName, savedResumes }: ResumeUploadViewProps) {
+export function ResumeUploadView({ homeHref, configureHref, historyHref, uploadedFileName, uploadedFileUrl, savedResumes }: ResumeUploadViewProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [useAsDefault, setUseAsDefault] = useState(() => getDefaultResumePreference() !== null)
@@ -221,6 +222,7 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref, uploade
         open={uploadDialogOpen}
         onOpenChange={setUploadDialogOpen}
         fileName={uploadedFileName}
+        fileUrl={uploadedFileUrl}
         continueHref={configureHref}
         defaultChecked={useAsDefault}
         onDefaultChange={(checked) => {
@@ -236,24 +238,42 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref, uploade
 const RESUME_JOB_DESCRIPTION_SUGGESTION =
   ' Looking for a Senior Product Manager with 5+ years of experience shipping AI-powered products, strong SQL and A/B testing skills, and a track record of driving measurable growth metrics.'
 
-const JOB_DESCRIPTION_PLACEHOLDER = 'Paste any job description…'
+const GENERIC_JOB_DESCRIPTION =
+  'We are looking for a motivated and detail-oriented professional to join our growing team. In this role, you will collaborate with cross-functional teams to drive projects from conception to delivery. You will analyse data, identify opportunities for improvement, and implement strategies that support business growth. The ideal candidate brings strong communication skills, a proactive mindset, and the ability to manage multiple priorities in a fast-paced environment. Experience with modern tools and frameworks, a passion for continuous learning, and a track record of delivering measurable results will set you apart.'
 
 export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session }: ResumeConfigureViewProps) {
-  const [jobDescription, setJobDescription] = useState(session.jobDescription)
+  const [jobDescription, setJobDescription] = useState('')
   const { type, isTyping } = useTypewriter()
-  const [dismissedJdTip, setDismissedJdTip] = useState(false)
-  const typedPlaceholder = useTypedPlaceholder(JOB_DESCRIPTION_PLACEHOLDER, jobDescription.length === 0)
+  const [showTip, setShowTip] = useState(true)
+  const tipRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setPendingResumeJobDescription(jobDescription)
-  }, [jobDescription])
+    const timer = window.setTimeout(() => {
+      type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
+    }, 150)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!showTip) return
+    function handleClickOutside(e: MouseEvent) {
+      if (tipRef.current && !tipRef.current.contains(e.target as Node)) setShowTip(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showTip])
 
   function handleAiSuggestion() {
     const base = jobDescription
     type(RESUME_JOB_DESCRIPTION_SUGGESTION, (partial) => setJobDescription(base + partial))
   }
 
-  const showJdTip = jobDescription.trim().length === 0 && !dismissedJdTip
+  const effectiveJd = jobDescription.trim() || GENERIC_JOB_DESCRIPTION
+  const editorUrl = `${editorHref}?jd=${encodeURIComponent(effectiveJd)}`
+
+  function handleContinue() {
+    window.location.href = editorUrl
+  }
 
   return (
     <Workspace>
@@ -267,33 +287,80 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
             changeHref: uploadHref,
             onChangeClick: () => clearDefaultResumePreference(),
           }}
-          footer={<FormPanelFooter backHref={uploadHref} nextHref={editorHref} />}
+          footer={
+            <footer className="flex items-center justify-between gap-4 border-t border-border px-6 py-4">
+              <a href={uploadHref} className="inline-flex min-h-11 items-center gap-1 rounded-lg py-2.5 text-base font-semibold leading-6 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <ArrowLeft aria-hidden="true" className="size-4" />
+                Back
+              </a>
+              <button
+                type="button"
+                onClick={handleContinue}
+                className="inline-flex min-h-11 items-center justify-center gap-3 rounded-lg bg-accent px-4 py-2.5 text-base font-semibold leading-6 text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                Continue
+                <ArrowRight aria-hidden="true" className="size-5" />
+              </button>
+            </footer>
+          }
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            <FormField id="resume-name" label="Resume Name" defaultValue={session.resumeName} />
-            <FormField id="company-name" label="Company Name" defaultValue={session.companyName} />
+            <FormField id="resume-name" label="Resume Name" placeholder="e.g. Senior PM Resume" />
+            <FormField id="company-name" label="Company Name" placeholder="e.g. Google, Stripe" />
           </div>
-          <FormTextArea
-            id="resume-job-description"
-            label="Enter Job Description"
-            value={jobDescription}
-            onChange={(event) => setJobDescription(event.target.value)}
-            placeholder={typedPlaceholder}
-            className={cn(isTyping && 'ring-2 ring-accent shadow-[0_0_0_4px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
-          />
+          <div className="relative">
+            <div className="flex items-center gap-1.5">
+              <label htmlFor="resume-job-description" className="text-sm font-medium leading-5 text-ink">
+                Enter Job Description
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTip(true)
+                  setJobDescription('')
+                  type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
+                }}
+                aria-label="Show help tooltip"
+                className="inline-flex items-center justify-center rounded-full p-0.5 text-muted transition-colors hover:bg-accent-subtle hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                <HelpCircle aria-hidden="true" className="size-4" />
+              </button>
+            </div>
+            <div className="relative mt-1.5">
+              <textarea
+                id="resume-job-description"
+                value={jobDescription}
+                onChange={(event) => setJobDescription(event.target.value)}
+                className={cn(
+                  'min-h-40 w-full resize-none rounded-lg border border-input bg-surface px-3.5 py-3 text-base text-ink shadow-control outline-none placeholder:text-ink-muted transition-colors duration-normal ease-default focus:border-focus focus:ring-2 focus:ring-focus sm:text-sm disabled:cursor-not-allowed disabled:opacity-50',
+                  isTyping && '!border-accent !shadow-[0_0_0_3px_var(--lf-accent-subtle)] transition-shadow duration-normal',
+                )}
+              />
+              {showTip && (
+                <div
+                  ref={tipRef}
+                  role="status"
+                  className="absolute end-0 top-0 z-20 hidden w-64 translate-x-[calc(100%+12px)] rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel sm:block"
+                >
+                  <span aria-hidden="true" className="absolute start-0 top-6 -translate-x-1.5 rotate-45 size-3 bg-live-header" />
+                  <button
+                    type="button"
+                    onClick={() => setShowTip(false)}
+                    aria-label="Dismiss tip"
+                    className="absolute end-2 top-2 rounded p-1 text-brand-bar-text/60 hover:text-brand-bar-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                  >
+                    <X aria-hidden="true" className="size-3" />
+                  </button>
+                <p className="text-sm font-semibold">Tailor your resume</p>
+                <p className="mt-1 text-xs leading-relaxed text-brand-bar-text/80">
+                  Paste a job description and Lightforth will automatically rewrite your resume to match key words.
+                </p>
+              </div>
+              )}
+            </div>
+          </div>
           <AiSuggestionAction onClick={handleAiSuggestion} disabled={isTyping} />
         </FormPanel>
-        {showJdTip ? (
-          <WalkthroughTooltip
-            targetId="resume-job-description"
-            side="right"
-            title="Add the Job Description"
-            body="Paste the role you're targeting before you continue — Lightforth tailors your resume to match it."
-            actionLabel="Got it"
-            onAction={() => setDismissedJdTip(true)}
-            onDismiss={() => setDismissedJdTip(true)}
-          />
-        ) : null}
       </section>
     </Workspace>
   )
@@ -341,11 +408,11 @@ function ChatEmptyState() {
   return (
     <div className="grid flex-1 place-items-center p-6 text-center">
       <div className="max-w-[15rem]">
-        <p className="text-sm font-bold text-ink">Paste a job description, or ask for a rewrite</p>
+        <p className="text-sm font-bold text-ink">Send a message to adjust your resume</p>
         <ol className="mt-4 grid gap-2 text-start text-xs text-ink-muted">
           <li className="flex items-start gap-2">
             <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-pill bg-accent-subtle text-[11px] font-bold text-accent-text">1</span>
-            Type your first message below
+            Ask for rewrites, tone changes, or keyword targeting
           </li>
           <li className="flex items-start gap-2">
             <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-pill bg-accent-subtle text-[11px] font-bold text-accent-text">2</span>
@@ -359,33 +426,8 @@ function ChatEmptyState() {
 
 type ChatMessage = { readonly id: string; readonly author: 'candidate' | 'assistant'; readonly text: string }
 
-const CHAT_PLACEHOLDER_EMPTY = 'Paste a job description here to get started…'
+const CHAT_PLACEHOLDER_EMPTY = 'Send a message for more adjustments…'
 const CHAT_PLACEHOLDER_ACTIVE = 'Message Lightforth AI...'
-
-function useTypedPlaceholder(text: string, enabled: boolean) {
-  const [display, setDisplay] = useState(enabled ? '' : text)
-
-  useEffect(() => {
-    if (!enabled) {
-      setDisplay(text)
-      return
-    }
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setDisplay(text)
-      return
-    }
-    setDisplay('')
-    let index = 0
-    const id = window.setInterval(() => {
-      index++
-      setDisplay(text.slice(0, index))
-      if (index >= text.length) window.clearInterval(id)
-    }, 35)
-    return () => window.clearInterval(id)
-  }, [text, enabled])
-
-  return display
-}
 
 function ChatComposer({
   prompts,
@@ -407,7 +449,10 @@ function ChatComposer({
         <label className="sr-only" htmlFor="resume-chat-message">
           Resume chat message
         </label>
-        <div id="walkthrough-chat-input" className="rounded-2xl border border-border bg-surface p-3 transition-shadow duration-normal ease-default">
+        <div
+          id="walkthrough-chat-input"
+          className="rounded-2xl border border-border bg-surface p-3"
+        >
           <textarea
             id="resume-chat-message"
             value={draft}
@@ -421,7 +466,7 @@ function ChatComposer({
             className="min-h-16 w-full resize-none bg-surface text-sm text-ink outline-none placeholder:text-ink-muted"
             placeholder={hasMessages ? CHAT_PLACEHOLDER_ACTIVE : CHAT_PLACEHOLDER_EMPTY}
           />
-          <div className="flex items-center justify-end gap-1.5 pt-2">
+          <div className="flex items-center justify-end pt-2">
             <button
               type="button"
               onClick={onSend}
@@ -1273,22 +1318,30 @@ function useIsMobileViewport() {
   return isMobile
 }
 
-export function ResumeEditorView({ homeHref, document, session, templates, tab, chatState }: ResumeEditorViewProps) {
-  const [messages, setMessages] = useState<readonly ChatMessage[]>(
-    chatState === 'suggestions'
-      ? [
-          { id: 'seed-candidate', author: 'candidate', text: session.chatPrompt },
-          { id: 'seed-assistant', author: 'assistant', text: session.aiResponse },
-        ]
-      : [],
-  )
+export function ResumeEditorView({ homeHref, document, session, templates, tab, chatState, jd }: ResumeEditorViewProps) {
+  const hasJd = Boolean(jd && jd.trim())
+  const [messages, setMessages] = useState<readonly ChatMessage[]>(() => {
+    if (hasJd) {
+      return [
+        { id: 'jd-candidate', author: 'candidate', text: jd!.trim() },
+        { id: 'jd-assistant', author: 'assistant', text: "I've tailored your resume to match the job description — review the highlighted changes below and accept or reject them." },
+      ]
+    }
+    if (chatState === 'suggestions') {
+      return [
+        { id: 'seed-candidate', author: 'candidate', text: session.chatPrompt },
+        { id: 'seed-assistant', author: 'assistant', text: session.aiResponse },
+      ]
+    }
+    return []
+  })
   const [draft, setDraft] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [thinkingLabel, setThinkingLabel] = useState(THINKING_LABELS[0])
-  const [pendingSuggestion, setPendingSuggestion] = useState(chatState === 'suggestions')
+  const [pendingSuggestion, setPendingSuggestion] = useState(hasJd || chatState === 'suggestions')
   const [hasAcceptedChanges, setHasAcceptedChanges] = useState(false)
   const [atsOpen, setAtsOpen] = useState(false)
-  const [dismissedRefineTip, setDismissedRefineTip] = useState(false)
+  const [showPostAcceptTip, setShowPostAcceptTip] = useState(false)
   const [typedSummary, setTypedSummary] = useState<string | null>(null)
   const { type: typeSummary, isTyping: isTypingSummary } = useTypewriter()
   const [zoom, setZoom] = useState(() => {
@@ -1297,7 +1350,6 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   })
   const [previewOpen, setPreviewOpen] = useState(false)
   const isMobileViewport = useIsMobileViewport()
-  const autoSentRef = useRef(false)
 
   function revealSuggestion() {
     setPendingSuggestion(true)
@@ -1305,10 +1357,11 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     if (isMobileViewport) setPreviewOpen(true)
   }
 
-  function sendMessage(text: string) {
-    const trimmed = text.trim()
+  function handleSend() {
+    const trimmed = draft.trim()
     if (!trimmed) return
     setMessages((prev) => [...prev, { id: `msg-${Date.now()}`, author: 'candidate', text: trimmed }])
+    setDraft('')
     setIsTyping(true)
     let labelIndex = 0
     setThinkingLabel(THINKING_LABELS[0])
@@ -1324,38 +1377,22 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     }, 4000)
   }
 
-  function handleSend() {
-    if (!draft.trim()) return
-    sendMessage(draft)
-    setDraft('')
-  }
-
-  useEffect(() => {
-    if (autoSentRef.current) return
-    if (tab !== 'chat' || chatState !== 'empty') return
-    const pending = getPendingResumeJobDescription()
-    if (!pending) return
-    autoSentRef.current = true
-    clearPendingResumeJobDescription()
-    sendMessage(pending)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, chatState])
-
   function handleAccept() {
     setHasAcceptedChanges(true)
     setPendingSuggestion(false)
     setTypedSummary(null)
     setPreviewOpen(false)
+    setShowPostAcceptTip(true)
   }
 
   function handleReject() {
     setPendingSuggestion(false)
     setTypedSummary(null)
     setPreviewOpen(false)
+    setShowPostAcceptTip(true)
   }
 
   const showImproved = hasAcceptedChanges || pendingSuggestion
-  const showRefineTip = hasAcceptedChanges && tab === 'chat' && !dismissedRefineTip
   const changes: readonly SuggestionChange[] = pendingSuggestion
     ? [
         { id: 'professional-summary', section: 'Professional Summary', before: document.summary, after: document.improvedSummary },
@@ -1420,15 +1457,15 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
           {pendingSuggestion && (tab === 'chat' || tab === 'create') ? (
             <InlineChangeControls onAccept={handleAccept} onReject={handleReject} />
           ) : null}
-          {showRefineTip ? (
+          {showPostAcceptTip ? (
             <WalkthroughTooltip
               targetId="walkthrough-chat-input"
               side="right"
-              title="Keep Refining"
-              body="You can keep asking for rewrites or keyword targeting to polish your resume further."
+              title="Keep refining"
+              body="Ask for more rewrites, accept the changes, or keep editing — your resume updates in real time."
               actionLabel="Got it"
-              onAction={() => setDismissedRefineTip(true)}
-              onDismiss={() => setDismissedRefineTip(true)}
+              onAction={() => setShowPostAcceptTip(false)}
+              onDismiss={() => setShowPostAcceptTip(false)}
             />
           ) : null}
         </div>
