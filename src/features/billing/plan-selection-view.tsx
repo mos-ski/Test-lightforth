@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import type { Plan } from '@/contracts/billing'
 import { Badge, Button, cn } from '@/ui'
 import { X } from 'lucide-react'
@@ -33,11 +34,13 @@ function PlanCard({
   selected,
   annual,
   onSelectPlan,
+  cardRef,
 }: {
   readonly plan: AuthPlanOption
   readonly selected: boolean
   readonly annual: boolean
   readonly onSelectPlan: (plan: Plan) => void
+  readonly cardRef?: (el: HTMLElement | null) => void
 }) {
   const subscribeLabel = `Subscribe to ${plan.name}`
   const annualMonthlyPrice = Math.round(plan.priceMonthly * 0.8)
@@ -45,8 +48,9 @@ function PlanCard({
 
   return (
     <article
+      ref={cardRef}
       className={cn(
-        'flex min-h-full flex-col rounded-panel border border-border bg-surface p-6',
+        'flex w-[82%] shrink-0 snap-center flex-col rounded-panel border border-border bg-surface p-6 md:w-auto md:shrink md:min-h-full',
         selected ? 'bg-accent-subtle' : '',
       )}
       aria-label={`${plan.name} plan`}
@@ -95,6 +99,42 @@ export function PlanSelectionView({
   onSelectPlan,
 }: PlanSelectionViewProps) {
   const annual = cadence === 'annual'
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const cardRefs = useRef<Partial<Record<Plan, HTMLElement>>>({})
+  const recommendedPlanId = plans.find((plan) => plan.popular)?.id ?? plans[0]?.id
+  const [activePlanId, setActivePlanId] = useState<Plan | undefined>(recommendedPlanId)
+
+  useEffect(() => {
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+    if (!isMobile) return
+    const container = carouselRef.current
+    const card = recommendedPlanId ? cardRefs.current[recommendedPlanId] : undefined
+    if (!container || !card) return
+    container.scrollLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2
+  }, [recommendedPlanId])
+
+  useEffect(() => {
+    const container = carouselRef.current
+    if (!container) return
+    function handleScroll() {
+      const containerCenter = container!.scrollLeft + container!.clientWidth / 2
+      let closestId: Plan | undefined
+      let closestDistance = Infinity
+      for (const plan of plans) {
+        const card = cardRefs.current[plan.id]
+        if (!card) continue
+        const cardCenter = card.offsetLeft + card.clientWidth / 2
+        const distance = Math.abs(cardCenter - containerCenter)
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closestId = plan.id
+        }
+      }
+      if (closestId) setActivePlanId(closestId)
+    }
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [plans])
 
   return (
     <main className="min-h-screen bg-canvas text-ink">
@@ -130,9 +170,30 @@ export function PlanSelectionView({
           </div>
 
           <div className="mx-auto mt-8 w-full max-w-4xl bg-surface p-4 shadow-panel sm:mt-12 sm:p-6">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div
+              ref={carouselRef}
+              className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:snap-none md:grid-cols-3 md:overflow-visible md:pb-0"
+            >
               {plans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} selected={plan.id === selectedPlanId} annual={annual} onSelectPlan={onSelectPlan} />
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  selected={plan.id === selectedPlanId}
+                  annual={annual}
+                  onSelectPlan={onSelectPlan}
+                  cardRef={(el) => {
+                    if (el) cardRefs.current[plan.id] = el
+                    else delete cardRefs.current[plan.id]
+                  }}
+                />
+              ))}
+            </div>
+            <div className="mt-4 flex justify-center gap-2 md:hidden">
+              {plans.map((plan) => (
+                <span
+                  key={plan.id}
+                  className={cn('h-1.5 rounded-full transition-all', plan.id === activePlanId ? 'w-5 bg-accent' : 'w-1.5 bg-border')}
+                />
               ))}
             </div>
             <p className="rounded-b-panel border border-warning bg-warning-surface px-4 py-3 text-sm text-warning">

@@ -1,5 +1,5 @@
 import { AlertTriangle, Apple, Check, ChevronDown, Copy, ExternalLink, EyeOff, Monitor, Moon, Play, Sun, Upload } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile, TutorialItem } from '@/contracts/account.draft'
 import {
@@ -161,14 +161,32 @@ export function TutorialsView({ homeHref, tutorials }: TutorialsViewProps) {
   )
 }
 
-function PlanCard({ plan, annual, currentIndex, index }: { readonly plan: BillingPlanCard; readonly annual: boolean; readonly currentIndex: number; readonly index: number }) {
+function PlanCard({
+  plan,
+  annual,
+  currentIndex,
+  index,
+  cardRef,
+}: {
+  readonly plan: BillingPlanCard
+  readonly annual: boolean
+  readonly currentIndex: number
+  readonly index: number
+  readonly cardRef?: (el: HTMLElement | null) => void
+}) {
   const price = annual ? plan.annualPrice : plan.price
   const cadence = annual ? plan.annualCadence : plan.cadence
   const isCurrent = plan.current === true
   const actionLabel = isCurrent ? 'Current Plan' : index < currentIndex ? 'Downgrade' : 'Upgrade'
 
   return (
-    <article className={cn('flex min-h-0 flex-col rounded-panel border p-6 md:min-h-[29rem]', isCurrent ? 'border-positive bg-positive-surface/40' : 'border-border bg-surface')}>
+    <article
+      ref={cardRef}
+      className={cn(
+        'flex w-[82%] shrink-0 snap-center flex-col rounded-panel border p-6 md:w-auto md:min-h-[29rem] md:shrink',
+        isCurrent ? 'border-positive bg-positive-surface/40' : 'border-border bg-surface',
+      )}
+    >
       <div className="flex items-center gap-2">
         <h3 className="text-lg font-bold">{plan.name}</h3>
         {isCurrent ? <span className="rounded-pill border border-positive bg-positive-surface px-2.5 py-0.5 text-xs font-semibold text-positive">Current</span> : null}
@@ -372,6 +390,42 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
   const [annual, setAnnual] = useState(true)
   const currentPlan = plans.find((plan) => plan.current) ?? plans[0]
   const currentIndex = currentPlan ? plans.indexOf(currentPlan) : 0
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const cardRefs = useRef<Partial<Record<string, HTMLElement>>>({})
+  const recommendedPlanId = (plans.find((plan) => plan.popular) ?? plans[0])?.id
+  const [activePlanId, setActivePlanId] = useState<string | undefined>(recommendedPlanId)
+
+  useEffect(() => {
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+    if (!isMobile) return
+    const container = carouselRef.current
+    const card = recommendedPlanId ? cardRefs.current[recommendedPlanId] : undefined
+    if (!container || !card) return
+    container.scrollLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2
+  }, [recommendedPlanId])
+
+  useEffect(() => {
+    const container = carouselRef.current
+    if (!container) return
+    function handleScroll() {
+      const containerCenter = container!.scrollLeft + container!.clientWidth / 2
+      let closestId: string | undefined
+      let closestDistance = Infinity
+      for (const plan of plans) {
+        const card = cardRefs.current[plan.id]
+        if (!card) continue
+        const cardCenter = card.offsetLeft + card.clientWidth / 2
+        const distance = Math.abs(cardCenter - containerCenter)
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closestId = plan.id
+        }
+      }
+      if (closestId) setActivePlanId(closestId)
+    }
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [plans])
 
   return (
     <AppWorkspace>
@@ -407,9 +461,30 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
           </TitledPanel>
 
           <TitledPanel title="Billing & Subscription" action={<AnnualToggle annual={annual} onToggle={() => setAnnual((prev) => !prev)} />}>
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <div
+              ref={carouselRef}
+              className="flex snap-x snap-mandatory gap-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:snap-none md:grid-cols-2 md:overflow-visible md:pb-0 lg:grid-cols-3"
+            >
               {plans.map((plan, index) => (
-                <PlanCard key={plan.id} plan={plan} annual={annual} currentIndex={currentIndex} index={index} />
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  annual={annual}
+                  currentIndex={currentIndex}
+                  index={index}
+                  cardRef={(el) => {
+                    if (el) cardRefs.current[plan.id] = el
+                    else delete cardRefs.current[plan.id]
+                  }}
+                />
+              ))}
+            </div>
+            <div className="mt-4 flex justify-center gap-2 md:hidden">
+              {plans.map((plan) => (
+                <span
+                  key={plan.id}
+                  className={cn('h-1.5 rounded-full transition-all', plan.id === activePlanId ? 'w-5 bg-accent' : 'w-1.5 bg-border')}
+                />
               ))}
             </div>
           </TitledPanel>

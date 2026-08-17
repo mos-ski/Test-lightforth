@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -74,6 +74,8 @@ export default function PricingPage() {
   const navigate = useNavigate()
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual')
   const [selectedMobilePlan, setSelectedMobilePlan] = useState<PlanId>('pro')
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const cardRefs = useRef<Partial<Record<PlanId, HTMLElement>>>({})
   const [offerSecondsLeft, setOfferSecondsLeft] = useState(OFFER_SECONDS)
   const [showOfferModal, setShowOfferModal] = useState(false)
   const [offerDismissed, setOfferDismissed] = useState(false)
@@ -91,6 +93,38 @@ export default function PricingPage() {
     }, 1000)
 
     return () => window.clearInterval(countdown)
+  }, [])
+
+  useEffect(() => {
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+    if (!isMobile) return
+    const container = carouselRef.current
+    const card = cardRefs.current.pro
+    if (!container || !card) return
+    container.scrollLeft = card.offsetLeft - (container.clientWidth - card.clientWidth) / 2
+  }, [])
+
+  useEffect(() => {
+    const container = carouselRef.current
+    if (!container) return
+    function handleScroll() {
+      const containerCenter = container!.scrollLeft + container!.clientWidth / 2
+      let closestId: PlanId = PLANS[0].id
+      let closestDistance = Infinity
+      for (const plan of PLANS) {
+        const card = cardRefs.current[plan.id]
+        if (!card) continue
+        const cardCenter = card.offsetLeft + card.clientWidth / 2
+        const distance = Math.abs(cardCenter - containerCenter)
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closestId = plan.id
+        }
+      }
+      setSelectedMobilePlan(closestId)
+    }
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => container.removeEventListener('scroll', handleScroll)
   }, [])
 
   useEffect(() => {
@@ -154,12 +188,19 @@ export default function PricingPage() {
 
       <section id="pricing" className="bg-white py-12">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div
+            ref={carouselRef}
+            className="-mx-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:grid lg:snap-none lg:grid-cols-3 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0"
+          >
             {PLANS.map((plan) => (
               <article
                 key={plan.id}
+                ref={(el) => {
+                  if (el) cardRefs.current[plan.id] = el
+                  else delete cardRefs.current[plan.id]
+                }}
                 className={cn(
-                  'flex min-h-full flex-col rounded-xl border bg-white p-7 shadow-sm',
+                  'flex w-[82%] shrink-0 snap-center flex-col rounded-xl border bg-white p-7 shadow-sm lg:w-auto lg:shrink lg:min-h-full',
                   plan.id === 'pro' ? 'border-[#0494fc] shadow-blue-100' : 'border-slate-200',
                 )}
               >
@@ -185,6 +226,14 @@ export default function PricingPage() {
                   Get {plan.label}
                 </Button>
               </article>
+            ))}
+          </div>
+          <div className="mt-4 flex justify-center gap-2 lg:hidden">
+            {PLANS.map((plan) => (
+              <span
+                key={plan.id}
+                className={cn('h-1.5 rounded-full transition-all', plan.id === selectedMobilePlan ? 'w-5 bg-[#0494fc]' : 'w-1.5 bg-slate-300')}
+              />
             ))}
           </div>
         </div>
