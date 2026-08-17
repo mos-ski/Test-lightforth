@@ -55,6 +55,8 @@ export type {
   UploadedFileDialogProps,
   UploadedFileStripProps,
 } from './form-panel'
+export { FormSearchSelectField } from './search-select-field'
+export type { FormSearchSelectFieldProps } from './search-select-field'
 export { SourcePicker } from './source-picker'
 export type { SourcePickerOption, SourcePickerProps } from './source-picker'
 export { ListPickerDialog } from './list-picker-dialog'
