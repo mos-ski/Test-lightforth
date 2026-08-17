@@ -958,14 +958,13 @@ function AgentStatusCards({ agents }: { readonly agents: AgentSession['agents'] 
 
 function AgentFeed({ events }: { readonly events: FeedEvent[] }) {
   const [activeTab, setActiveTab] = useState<AgentTabValue>('all')
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const feedRef = useRef<HTMLDivElement>(null)
 
   const filtered = activeTab === 'all' ? events : events.filter((e) => e.agent === activeTab)
 
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
+    const el = feedRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [events.length])
 
   return (
@@ -992,7 +991,7 @@ function AgentFeed({ events }: { readonly events: FeedEvent[] }) {
           Live
         </span>
       </div>
-      <div className="max-h-[480px] overflow-y-auto px-4 py-3">
+      <div ref={feedRef} className="max-h-[480px] overflow-y-auto px-4 py-3">
         {filtered.map((event, i) => {
           const Icon = agentIcon[event.agent] ?? Zap
           const isLast = i === filtered.length - 1
@@ -1029,7 +1028,6 @@ function AgentFeed({ events }: { readonly events: FeedEvent[] }) {
             </div>
           )
         })}
-        <div ref={bottomRef} />
       </div>
     </section>
   )
