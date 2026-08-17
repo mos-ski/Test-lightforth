@@ -243,6 +243,7 @@ const GENERIC_JOB_DESCRIPTION =
 
 export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session }: ResumeConfigureViewProps) {
   const [jobDescription, setJobDescription] = useState('')
+  const [isAutoFilled, setIsAutoFilled] = useState(true)
   const { type, isTyping } = useTypewriter()
   const [showTip, setShowTip] = useState(true)
   const tipRef = useRef<HTMLDivElement>(null)
@@ -253,6 +254,13 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
     }, 150)
     return () => window.clearTimeout(timer)
   }, [])
+
+  function handleJdFocus() {
+    if (!isAutoFilled) return
+    type('', () => {})
+    setJobDescription('')
+    setIsAutoFilled(false)
+  }
 
   useEffect(() => {
     if (!showTip) return
@@ -265,6 +273,7 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
 
   function handleAiSuggestion() {
     const base = jobDescription
+    setIsAutoFilled(false)
     type(RESUME_JOB_DESCRIPTION_SUGGESTION, (partial) => setJobDescription(base + partial))
   }
 
@@ -318,6 +327,7 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
                 onClick={() => {
                   setShowTip(true)
                   setJobDescription('')
+                  setIsAutoFilled(true)
                   type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
                 }}
                 aria-label="Show help tooltip"
@@ -330,7 +340,11 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
               <textarea
                 id="resume-job-description"
                 value={jobDescription}
-                onChange={(event) => setJobDescription(event.target.value)}
+                onFocus={handleJdFocus}
+                onChange={(event) => {
+                  setJobDescription(event.target.value)
+                  setIsAutoFilled(false)
+                }}
                 className={cn(
                   'min-h-40 w-full resize-none rounded-lg border border-input bg-surface px-3.5 py-3 text-base text-ink shadow-control outline-none placeholder:text-ink-muted transition-colors duration-normal ease-default focus:border-focus focus:ring-2 focus:ring-focus sm:text-sm disabled:cursor-not-allowed disabled:opacity-50',
                   isTyping && '!border-accent !shadow-[0_0_0_3px_var(--lf-accent-subtle)] transition-shadow duration-normal',
@@ -340,9 +354,9 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
                 <div
                   ref={tipRef}
                   role="status"
-                  className="absolute end-0 top-0 z-20 hidden w-64 translate-x-[calc(100%+12px)] rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel sm:block"
+                  className="relative z-20 mt-3 w-full rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel sm:absolute sm:end-0 sm:top-0 sm:mt-0 sm:w-64 sm:translate-x-[calc(100%+12px)]"
                 >
-                  <span aria-hidden="true" className="absolute start-0 top-6 -translate-x-1.5 rotate-45 size-3 bg-live-header" />
+                  <span aria-hidden="true" className="absolute start-0 top-6 hidden -translate-x-1.5 rotate-45 size-3 bg-live-header sm:block" />
                   <button
                     type="button"
                     onClick={() => setShowTip(false)}
@@ -946,7 +960,7 @@ function ChangeCarousel({ changes, typedSummary }: { readonly changes: readonly 
             ) : (
               <>
                 <p className="mb-1 text-xs font-medium text-ink-muted">Before</p>
-                <p className="mb-3 text-sm leading-6 text-ink-muted line-clamp-3">{change.before}</p>
+                <p className="mb-3 text-sm leading-6 text-danger/80 line-through decoration-danger/60 line-clamp-3">{change.before}</p>
                 <p className="mb-1 text-xs font-medium text-ink">After</p>
                 <p className="text-sm leading-6 text-ink">{change.after}</p>
               </>

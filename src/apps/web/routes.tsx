@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 
+import { AuthCreateAccountPage } from './pages/auth-create-account-page'
 import { AuthPlanPage } from './pages/auth-plan-page'
 import { AuthSignInPage } from './pages/auth-sign-in-page'
 import { AutoApplyAdditionalPage } from './pages/auto-apply-additional-page'
@@ -49,6 +50,10 @@ export function WebRoutes() {
 
   if (routePath === '/auth/sign-in') {
     return <AuthSignInPage />
+  }
+
+  if (routePath === '/auth/create-account') {
+    return <AuthCreateAccountPage />
   }
 
   if (routePath === '/auth/choose-plan') {
