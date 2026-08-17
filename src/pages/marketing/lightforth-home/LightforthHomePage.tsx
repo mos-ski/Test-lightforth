@@ -606,7 +606,7 @@ function Hero({ onDownload }: { onDownload: () => void }) {
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <DownloadButton hero className="w-full sm:w-[239px]" onClick={onDownload} />
-            <a href="/v3/auth/sign-in" className="inline-flex h-12 min-w-[167px] items-center justify-center whitespace-nowrap rounded-lg bg-[#2388ff] px-6 text-base font-medium leading-none text-white transition hover:bg-[#0879f2]">
+            <a href="/v3/auth/sign-up" className="inline-flex h-12 min-w-[167px] items-center justify-center whitespace-nowrap rounded-lg bg-[#2388ff] px-6 text-base font-medium leading-none text-white transition hover:bg-[#0879f2]">
               Activate Pro for $10
             </a>
           </div>
@@ -1539,7 +1539,7 @@ export default function LightforthHomePage() {
   return (
     <div className="lf-home min-h-screen bg-white font-sans text-slate-950">
       <Header />
-      <Hero onDownload={() => setDownloadModalOpen(true)} />
+      <Hero />
       <SupportSection />
       <InterviewTypes />
       <StatsStrip />

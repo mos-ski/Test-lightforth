@@ -9,7 +9,7 @@ const avatars = [
   '/lightforth-home/images/avatar5.png',
 ]
 
-export function Hero({ onGetStarted }: { onGetStarted: () => void }) {
+export function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#f0f7ff] to-white pt-24 pb-16 md:pt-32 md:pb-24">
       <div className="mx-auto max-w-6xl px-6 text-center">
@@ -51,13 +51,13 @@ export function Hero({ onGetStarted }: { onGetStarted: () => void }) {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-8"
         >
-          <button
-            onClick={onGetStarted}
+          <a
+            href="/v3/auth/sign-up"
             className="inline-flex items-center gap-2 rounded-full bg-[#0494fc] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-[#0380e0] hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98]"
           >
             <Sparkles className="h-5 w-5" />
             Activate Pro for $10
-          </button>
+          </a>
         </motion.div>
 
         <motion.div
