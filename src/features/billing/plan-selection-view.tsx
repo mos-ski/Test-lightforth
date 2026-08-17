@@ -159,9 +159,17 @@ export function PlanSelectionView({
                 aria-label="Toggle annual billing"
                 aria-checked={annual}
                 onClick={onToggleCadence}
-                className="flex h-6 w-10 items-center rounded-soft bg-surface-subtle p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                className={cn(
+                  'relative flex h-6 w-10 shrink-0 items-center rounded-pill p-0.5 transition-colors duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-brand-bar',
+                  annual ? 'bg-brand-bar-text' : 'bg-brand-bar-text/25',
+                )}
               >
-                <span className={cn('block h-4 w-5 rounded-soft bg-surface shadow-control transition-transform', annual ? 'translate-x-4' : 'translate-x-0')} />
+                <span
+                  className={cn(
+                    'block size-5 rounded-pill shadow-control transition-transform duration-normal',
+                    annual ? 'translate-x-4 bg-brand-bar' : 'translate-x-0 bg-brand-bar-text',
+                  )}
+                />
               </button>
               <span>
                 Annual <span className="text-focus">(save 20%)</span>
