@@ -16,7 +16,7 @@ import {
   START_TIMELINE_OPTIONS,
   WORK_SCHEDULE_OPTIONS,
 } from '@/contracts/auto-apply.draft'
-import type { ResumeHistoryRow } from '@/contracts/resume.draft'
+import type { ResumeDocument, ResumeHistoryRow } from '@/contracts/resume.draft'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 import {
   cn,
@@ -82,6 +82,7 @@ export type AutoApplyJobsViewProps = {
   readonly jobs: readonly AutoApplyJob[]
   readonly selectedJob?: AutoApplyJob
   readonly isPremiumUser?: boolean
+  readonly resumePreview: ResumeDocument
 }
 
 export type AutoApplyAppliedViewProps = {
@@ -92,6 +93,7 @@ export type AutoApplyAppliedViewProps = {
   readonly appliedHref: string
   readonly resumeHistoryHref: string
   readonly jobs: readonly AutoApplyJob[]
+  readonly resumePreview: ResumeDocument
   readonly application: AutoApplyApplication
 }
 
@@ -1096,6 +1098,9 @@ function OutcomeBadge({ outcome }: { readonly outcome: AutoApplyOutcome }) {
   if (outcome === 'failed') {
     return <span className="shrink-0 rounded-lg bg-danger-surface px-4 py-2 text-sm font-medium text-danger">Failed</span>
   }
+  if (outcome === 'closed') {
+    return <span className="shrink-0 rounded-lg bg-surface-subtle px-4 py-2 text-sm font-medium text-ink-muted">Closed</span>
+  }
   return <span className="shrink-0 rounded-lg bg-warning-surface px-4 py-2 text-sm font-medium text-warning">Needs Review</span>
 }
 
@@ -1209,11 +1214,16 @@ function JobPreview({
   job,
   onClose,
   applied = false,
+  resumePreview,
 }: {
   readonly job: AutoApplyJob
   readonly onClose: () => void
   readonly applied?: boolean
+  readonly resumePreview: ResumeDocument
 }) {
+  const [resumePreviewOpen, setResumePreviewOpen] = useState(false)
+  const reasonNote = applied && (job.outcome === 'failed' || job.outcome === 'closed') ? job.reviewNote : undefined
+
   return (
     <>
       <div className="fixed inset-0 z-40 bg-overlay" onClick={onClose} aria-hidden="true" />
@@ -1232,8 +1242,12 @@ function JobPreview({
         </div>
         <div className="flex-1 overflow-y-auto px-6 pb-6">
           <div className="flex items-center gap-2">
-            <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', applied ? 'bg-positive-surface text-positive' : 'bg-warning-surface text-warning')}>{applied ? 'Applied' : 'NEW'}</span>
-            <span className="text-sm text-ink-muted">{applied ? 'Jul 12, 2026' : job.dateLabel}</span>
+            {applied && job.outcome ? (
+              <OutcomeBadge outcome={job.outcome} />
+            ) : (
+              <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', applied ? 'bg-positive-surface text-positive' : 'bg-warning-surface text-warning')}>{applied ? 'Applied' : 'NEW'}</span>
+            )}
+            <span className="text-sm text-ink-muted">{job.dateLabel}</span>
           </div>
 
           <div className="mt-5 grid gap-5">
@@ -1245,12 +1259,25 @@ function JobPreview({
               </a>
             </section>
 
+            {reasonNote ? (
+              <section className={cn('rounded-lg p-4', job.outcome === 'failed' ? 'bg-danger-surface' : 'bg-surface-subtle')}>
+                <h3 className={cn('text-xs font-bold uppercase tracking-wide', job.outcome === 'failed' ? 'text-danger' : 'text-ink-muted')}>
+                  {job.outcome === 'failed' ? 'Why it failed' : 'Why it’s closed'}
+                </h3>
+                <p className={cn('mt-1 text-sm leading-6', job.outcome === 'failed' ? 'text-danger' : 'text-ink-muted')}>{reasonNote}</p>
+              </section>
+            ) : null}
+
             <section className="grid gap-2">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Resume Used</h3>
-              <span className="flex min-w-0 items-center gap-2 text-sm text-ink">
+              <button
+                type="button"
+                onClick={() => setResumePreviewOpen(true)}
+                className="flex min-w-0 items-center gap-2 rounded-lg text-sm text-ink underline underline-offset-4 transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
                 <FileText aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
                 <span className="truncate">{job.resumeFileName}</span>
-              </span>
+              </button>
             </section>
 
             {!applied ? (
@@ -1306,7 +1333,75 @@ function JobPreview({
           </div>
         </div>
       </aside>
+      <ResumeUsedDialog open={resumePreviewOpen} onOpenChange={setResumePreviewOpen} fileName={job.resumeFileName} resume={resumePreview} />
     </>
+  )
+}
+
+function ResumeUsedDialog({
+  open,
+  onOpenChange,
+  fileName,
+  resume,
+}: {
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly fileName: string
+  readonly resume: ResumeDocument
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPopup placement="center" aria-label="Resume used" className="flex max-h-[85vh] flex-col p-0 sm:max-h-[calc(100vh-4rem)]">
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 pb-3 pt-6">
+          <div className="flex min-w-0 items-center gap-2">
+            <FileText aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+            <DialogTitle className="truncate text-sm">{fileName}</DialogTitle>
+          </div>
+          <DialogClose className="static" />
+        </div>
+        <div className="flex-1 overflow-y-auto bg-canvas px-4 py-6 sm:px-8">
+          <div className="mx-auto max-w-2xl rounded-lg border border-border bg-surface p-8 shadow-panel">
+            <h1 className="text-2xl font-bold text-ink">{resume.candidateName}</h1>
+            <p className="mt-1 text-sm text-ink-muted">
+              {resume.email} · {resume.location} · {resume.linkedinUrl}
+            </p>
+            <section className="mt-6">
+              <h2 className="text-xs font-bold uppercase tracking-wide text-ink-muted">Summary</h2>
+              <p className="mt-2 text-sm leading-6 text-ink">{resume.summary}</p>
+            </section>
+            <section className="mt-6">
+              <h2 className="text-xs font-bold uppercase tracking-wide text-ink-muted">Experience</h2>
+              <div className="mt-2 grid gap-5">
+                {resume.roles.map((role) => (
+                  <div key={`${role.company}-${role.title}`}>
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                      <p className="text-sm font-semibold text-ink">{role.title} · {role.company}</p>
+                      <p className="text-xs text-ink-muted">{role.period}</p>
+                    </div>
+                    <ul className="mt-1.5 grid gap-1 text-sm leading-6 text-ink-muted">
+                      {role.bullets.slice(0, 2).map((bullet) => (
+                        <li key={bullet} className="flex items-start gap-2">
+                          <span aria-hidden="true" className="mt-2 size-1 shrink-0 rounded-pill bg-ink-muted" />
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section className="mt-6">
+              <h2 className="text-xs font-bold uppercase tracking-wide text-ink-muted">Skills</h2>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {resume.skills.map((skill) => (
+                  <span key={skill} className="rounded-pill bg-surface-subtle px-3 py-1 text-xs font-medium text-ink-muted">{skill}</span>
+                ))}
+              </div>
+            </section>
+          </div>
+        </div>
+      </DialogPopup>
+    </Dialog>
   )
 }
 
@@ -1421,7 +1516,7 @@ function applyJobFilters(jobs: readonly AutoApplyJob[], search: string, filters:
   })
 }
 
-export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, selectedJob: initialSelectedJob, isPremiumUser = false }: AutoApplyJobsViewProps) {
+export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, selectedJob: initialSelectedJob, isPremiumUser = false, resumePreview }: AutoApplyJobsViewProps) {
   const [selectedJob, setSelectedJob] = useState<AutoApplyJob | undefined>(initialSelectedJob)
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS)
@@ -1493,7 +1588,7 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                   </div>
                 </div>
               </div>
-              {selectedJob ? <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} /> : null}
+              {selectedJob ? <JobPreview job={selectedJob} onClose={() => setSelectedJob(undefined)} resumePreview={resumePreview} /> : null}
             </div>
           </div>
         </div>
@@ -1741,7 +1836,7 @@ function RetryApplicationModal({
 
 // ─── Applied View ─────────────────────────────────────────────────────────────
 
-export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, application }: AutoApplyAppliedViewProps) {
+export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, application, resumePreview }: AutoApplyAppliedViewProps) {
   const [selectedJob, setSelectedJob] = useState<AutoApplyJob | undefined>(application.job)
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS)
@@ -1817,7 +1912,8 @@ export function AutoApplyAppliedView({ homeHref, setupHref, agentHref, jobsHref,
                 <JobPreview
                   job={selectedJob}
                   onClose={() => setSelectedJob(undefined)}
-                  applied={selectedJob.id === application.job.id}
+                  applied
+                  resumePreview={resumePreview}
                 />
               ) : null}
             </div>
