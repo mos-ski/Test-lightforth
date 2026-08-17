@@ -39,6 +39,7 @@ import {
   MenuTrigger,
   MenuContent,
   MenuItem,
+  MenuSeparator,
   Navigator,
   NavigatorGroup,
   Popover,
