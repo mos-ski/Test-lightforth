@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowLeft, ArrowRight, Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Send, Target, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Target, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
 import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, UploadedFileDialog } from '@/ui'
@@ -456,6 +456,15 @@ function ChatComposer({
   readonly onSend: () => void
   readonly hasMessages: boolean
 }) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [draft])
+
   return (
     <div className="mt-auto">
       <PromptChips prompts={prompts} onSelect={onSend ? (prompt) => { onDraftChange(prompt); onSend() } : undefined} />
@@ -465,33 +474,26 @@ function ChatComposer({
         </label>
         <div
           id="walkthrough-chat-input"
-          className="rounded-2xl border border-border bg-surface p-3"
+          className="flex items-end gap-2 rounded-2xl border border-border bg-surface py-2 pe-2 ps-3"
         >
           <textarea
+            ref={textareaRef}
             id="resume-chat-message"
+            rows={1}
             value={draft}
             onChange={(event) => onDraftChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault()
-                onSend()
-              }
-            }}
-            className="min-h-16 w-full resize-none bg-surface text-sm text-ink outline-none placeholder:text-ink-muted"
+            className="max-h-40 w-full resize-none overflow-y-auto bg-surface py-1.5 text-sm leading-6 text-ink outline-none placeholder:text-ink-muted"
             placeholder={hasMessages ? CHAT_PLACEHOLDER_ACTIVE : CHAT_PLACEHOLDER_EMPTY}
           />
-          <div className="flex items-center justify-end pt-2">
-            <button
-              type="button"
-              onClick={onSend}
-              aria-label="Send resume message"
-              className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-subtle text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <Send aria-hidden="true" className="size-4" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onSend}
+            aria-label="Send resume message"
+            className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <ArrowUp aria-hidden="true" className="size-5" />
+          </button>
         </div>
-        <p className="pt-1 text-center text-xs text-ink-muted">Enter to send · Shift+Enter for newline</p>
       </div>
     </div>
   )
