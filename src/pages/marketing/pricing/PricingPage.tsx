@@ -7,7 +7,7 @@ import { PLANS, annualMonthlyEquivalent, type BillingCycle, type PlanId } from '
 import { MarketingLayout } from '../MarketingLayout'
 
 const OFFER_SECONDS = 10 * 60
-const FIRST_TIME_DISCOUNT_PERCENT = 10
+const FIRST_TIME_OFFER_PRICE = 10
 
 const PLAN_BULLETS: Record<PlanId, string[]> = {
   starter: ['Resume Builder', 'Resume downloads', '15 credits / month'],
@@ -79,14 +79,19 @@ export default function PricingPage() {
   const [offerSecondsLeft, setOfferSecondsLeft] = useState(OFFER_SECONDS)
   const [showOfferModal, setShowOfferModal] = useState(false)
   const [offerDismissed, setOfferDismissed] = useState(false)
+  const [offerApplied, setOfferApplied] = useState(false)
   const isAnnual = billingCycle === 'annual'
   const offerExpired = offerSecondsLeft === 0
   const priceFor = (monthlyPrice: number) => (isAnnual ? annualMonthlyEquivalent(monthlyPrice) : monthlyPrice)
   const selectedPlan = PLANS.find((plan) => plan.id === selectedMobilePlan) ?? PLANS[1]
   const proPlan = PLANS.find((plan) => plan.id === 'pro') ?? PLANS[1]
-  const proDiscountedPrice = Math.ceil(proPlan.monthlyPrice * (1 - FIRST_TIME_DISCOUNT_PERCENT / 100))
+  const proOfferActive = offerApplied && !offerExpired
   const claimOffer = () => {
-    if (!offerExpired) navigate('/checkout/pro')
+    if (offerExpired) return
+    setOfferApplied(true)
+    setShowOfferModal(false)
+    setOfferDismissed(true)
+    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
   useEffect(() => {
@@ -143,13 +148,13 @@ export default function PricingPage() {
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-3">
           <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
             <p className="sr-only">
-              First-time sign-up offer: subscribe to Pro today and get {FIRST_TIME_DISCOUNT_PERCENT}% off — just ${proDiscountedPrice}/month instead of ${proPlan.monthlyPrice}/month. Offer available on Pro only, for first-time sign-ups only.
+              First-time sign-up offer: subscribe to Pro today and get it for just ${FIRST_TIME_OFFER_PRICE} instead of ${proPlan.monthlyPrice}/month. Offer available on Pro only, for first-time sign-ups only.
             </p>
             <div aria-hidden="true" className={cn('flex w-max items-center gap-16 whitespace-nowrap text-sm font-semibold', offerExpired ? '' : 'animate-marquee')}>
               {[0, 1].map((copyIndex) => (
                 <span key={copyIndex} className="flex items-center gap-3">
                   <span className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">First-time offer</span>
-                  Subscribe to Pro today and get <span className="text-sky-300">{FIRST_TIME_DISCOUNT_PERCENT}% off</span> — just ${proDiscountedPrice}/month instead of ${proPlan.monthlyPrice}/month. Pro plan only, for first-time sign-ups only.
+                  Subscribe to Pro today and get it for just <span className="text-sky-300">${FIRST_TIME_OFFER_PRICE}</span> instead of ${proPlan.monthlyPrice}/month. Pro plan only, for first-time sign-ups only.
                 </span>
               ))}
             </div>
@@ -164,7 +169,7 @@ export default function PricingPage() {
               disabled={offerExpired}
               className="inline-flex h-9 items-center rounded-full bg-white px-4 text-sm font-bold text-slate-950 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {offerExpired ? 'Offer ended' : 'Take the Offer'}
+              {offerExpired ? 'Offer ended' : proOfferActive ? 'Offer Applied' : 'Take the Offer'}
               <ArrowRight className="ml-2 h-4 w-4" />
             </button>
           </div>
@@ -217,10 +222,31 @@ export default function PricingPage() {
                   <h3 className="text-lg font-black text-slate-900">{plan.label}</h3>
                   {plan.id === 'pro' && <span className="rounded-full bg-[#0494fc] px-3 py-1 text-xs font-bold text-white">Popular</span>}
                 </div>
-                <p className="mt-5 text-4xl font-black text-slate-900">
-                  ${priceFor(plan.monthlyPrice)} <span className="text-sm font-semibold text-slate-500">/mo</span>
-                </p>
-                {isAnnual && <p className="mt-1 text-sm font-medium text-slate-500">${priceFor(plan.monthlyPrice) * 12}/year billed yearly</p>}
+                {plan.id === 'pro' && proOfferActive ? (
+                  <>
+                    <p className="mt-5 flex items-baseline gap-2">
+                      <span className="text-lg font-semibold text-slate-400 line-through">${priceFor(plan.monthlyPrice)}</span>
+                      <span className="text-4xl font-black text-[#0494fc]">${FIRST_TIME_OFFER_PRICE}</span>
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-emerald-600">First-time offer applied — then ${priceFor(plan.monthlyPrice)}/mo</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-5 text-4xl font-black text-slate-900">
+                      ${priceFor(plan.monthlyPrice)} <span className="text-sm font-semibold text-slate-500">/mo</span>
+                    </p>
+                    {isAnnual && <p className="mt-1 text-sm font-medium text-slate-500">${priceFor(plan.monthlyPrice) * 12}/year billed yearly</p>}
+                    {plan.id === 'pro' && !offerExpired ? (
+                      <button
+                        type="button"
+                        onClick={() => setOfferApplied(true)}
+                        className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#0494fc]/10 px-3 py-1 text-xs font-bold text-[#0494fc] transition hover:bg-[#0494fc]/20"
+                      >
+                        First-time offer: Apply for ${FIRST_TIME_OFFER_PRICE}
+                      </button>
+                    ) : null}
+                  </>
+                )}
                 <p className="mt-4 min-h-[48px] text-sm leading-6 text-slate-600">{PLAN_SUMMARIES[plan.id]}</p>
                 <ul className="mt-6 space-y-3 text-sm text-slate-600">
                   {PLAN_BULLETS[plan.id].map((b) => (
@@ -232,7 +258,7 @@ export default function PricingPage() {
                 </ul>
                 <p className="mt-6 text-sm italic text-slate-500">{plan.bestForNote}</p>
                 <Button size="lg" variant={plan.id === 'pro' ? 'default' : 'outline'} className="mt-6" onClick={() => navigate(`/checkout/${plan.id}`)}>
-                  Get {plan.label}
+                  {plan.id === 'pro' && proOfferActive ? `Subscribe for $${FIRST_TIME_OFFER_PRICE}` : `Get ${plan.label}`}
                 </Button>
               </article>
             ))}
@@ -372,10 +398,10 @@ export default function PricingPage() {
             </button>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0494fc]">First-time sign-up offer</p>
             <h2 id="pro-offer-title" className="mt-3 text-3xl font-black leading-tight text-slate-950">
-              Take {FIRST_TIME_DISCOUNT_PERCENT}% off Pro if you start today.
+              Get Pro for just ${FIRST_TIME_OFFER_PRICE} if you start today.
             </h2>
             <p className="mt-4 text-sm leading-6 text-slate-600">
-              Subscribe to Pro now and pay ${proDiscountedPrice}/month instead of ${proPlan.monthlyPrice}/month. Available on the Pro plan only, for first-time sign-ups. The offer window closes when the countdown ends.
+              Subscribe to Pro now and pay ${FIRST_TIME_OFFER_PRICE} instead of ${proPlan.monthlyPrice}/month. Available on the Pro plan only, for first-time sign-ups. The offer window closes when the countdown ends.
             </p>
             <div className="mt-5 rounded-xl bg-slate-950 px-5 py-4 text-center text-white">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-300">Offer ends in</p>
