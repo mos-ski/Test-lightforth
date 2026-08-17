@@ -3,7 +3,6 @@ import type { FormEvent } from 'react'
 import { FormDividerLabel, FormField, GoogleAuthButton } from '@/ui'
 
 export type SignUpViewProps = {
-  readonly nameValue: string
   readonly emailValue: string
   readonly passwordValue: string
   readonly onSubmit: () => void
@@ -11,7 +10,7 @@ export type SignUpViewProps = {
   readonly signInHref: string
 }
 
-export function SignUpView({ nameValue, emailValue, passwordValue, onSubmit, onGoogleSignUp, signInHref }: SignUpViewProps) {
+export function SignUpView({ emailValue, passwordValue, onSubmit, onGoogleSignUp, signInHref }: SignUpViewProps) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     onSubmit()
@@ -34,7 +33,6 @@ export function SignUpView({ nameValue, emailValue, passwordValue, onSubmit, onG
 
               <FormDividerLabel>OR</FormDividerLabel>
 
-              <FormField id="v3-auth-signup-name" label="Full Name" value={nameValue} readOnly />
               <FormField id="v3-auth-signup-email" label="Email" type="email" value={emailValue} readOnly />
               <FormField id="v3-auth-signup-password" label="Password" type="password" value={passwordValue} readOnly />
               <button type="submit" className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">

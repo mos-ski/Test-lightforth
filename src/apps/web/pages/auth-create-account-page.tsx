@@ -7,7 +7,6 @@ export function AuthCreateAccountPage() {
 
   return (
     <SignUpView
-      nameValue="Olivia Rhye"
       emailValue="olivia@untitledui.com"
       passwordValue="password"
       signInHref="/v3/auth/sign-in"

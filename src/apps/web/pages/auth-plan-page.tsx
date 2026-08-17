@@ -12,7 +12,7 @@ export function AuthPlanPage() {
 
   const selectPlan = (plan: Plan) => {
     setSelectedPlanId(plan)
-    navigate('/v3/app')
+    navigate('/v3/onboarding/profile')
   }
 
   return (
