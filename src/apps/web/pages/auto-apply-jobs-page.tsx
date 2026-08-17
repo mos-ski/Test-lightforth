@@ -14,6 +14,7 @@ export function AutoApplyJobsPage({ selectedJobId }: { readonly selectedJobId?: 
       resumeHistoryHref="/v3/resume/history"
       jobs={autoApplyJobs}
       selectedJob={selectedJob}
+      isPremiumUser={false}
     />
   )
 }

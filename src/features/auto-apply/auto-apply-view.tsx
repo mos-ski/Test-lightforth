@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
-import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, PenLine, Play, RefreshCw, Search, Send, X, Zap, Trash2, Download, Mail } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, ExternalLink, FileText, Filter, LinkIcon, Lock, PenLine, Play, RefreshCw, Search, Send, Settings, X, Zap, Trash2, Download, Mail } from 'lucide-react'
 
 import type { AutoApplyApplication, AutoApplyJob, AutoApplyOutcome, AutoApplySetup } from '@/contracts/auto-apply.draft'
 import {
@@ -21,6 +21,7 @@ import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultRes
 import {
   cn,
   Dialog,
+  DialogClose,
   DialogDescription,
   DialogPopup,
   DialogTitle,
@@ -80,6 +81,7 @@ export type AutoApplyJobsViewProps = {
   readonly resumeHistoryHref: string
   readonly jobs: readonly AutoApplyJob[]
   readonly selectedJob?: AutoApplyJob
+  readonly isPremiumUser?: boolean
 }
 
 export type AutoApplyAppliedViewProps = {
@@ -928,8 +930,8 @@ function AgentStatsSummary({ stats }: { readonly stats: AgentSession['stats'] })
 const agentTips: Record<string, { readonly title: string; readonly body: string }> = {
   scout: { title: 'Scout', body: 'Searches job boards like LinkedIn, Greenhouse, and Lever for new postings that match your criteria.' },
   filter: { title: 'Filter', body: 'Scores every job Scout finds against your resume — title, certifications, location, and salary — to surface the best matches.' },
-  tailor: { title: 'Tailor', body: 'Generates a tailored version of your resume for each matched job, optimizing keywords and content for that specific posting.' },
-  driver: { title: 'Driver', body: "Submits the application once a tailored resume is approved, carrying it through the employer's application flow." },
+  tailor: { title: 'Tailor', body: "Waits until you've reviewed Filter's matches and selectively chosen which jobs to move forward with, then generates a tailored version of your resume for each one — optimizing keywords and content for that specific posting." },
+  driver: { title: 'Driver', body: "Picks up once Tailor has finished the resumes for your selected jobs, then submits each application, carrying it through the employer's application flow." },
 }
 
 function AgentStatusCards({ agents }: { readonly agents: AgentSession['agents'] }) {
@@ -1419,11 +1421,12 @@ function applyJobFilters(jobs: readonly AutoApplyJob[], search: string, filters:
   })
 }
 
-export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, selectedJob: initialSelectedJob }: AutoApplyJobsViewProps) {
+export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, appliedHref, resumeHistoryHref, jobs, selectedJob: initialSelectedJob, isPremiumUser = false }: AutoApplyJobsViewProps) {
   const [selectedJob, setSelectedJob] = useState<AutoApplyJob | undefined>(initialSelectedJob)
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<JobFilters>(DEFAULT_FILTERS)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const filtered = applyJobFilters(jobs, search, filters)
 
@@ -1471,6 +1474,14 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
                       <RefreshCw aria-hidden="true" className="size-4" />
                       Refresh
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setSettingsOpen(true)}
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-input bg-surface text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                      aria-label="Automate job applications settings"
+                    >
+                      <Settings aria-hidden="true" className="size-4" />
+                    </button>
                   </div>
                   <div className="-mx-[16px] sm:mx-0">
                     <JobList jobs={filtered} selectedJob={selectedJob} onSelectJob={(job) => setSelectedJob(selectedJob?.id === job.id ? undefined : job)} />
@@ -1487,7 +1498,108 @@ export function AutoApplyJobsView({ homeHref, setupHref, agentHref, jobsHref, ap
           </div>
         </div>
       </section>
+      <AutoApplySettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} isPremium={isPremiumUser} />
     </Workspace>
+  )
+}
+
+function AutoApplySettingsDialog({
+  open,
+  onOpenChange,
+  isPremium,
+}: {
+  readonly open: boolean
+  readonly onOpenChange: (open: boolean) => void
+  readonly isPremium: boolean
+}) {
+  const [autoApplyEnabled, setAutoApplyEnabled] = useState(false)
+  const [dailyQuota, setDailyQuota] = useState(5)
+
+  if (!isPremium) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogPopup aria-label="Upgrade to Premium">
+          <DialogClose />
+          <span aria-hidden="true" className="grid size-11 place-items-center rounded-xl border border-border bg-surface-raised text-ink-muted shadow-control [&>svg]:size-5">
+            <Lock aria-hidden="true" />
+          </span>
+          <DialogTitle className="mt-4">Upgrade to Premium</DialogTitle>
+          <p className="mt-1 text-sm text-ink-muted">
+            Automating job applications is available on our Premium plan. Set a daily quota and Lightforth will apply to matching jobs for you automatically.
+          </p>
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              Not now
+            </button>
+            <a
+              href="/v3/billing"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              Upgrade Plan
+            </a>
+          </div>
+        </DialogPopup>
+      </Dialog>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPopup aria-label="Automate job applications">
+        <DialogClose />
+        <DialogTitle>Automate job applications</DialogTitle>
+        <p className="mt-1 text-sm text-ink-muted">
+          Let Lightforth automatically apply to jobs that match your preferences, up to a daily limit you set.
+        </p>
+        <label className="mt-5 flex items-center justify-between gap-3 rounded-lg border border-border p-4">
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-ink">Auto-apply to matching jobs</span>
+            <span className="mt-0.5 block text-xs text-ink-muted">Applications are submitted automatically as new matches come in.</span>
+          </span>
+          <input
+            type="checkbox"
+            checked={autoApplyEnabled}
+            onChange={(event) => setAutoApplyEnabled(event.target.checked)}
+            className="size-5 shrink-0 rounded border-input text-accent focus:ring-2 focus:ring-focus"
+          />
+        </label>
+        <div className="mt-4 grid gap-1.5">
+          <label htmlFor="auto-apply-quota" className="text-sm font-medium text-ink">
+            Applications per day
+          </label>
+          <input
+            id="auto-apply-quota"
+            type="number"
+            min={1}
+            max={50}
+            value={dailyQuota}
+            onChange={(event) => setDailyQuota(Number(event.target.value))}
+            disabled={!autoApplyEnabled}
+            className="min-h-11 rounded-lg border border-input bg-surface px-3.5 py-2.5 text-sm text-ink shadow-control outline-none focus:border-focus focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            Save
+          </button>
+        </div>
+      </DialogPopup>
+    </Dialog>
   )
 }
 
