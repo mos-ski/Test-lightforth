@@ -269,7 +269,7 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
   }
 
   const effectiveJd = jobDescription.trim() || GENERIC_JOB_DESCRIPTION
-  const editorUrl = `${editorHref}?jd=${encodeURIComponent(effectiveJd)}`
+  const editorUrl = `${editorHref}&jd=${encodeURIComponent(effectiveJd)}`
 
   function handleContinue() {
     window.location.href = editorUrl
@@ -1224,12 +1224,12 @@ function AtsScoreDrawer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPopup placement="end" aria-label="ATS score breakdown">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+      <DialogPopup placement="center" aria-label="ATS score breakdown" className="flex max-h-[85vh] flex-col p-0 sm:max-h-[calc(100vh-4rem)]">
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
           <DialogTitle className="text-base">ATS Score</DialogTitle>
           <DialogClose className="static" />
         </div>
-        <div className="grid gap-6 overflow-y-auto p-5">
+        <div className="grid flex-1 gap-6 overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-4">
             <div
               aria-hidden="true"
