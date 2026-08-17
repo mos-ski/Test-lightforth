@@ -1,4 +1,6 @@
-import { Apple, ArrowRight, Bell, ChevronRight, CircleHelp, Code2, CreditCard, ExternalLink, Gift, Lock, LogOut, Mail, Menu, Monitor, PanelLeftClose, PanelLeftOpen, Play, Settings, User, Video, X } from 'lucide-react'
+import { ArrowRight, Bell, ChevronRight, CircleHelp, Code2, CreditCard, ExternalLink, Gift, Lock, LogOut, Mail, Menu, Monitor, PanelLeftClose, PanelLeftOpen, Play, Settings, User, Video, X } from 'lucide-react'
+import { FaApple } from 'react-icons/fa'
+import { SiGoogleplay } from 'react-icons/si'
 import { useState, type ReactNode } from 'react'
 
 import type { DashboardAction, DashboardActionId, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
@@ -447,8 +449,8 @@ function InstallPrompt({ installPrompt }: { readonly installPrompt: DashboardIns
               Install Desktop
             </a>
             <a href={installPrompt.mobileHref} className="inline-flex min-h-8 items-center justify-center gap-1.5 rounded-pill bg-accent px-3 text-xs font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <Apple aria-hidden="true" className="size-4" />
-              <Play aria-hidden="true" className="size-3.5" />
+              <FaApple aria-hidden="true" className="size-4" />
+              <SiGoogleplay aria-hidden="true" className="size-3.5" />
               Install Mobile
             </a>
           </div>
