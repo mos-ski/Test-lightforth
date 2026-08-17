@@ -249,12 +249,25 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
   const [tipModalOpen, setTipModalOpen] = useState(false)
   const tipRef = useRef<HTMLDivElement>(null)
 
+  function startTypewriter() {
+    type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
+  }
+
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
-    }, 150)
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches
+    if (isMobile) {
+      setTipModalOpen(true)
+      return
+    }
+    const timer = window.setTimeout(startTypewriter, 150)
     return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  function handleTipModalOpenChange(open: boolean) {
+    setTipModalOpen(open)
+    if (!open) startTypewriter()
+  }
 
   function handleJdFocus() {
     if (!isAutoFilled) return
@@ -338,7 +351,11 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
               </button>
               <button
                 type="button"
-                onClick={() => setTipModalOpen(true)}
+                onClick={() => {
+                  setJobDescription('')
+                  setIsAutoFilled(true)
+                  setTipModalOpen(true)
+                }}
                 aria-label="Show help tip"
                 className="inline-flex items-center justify-center rounded-full p-0.5 text-muted transition-colors hover:bg-accent-subtle hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:hidden"
               >
@@ -384,7 +401,7 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
           </div>
           <TipModal
             open={tipModalOpen}
-            onOpenChange={setTipModalOpen}
+            onOpenChange={handleTipModalOpenChange}
             title="Tailor your resume"
             body="Paste a job description and Lightforth will automatically rewrite your resume to match key words."
           />
@@ -1531,6 +1548,14 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
         onReject={handleReject}
         onAtsClick={() => setAtsOpen(true)}
       />
+      {isMobileViewport ? (
+        <TipModal
+          open={showPostAcceptTip}
+          onOpenChange={setShowPostAcceptTip}
+          title="Keep refining"
+          body="Ask for more rewrites, accept the changes, or keep editing — your resume updates in real time."
+        />
+      ) : null}
     </Workspace>
   )
 }

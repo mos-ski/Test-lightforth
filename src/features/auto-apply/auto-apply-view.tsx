@@ -36,7 +36,6 @@ import {
   SourcePicker,
   TipModalTrigger,
   UploadedFileDialog,
-  type TipModalItem,
 } from '@/ui'
 import { useAgentSession, type AgentSession, type FeedEvent, type FeedLink } from '@/hooks/useAgentSession'
 
@@ -926,20 +925,33 @@ function AgentStatsSummary({ stats }: { readonly stats: AgentSession['stats'] })
   )
 }
 
+const agentTips: Record<string, { readonly title: string; readonly body: string }> = {
+  scout: { title: 'Scout', body: 'Searches job boards like LinkedIn, Greenhouse, and Lever for new postings that match your criteria.' },
+  filter: { title: 'Filter', body: 'Scores every job Scout finds against your resume — title, certifications, location, and salary — to surface the best matches.' },
+  tailor: { title: 'Tailor', body: 'Generates a tailored version of your resume for each matched job, optimizing keywords and content for that specific posting.' },
+  driver: { title: 'Driver', body: "Submits the application once a tailored resume is approved, carrying it through the employer's application flow." },
+}
+
 function AgentStatusCards({ agents }: { readonly agents: AgentSession['agents'] }) {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {agents.filter((a) => a.name !== 'system').map((agent) => (
-        <article key={agent.name} className="rounded-lg border border-border bg-surface p-4 shadow-control">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-[0.3px] text-ink">{agent.label}</h2>
-            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', agentStatusTone[agent.status] ?? agentStatusTone.idle)}>
-              {agent.status}
-            </span>
-          </div>
-          <p className="mt-3 text-sm text-ink">{agent.currentTask}</p>
-        </article>
-      ))}
+      {agents.filter((a) => a.name !== 'system').map((agent) => {
+        const tip = agentTips[agent.name]
+        return (
+          <article key={agent.name} className="rounded-lg border border-border bg-surface p-4 shadow-control">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <h2 className="text-xs font-bold uppercase tracking-[0.3px] text-ink">{agent.label}</h2>
+                {tip ? <TipModalTrigger label={`What does ${agent.label} do?`} title={tip.title} body={tip.body} /> : null}
+              </div>
+              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-medium', agentStatusTone[agent.status] ?? agentStatusTone.idle)}>
+                {agent.status}
+              </span>
+            </div>
+            <p className="mt-3 text-sm text-ink">{agent.currentTask}</p>
+          </article>
+        )
+      })}
     </div>
   )
 }
@@ -1023,13 +1035,6 @@ function AgentFeed({ events }: { readonly events: FeedEvent[] }) {
   )
 }
 
-const agentTipItems: readonly TipModalItem[] = [
-  { icon: <Search aria-hidden="true" />, title: 'Scout', body: 'Searches job boards like LinkedIn, Greenhouse, and Lever for new postings that match your criteria.' },
-  { icon: <Filter aria-hidden="true" />, title: 'Filter', body: 'Scores every job Scout finds against your resume — title, certifications, location, and salary — to surface the best matches.' },
-  { icon: <PenLine aria-hidden="true" />, title: 'Tailor', body: 'Generates a tailored version of your resume for each matched job, optimizing keywords and content for that specific posting.' },
-  { icon: <Send aria-hidden="true" />, title: 'Driver', body: "Submits the application once a tailored resume is approved, carrying it through the employer's application flow." },
-]
-
 export function AutoApplyAgentView({ homeHref, setupHref, agentHref, jobsHref, appliedHref }: AutoApplyAgentViewProps) {
   const session = useAgentSession('auto-apply')
 
@@ -1037,11 +1042,7 @@ export function AutoApplyAgentView({ homeHref, setupHref, agentHref, jobsHref, a
     <AppShell homeHref={homeHref} title="Agents" active="agent" setupHref={setupHref} agentHref={agentHref} jobsHref={jobsHref} appliedHref={appliedHref}>
       <div className="pt-5">
         <AgentStatsSummary stats={session.stats} />
-        <div className="mt-4 flex items-center gap-1.5">
-          <h2 className="text-xs font-bold uppercase tracking-[0.3px] text-ink-muted">Your Agents</h2>
-          <TipModalTrigger label="What do these agents do?" title="Meet your Auto Apply agents" items={agentTipItems} />
-        </div>
-        <div className="mt-2">
+        <div className="mt-4">
           <AgentStatusCards agents={session.agents} />
         </div>
         <div className="mt-6">
