@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
+import { CheckCircle2 } from 'lucide-react'
 
-import { cn, FormField, FormPanel, FormPanelFooter, ShellBar, Spinner } from '@/ui'
+import { FormField, FormPanel, FormPanelFooter, FormSearchSelectField, ShellBar, Spinner } from '@/ui'
 
 function Workspace({ children }: { readonly children: ReactNode }) {
   return <main className="min-h-screen bg-canvas text-ink">{children}</main>
@@ -10,13 +11,17 @@ export type OnboardingProfileViewProps = {
   readonly homeHref: string
   readonly backHref: string
   readonly nextHref: string
+  readonly emailValue: string
 }
 
-export function OnboardingProfileView({ homeHref, backHref, nextHref }: OnboardingProfileViewProps) {
+export function OnboardingProfileView({ homeHref, backHref, nextHref, emailValue }: OnboardingProfileViewProps) {
   const [firstName, setFirstName] = useState('Darnell')
   const [lastName, setLastName] = useState('Smith')
   const [phone, setPhone] = useState('')
-  const [currentRole, setCurrentRole] = useState('')
+  const [country, setCountry] = useState('')
+  const [city, setCity] = useState('')
+  const [state, setState] = useState('')
+  const [postalCode, setPostalCode] = useState('')
 
   return (
     <Workspace>
@@ -25,68 +30,71 @@ export function OnboardingProfileView({ homeHref, backHref, nextHref }: Onboardi
         <FormPanel
           title="Complete Your Profile"
           step="1/2"
+          className="max-w-[36rem]"
           footer={<FormPanelFooter backHref={backHref} nextHref={nextHref} nextLabel="Next" />}
         >
-          <FormField id="onboarding-first-name" label="First Name" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
-          <FormField id="onboarding-last-name" label="Last Name" value={lastName} onChange={(event) => setLastName(event.target.value)} />
-          <FormField id="onboarding-phone" label="Phone Number" type="tel" placeholder="+1 (555) 000-0000" value={phone} onChange={(event) => setPhone(event.target.value)} />
-          <FormField id="onboarding-role" label="Current Role" placeholder="e.g. Product Manager" value={currentRole} onChange={(event) => setCurrentRole(event.target.value)} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <FormField id="onboarding-first-name" label="First Name" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
+            <FormField id="onboarding-last-name" label="Last Name" value={lastName} onChange={(event) => setLastName(event.target.value)} />
+            <div className="grid gap-1.5 sm:col-span-2">
+              <label htmlFor="onboarding-email" className="text-sm font-medium leading-5 text-ink">
+                Email
+              </label>
+              <div className="relative">
+                <input
+                  id="onboarding-email"
+                  type="email"
+                  value={emailValue}
+                  disabled
+                  className="min-h-11 w-full rounded-lg border border-input bg-surface-subtle px-3.5 py-2.5 pe-24 text-sm leading-6 text-ink-muted shadow-control outline-none disabled:cursor-not-allowed"
+                />
+                <span className="absolute inset-y-0 end-3 inline-flex items-center gap-1 text-xs font-semibold text-positive">
+                  <CheckCircle2 aria-hidden="true" className="size-3.5" />
+                  Verified
+                </span>
+              </div>
+            </div>
+            <FormField id="onboarding-phone" label="Phone Number" type="tel" placeholder="+1 (555) 000-0000" value={phone} onChange={(event) => setPhone(event.target.value)} />
+            <FormField id="onboarding-country" label="Country" placeholder="e.g. United States" value={country} onChange={(event) => setCountry(event.target.value)} />
+            <FormField id="onboarding-city" label="City" placeholder="e.g. Austin" value={city} onChange={(event) => setCity(event.target.value)} />
+            <FormField id="onboarding-state" label="State" placeholder="e.g. Texas" value={state} onChange={(event) => setState(event.target.value)} />
+            <FormField id="onboarding-postal" label="Postal Code" placeholder="e.g. 73301" value={postalCode} onChange={(event) => setPostalCode(event.target.value)} />
+          </div>
         </FormPanel>
       </section>
     </Workspace>
   )
 }
 
-const GOAL_OPTIONS = [
+const JOB_ROLE_OPTIONS = [
+  'Product Manager',
+  'Software Engineer',
+  'Designer',
+  'Data & Analytics',
+  'Marketing',
+  'Sales',
+  'Customer Success',
+  'Operations',
+  'Student / Recent Graduate',
+  'Other',
+]
+
+const LOOKING_FOR_OPTIONS = [
   'Building my resume',
   'Finding & applying to jobs',
   'Practicing for interviews',
   'Getting career guidance',
   'Other',
-] as const
+]
 
-const SOURCE_OPTIONS = [
+const HEARD_ABOUT_OPTIONS = [
   'Search engine (SEO)',
   'Social media',
   'Video (YouTube/TikTok)',
   'Online ads',
   'Friend or colleague',
   'Other',
-] as const
-
-function SurveyChoiceGroup({
-  label,
-  options,
-  selected,
-  onSelect,
-}: {
-  readonly label: string
-  readonly options: readonly string[]
-  readonly selected: string
-  readonly onSelect: (value: string) => void
-}) {
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-medium text-ink">{label}</label>
-      <div className="flex flex-wrap gap-2">
-        {options.map((option) => (
-          <button
-            key={option}
-            type="button"
-            aria-pressed={selected === option}
-            onClick={() => onSelect(option)}
-            className={cn(
-              'rounded-full border px-4 py-1.5 text-sm transition-colors',
-              selected === option ? 'border-accent bg-accent-subtle font-medium text-accent' : 'border-border text-ink hover:border-accent/40',
-            )}
-          >
-            {option}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
+]
 
 export type OnboardingInterestsViewProps = {
   readonly homeHref: string
@@ -95,12 +103,15 @@ export type OnboardingInterestsViewProps = {
 }
 
 export function OnboardingInterestsView({ homeHref, backHref, onComplete }: OnboardingInterestsViewProps) {
-  const [goal, setGoal] = useState('')
-  const [source, setSource] = useState('')
+  const [jobRole, setJobRole] = useState<readonly string[]>([])
+  const [lookingFor, setLookingFor] = useState<readonly string[]>([])
+  const [heardAbout, setHeardAbout] = useState<readonly string[]>([])
   const [submitting, setSubmitting] = useState(false)
 
+  const canComplete = jobRole.length > 0 && lookingFor.length > 0 && heardAbout.length > 0
+
   function handleComplete() {
-    if (submitting || !goal || !source) return
+    if (submitting || !canComplete) return
     setSubmitting(true)
     window.setTimeout(onComplete, 900)
   }
@@ -118,7 +129,7 @@ export function OnboardingInterestsView({ homeHref, backHref, onComplete }: Onbo
               nextHref="#"
               nextLabel={submitting ? 'Setting up your workspace…' : 'Complete'}
               nextIcon={submitting ? <Spinner size="sm" /> : undefined}
-              nextDisabled={submitting || !goal || !source}
+              nextDisabled={submitting || !canComplete}
               onNextClick={(event) => {
                 event.preventDefault()
                 handleComplete()
@@ -127,8 +138,33 @@ export function OnboardingInterestsView({ homeHref, backHref, onComplete }: Onbo
           }
         >
           <p className="text-sm leading-6 text-ink-muted">Help us tailor Lightforth to what you're looking for.</p>
-          <SurveyChoiceGroup label="What brings you to Lightforth?" options={GOAL_OPTIONS} selected={goal} onSelect={setGoal} />
-          <SurveyChoiceGroup label="How did you hear about Lightforth?" options={SOURCE_OPTIONS} selected={source} onSelect={setSource} />
+          <FormSearchSelectField
+            id="onboarding-job-role"
+            label="Job Role"
+            placeholder="Search job roles..."
+            searchPlaceholder="Search job roles..."
+            options={JOB_ROLE_OPTIONS}
+            selected={jobRole}
+            onSelectedChange={setJobRole}
+          />
+          <FormSearchSelectField
+            id="onboarding-looking-for"
+            label="What are you looking for?"
+            placeholder="Search..."
+            searchPlaceholder="Search..."
+            options={LOOKING_FOR_OPTIONS}
+            selected={lookingFor}
+            onSelectedChange={setLookingFor}
+          />
+          <FormSearchSelectField
+            id="onboarding-heard-about"
+            label="How did you hear about Lightforth?"
+            placeholder="Search..."
+            searchPlaceholder="Search..."
+            options={HEARD_ABOUT_OPTIONS}
+            selected={heardAbout}
+            onSelectedChange={setHeardAbout}
+          />
         </FormPanel>
       </section>
     </Workspace>
