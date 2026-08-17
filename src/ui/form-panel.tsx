@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react'
+import { forwardRef, useEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type FormHTMLAttributes, type InputHTMLAttributes, type MouseEvent, type ReactNode, type TextareaHTMLAttributes } from 'react'
 import { ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Check, FileText, Pencil } from 'lucide-react'
 import { Select } from '@base-ui-components/react/select'
 
@@ -229,18 +229,28 @@ export type FormPanelFooterProps = {
   readonly nextLabel?: string
   readonly backLabel?: string
   readonly nextIcon?: ReactNode
+  readonly nextDisabled?: boolean
+  readonly onNextClick?: (event: MouseEvent<HTMLAnchorElement>) => void
   readonly className?: string
 }
 
 export const FormPanelFooter = forwardRef<HTMLElement, FormPanelFooterProps>(
-  function FormPanelFooter({ backHref, nextHref, nextLabel = 'Continue', backLabel = 'Back', nextIcon, className, ...props }, ref) {
+  function FormPanelFooter({ backHref, nextHref, nextLabel = 'Continue', backLabel = 'Back', nextIcon, nextDisabled, onNextClick, className, ...props }, ref) {
     return (
       <footer ref={ref} data-slot="form-panel-footer" className={cn('flex items-center justify-between gap-4 border-t border-border px-6 py-4', className)} {...props}>
         <a href={backHref} className="inline-flex min-h-11 items-center gap-1 rounded-lg py-2.5 text-base font-semibold leading-6 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
           <ArrowLeft aria-hidden="true" className="size-4" />
           {backLabel}
         </a>
-        <a href={nextHref} className="inline-flex min-h-11 items-center justify-center gap-3 rounded-lg bg-accent px-4 py-2.5 text-base font-semibold leading-6 text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+        <a
+          href={nextHref}
+          aria-disabled={nextDisabled}
+          onClick={onNextClick}
+          className={cn(
+            'inline-flex min-h-11 items-center justify-center gap-3 rounded-lg bg-accent px-4 py-2.5 text-base font-semibold leading-6 text-on-accent shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
+            nextDisabled && 'pointer-events-none opacity-50',
+          )}
+        >
           {nextLabel}
           {nextIcon ? <span className="shrink-0 [&>svg]:size-5">{nextIcon}</span> : <ArrowRight aria-hidden="true" className="size-5" />}
         </a>

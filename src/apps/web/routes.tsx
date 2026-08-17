@@ -37,6 +37,8 @@ import { InterviewReportPage } from './pages/interview-report-page'
 import { InterviewSessionPage } from './pages/interview-session-page'
 import { InterviewUploadPage } from './pages/interview-upload-page'
 import { InterviewVoicePage } from './pages/interview-voice-page'
+import { OnboardingInterestsPage } from './pages/onboarding-interests-page'
+import { OnboardingProfilePage } from './pages/onboarding-profile-page'
 import { ResumeConfigurePage } from './pages/resume-configure-page'
 import { ResumeEditorPage } from './pages/resume-editor-page'
 import { ResumeHistoryPage } from './pages/resume-history-page'
@@ -63,6 +65,14 @@ export function WebRoutes() {
 
   if (routePath === '/auth/choose-plan') {
     return <AuthPlanPage />
+  }
+
+  if (routePath === '/onboarding/profile') {
+    return <OnboardingProfilePage />
+  }
+
+  if (routePath === '/onboarding/interests') {
+    return <OnboardingInterestsPage />
   }
 
   if (routePath === '/app') {
