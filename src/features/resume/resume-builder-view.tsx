@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowLeft, ArrowRight, ArrowUp, Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Target, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
-import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, UploadedFileDialog } from '@/ui'
+import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, TipModal, TipModalTrigger, UploadedFileDialog } from '@/ui'
 import { useTypewriter } from '@/hooks/useTypewriter'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 
@@ -246,6 +246,7 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
   const [isAutoFilled, setIsAutoFilled] = useState(true)
   const { type, isTyping } = useTypewriter()
   const [showTip, setShowTip] = useState(true)
+  const [tipModalOpen, setTipModalOpen] = useState(false)
   const tipRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -331,7 +332,15 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
                   type(GENERIC_JOB_DESCRIPTION, (partial) => setJobDescription(partial), { durationMs: 1800 })
                 }}
                 aria-label="Show help tooltip"
-                className="inline-flex items-center justify-center rounded-full p-0.5 text-muted transition-colors hover:bg-accent-subtle hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                className="hidden items-center justify-center rounded-full p-0.5 text-muted transition-colors hover:bg-accent-subtle hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex"
+              >
+                <HelpCircle aria-hidden="true" className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setTipModalOpen(true)}
+                aria-label="Show help tip"
+                className="inline-flex items-center justify-center rounded-full p-0.5 text-muted transition-colors hover:bg-accent-subtle hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:hidden"
               >
                 <HelpCircle aria-hidden="true" className="size-4" />
               </button>
@@ -354,9 +363,9 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
                 <div
                   ref={tipRef}
                   role="status"
-                  className="relative z-20 mt-3 w-full rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel sm:absolute sm:end-0 sm:top-0 sm:mt-0 sm:w-64 sm:translate-x-[calc(100%+12px)]"
+                  className="absolute end-0 top-0 z-20 hidden w-64 translate-x-[calc(100%+12px)] rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel sm:block"
                 >
-                  <span aria-hidden="true" className="absolute start-0 top-6 hidden -translate-x-1.5 rotate-45 size-3 bg-live-header sm:block" />
+                  <span aria-hidden="true" className="absolute start-0 top-6 -translate-x-1.5 rotate-45 size-3 bg-live-header" />
                   <button
                     type="button"
                     onClick={() => setShowTip(false)}
@@ -373,6 +382,12 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
               )}
             </div>
           </div>
+          <TipModal
+            open={tipModalOpen}
+            onOpenChange={setTipModalOpen}
+            title="Tailor your resume"
+            body="Paste a job description and Lightforth will automatically rewrite your resume to match key words."
+          />
           <AiSuggestionAction onClick={handleAiSuggestion} disabled={isTyping} />
         </FormPanel>
       </section>
@@ -484,6 +499,12 @@ function ChatComposer({
             onChange={(event) => onDraftChange(event.target.value)}
             className="max-h-40 w-full resize-none overflow-y-auto bg-surface py-1.5 text-sm leading-6 text-ink outline-none placeholder:text-ink-muted"
             placeholder={hasMessages ? CHAT_PLACEHOLDER_ACTIVE : CHAT_PLACEHOLDER_EMPTY}
+          />
+          <TipModalTrigger
+            label="Show chat tips"
+            title="Chat with Lightforth AI"
+            body="Ask for rewrites, tone changes, or keyword targeting — Lightforth updates your resume in real time. Accept the changes, or keep editing."
+            className="mb-1.5 shrink-0 sm:hidden"
           />
           <button
             type="button"
