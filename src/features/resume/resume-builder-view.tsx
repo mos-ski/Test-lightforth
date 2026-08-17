@@ -97,7 +97,7 @@ function BuilderHeader({
         </button>
       ) : null}
       {action === 'download' ? (
-        <div ref={downloadRef} className="relative hidden lg:block">
+        <div ref={downloadRef} className="relative">
           <button
             type="button"
             onClick={() => setDownloadOpen(!downloadOpen)}
