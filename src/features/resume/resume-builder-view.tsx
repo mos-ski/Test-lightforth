@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Check, ChevronDown, Download, FileText, HelpCircle, Minus, Plus, Send, Target, X } from 'lucide-react'
+import { Check, ChevronDown, Download, FileText, Minus, Plus, Send, Target, X } from 'lucide-react'
 
 import type { ResumeBuilderSession, ResumeBuilderTab, ResumeChatState, ResumeDocument, ResumeHistoryRow, ResumeSectionId, ResumeTemplate } from '@/contracts/resume.draft'
 import { AiSuggestionAction, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, FormField, FormPanel, FormPanelFooter, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, UploadedFileDialog } from '@/ui'
 import { useTypewriter } from '@/hooks/useTypewriter'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
+import { clearPendingResumeJobDescription, getPendingResumeJobDescription, setPendingResumeJobDescription } from '@/lib/resume-job-description'
 
 export type ResumeUploadViewProps = {
   readonly homeHref: string
@@ -49,6 +50,12 @@ const sectionLabels: Record<ResumeSectionId, string> = {
   languages: 'Languages',
 }
 
+const downloadOptions = [
+  { label: 'Download as PDF', value: 'pdf', icon: <FileText aria-hidden="true" className="size-4" /> },
+  { label: 'Download as DOCX', value: 'docx', icon: <FileText aria-hidden="true" className="size-4" /> },
+  { label: 'Download as TXT', value: 'txt', icon: <FileText aria-hidden="true" className="size-4" /> },
+]
+
 function BuilderHeader({
   homeHref,
   current,
@@ -71,12 +78,6 @@ function BuilderHeader({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const downloadOptions = [
-    { label: 'Download as PDF', value: 'pdf', icon: <FileText aria-hidden="true" className="size-4" /> },
-    { label: 'Download as DOCX', value: 'docx', icon: <FileText aria-hidden="true" className="size-4" /> },
-    { label: 'Download as TXT', value: 'txt', icon: <FileText aria-hidden="true" className="size-4" /> },
-  ]
-
   return (
     <ShellBar
       homeHref={homeHref}
@@ -88,82 +89,38 @@ function BuilderHeader({
         <button
           type="button"
           onClick={onAtsClick}
-          className="hidden min-h-9 items-center gap-2 rounded-lg border border-border px-4 text-base font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex"
+          className="hidden min-h-9 items-center gap-2 rounded-lg border border-border px-4 text-base font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:inline-flex"
         >
           <Target aria-hidden="true" className="size-4" />
           ATS Score
         </button>
       ) : null}
       {action === 'download' ? (
-        <>
-          <div ref={downloadRef} className="relative hidden sm:block">
-            <button
-              type="button"
-              onClick={() => setDownloadOpen(!downloadOpen)}
-              className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <Download aria-hidden="true" className="size-4" />
-              Download
-              <ChevronDown aria-hidden="true" className={cn('size-4 transition-transform', downloadOpen && 'rotate-180')} />
-            </button>
-            {downloadOpen ? (
-              <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-border bg-surface py-1 shadow-panel">
-                {downloadOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setDownloadOpen(false)}
-                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:bg-surface-subtle"
-                  >
-                    {option.icon}
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
+        <div ref={downloadRef} className="relative hidden lg:block">
           <button
             type="button"
-            onClick={() => setDownloadOpen(true)}
-            className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control sm:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            onClick={() => setDownloadOpen(!downloadOpen)}
+            className="inline-flex min-h-9 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent shadow-control transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
             <Download aria-hidden="true" className="size-4" />
             Download
+            <ChevronDown aria-hidden="true" className={cn('size-4 transition-transform', downloadOpen && 'rotate-180')} />
           </button>
-        </>
-      ) : null}
-
-      {downloadOpen ? (
-        <div className="fixed inset-0 z-50 sm:hidden">
-          <div className="fixed inset-0 bg-overlay" onClick={() => setDownloadOpen(false)} />
-          <div className="fixed inset-x-0 bottom-0 z-50 rounded-t-xl border border-b-0 border-border bg-surface shadow-panel">
-            <div className="flex shrink-0 items-center justify-center px-6 pt-3 pb-2">
-              <div className="h-1 w-10 rounded-full bg-muted" />
+          {downloadOpen ? (
+            <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-border bg-surface py-1 shadow-panel">
+              {downloadOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setDownloadOpen(false)}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:bg-surface-subtle"
+                >
+                  {option.icon}
+                  {option.label}
+                </button>
+              ))}
             </div>
-            <div className="px-6 pb-6">
-              <h3 className="text-base font-semibold text-ink">Download resume</h3>
-              <div className="mt-4 grid gap-1">
-                {downloadOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setDownloadOpen(false)}
-                    className="flex min-h-12 items-center gap-3 rounded-lg px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle"
-                  >
-                    {option.icon}
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => setDownloadOpen(false)}
-                className="mt-3 flex min-h-12 w-full items-center justify-center rounded-lg border border-border text-sm font-medium text-ink-muted transition-colors hover:bg-surface-subtle"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+          ) : null}
         </div>
       ) : null}
     </ShellBar>
@@ -279,14 +236,24 @@ export function ResumeUploadView({ homeHref, configureHref, historyHref, uploade
 const RESUME_JOB_DESCRIPTION_SUGGESTION =
   ' Looking for a Senior Product Manager with 5+ years of experience shipping AI-powered products, strong SQL and A/B testing skills, and a track record of driving measurable growth metrics.'
 
+const JOB_DESCRIPTION_PLACEHOLDER = 'Paste any job description…'
+
 export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session }: ResumeConfigureViewProps) {
   const [jobDescription, setJobDescription] = useState(session.jobDescription)
   const { type, isTyping } = useTypewriter()
+  const [dismissedJdTip, setDismissedJdTip] = useState(false)
+  const typedPlaceholder = useTypedPlaceholder(JOB_DESCRIPTION_PLACEHOLDER, jobDescription.length === 0)
+
+  useEffect(() => {
+    setPendingResumeJobDescription(jobDescription)
+  }, [jobDescription])
 
   function handleAiSuggestion() {
     const base = jobDescription
     type(RESUME_JOB_DESCRIPTION_SUGGESTION, (partial) => setJobDescription(base + partial))
   }
+
+  const showJdTip = jobDescription.trim().length === 0 && !dismissedJdTip
 
   return (
     <Workspace>
@@ -311,10 +278,22 @@ export function ResumeConfigureView({ homeHref, editorHref, uploadHref, session 
             label="Enter Job Description"
             value={jobDescription}
             onChange={(event) => setJobDescription(event.target.value)}
+            placeholder={typedPlaceholder}
             className={cn(isTyping && 'ring-2 ring-accent shadow-[0_0_0_4px_var(--lf-accent-subtle)] transition-shadow duration-normal')}
           />
           <AiSuggestionAction onClick={handleAiSuggestion} disabled={isTyping} />
         </FormPanel>
+        {showJdTip ? (
+          <WalkthroughTooltip
+            targetId="resume-job-description"
+            side="right"
+            title="Add the Job Description"
+            body="Paste the role you're targeting before you continue — Lightforth tailors your resume to match it."
+            actionLabel="Got it"
+            onAction={() => setDismissedJdTip(true)}
+            onDismiss={() => setDismissedJdTip(true)}
+          />
+        ) : null}
       </section>
     </Workspace>
   )
@@ -414,19 +393,13 @@ function ChatComposer({
   onDraftChange,
   onSend,
   hasMessages,
-  showTip,
-  onHelpClick,
 }: {
   readonly prompts: readonly string[]
   readonly draft: string
   readonly onDraftChange: (value: string) => void
   readonly onSend: () => void
   readonly hasMessages: boolean
-  readonly showTip: boolean
-  readonly onHelpClick: () => void
 }) {
-  const typedPlaceholder = useTypedPlaceholder(CHAT_PLACEHOLDER_EMPTY, showTip)
-
   return (
     <div className="mt-auto">
       <PromptChips prompts={prompts} onSelect={onSend ? (prompt) => { onDraftChange(prompt); onSend() } : undefined} />
@@ -434,13 +407,7 @@ function ChatComposer({
         <label className="sr-only" htmlFor="resume-chat-message">
           Resume chat message
         </label>
-        <div
-          id="walkthrough-chat-input"
-          className={cn(
-            'rounded-2xl border bg-surface p-3 transition-shadow duration-normal ease-default',
-            showTip ? 'border-accent shadow-[0_0_0_3px_var(--lf-accent-subtle)]' : 'border-border',
-          )}
-        >
+        <div id="walkthrough-chat-input" className="rounded-2xl border border-border bg-surface p-3 transition-shadow duration-normal ease-default">
           <textarea
             id="resume-chat-message"
             value={draft}
@@ -452,25 +419,14 @@ function ChatComposer({
               }
             }}
             className="min-h-16 w-full resize-none bg-surface text-sm text-ink outline-none placeholder:text-ink-muted"
-            placeholder={hasMessages ? CHAT_PLACEHOLDER_ACTIVE : showTip ? typedPlaceholder : CHAT_PLACEHOLDER_EMPTY}
+            placeholder={hasMessages ? CHAT_PLACEHOLDER_ACTIVE : CHAT_PLACEHOLDER_EMPTY}
           />
           <div className="flex items-center justify-end gap-1.5 pt-2">
             <button
               type="button"
-              onClick={onHelpClick}
-              aria-label="Show tutorial"
-              className="grid size-8 shrink-0 place-items-center rounded-lg text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <HelpCircle aria-hidden="true" className="size-4" />
-            </button>
-            <button
-              type="button"
               onClick={onSend}
               aria-label="Send resume message"
-              className={cn(
-                'grid size-8 shrink-0 place-items-center rounded-lg bg-surface-subtle text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-                showTip && !draft ? 'animate-pulse motion-reduce:animate-none' : '',
-              )}
+              className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-subtle text-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               <Send aria-hidden="true" className="size-4" />
             </button>
@@ -493,8 +449,6 @@ function ChatSidebar({
   onSend,
   onAccept,
   onReject,
-  showTip,
-  onHelpClick,
 }: {
   readonly session: ResumeBuilderSession
   readonly messages: readonly ChatMessage[]
@@ -506,8 +460,6 @@ function ChatSidebar({
   readonly onSend: () => void
   readonly onAccept: () => void
   readonly onReject: () => void
-  readonly showTip: boolean
-  readonly onHelpClick: () => void
 }) {
   const chatRef = useRef<HTMLDivElement>(null)
 
@@ -567,8 +519,6 @@ function ChatSidebar({
           onDraftChange={onDraftChange}
           onSend={onSend}
           hasMessages={messages.length > 0}
-          showTip={showTip}
-          onHelpClick={onHelpClick}
         />
       </div>
     </aside>
@@ -985,22 +935,25 @@ function ResumePreviewTray({
     <button
       type="button"
       onClick={onOpen}
-      className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-t border-border bg-surface px-4 lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      className="flex shrink-0 flex-col items-center rounded-t-2xl border-t border-border bg-surface pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-panel lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
     >
-      <span className="flex min-w-0 items-center gap-2.5">
-        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-subtle text-ink-muted">
-          <FileText aria-hidden="true" className="size-4" />
-        </span>
-        <span className="min-w-0 text-start">
-          <span className="block text-sm font-semibold text-ink">Resume Preview</span>
-          <span className="block truncate text-xs text-ink-muted">
-            {pendingSuggestion ? `${changeCount} change${changeCount === 1 ? '' : 's'} to review` : `ATS Score ${atsScore}%`}
+      <span aria-hidden="true" className="mt-2 h-1 w-10 shrink-0 rounded-pill bg-border" />
+      <span className="flex min-h-12 w-full items-center justify-between gap-3 px-4">
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-subtle text-ink-muted">
+            <FileText aria-hidden="true" className="size-4" />
+          </span>
+          <span className="min-w-0 text-start">
+            <span className="block text-sm font-semibold text-ink">Resume Preview</span>
+            <span className="block truncate text-xs text-ink-muted">
+              {pendingSuggestion ? `${changeCount} change${changeCount === 1 ? '' : 's'} to review` : `ATS Score ${atsScore}%`}
+            </span>
           </span>
         </span>
-      </span>
-      <span className="flex shrink-0 items-center gap-2">
-        {pendingSuggestion ? <span aria-hidden="true" className="size-2 rounded-pill bg-accent" /> : null}
-        <ChevronDown aria-hidden="true" className="size-4 -rotate-90 text-ink-muted" />
+        <span className="flex shrink-0 items-center gap-2">
+          {pendingSuggestion ? <span aria-hidden="true" className="size-2 rounded-pill bg-accent" /> : null}
+          <ChevronDown aria-hidden="true" className="size-4 -rotate-90 text-ink-muted" />
+        </span>
       </span>
     </button>
   )
@@ -1018,6 +971,7 @@ function ResumePreviewDialog({
   atsScore,
   onAccept,
   onReject,
+  onAtsClick,
 }: {
   readonly open: boolean
   readonly onOpenChange: (open: boolean) => void
@@ -1030,7 +984,10 @@ function ResumePreviewDialog({
   readonly atsScore: number
   readonly onAccept: () => void
   readonly onReject: () => void
+  readonly onAtsClick: () => void
 }) {
+  const [downloadOpen, setDownloadOpen] = useState(false)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPopup placement="center" aria-label="Resume preview" className="flex max-h-[85vh] flex-col p-0 sm:max-h-[calc(100vh-4rem)]">
@@ -1072,7 +1029,46 @@ function ResumePreviewDialog({
               Accept All
             </button>
           </div>
-        ) : null}
+        ) : (
+          <div className="flex shrink-0 gap-2 border-t border-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <button
+              type="button"
+              onClick={() => {
+                onOpenChange(false)
+                onAtsClick()
+              }}
+              className="flex-1 inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-border text-sm font-semibold text-ink hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <Target aria-hidden="true" className="size-4" />
+              ATS Score {atsScore}%
+            </button>
+            <div className="relative flex-1">
+              <button
+                type="button"
+                onClick={() => setDownloadOpen((value) => !value)}
+                className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-accent text-sm font-semibold text-on-accent hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                <Download aria-hidden="true" className="size-4" />
+                Download
+              </button>
+              {downloadOpen ? (
+                <div className="absolute inset-x-0 bottom-full z-50 mb-2 rounded-xl border border-border bg-surface py-1 shadow-panel">
+                  {downloadOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setDownloadOpen(false)}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:bg-surface-subtle"
+                    >
+                      {option.icon}
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
       </DialogPopup>
     </Dialog>
   )
@@ -1292,8 +1288,7 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   const [pendingSuggestion, setPendingSuggestion] = useState(chatState === 'suggestions')
   const [hasAcceptedChanges, setHasAcceptedChanges] = useState(false)
   const [atsOpen, setAtsOpen] = useState(false)
-  const [dismissedSendTip, setDismissedSendTip] = useState(false)
-  const [dismissedAcceptTip, setDismissedAcceptTip] = useState(false)
+  const [dismissedRefineTip, setDismissedRefineTip] = useState(false)
   const [typedSummary, setTypedSummary] = useState<string | null>(null)
   const { type: typeSummary, isTyping: isTypingSummary } = useTypewriter()
   const [zoom, setZoom] = useState(() => {
@@ -1302,6 +1297,7 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   })
   const [previewOpen, setPreviewOpen] = useState(false)
   const isMobileViewport = useIsMobileViewport()
+  const autoSentRef = useRef(false)
 
   function revealSuggestion() {
     setPendingSuggestion(true)
@@ -1309,11 +1305,10 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     if (isMobileViewport) setPreviewOpen(true)
   }
 
-  function handleSend() {
-    const trimmed = draft.trim()
+  function sendMessage(text: string) {
+    const trimmed = text.trim()
     if (!trimmed) return
     setMessages((prev) => [...prev, { id: `msg-${Date.now()}`, author: 'candidate', text: trimmed }])
-    setDraft('')
     setIsTyping(true)
     let labelIndex = 0
     setThinkingLabel(THINKING_LABELS[0])
@@ -1329,6 +1324,23 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     }, 4000)
   }
 
+  function handleSend() {
+    if (!draft.trim()) return
+    sendMessage(draft)
+    setDraft('')
+  }
+
+  useEffect(() => {
+    if (autoSentRef.current) return
+    if (tab !== 'chat' || chatState !== 'empty') return
+    const pending = getPendingResumeJobDescription()
+    if (!pending) return
+    autoSentRef.current = true
+    clearPendingResumeJobDescription()
+    sendMessage(pending)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, chatState])
+
   function handleAccept() {
     setHasAcceptedChanges(true)
     setPendingSuggestion(false)
@@ -1342,14 +1354,8 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
     setPreviewOpen(false)
   }
 
-  function handleShowTutorial() {
-    setDismissedSendTip(false)
-    setDismissedAcceptTip(false)
-  }
-
   const showImproved = hasAcceptedChanges || pendingSuggestion
-  const showSendTip = tab === 'chat' && messages.length === 0 && !dismissedSendTip
-  const showAcceptTip = pendingSuggestion && (tab === 'chat' || tab === 'create') && !dismissedAcceptTip
+  const showRefineTip = hasAcceptedChanges && tab === 'chat' && !dismissedRefineTip
   const changes: readonly SuggestionChange[] = pendingSuggestion
     ? [
         { id: 'professional-summary', section: 'Professional Summary', before: document.summary, after: document.improvedSummary },
@@ -1371,7 +1377,7 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
   return (
     <Workspace>
       <BuilderHeader homeHref={homeHref} current="Build a Resume" action="download" onAtsClick={() => setAtsOpen(true)} />
-      <section className="relative flex h-[calc(100vh-3.5rem)] flex-col overflow-hidden lg:flex-row">
+      <section className="relative flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden lg:flex-row">
         {tab === 'chat' ? (
           <ChatSidebar
             session={session}
@@ -1384,8 +1390,6 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
             onSend={handleSend}
             onAccept={handleAccept}
             onReject={handleReject}
-            showTip={showSendTip}
-            onHelpClick={handleShowTutorial}
           />
         ) : null}
         {tab === 'create' ? (
@@ -1414,30 +1418,17 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
             )}
           </div>
           {pendingSuggestion && (tab === 'chat' || tab === 'create') ? (
-            <>
-              <InlineChangeControls onAccept={handleAccept} onReject={handleReject} />
-              {showAcceptTip ? (
-                <WalkthroughTooltip
-                  targetId="walkthrough-diff-actions"
-                  side="left"
-                  title="Accept or Decline Changes"
-                  body="These changes only apply once you accept them — reject to keep your original wording."
-                  actionLabel="Got it"
-                  onAction={() => setDismissedAcceptTip(true)}
-                  onDismiss={() => setDismissedAcceptTip(true)}
-                />
-              ) : null}
-            </>
+            <InlineChangeControls onAccept={handleAccept} onReject={handleReject} />
           ) : null}
-          {showSendTip ? (
+          {showRefineTip ? (
             <WalkthroughTooltip
               targetId="walkthrough-chat-input"
               side="right"
-              title="Send your First Message"
-              body="Chat or paste a job description and Lightforth will rewrite your resume to match key words."
-              actionLabel="I'm ready"
-              onAction={() => setDismissedSendTip(true)}
-              onDismiss={() => setDismissedSendTip(true)}
+              title="Keep Refining"
+              body="You can keep asking for rewrites or keyword targeting to polish your resume further."
+              actionLabel="Got it"
+              onAction={() => setDismissedRefineTip(true)}
+              onDismiss={() => setDismissedRefineTip(true)}
             />
           ) : null}
         </div>
@@ -1464,6 +1455,7 @@ export function ResumeEditorView({ homeHref, document, session, templates, tab, 
         atsScore={document.atsScore}
         onAccept={handleAccept}
         onReject={handleReject}
+        onAtsClick={() => setAtsOpen(true)}
       />
     </Workspace>
   )

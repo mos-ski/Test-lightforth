@@ -186,7 +186,7 @@ export const resumeBuilderSession: ResumeBuilderSession = {
   uploadedFileName: 'adewale_damola_PM_resume.pdf',
   resumeName: 'John Doe',
   companyName: 'Google',
-  jobDescription: 'Use this space to include job description details, portfolio notes, or anything the interviewer should probe...',
+  jobDescription: '',
   promptSuggestions: ['Add metrics to work highlights', 'Expand skills with technical proficiencies', 'Include notable projects or case studies'],
   chatPrompt:
     'Can you improve the job summary section, I want to emphasize that I can also design, I can do market research and I have experience in Product management',
