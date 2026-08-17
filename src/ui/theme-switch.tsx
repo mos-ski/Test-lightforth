@@ -1,23 +1,18 @@
 import { forwardRef, useCallback, useEffect, useState } from 'react'
-import { Sun, Moon, Monitor } from 'lucide-react'
+import { Sun, Moon } from 'lucide-react'
 
 import { cn } from './cn'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light' | 'dark'
 
 function getStoredTheme(): Theme {
-  if (typeof window === 'undefined') return 'system'
+  if (typeof window === 'undefined') return 'light'
   const stored = localStorage.getItem('lf-theme') as Theme | null
-  return stored === 'light' || stored === 'dark' ? stored : 'system'
+  return stored === 'dark' ? 'dark' : 'light'
 }
 
 function applyTheme(theme: Theme) {
-  const root = document.documentElement
-  if (theme === 'system') {
-    root.removeAttribute('data-theme')
-  } else {
-    root.setAttribute('data-theme', theme)
-  }
+  document.documentElement.setAttribute('data-theme', theme)
 }
 
 export type ThemeSwitchProps = {
@@ -35,24 +30,12 @@ export const ThemeSwitch = forwardRef<HTMLButtonElement, ThemeSwitchProps>(
     }, [theme])
 
     const cycle = useCallback(() => {
-      setTheme((prev) => {
-        if (prev === 'light') return 'dark'
-        if (prev === 'dark') return 'system'
-        return 'light'
-      })
+      setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
     }, [])
 
-    const icons: Record<Theme, React.ReactNode> = {
-      light: <Sun aria-hidden="true" className={cn(size === 'sm' ? 'size-3.5' : 'size-4')} />,
-      dark: <Moon aria-hidden="true" className={cn(size === 'sm' ? 'size-3.5' : 'size-4')} />,
-      system: <Monitor aria-hidden="true" className={cn(size === 'sm' ? 'size-3.5' : 'size-4')} />,
-    }
-
-    const labels: Record<Theme, string> = {
-      light: 'Light mode',
-      dark: 'Dark mode',
-      system: 'System theme',
-    }
+    const icon = theme === 'light'
+      ? <Sun aria-hidden="true" className={cn(size === 'sm' ? 'size-3.5' : 'size-4')} />
+      : <Moon aria-hidden="true" className={cn(size === 'sm' ? 'size-3.5' : 'size-4')} />
 
     return (
       <button
@@ -60,7 +43,7 @@ export const ThemeSwitch = forwardRef<HTMLButtonElement, ThemeSwitchProps>(
         type="button"
         data-slot="theme-switch"
         data-theme={theme}
-        aria-label={labels[theme]}
+        aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
         onClick={cycle}
         className={cn(
           'inline-flex items-center justify-center rounded-lg text-ink-muted transition-colors duration-normal ease-default hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
@@ -69,7 +52,7 @@ export const ThemeSwitch = forwardRef<HTMLButtonElement, ThemeSwitchProps>(
           className,
         )}
       >
-        {icons[theme]}
+        {icon}
       </button>
     )
   },

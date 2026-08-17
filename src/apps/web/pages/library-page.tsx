@@ -9,6 +9,18 @@ import {
   Settings,
   Home,
   BarChart3,
+  Check,
+  X,
+  Bot,
+  User,
+  AlertTriangle,
+  Bell,
+  CreditCard,
+  Star,
+  Zap,
+  ArrowRight,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
 
 import {
@@ -73,6 +85,7 @@ import {
   TooltipContent,
   toast,
   Toaster,
+  LightforthAiIcon,
 } from '@/ui'
 import type {
   DataTableColumn,
@@ -173,6 +186,21 @@ const sections = [
   { id: 'scrollarea', label: 'ScrollArea' },
   { id: 'sheet-drawer', label: 'Sheet' },
   { id: 'navigator', label: 'Navigator' },
+  { id: 'chat-bubbles', label: 'Chat Bubbles' },
+  { id: 'typing-indicator', label: 'Typing Indicator' },
+  { id: 'walkthrough', label: 'Walkthrough' },
+  { id: 'hover-card', label: 'Hover Cards' },
+  { id: 'prompt-chips', label: 'Prompt Chips' },
+  { id: 'ai-suggestion', label: 'AI Suggestion' },
+  { id: 'accept-reject', label: 'Accept / Reject' },
+  { id: 'credit-card', label: 'Credit Card' },
+  { id: 'upload-zone', label: 'Upload Zone' },
+  { id: 'avatar-group', label: 'Avatar Group' },
+  { id: 'banner', label: 'Banner' },
+  { id: 'pricing-card', label: 'Pricing Card' },
+  { id: 'status-badges', label: 'Status Badges' },
+  { id: 'composite-skeleton', label: 'Skeleton Patterns' },
+  { id: 'typewriter', label: 'Typewriter' },
 ] as const
 
 export function LibraryPage() {
@@ -675,6 +703,371 @@ function LibraryPageInner() {
                 footer={<p className="text-xs text-muted">v1.0.0</p>}
               />
             </div>
+          </Section>
+
+          {/* === COMPOSITE PATTERNS === */}
+
+          {/* Chat Bubbles */}
+          <Section title="Chat Bubbles">
+            <div className="grid gap-3">
+              <div className="flex justify-end">
+                <div className="max-w-xs rounded-2xl rounded-ee-sm bg-accent px-4 py-2.5 text-sm text-on-accent">
+                  Can you tailor my resume for a senior PM role at Google?
+                </div>
+              </div>
+              <div className="flex justify-start">
+                <div className="max-w-sm rounded-2xl rounded-ss-sm bg-surface-subtle px-4 py-2.5 text-sm text-ink">
+                  I've tailored your resume to match the job description — review the highlighted changes below and accept or reject them.
+                </div>
+              </div>
+              <div className="flex justify-start">
+                <div className="flex items-start gap-2 max-w-sm rounded-2xl rounded-ss-sm bg-surface-subtle px-4 py-2.5 text-sm text-ink">
+                  <LightforthAiIcon className="mt-0.5 size-4 shrink-0" />
+                  <span>The AI assistant icon appears on assistant messages for brand recognition.</span>
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          {/* Typing Indicator */}
+          <Section title="Typing Indicator">
+            <div className="grid gap-3">
+              <div className="flex justify-start">
+                <div className="flex items-center gap-2 rounded-2xl rounded-ss-sm bg-surface-subtle px-4 py-3">
+                  <span className="text-xs text-ink-muted">Thinking</span>
+                  <span className="flex gap-1">
+                    <span className="inline-block size-1.5 rounded-full bg-ink-muted animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="inline-block size-1.5 rounded-full bg-ink-muted animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="inline-block size-1.5 rounded-full bg-ink-muted animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-start">
+                <div className="flex items-center gap-2 rounded-2xl rounded-ss-sm bg-accent/40 px-4 py-3">
+                  <span className="text-xs text-ink">Recording answer</span>
+                  <span className="flex gap-1">
+                    <span className="inline-block size-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="inline-block size-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="inline-block size-1.5 rounded-full bg-accent animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          {/* Walkthrough / Coach Mark */}
+          <Section title="Walkthrough">
+            <p className="mb-3 text-sm text-ink-muted">Positioned tooltip that targets a specific element by ID. Dark background, arrow, title, body, action button, dismiss.</p>
+            <div className="relative inline-block">
+              <Button id="walkthrough-demo-target">Target Element</Button>
+              <div className="absolute start-full top-0 z-20 ms-4 w-64 rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel">
+                <span className="absolute -start-1.5 top-6 size-3 rotate-45 bg-live-header" />
+                <button type="button" className="absolute end-2 top-2 rounded p-1 text-brand-bar-text/60 hover:text-brand-bar-text">
+                  <X className="size-3" />
+                </button>
+                <p className="text-sm font-bold">Keep refining</p>
+                <p className="mt-1 text-xs leading-relaxed text-brand-bar-text/80">Ask for more rewrites, accept the changes, or keep editing.</p>
+                <button type="button" className="mt-3 inline-flex min-h-7 items-center rounded-lg bg-white px-3 text-xs font-semibold text-live-header">Got it</button>
+              </div>
+            </div>
+          </Section>
+
+          {/* Hover Cards */}
+          <Section title="Hover Cards">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="group rounded-xl border border-border bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:bg-accent-subtle hover:shadow-panel cursor-pointer">
+                <div className="size-10 rounded-lg bg-accent-subtle text-accent flex items-center justify-center transition-transform group-hover:scale-110"><Sparkles className="size-5" /></div>
+                <p className="mt-3 text-sm font-semibold text-ink">Resume Builder</p>
+                <p className="mt-1 text-xs text-ink-muted">Build and tailor your resume for any job.</p>
+              </div>
+              <div className="group rounded-xl border border-border bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:bg-accent-subtle hover:shadow-panel cursor-pointer">
+                <div className="size-10 rounded-lg bg-accent-subtle text-accent flex items-center justify-center transition-transform group-hover:scale-110"><Bot className="size-5" /></div>
+                <p className="mt-3 text-sm font-semibold text-ink">Interview Copilot</p>
+                <p className="mt-1 text-xs text-ink-muted">Real-time AI assistance during interviews.</p>
+              </div>
+              <div className="group rounded-xl border border-border bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:bg-accent-subtle hover:shadow-panel cursor-pointer">
+                <div className="size-10 rounded-lg bg-accent-subtle text-accent flex items-center justify-center transition-transform group-hover:scale-110"><Zap className="size-5" /></div>
+                <p className="mt-3 text-sm font-semibold text-ink">Auto Apply</p>
+                <p className="mt-1 text-xs text-ink-muted">Automatically apply to matching jobs.</p>
+              </div>
+            </div>
+          </Section>
+
+          {/* Prompt Chips */}
+          <Section title="Prompt Chips">
+            <p className="mb-3 text-sm text-ink-muted">Scrollable horizontal chips with overflow fade. Used in chat empty states.</p>
+            <div className="relative">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                {['Add metrics to highlights', 'Expand skills with keywords', 'Tailor for product manager', 'Add quantified results'].map((prompt) => (
+                  <button key={prompt} className="shrink-0 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink transition-colors hover:bg-surface-subtle hover:text-accent">{prompt}</button>
+                ))}
+              </div>
+              <div className="pointer-events-none absolute inset-y-0 end-0 w-12 bg-gradient-to-l from-surface to-transparent" />
+            </div>
+          </Section>
+
+          {/* AI Suggestion */}
+          <Section title="AI Suggestion">
+            <p className="mb-3 text-sm text-ink-muted">Gradient text button with AI icon, and accept/reject pill buttons for pending changes.</p>
+            <div className="grid gap-4">
+              <Row label="AI suggestion trigger">
+                <button className="inline-flex items-center gap-1.5 bg-gradient-to-r from-accent to-[#7c3aed] bg-clip-text text-sm font-bold text-transparent transition-opacity hover:opacity-80">
+                  <LightforthAiIcon className="size-4" />
+                  AI Suggest
+                </button>
+              </Row>
+              <Row label="Accept / Reject pills">
+                <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5">
+                  <button className="inline-flex items-center gap-1 rounded-full bg-surface-subtle px-3 py-1 text-xs font-semibold text-ink transition-colors hover:bg-positive-surface hover:text-positive">
+                    <Check className="size-3" /> Accept All
+                  </button>
+                  <button className="inline-flex items-center gap-1 rounded-full bg-surface-subtle px-3 py-1 text-xs font-semibold text-ink transition-colors hover:bg-danger-surface hover:text-danger">
+                    <X className="size-3" /> Reject All
+                  </button>
+                </div>
+              </Row>
+              <Row label="Change count badge">
+                <span className="inline-flex items-center gap-1.5 rounded-pill bg-accent-subtle px-2 py-0.5 text-[10px] font-bold text-accent-text">
+                  <LightforthAiIcon className="size-3" /> 3 changes
+                </span>
+              </Row>
+            </div>
+          </Section>
+
+          {/* Accept / Reject Controls */}
+          <Section title="Accept / Reject">
+            <p className="mb-3 text-sm text-ink-muted">Floating inline controls for accepting or rejecting AI-suggested resume changes.</p>
+            <div className="relative rounded-xl border border-border bg-surface p-6">
+              <p className="text-sm text-ink">Professional Summary — original text appears here with changes highlighted.</p>
+              <div className="absolute end-3 top-3 flex gap-2">
+                <button className="grid size-8 place-items-center rounded-full bg-positive text-white shadow-lg transition-colors hover:bg-positive/90"><Check className="size-4" /></button>
+                <button className="grid size-8 place-items-center rounded-full border border-border bg-surface text-ink shadow-lg transition-colors hover:bg-danger-surface hover:text-danger"><X className="size-4" /></button>
+              </div>
+            </div>
+          </Section>
+
+          {/* Credit Card */}
+          <Section title="Credit Card">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-xl border border-border bg-surface p-5 shadow-panel">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Credits remaining</p>
+                <p className="mt-2 text-3xl font-bold text-ink">247<span className="text-lg text-ink-muted"> / 300</span></p>
+                <div className="mt-3 h-2 overflow-hidden rounded-pill bg-surface-subtle">
+                  <div className="h-full rounded-pill bg-accent transition-[width]" style={{ width: '82%' }} />
+                </div>
+                <p className="mt-2 text-xs text-ink-muted">Resets Dec 1, 2026</p>
+                <button className="mt-3 text-xs font-semibold text-accent hover:text-accent-hover">View usage details</button>
+              </div>
+              <div className="rounded-xl border border-danger/30 bg-danger-surface p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-danger">Low credits</p>
+                <p className="mt-2 text-3xl font-bold text-danger">3<span className="text-lg text-danger/70"> / 300</span></p>
+                <div className="mt-3 h-2 overflow-hidden rounded-pill bg-danger/20">
+                  <div className="h-full rounded-pill bg-danger transition-[width]" style={{ width: '1%' }} />
+                </div>
+                <button className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-danger hover:text-danger/80">
+                  Upgrade to Pro <ArrowRight className="size-3" />
+                </button>
+              </div>
+            </div>
+          </Section>
+
+          {/* Upload Zone */}
+          <Section title="Upload Zone">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-surface-subtle/50 p-8 text-center transition-colors hover:border-accent/50 hover:bg-accent-subtle/30">
+                <div className="size-12 rounded-full bg-accent-subtle text-accent flex items-center justify-center"><Upload className="size-5" /></div>
+                <div>
+                  <p className="text-sm font-semibold text-ink">Drop your resume here</p>
+                  <p className="mt-1 text-xs text-ink-muted">PDF, DOCX up to 10MB</p>
+                </div>
+                <button className="text-xs font-semibold text-accent hover:text-accent-hover">Browse file</button>
+              </div>
+              <div className="rounded-xl border border-border bg-surface p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Uploaded file</p>
+                <div className="mt-2 flex items-center gap-3 rounded-lg bg-surface-subtle p-3">
+                  <FileText className="size-5 text-danger" />
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate text-sm font-medium text-ink">resume_damola_adewale.pdf</p>
+                    <p className="text-xs text-ink-muted">2.4 MB</p>
+                  </div>
+                  <CheckCircle2 className="size-4 text-positive" />
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          {/* Avatar Group */}
+          <Section title="Avatar Group">
+            <div className="grid gap-4">
+              <Row label="Stacked avatars">
+                <div className="flex -space-x-2">
+                  <Avatar name="Sarah Chen" size="sm" className="ring-2 ring-surface" />
+                  <Avatar name="Marcus J" size="sm" className="ring-2 ring-surface" />
+                  <Avatar name="Priya P" size="sm" className="ring-2 ring-surface" />
+                  <Avatar name="Alex W" size="sm" className="ring-2 ring-surface" />
+                  <div className="flex size-8 items-center justify-center rounded-full bg-surface-subtle text-xs font-semibold text-ink-muted ring-2 ring-surface">+5</div>
+                </div>
+              </Row>
+              <Row label="With status badge">
+                <div className="relative">
+                  <Avatar name="Sarah Chen" size="md" />
+                  <span className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-surface bg-positive" />
+                </div>
+                <div className="relative">
+                  <Avatar name="Marcus J" size="md" />
+                  <span className="absolute bottom-0 right-0 size-3 rounded-full border-2 border-surface bg-warning" />
+                </div>
+              </Row>
+            </div>
+          </Section>
+
+          {/* Banner */}
+          <Section title="Banner">
+            <div className="grid gap-3">
+              <div className="flex items-center justify-between rounded-xl bg-accent-subtle px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="size-5 text-accent" />
+                  <p className="text-sm text-ink"><span className="font-semibold">Low credits.</span> You have 3 credits remaining. Upgrade to keep using AI features.</p>
+                </div>
+                <button className="shrink-0 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-on-accent transition-colors hover:bg-accent-hover">Upgrade</button>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-danger-surface px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="size-5 text-danger" />
+                  <p className="text-sm text-ink"><span className="font-semibold">No credits left.</span> Upgrade to Pro to continue using AI features.</p>
+                </div>
+                <button className="shrink-0 rounded-lg bg-danger px-3 py-1.5 text-xs font-semibold text-on-danger transition-colors hover:bg-danger-hover">Get Credits</button>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-positive-surface px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="size-5 text-positive" />
+                  <p className="text-sm text-ink"><span className="font-semibold">Welcome!</span> Your account is set up. Start by uploading your resume.</p>
+                </div>
+                <button className="shrink-0 rounded-lg bg-positive px-3 py-1.5 text-xs font-semibold text-on-accent transition-colors hover:opacity-90">Get Started</button>
+              </div>
+            </div>
+          </Section>
+
+          {/* Pricing Card */}
+          <Section title="Pricing Card">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-xl border border-border bg-surface p-6 shadow-panel">
+                <p className="text-sm font-semibold text-ink">Free</p>
+                <p className="mt-2 text-3xl font-bold text-ink">$0</p>
+                <p className="text-xs text-ink-muted">forever</p>
+                <ul className="mt-4 grid gap-2 text-sm text-ink-muted">
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> 5 resume edits</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Basic templates</li>
+                  <li className="flex items-center gap-2 text-ink-muted/50"><XCircle className="size-4" /> Auto Apply</li>
+                  <li className="flex items-center gap-2 text-ink-muted/50"><XCircle className="size-4" /> Interview Copilot</li>
+                </ul>
+                <button className="mt-6 w-full rounded-lg border border-border bg-surface py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle">Current Plan</button>
+              </div>
+              <div className="relative rounded-xl border-2 border-accent bg-surface p-6 shadow-panel">
+                <span className="absolute -top-3 end-4 rounded-full bg-accent px-3 py-0.5 text-[10px] font-bold uppercase text-on-accent">Popular</span>
+                <p className="text-sm font-semibold text-accent">Pro</p>
+                <p className="mt-2 text-3xl font-bold text-ink">$10<span className="text-sm text-ink-muted">/mo</span></p>
+                <p className="text-xs text-ink-muted">billed monthly</p>
+                <ul className="mt-4 grid gap-2 text-sm text-ink-muted">
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> 300 credits/mo</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> AI resume tailoring</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Auto Apply (100/mo)</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Interview Copilot</li>
+                </ul>
+                <button className="mt-6 w-full rounded-lg bg-accent py-2 text-sm font-semibold text-on-accent shadow-control transition-colors hover:bg-accent-hover">Upgrade</button>
+              </div>
+              <div className="rounded-xl border border-border bg-surface p-6 shadow-panel">
+                <p className="text-sm font-semibold text-ink">Business</p>
+                <p className="mt-2 text-3xl font-bold text-ink">$29<span className="text-sm text-ink-muted">/mo</span></p>
+                <p className="text-xs text-ink-muted">billed monthly</p>
+                <ul className="mt-4 grid gap-2 text-sm text-ink-muted">
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> 1000 credits/mo</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Unlimited resumes</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Unlimited Auto Apply</li>
+                  <li className="flex items-center gap-2"><CheckCircle2 className="size-4 text-positive" /> Priority support</li>
+                </ul>
+                <button className="mt-6 w-full rounded-lg border border-border bg-surface py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-subtle">Contact Sales</button>
+              </div>
+            </div>
+          </Section>
+
+          {/* Status Badges */}
+          <Section title="Status Badges">
+            <div className="grid gap-4">
+              <Row label="With icons">
+                <span className="inline-flex items-center gap-1 rounded-full bg-positive-surface px-2.5 py-1 text-[11px] font-semibold text-positive"><CheckCircle2 className="size-3" /> Active</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-warning-surface px-2.5 py-1 text-[11px] font-semibold text-warning"><AlertTriangle className="size-3" /> Pending</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-danger-surface px-2.5 py-1 text-[11px] font-semibold text-danger"><XCircle className="size-3" /> Rejected</span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-surface-subtle px-2.5 py-1 text-[11px] font-semibold text-ink-muted"><FileText className="size-3" /> Draft</span>
+              </Row>
+              <Row label="Notification dot">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-subtle px-3 py-1 text-xs font-semibold text-accent-text">
+                  <span className="size-1.5 rounded-full bg-accent" /> New feature
+                </span>
+              </Row>
+              <Row label="Step completion">
+                <div className="flex items-center gap-2">
+                  <span className="grid size-6 place-items-center rounded-full bg-positive-surface text-xs font-bold text-positive"><Check className="size-3.5" /></span>
+                  <span className="text-sm text-ink">Step completed</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="grid size-6 place-items-center rounded-full bg-accent text-xs font-bold text-on-accent">2</span>
+                  <span className="text-sm text-ink">Current step</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="grid size-6 place-items-center rounded-full bg-surface-subtle text-xs font-bold text-ink-muted">3</span>
+                  <span className="text-sm text-ink-muted">Upcoming</span>
+                </div>
+              </Row>
+            </div>
+          </Section>
+
+          {/* Skeleton Patterns */}
+          <Section title="Skeleton Patterns">
+            <div className="grid gap-6">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Card skeleton</p>
+                <div className="rounded-xl border border-border bg-surface p-4">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="mt-3 h-3 w-full" />
+                  <Skeleton className="mt-1.5 h-3 w-3/4" />
+                  <div className="mt-4 flex gap-2">
+                    <Skeleton className="h-8 w-20 rounded-lg" />
+                    <Skeleton className="h-8 w-20 rounded-lg" />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Table rows</p>
+                <div className="rounded-xl border border-border bg-surface overflow-hidden">
+                  <div className="flex gap-4 border-b border-border px-4 py-3">
+                    <Skeleton className="h-3 w-24" /><Skeleton className="h-3 w-16" /><Skeleton className="h-3 w-12" />
+                  </div>
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex gap-4 border-b border-border px-4 py-3 last:border-0">
+                      <Skeleton className="h-3 w-28" style={{ animationDelay: `${i * 100}ms` }} /><Skeleton className="h-3 w-16" style={{ animationDelay: `${i * 100 + 50}ms` }} /><Skeleton className="h-3 w-12" style={{ animationDelay: `${i * 100 + 100}ms` }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Chat skeleton</p>
+                <div className="grid gap-3">
+                  <div className="flex justify-end"><Skeleton className="h-10 w-48 rounded-2xl rounded-ee-sm" /></div>
+                  <div className="flex justify-start"><Skeleton className="h-16 w-64 rounded-2xl rounded-ss-sm" /></div>
+                  <div className="flex justify-end"><Skeleton className="h-12 w-40 rounded-2xl rounded-ee-sm" /></div>
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          {/* Typewriter */}
+          <Section title="Typewriter">
+            <p className="mb-3 text-sm text-ink-muted">Text that types character by character. Respects prefers-reduced-motion.</p>
+            <div className="rounded-xl border border-border bg-surface p-4">
+              <p className="text-sm text-ink">We are looking for a motivated and detail-oriented professional to join our growing team. In this role, you will collaborate with cross-functional teams to drive projects from conception to delivery.<span className="inline-block h-3.5 w-px animate-pulse bg-accent-text align-middle" /></p>
+            </div>
+            <p className="mt-2 text-xs text-ink-muted">Use the useTypewriter hook: const { type, isTyping } = useTypewriter()</p>
           </Section>
         </div>
       </div>
