@@ -1514,10 +1514,26 @@ function AutoApplySettingsDialog({
 }) {
   const [autoApplyEnabled, setAutoApplyEnabled] = useState(false)
   const [dailyQuota, setDailyQuota] = useState(5)
+  const [startTime, setStartTime] = useState('09:00')
+  const [showUpgradeGate, setShowUpgradeGate] = useState(false)
 
-  if (!isPremium) {
+  function handleSave() {
+    if (!isPremium) {
+      setShowUpgradeGate(true)
+      return
+    }
+    onOpenChange(false)
+  }
+
+  if (showUpgradeGate) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          onOpenChange(nextOpen)
+          if (!nextOpen) setShowUpgradeGate(false)
+        }}
+      >
         <DialogPopup aria-label="Upgrade to Premium">
           <DialogClose />
           <span aria-hidden="true" className="grid size-11 place-items-center rounded-xl border border-border bg-surface-raised text-ink-muted shadow-control [&>svg]:size-5">
@@ -1525,12 +1541,12 @@ function AutoApplySettingsDialog({
           </span>
           <DialogTitle className="mt-4">Upgrade to Premium</DialogTitle>
           <p className="mt-1 text-sm text-ink-muted">
-            Automating job applications is available on our Premium plan. Set a daily quota and Lightforth will apply to matching jobs for you automatically.
+            Automating job applications is available on our Premium plan. Upgrade to save this quota and let Lightforth apply to matching jobs for you automatically.
           </p>
           <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button
               type="button"
-              onClick={() => onOpenChange(false)}
+              onClick={() => setShowUpgradeGate(false)}
               className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-sm font-medium text-ink transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               Not now
@@ -1548,7 +1564,13 @@ function AutoApplySettingsDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        onOpenChange(nextOpen)
+        if (!nextOpen) setShowUpgradeGate(false)
+      }}
+    >
       <DialogPopup aria-label="Automate job applications">
         <DialogClose />
         <DialogTitle>Automate job applications</DialogTitle>
@@ -1567,21 +1589,37 @@ function AutoApplySettingsDialog({
             className="size-5 shrink-0 rounded border-input text-accent focus:ring-2 focus:ring-focus"
           />
         </label>
-        <div className="mt-4 grid gap-1.5">
-          <label htmlFor="auto-apply-quota" className="text-sm font-medium text-ink">
-            Applications per day
-          </label>
-          <input
-            id="auto-apply-quota"
-            type="number"
-            min={1}
-            max={50}
-            value={dailyQuota}
-            onChange={(event) => setDailyQuota(Number(event.target.value))}
-            disabled={!autoApplyEnabled}
-            className="min-h-11 rounded-lg border border-input bg-surface px-3.5 py-2.5 text-sm text-ink shadow-control outline-none focus:border-focus focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
-          />
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <label htmlFor="auto-apply-quota" className="text-sm font-medium text-ink">
+              Applications per day
+            </label>
+            <input
+              id="auto-apply-quota"
+              type="number"
+              min={1}
+              max={50}
+              value={dailyQuota}
+              onChange={(event) => setDailyQuota(Number(event.target.value))}
+              disabled={!autoApplyEnabled}
+              className="min-h-11 rounded-lg border border-input bg-surface px-3.5 py-2.5 text-sm text-ink shadow-control outline-none focus:border-focus focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="auto-apply-start-time" className="text-sm font-medium text-ink">
+              Start time
+            </label>
+            <input
+              id="auto-apply-start-time"
+              type="time"
+              value={startTime}
+              onChange={(event) => setStartTime(event.target.value)}
+              disabled={!autoApplyEnabled}
+              className="min-h-11 rounded-lg border border-input bg-surface px-3.5 py-2.5 text-sm text-ink shadow-control outline-none focus:border-focus focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
         </div>
+        <p className="mt-2 text-xs text-ink-muted">Lightforth will start submitting applications at this time each day, until your daily quota is reached.</p>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             type="button"
@@ -1592,7 +1630,7 @@ function AutoApplySettingsDialog({
           </button>
           <button
             type="button"
-            onClick={() => onOpenChange(false)}
+            onClick={handleSave}
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
             Save
