@@ -1201,7 +1201,7 @@ function WalkthroughTooltip({
       }
       const rect = target.getBoundingClientRect()
       const offset = 16
-      const top = rect.top + rect.height / 2 - 48
+      const top = rect.top + rect.height / 2 - 140
       const left = side === 'right' ? rect.right + offset : rect.left - offset - 288
       setCoords({ top, left })
     }
