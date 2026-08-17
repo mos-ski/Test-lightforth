@@ -1224,7 +1224,7 @@ function WalkthroughTooltip({
       style={{ top: coords.top, left: coords.left }}
       className="fixed z-20 hidden w-72 rounded-xl bg-live-header p-4 text-brand-bar-text shadow-panel lg:block"
     >
-      <span aria-hidden="true" className={cn('absolute top-6 size-3 rotate-45 bg-live-header', side === 'right' ? '-start-1.5' : '-end-1.5')} />
+      <span aria-hidden="true" className={cn('absolute bottom-6 size-3 rotate-45 bg-live-header', side === 'right' ? '-start-1.5' : '-end-1.5')} />
       <button
         type="button"
         onClick={onDismiss}
