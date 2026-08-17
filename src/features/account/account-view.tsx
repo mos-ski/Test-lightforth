@@ -369,7 +369,7 @@ function CreditUsageTable({ rows }: { readonly rows: readonly CreditUsageRow[] }
 }
 
 export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
-  const [annual, setAnnual] = useState(false)
+  const [annual, setAnnual] = useState(true)
   const currentPlan = plans.find((plan) => plan.current) ?? plans[0]
   const currentIndex = currentPlan ? plans.indexOf(currentPlan) : 0
 

@@ -7,7 +7,7 @@ import { authPlanFixtures } from '@/mocks/billing'
 
 export function AuthPlanPage() {
   const navigate = useNavigate()
-  const [cadence, setCadence] = useState<BillingCadence>('monthly')
+  const [cadence, setCadence] = useState<BillingCadence>('annual')
   const [selectedPlanId, setSelectedPlanId] = useState<Plan>('pro')
 
   const selectPlan = (plan: Plan) => {

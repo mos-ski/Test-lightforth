@@ -48,7 +48,7 @@ export const PLANS: PlanConfig[] = [
     monthlyPrice: 79,
     credits: 100,
     popular: true,
-    bullets: ['Everything in Pro, plus Meeting Copilot', 'Ideal for high-volume applications, daily resume updates, or intensive interview prep'],
+    bullets: ['Everything in Pro, plus Meeting Copilot', 'Automate job applications with a daily quota', 'Ideal for high-volume applications, daily resume updates, or intensive interview prep'],
     bestForNote: 'Best value for serious job hunters',
     appFeatures: ['resume', 'auto-apply', 'interview-prep'],
     unlockedUseCases: ['interview', 'coding', 'meeting'],

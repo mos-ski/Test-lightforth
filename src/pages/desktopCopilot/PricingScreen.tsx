@@ -10,7 +10,7 @@ const PREMIUM_BORDER = '#21a0fc'
 const BUTTON_BLUE = '#0494fc'
 
 export function PricingScreen({ onBack, onSelect }: { onBack: () => void; onSelect: (id: PlanId) => void }) {
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual')
   const isAnnual = billingCycle === 'annual'
   const priceFor = (monthlyPrice: number) => (isAnnual ? annualMonthlyEquivalent(monthlyPrice) : monthlyPrice)
 

@@ -10,8 +10,8 @@ const OFFER_SECONDS = 10 * 60
 
 const PLAN_BULLETS: Record<PlanId, string[]> = {
   starter: ['Resume Builder', 'Cover letter tools', 'Resume downloads', '15 credits / month'],
-  pro: ['Everything in Starter', 'Auto-Apply', 'AI Interview Prep', 'Interview & Coding Copilot', '50 credits / month'],
-  premium: ['Everything in Pro', 'Meeting Copilot', 'Priority response speed', '100 credits / month'],
+  pro: ['Everything in Starter', 'Auto-Apply (Scout, Filter, Tailor & Driver agents)', 'AI Interview Prep', 'Interview & Coding Copilot', '50 credits / month'],
+  premium: ['Everything in Pro', 'Meeting Copilot', 'Automate job applications with a daily quota', 'Priority response speed', '100 credits / month'],
 }
 
 const PLAN_SUMMARIES: Record<PlanId, string> = {
@@ -45,6 +45,7 @@ const FEATURE_GROUPS: { label: string; rows: [string, FeatureValue, FeatureValue
     label: 'Advanced support',
     rows: [
       ['Meeting Copilot', false, false, true],
+      ['Automate job applications', false, false, true],
       ['Priority response speed', false, false, true],
       ['Best for', 'Light use', 'Active search', 'Heavy search'],
     ],
@@ -71,7 +72,7 @@ function formatOfferTime(seconds: number) {
 
 export default function PricingPage() {
   const navigate = useNavigate()
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('annual')
   const [selectedMobilePlan, setSelectedMobilePlan] = useState<PlanId>('pro')
   const [offerSecondsLeft, setOfferSecondsLeft] = useState(OFFER_SECONDS)
   const [showOfferModal, setShowOfferModal] = useState(false)

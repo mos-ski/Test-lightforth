@@ -31,13 +31,17 @@ function PlanCheck() {
 function PlanCard({
   plan,
   selected,
+  annual,
   onSelectPlan,
 }: {
   readonly plan: AuthPlanOption
   readonly selected: boolean
+  readonly annual: boolean
   readonly onSelectPlan: (plan: Plan) => void
 }) {
   const subscribeLabel = `Subscribe to ${plan.name}`
+  const annualMonthlyPrice = Math.round(plan.priceMonthly * 0.8)
+  const displayPrice = annual ? annualMonthlyPrice : plan.priceMonthly
 
   return (
     <article
@@ -53,9 +57,10 @@ function PlanCard({
       </div>
       <div className="flex flex-1 flex-col pt-5">
         <div className="flex flex-wrap items-end gap-1">
-          <span className="text-4xl font-semibold leading-tight text-ink">${plan.priceMonthly}</span>
+          <span className="text-4xl font-semibold leading-tight text-ink">${displayPrice}</span>
           <span className="pb-2 text-sm font-medium text-ink">per month</span>
         </div>
+        {annual ? <p className="mt-1 text-sm text-ink-muted">${displayPrice * 12} billed yearly</p> : null}
         <p className="mt-5 text-sm font-semibold text-ink">{plan.credits} Credits</p>
         <p className="mt-3 text-sm leading-5 text-ink-muted">{plan.description}</p>
 
@@ -127,7 +132,7 @@ export function PlanSelectionView({
           <div className="mx-auto mt-8 w-full max-w-4xl bg-surface p-4 shadow-panel sm:mt-12 sm:p-6">
             <div className="grid gap-4 md:grid-cols-3">
               {plans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} selected={plan.id === selectedPlanId} onSelectPlan={onSelectPlan} />
+                <PlanCard key={plan.id} plan={plan} selected={plan.id === selectedPlanId} annual={annual} onSelectPlan={onSelectPlan} />
               ))}
             </div>
             <p className="rounded-b-panel border border-warning bg-warning-surface px-4 py-3 text-sm text-warning">
