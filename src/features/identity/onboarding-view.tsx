@@ -123,7 +123,7 @@ export function OnboardingProfileView({ homeHref, backHref, nextHref, emailValue
           className="max-w-[36rem]"
           footer={<FormPanelFooter backHref={backHref} nextHref={nextHref} nextLabel="Next" />}
         >
-          <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-4">
             <FormField id="onboarding-first-name" label="First Name" value={firstName} onChange={(event) => setFirstName(event.target.value)} />
             <FormField id="onboarding-last-name" label="Last Name" value={lastName} onChange={(event) => setLastName(event.target.value)} />
             <div className="col-span-2 grid gap-1.5">
