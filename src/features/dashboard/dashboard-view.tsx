@@ -222,6 +222,81 @@ function CreditDropdown({ creditBalance, forceOpen = false }: { readonly creditB
   )
 }
 
+function CreditModal({ creditBalance, open, onOpenChange }: { readonly creditBalance: number; readonly open: boolean; readonly onOpenChange: (open: boolean) => void }) {
+  const totalCredits = 50
+  const usedCredits = Math.max(totalCredits - creditBalance, 0)
+  const remainingPercent = Math.max(Math.min(Math.round((creditBalance / totalCredits) * 100), 100), 0)
+  const progressStyle = { inlineSize: `${remainingPercent}%` }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPopup aria-label="Credit balance">
+        <DialogClose />
+        <DialogTitle>Credits</DialogTitle>
+        <div className="mt-4 grid gap-1.5">
+          <div className="flex items-start justify-between gap-4 text-sm text-ink-muted">
+            <span>Total Allocated: <span className="font-medium text-ink">{totalCredits}</span></span>
+            <span>Used: <span className="font-medium text-ink">{usedCredits}</span></span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-pill bg-surface-subtle">
+            <div className="h-full rounded-pill bg-accent shadow-control" style={progressStyle} />
+          </div>
+          <p className="text-end text-xs font-medium leading-5 text-ink-muted">{creditBalance} remaining</p>
+        </div>
+        <div className="mt-6 grid gap-2">
+          <a href="/v3/billing" className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <Gift aria-hidden="true" className="size-4" />
+            Get Free Credits
+          </a>
+          <a href="/v3/billing" className="flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            Upgrade
+            <ArrowRight aria-hidden="true" className="size-4" />
+          </a>
+        </div>
+      </DialogPopup>
+    </Dialog>
+  )
+}
+
+function ProfileModal({ user, open, onOpenChange }: { readonly user: UserIdentity; readonly open: boolean; readonly onOpenChange: (open: boolean) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPopup aria-label={`Account menu for ${user.name}`} className="overflow-hidden p-0">
+        <div className="flex items-center gap-3 bg-accent-subtle px-4 py-4">
+          <span className="relative shrink-0">
+            <img src="/v3-assets/dashboard-avatar.png" alt="" className="size-12 rounded-pill object-cover" />
+            <span aria-hidden="true" className="absolute bottom-0 end-0 size-3 rounded-pill border-2 border-surface bg-positive" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-bold text-ink">{user.name}</p>
+            <p className="truncate text-sm text-ink-muted">{user.email}</p>
+          </div>
+          <DialogClose className="static" />
+        </div>
+        <nav aria-label="Account">
+          <a href="/v3/settings" className="flex min-h-12 items-center gap-3 border-t border-border px-4 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset hover:bg-surface-subtle">
+            <User aria-hidden="true" className="size-5 shrink-0 text-ink-muted" />
+            <span className="flex-1 font-medium">Account</span>
+            <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+          </a>
+          <a href="/v3/settings?tab=security" className="flex min-h-12 items-center gap-3 border-t border-border px-4 text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset hover:bg-surface-subtle">
+            <Settings aria-hidden="true" className="size-5 shrink-0 text-ink-muted" />
+            <span className="flex-1 font-medium">Security</span>
+            <ChevronRight aria-hidden="true" className="size-4 shrink-0 text-ink-muted" />
+          </a>
+        </nav>
+        <button
+          type="button"
+          className="flex min-h-12 w-full items-center gap-3 border-t border-border px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-inset hover:bg-danger-surface"
+        >
+          <LogOut aria-hidden="true" className="size-5 shrink-0" />
+          <span className="font-medium">Logout</span>
+        </button>
+      </DialogPopup>
+    </Dialog>
+  )
+}
+
 function CreditNotice({ variant }: { readonly variant: 'low' | 'empty' }) {
   const isLow = variant === 'low'
 
@@ -304,6 +379,9 @@ function DashboardHeader({
   readonly collapsed: boolean
   readonly onToggleCollapse: () => void
 }) {
+  const [creditModalOpen, setCreditModalOpen] = useState(false)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
+
   return (
     <header className="relative flex h-14 items-center justify-between border-b border-border bg-surface px-4 lg:px-5">
       <div className="flex items-center gap-2">
@@ -326,27 +404,46 @@ function DashboardHeader({
         </button>
       </div>
       <div className="flex items-center gap-4">
-        <div className="group relative">
+        <div className="group relative hidden lg:block">
           <a href="/v3/billing" aria-label={`${creditBalance} credits`} className="relative grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <CreditCard aria-hidden="true" className="size-6" />
             <span className="absolute -start-0.5 top-1 grid min-w-4 place-items-center rounded-pill bg-danger px-1 text-xs font-semibold leading-4 text-on-danger">{creditBalance}</span>
           </a>
           <CreditDropdown creditBalance={creditBalance} forceOpen={activeDropdown === 'credits'} />
         </div>
+        <button
+          type="button"
+          onClick={() => setCreditModalOpen(true)}
+          aria-label={`${creditBalance} credits`}
+          className="relative grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden"
+        >
+          <CreditCard aria-hidden="true" className="size-6" />
+          <span className="absolute -start-0.5 top-1 grid min-w-4 place-items-center rounded-pill bg-danger px-1 text-xs font-semibold leading-4 text-on-danger">{creditBalance}</span>
+        </button>
         <div className="group relative hidden lg:block">
           <a href="/v3/help" aria-label="Help" className="grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <CircleHelp aria-hidden="true" className="size-6" />
           </a>
           <HelpDropdown forceOpen={activeDropdown === 'help'} />
         </div>
-        <div className="group relative">
+        <div className="group relative hidden lg:block">
           <button type="button" aria-label={`Open profile menu for ${user.name}`} className="grid size-11 place-items-center rounded-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <img src="/v3-assets/dashboard-avatar.png" alt="" className="size-9 rounded-pill object-cover" />
           </button>
           <ProfileDropdown user={user} forceOpen={activeDropdown === 'profile'} />
         </div>
+        <button
+          type="button"
+          onClick={() => setProfileModalOpen(true)}
+          aria-label={`Open profile menu for ${user.name}`}
+          className="grid size-11 place-items-center rounded-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden"
+        >
+          <img src="/v3-assets/dashboard-avatar.png" alt="" className="size-9 rounded-pill object-cover" />
+        </button>
       </div>
       {creditNotice ? <CreditNotice variant={creditNotice} /> : null}
+      <CreditModal creditBalance={creditBalance} open={creditModalOpen} onOpenChange={setCreditModalOpen} />
+      <ProfileModal user={user} open={profileModalOpen} onOpenChange={setProfileModalOpen} />
     </header>
   )
 }
