@@ -128,6 +128,59 @@ function HelpDropdown({ forceOpen = false }: { readonly forceOpen?: boolean }) {
   )
 }
 
+function HelpModal({ open, onOpenChange }: { readonly open: boolean; readonly onOpenChange: (open: boolean) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogPopup aria-label="Product updates and support" className="overflow-hidden p-0">
+        <div className="flex items-center justify-between gap-4 bg-positive-surface px-4 py-3">
+          <DialogTitle className="text-sm font-bold leading-6 text-positive">
+            Whats new? <span className="text-danger">*</span>
+          </DialogTitle>
+          <DialogClose className="static" />
+        </div>
+        <div className="grid">
+          <a href="/v3/updates" className="border-b border-border px-4 py-2 text-xs leading-5 text-ink-muted underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            See Latest Updates &gt;
+          </a>
+          <article className="px-4 py-3">
+            <h3 className="text-xs font-semibold leading-5 text-ink">Supported Browsers</h3>
+            <p className="mt-1 text-xs leading-5 text-ink-muted">Chrome (Best Compatibility), Edge, Opera, Brave, Chromium.</p>
+          </article>
+          <article className="border-t border-border px-4 py-3">
+            <h3 className="inline-flex items-center gap-1 text-xs font-semibold leading-5 text-ink">
+              Search on help center
+              <ExternalLink aria-hidden="true" className="size-3" />
+            </h3>
+            <p className="mt-1 text-xs leading-5 text-ink-muted">Find answers to frequently asked questions from our written articles.</p>
+          </article>
+          <article className="border-t border-border px-4 py-3">
+            <h3 className="text-xs font-semibold leading-5 text-ink">Give feedback?</h3>
+            <p className="mt-1 text-xs leading-5 text-ink-muted">
+              <a href="/v3/feedback" className="font-medium text-accent underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">Fill this form</a>
+              {' '}or Join Discord for support and community interaction or send us an email to{' '}
+              <a href="mailto:support@lightforth.org" className="font-medium text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">support@lightforth.org</a>
+            </p>
+          </article>
+          <article className="border-t border-border px-4 py-3">
+            <h3 className="text-xs font-semibold leading-5 text-ink">Support Hours:</h3>
+            <p className="mt-1 text-xs leading-5 text-ink-muted">Mon - Fri: 9 AM - 6 PM CST<br />Sat - Sun: Limited Support</p>
+          </article>
+        </div>
+        <div className="grid gap-2 px-4 pb-2 pt-3">
+          <a href="/v3/tutorials" className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-danger text-sm font-bold text-on-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <Play aria-hidden="true" className="size-4" />
+            Tutorial Videos
+          </a>
+          <a href="mailto:support@lightforth.org" className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <Mail aria-hidden="true" className="size-4" />
+            Send us an email
+          </a>
+        </div>
+      </DialogPopup>
+    </Dialog>
+  )
+}
+
 function CreditDropdown({ creditBalance, forceOpen = false }: { readonly creditBalance: number; readonly forceOpen?: boolean }) {
   const totalCredits = 50
   const usedCredits = Math.max(totalCredits - creditBalance, 0)
@@ -463,6 +516,7 @@ function InstallPrompt({ installPrompt }: { readonly installPrompt: DashboardIns
 export function DashboardView({ user, navItems, actions, installPrompt, creditBalance, isLoading = false, activeDropdown, creditNotice }: DashboardViewProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [upgradeAction, setUpgradeAction] = useState<DashboardAction | null>(null)
+  const [helpModalOpen, setHelpModalOpen] = useState(false)
 
   if (isLoading) {
     return <DashboardLoadingView />
@@ -494,14 +548,20 @@ export function DashboardView({ user, navItems, actions, installPrompt, creditBa
             <InstallPrompt installPrompt={installPrompt} />
           </div>
           <div className="fixed bottom-4 end-4 lg:hidden">
-            <a href="/v3/help" aria-label="Help" className="grid size-11 place-items-center rounded-pill bg-surface text-accent shadow-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            <button
+              type="button"
+              onClick={() => setHelpModalOpen(true)}
+              aria-label="Help"
+              className="grid size-11 place-items-center rounded-pill bg-surface text-accent shadow-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
               <CircleHelp aria-hidden="true" className="size-5" />
-            </a>
+            </button>
           </div>
         </section>
       </div>
 
       <UpgradeDialog action={upgradeAction} onOpenChange={(open) => { if (!open) setUpgradeAction(null) }} />
+      <HelpModal open={helpModalOpen} onOpenChange={setHelpModalOpen} />
     </main>
   )
 }
