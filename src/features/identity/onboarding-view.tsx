@@ -3,6 +3,7 @@ import { CheckCircle2, ChevronDown } from 'lucide-react'
 
 import { Checkbox, cn, FormField, FormPanel, FormPanelFooter, FormSearchSelectField, ShellBar, Spinner } from '@/ui'
 import { COUNTRIES, countryFlagEmoji, type Country } from '@/data/countries'
+import { STATES_BY_COUNTRY } from '@/data/states'
 
 function Workspace({ children }: { readonly children: ReactNode }) {
   return <main className="min-h-screen bg-canvas text-ink">{children}</main>
@@ -110,6 +111,7 @@ export function OnboardingProfileView({ homeHref, backHref, nextHref, emailValue
   const [postalCode, setPostalCode] = useState('')
   const [phone, setPhone] = useState('')
   const selectedCountry = COUNTRIES.find((country) => country.iso2 === countryIso2)
+  const stateOptions = STATES_BY_COUNTRY[countryIso2]
 
   return (
     <Workspace>
@@ -146,10 +148,26 @@ export function OnboardingProfileView({ homeHref, backHref, nextHref, emailValue
               id="onboarding-country"
               label="Country"
               selectedIso2={countryIso2}
-              onSelect={(country) => setCountryIso2(country.iso2)}
+              onSelect={(country) => {
+                setCountryIso2(country.iso2)
+                setState('')
+              }}
             />
+            {stateOptions ? (
+              <FormSearchSelectField
+                id="onboarding-state"
+                label="State"
+                placeholder="Search states..."
+                searchPlaceholder="Search states..."
+                options={stateOptions}
+                selected={state ? [state] : []}
+                onSelectedChange={(next) => setState(next[0] ?? '')}
+                multiple={false}
+              />
+            ) : (
+              <FormField id="onboarding-state" label="State" placeholder="e.g. Texas" value={state} onChange={(event) => setState(event.target.value)} />
+            )}
             <FormField id="onboarding-city" label="City" placeholder="e.g. Austin" value={city} onChange={(event) => setCity(event.target.value)} />
-            <FormField id="onboarding-state" label="State" placeholder="e.g. Texas" value={state} onChange={(event) => setState(event.target.value)} />
             <FormField id="onboarding-postal" label="Postal Code" placeholder="e.g. 73301" value={postalCode} onChange={(event) => setPostalCode(event.target.value)} />
             <div className="col-span-2 grid gap-1.5">
               <label htmlFor="onboarding-phone" className="text-sm font-medium leading-5 text-ink">
@@ -177,7 +195,7 @@ export function OnboardingProfileView({ homeHref, backHref, nextHref, emailValue
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
                   disabled={!selectedCountry}
-                  placeholder={selectedCountry ? '(555) 000-0000' : 'Select a country first'}
+                  placeholder={selectedCountry ? undefined : 'Select a country first'}
                   className="min-h-11 w-full rounded-lg border border-input bg-surface px-3.5 py-2.5 text-sm leading-6 text-ink shadow-control outline-none placeholder:text-ink-muted focus:border-focus focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
