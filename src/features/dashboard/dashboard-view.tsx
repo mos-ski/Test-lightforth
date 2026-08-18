@@ -1,4 +1,4 @@
-import { ArrowRight, Bell, ChevronRight, CircleHelp, Code2, CreditCard, ExternalLink, Gift, Lock, LogOut, Mail, Menu, Monitor, PanelLeftClose, PanelLeftOpen, Play, Settings, User, Video, X } from 'lucide-react'
+import { ArrowRight, ChevronRight, CircleHelp, Code2, CreditCard, ExternalLink, Gift, Lock, LogOut, Mail, Menu, Monitor, PanelLeftClose, PanelLeftOpen, Play, Settings, User, Video, X } from 'lucide-react'
 import { FaApple } from 'react-icons/fa'
 import { SiGoogleplay } from 'react-icons/si'
 import { useState, type ReactNode } from 'react'
@@ -280,7 +280,7 @@ function DashboardHeader({
           </a>
           <CreditDropdown creditBalance={creditBalance} forceOpen={activeDropdown === 'credits'} />
         </div>
-        <div className="group relative">
+        <div className="group relative hidden lg:block">
           <a href="/v3/help" aria-label="Help" className="grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <CircleHelp aria-hidden="true" className="size-6" />
           </a>
@@ -494,9 +494,9 @@ export function DashboardView({ user, navItems, actions, installPrompt, creditBa
             <InstallPrompt installPrompt={installPrompt} />
           </div>
           <div className="fixed bottom-4 end-4 lg:hidden">
-            <button type="button" aria-label="Notifications" className="grid size-11 place-items-center rounded-pill bg-surface text-accent shadow-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-              <Bell aria-hidden="true" className="size-5" />
-            </button>
+            <a href="/v3/help" aria-label="Help" className="grid size-11 place-items-center rounded-pill bg-surface text-accent shadow-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <CircleHelp aria-hidden="true" className="size-5" />
+            </a>
           </div>
         </section>
       </div>

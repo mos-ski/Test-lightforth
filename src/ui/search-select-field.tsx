@@ -12,6 +12,7 @@ export type FormSearchSelectFieldProps = {
   readonly placeholder?: string
   readonly searchPlaceholder?: string
   readonly maxSelected?: number
+  readonly multiple?: boolean
   readonly className?: string
 }
 
@@ -24,6 +25,7 @@ export function FormSearchSelectField({
   placeholder = 'Search...',
   searchPlaceholder = 'Search...',
   maxSelected,
+  multiple = true,
   className,
 }: FormSearchSelectFieldProps) {
   const [open, setOpen] = useState(false)
@@ -38,12 +40,18 @@ export function FormSearchSelectField({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const atMax = maxSelected !== undefined && selected.length >= maxSelected
+  const atMax = multiple && maxSelected !== undefined && selected.length >= maxSelected
   const filteredOptions = options.filter((option) => option.toLowerCase().includes(search.toLowerCase()) && !selected.includes(option))
 
   function addOption(option: string) {
-    onSelectedChange([...selected, option])
-    setSearch('')
+    if (multiple) {
+      onSelectedChange([...selected, option])
+      setSearch('')
+    } else {
+      onSelectedChange([option])
+      setSearch('')
+      setOpen(false)
+    }
   }
 
   function removeOption(option: string) {
@@ -63,7 +71,9 @@ export function FormSearchSelectField({
           disabled={atMax}
           className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border border-input bg-surface px-3.5 py-2.5 text-start text-sm text-ink shadow-control outline-none transition-colors duration-normal ease-default focus-visible:border-focus focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <span className="truncate text-ink-muted">{atMax ? `Maximum ${maxSelected} selected` : placeholder}</span>
+          <span className={cn('truncate', !multiple && selected[0] ? 'text-ink' : 'text-ink-muted')}>
+            {!multiple && selected[0] ? selected[0] : atMax ? `Maximum ${maxSelected} selected` : placeholder}
+          </span>
           <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', open && 'rotate-180')} />
         </button>
         {open ? (
@@ -94,7 +104,7 @@ export function FormSearchSelectField({
           </div>
         ) : null}
       </div>
-      {selected.length > 0 ? (
+      {multiple && selected.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
           {selected.map((option) => (
             <span key={option} className="inline-flex items-center gap-1 rounded-md bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent-text">
@@ -111,7 +121,7 @@ export function FormSearchSelectField({
           ))}
         </div>
       ) : null}
-      {maxSelected !== undefined ? <p className="text-xs text-ink-muted">{atMax ? `Maximum ${maxSelected} reached` : `Up to ${maxSelected}`}</p> : null}
+      {multiple && maxSelected !== undefined ? <p className="text-xs text-ink-muted">{atMax ? `Maximum ${maxSelected} reached` : `Up to ${maxSelected}`}</p> : null}
     </div>
   )
 }
