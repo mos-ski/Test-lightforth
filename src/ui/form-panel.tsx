@@ -67,10 +67,11 @@ export type FormPanelProps = Omit<FormHTMLAttributes<HTMLFormElement>, 'title'> 
   readonly footer?: ReactNode
   readonly children: ReactNode
   readonly className?: string
+  readonly bodyClassName?: string
 }
 
 export const FormPanel = forwardRef<HTMLFormElement, FormPanelProps>(
-  function FormPanel({ title, step, uploadedFile, footer, children, className, ...props }, ref) {
+  function FormPanel({ title, step, uploadedFile, footer, children, className, bodyClassName, ...props }, ref) {
     return (
       <>
         <form ref={ref} data-slot="form-panel" className={cn('mx-auto w-full max-w-[30rem] border border-border bg-surface shadow-panel', className)} {...props}>
@@ -85,7 +86,7 @@ export const FormPanel = forwardRef<HTMLFormElement, FormPanelProps>(
               onChangeClick={uploadedFile.onChangeClick}
             />
           ) : null}
-          <div data-slot="form-panel-body" className="grid gap-3 px-6 py-8 sm:px-8">
+          <div data-slot="form-panel-body" className={cn('grid gap-3 px-6 py-8 sm:px-8', bodyClassName)}>
             {children}
           </div>
           {footer}

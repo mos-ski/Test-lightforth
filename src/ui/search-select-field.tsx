@@ -13,6 +13,7 @@ export type FormSearchSelectFieldProps = {
   readonly searchPlaceholder?: string
   readonly maxSelected?: number
   readonly multiple?: boolean
+  readonly dropdownPlacement?: 'top' | 'bottom'
   readonly className?: string
 }
 
@@ -26,6 +27,7 @@ export function FormSearchSelectField({
   searchPlaceholder = 'Search...',
   maxSelected,
   multiple = true,
+  dropdownPlacement = 'bottom',
   className,
 }: FormSearchSelectFieldProps) {
   const [open, setOpen] = useState(false)
@@ -77,7 +79,12 @@ export function FormSearchSelectField({
           <ChevronDown aria-hidden="true" className={cn('size-4 shrink-0 text-ink-muted transition-transform', open && 'rotate-180')} />
         </button>
         {open ? (
-          <div className="absolute z-tooltip mt-1 w-full rounded-lg border border-border bg-surface shadow-popover">
+          <div
+            className={cn(
+              'absolute z-tooltip w-full rounded-lg border border-border bg-surface shadow-popover',
+              dropdownPlacement === 'top' ? 'bottom-full mb-1' : 'mt-1',
+            )}
+          >
             <div className="border-b border-border p-2">
               <input
                 type="text"

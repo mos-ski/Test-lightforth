@@ -294,6 +294,7 @@ export function OnboardingInterestsView({ homeHref, backHref, onComplete }: Onbo
         <FormPanel
           title="One More Step"
           step="2/2"
+          bodyClassName="gap-4"
           footer={
             <FormPanelFooter
               backHref={backHref}
@@ -318,6 +319,7 @@ export function OnboardingInterestsView({ homeHref, backHref, onComplete }: Onbo
             selected={jobRole}
             onSelectedChange={setJobRole}
             multiple={false}
+            dropdownPlacement="top"
           />
           <FormSearchSelectField
             id="onboarding-looking-for"
@@ -327,6 +329,7 @@ export function OnboardingInterestsView({ homeHref, backHref, onComplete }: Onbo
             options={LOOKING_FOR_OPTIONS}
             selected={lookingFor}
             onSelectedChange={setLookingFor}
+            dropdownPlacement="top"
           />
           <CheckboxGrid label="How did you hear about Lightforth?" options={HEARD_ABOUT_OPTIONS} selected={heardAbout} onSelectedChange={setHeardAbout} />
         </FormPanel>
