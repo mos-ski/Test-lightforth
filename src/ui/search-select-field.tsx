@@ -61,11 +61,11 @@ export function FormSearchSelectField({
   }
 
   return (
-    <div className={cn('grid gap-1.5', className)} ref={ref}>
+    <div className={cn('grid min-w-0 gap-1.5', className)} ref={ref}>
       <label htmlFor={id} className="text-sm font-medium leading-5 text-ink">
         {label}
       </label>
-      <div className="relative">
+      <div className="relative min-w-0">
         <button
           type="button"
           id={id}
