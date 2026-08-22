@@ -33,7 +33,7 @@ export const authPlanFixtures: readonly BillingPlanFixture[] = [
     name: 'Starter',
     priceMonthly: 27,
     includedUsageCents: 800,
-    description: 'You get 133 credits per month, metered by what each feature actually costs to run.',
+    description: 'You get 20 credits per month, metered by what each feature actually costs to run.',
     features: [
       'Resume builder',
       'Resume downloads',

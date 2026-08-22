@@ -1621,8 +1621,8 @@ function CopilotCodingPanel({
   )
 }
 
-const COPILOT_RATE_CENTS_PER_MIN = 12
-const COPILOT_START_BALANCE_CENTS = 9
+const COPILOT_RATE_CENTS_PER_MIN = 80
+const COPILOT_START_BALANCE_CENTS = 60
 const QUICK_TOPUP_CREDITS = [25, 50, 100]
 
 export function CopilotLiveView({ completeHref, session, isLoading = false, transcriptBank = [], codingBank = [] }: CopilotLiveViewProps) {

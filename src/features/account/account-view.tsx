@@ -945,8 +945,8 @@ function ReferralSettings({ referrals, activeTab }: { readonly referrals: readon
           <SettingsTabs activeTab={activeTab} />
         </div>
         <div className="rounded-panel bg-accent-subtle p-8">
-          <h2 className="text-3xl font-bold leading-tight text-ink">Earn 17 credits in free balance</h2>
-          <p className="mt-2 text-sm text-ink-muted">You get 17 credits added to your balance when your referral signs up and subscribes.</p>
+          <h2 className="text-3xl font-bold leading-tight text-ink">Earn 3 credits in free balance</h2>
+          <p className="mt-2 text-sm text-ink-muted">You get 3 credits added to your balance when your referral signs up and subscribes.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {['https://app.lightforth.ai/auth/signup?code=Adedamolaiosmk', 'Adedamolaiosmk'].map((value, index) => (
               <div key={value} className="min-w-0 rounded-soft border border-accent bg-surface px-3 py-2">
@@ -962,8 +962,8 @@ function ReferralSettings({ referrals, activeTab }: { readonly referrals: readon
           </div>
           <ul className="mt-6 grid gap-2 text-sm text-ink">
             <li>• Invite a friend using your link</li>
-            <li>• They sign up → you earn 17 credits in free balance</li>
-            <li>• Refer 5 friends → unlock 85 credits in balance + bonus tools</li>
+            <li>• They sign up → you earn 3 credits in free balance</li>
+            <li>• Refer 5 friends → unlock 15 credits in balance + bonus tools</li>
           </ul>
         </div>
       </TitledPanel>
