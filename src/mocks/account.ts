@@ -79,6 +79,7 @@ export const creditUsageRows: readonly CreditUsageRow[] = [
   { feature: 'Auto Apply', trigger: 'One successful job application', deducted: '2.5 credits / application' },
   { feature: 'Interview Prep', trigger: 'Metered per minute of the live session', deducted: '2 credits / min' },
   { feature: 'Interview Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min' },
+  { feature: 'Coding Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min' },
   { feature: 'Meeting Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min' },
   { feature: 'ATS Scoring', trigger: 'Click Score Resume', deducted: '0 credits', free: true },
   { feature: 'AI Suggester', trigger: 'Writes a phrase or statement better', deducted: '0 credits', free: true },
