@@ -564,7 +564,8 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
           {previewSrc ? (
             <p className="mt-4 text-xs leading-5 text-ink-muted">
               Lightforth listens to your shared screen and audio only while the session is live, and keeps a transcript so you
-              can review it afterward. Nothing is recorded once you end the session. Starting uses 1 credit.
+              can review it afterward. Nothing is recorded once you end the session. This costs $0.20/min — you'll only be
+              charged for the time you're in session.
             </p>
           ) : null}
         </FormPanel>

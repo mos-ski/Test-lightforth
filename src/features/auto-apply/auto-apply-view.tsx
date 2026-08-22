@@ -29,6 +29,7 @@ import {
   FormField,
   FormPanel,
   FormPanelFooter,
+  formatUsd,
   FormSearchSelectField,
   FormSelectField,
   FormTextArea,
@@ -303,7 +304,7 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
             ]}
           />
           <p className="mt-4 text-xs leading-5 text-ink-muted">
-            Lightforth only deducts a credit for successful applications — 1 credit per job applied to.
+            Applying costs $0.15 per job — Lightforth only charges for successful applications.
           </p>
         </FormPanel>
       </section>
@@ -1321,8 +1322,8 @@ function JobPreview({
                 </section>
 
                 <div className="rounded-lg border border-border bg-surface-subtle p-4">
-                  <p className="text-sm font-semibold text-ink">{job.creditsRemaining}/{job.creditsTotal} credits remaining</p>
-                  <p className="mt-1 text-xs text-ink-muted">Lightforth only deducts credits for successful applications</p>
+                  <p className="text-sm font-semibold text-ink">{formatUsd(job.creditsRemaining)} of {formatUsd(job.creditsTotal)} balance remaining</p>
+                  <p className="mt-1 text-xs text-ink-muted">Applying costs $0.15 — Lightforth only charges for successful applications</p>
                 </div>
               </>
             ) : null}
