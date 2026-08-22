@@ -415,7 +415,7 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
             </div>
             <p className="border-t border-border px-6 py-3 text-xs leading-5 text-ink-muted">
               Before you start: check that your microphone is on and working. You can mute or turn off your camera at any time
-              during the session. This costs 2 credits/min — you'll only be charged for the time you're in session.
+              during the session. You'll only be charged for the time you're in session.
             </p>
             <div className="flex items-center justify-between border-t border-border px-6 py-4">
               <a href={configureHref} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
@@ -790,7 +790,6 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
   const [isMuted, setIsMuted] = useState(false)
   const [videoEnabled, setVideoEnabled] = useState(true)
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
-  const [spentCents, setSpentCents] = useState(0)
   const [balanceCents, setBalanceCents] = useState(SESSION_START_BALANCE_CENTS)
   const [sessionPaused, setSessionPaused] = useState(false)
   const [topUpOpen, setTopUpOpen] = useState(false)
@@ -814,7 +813,6 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
         }
         return next
       })
-      setSpentCents((prev) => prev + perTickCents)
     }, 1000)
     return () => window.clearInterval(id)
   }, [phase, sessionPaused])
@@ -966,7 +964,6 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
             <p className="truncate text-sm font-semibold leading-5">{session.title}</p>
             <p className="text-xs leading-4 text-white/70">
               {session.timer} · {session.interviewer.label}
-              {phase !== 'ready' ? ` · ${formatCredits(spentCents)} so far` : ''}
             </p>
           </div>
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 backdrop-blur-sm" aria-hidden="true">
@@ -978,7 +975,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
 
         {lowBalance && !sessionPaused ? (
           <div role="status" className="fixed inset-x-4 top-20 z-20 flex items-center justify-between gap-3 rounded-lg bg-warning-surface px-4 py-2.5 text-sm text-warning shadow-panel">
-            <span>{formatCredits(balanceCents)} left</span>
+            <span>Running low on balance</span>
             <button type="button" onClick={(event) => { event.stopPropagation(); setTopUpOpen(true) }} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               Add funds
             </button>
@@ -1088,11 +1085,6 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           <SignalStrength label={session.signalLabel} />
           <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
           <span className="text-sm italic leading-5 text-ink-muted">{session.activityLabel}</span>
-          {phase !== 'ready' ? (
-            <span className={cn('text-xs font-medium leading-5', lowBalance ? 'text-warning' : 'text-ink-muted')}>
-              {formatCredits(spentCents)} so far · {formatCredits(SESSION_RATE_CENTS_PER_MIN)}/min
-            </span>
-          ) : null}
         </div>
         <button type="button" onClick={() => setShowSettings(true)} className="min-h-8 items-center gap-3 rounded-soft px-2 text-sm font-medium text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
           <Settings aria-hidden="true" className="size-4" />
@@ -1101,7 +1093,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
       </div>
       {lowBalance && !sessionPaused ? (
         <div role="status" className="flex shrink-0 items-center justify-between gap-3 border-b border-warning bg-warning-surface px-5 py-2 text-sm text-warning">
-          <span>Running low — {formatCredits(balanceCents)} left, about {Math.max(1, Math.round((balanceCents / SESSION_RATE_CENTS_PER_MIN) * 60))}s at this rate.</span>
+          <span>Running low on balance.</span>
           <button type="button" onClick={() => setTopUpOpen(true)} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             Add funds
           </button>
