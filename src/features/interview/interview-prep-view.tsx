@@ -773,8 +773,8 @@ function InterviewLiveSettingsModal({
   )
 }
 
-const SESSION_RATE_CENTS_PER_MIN = 12
-const SESSION_START_BALANCE_CENTS = 9
+const SESSION_RATE_CENTS_PER_MIN = 80
+const SESSION_START_BALANCE_CENTS = 60
 const QUICK_TOPUP_CREDITS = [25, 50, 100]
 
 export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {

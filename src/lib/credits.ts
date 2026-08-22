@@ -1,11 +1,13 @@
 // Credits are the user-facing usage unit across the product. Internally every balance and
 // rate is still tracked in cents (see src/mocks/wallet.ts) so the backend accounting stays
 // in real currency — this module is the one place that converts cents to the credit numbers
-// shown on screen, at a fixed rate of 1 credit = 6 cents.
+// shown on screen, at a fixed rate of 1 credit = 40 cents.
 //
 // Credits are always communicated as whole numbers, rounded away from zero (never floored to
-// a smaller-looking balance, never a deduction that rounds down to "0 credits" spent).
-const CENTS_PER_CREDIT = 6
+// a smaller-looking balance, never a deduction that rounds down to "0 credits" spent). The
+// dollar figure shown alongside a credit amount is always an exact multiplication, never an
+// approximation — never label it with "~".
+const CENTS_PER_CREDIT = 40
 const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export function centsToCredits(cents: number): number {
@@ -32,7 +34,7 @@ export function formatCredits(cents: number): string {
 
 /** For amounts that are already a whole credits number (not cents), e.g. the top-up dialog. */
 export function formatCreditAmountWithUsd(credits: number): string {
-  return `${credits} ${creditLabel(credits)} (~${usdFormatter.format(creditsToCents(credits) / 100)})`
+  return `${credits} ${creditLabel(credits)} (${usdFormatter.format(creditsToCents(credits) / 100)})`
 }
 
 /** 0-100 integer percentage of balance remaining out of total. */
