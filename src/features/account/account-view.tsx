@@ -2,6 +2,7 @@ import { AlertTriangle, Apple, Check, ChevronDown, Copy, ExternalLink, EyeOff, M
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 import type { BillingPlanCard, CreditHistoryRow, CreditUsageRow, DownloadItem, ReferralRow, SettingsProfile, TutorialItem } from '@/contracts/account.draft'
+import { formatCredits } from '@/lib/credits'
 import {
   Accordion,
   AccordionItem,
@@ -16,7 +17,6 @@ import {
   DialogPopup,
   DialogTitle,
   DialogTrigger,
-  formatUsd,
   SelectField,
   ShellBar,
   Switch,
@@ -536,6 +536,7 @@ export function BillingView({ homeHref, plans, usageRows, wallet }: BillingViewP
               <CreditCard
                 remainingCents={wallet.remainingCents}
                 totalCents={wallet.totalCents}
+                formatAmount={formatCredits}
                 resetDate={wallet.resetDateLabel}
                 bonusHref="/v3/settings?tab=referral"
                 detailsHref="/v3/billing/usage"
@@ -634,7 +635,7 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
   return (
     <TitledPanel title="Usage Details">
       <p className="text-2xl font-black sm:text-3xl">
-        {formatUsd(totalUsed)} <span className="text-sm font-medium text-ink-muted sm:text-base">used in last {dayRange} days</span>
+        {formatCredits(totalUsed)} <span className="text-sm font-medium text-ink-muted sm:text-base">used in last {dayRange} days</span>
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
         <div className="relative">
@@ -701,13 +702,13 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
                 {isHovered ? (
                   <div className="pointer-events-none absolute bottom-full start-1/2 z-tooltip mb-2 w-max -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-start shadow-popover">
                     <p className="text-sm font-semibold text-ink">{day}</p>
-                    <p className="mt-0.5 text-xs text-ink-muted">{formatUsd(total)} spent</p>
+                    <p className="mt-0.5 text-xs text-ink-muted">{formatCredits(total)} spent</p>
                     <div className="mt-1.5 grid gap-0.5 border-t border-border pt-1.5">
                       {usedFeatures.map((feature) => (
                         <div key={feature} className="flex items-center gap-2">
                           <span className={cn('size-2 rounded-full', usageFeatureColors[feature])} />
                           <span className="text-xs text-ink-muted">{feature}</span>
-                          <span className="ml-auto text-xs font-semibold text-ink">{formatUsd(bucket[feature])}</span>
+                          <span className="ml-auto text-xs font-semibold text-ink">{formatCredits(bucket[feature])}</span>
                         </div>
                       ))}
                     </div>
@@ -760,11 +761,11 @@ export function CreditHistoryView({ homeHref, billingHref, rows }: CreditHistory
                 className: 'w-[7rem] text-end',
                 render: (row) => (
                   <span className={cn('font-semibold', row.amount > 0 ? 'text-positive' : row.amount < 0 ? 'text-ink' : 'text-ink-muted')}>
-                    {row.amount > 0 ? `+${formatUsd(row.amount)}` : formatUsd(row.amount)}
+                    {row.amount > 0 ? `+${formatCredits(row.amount)}` : formatCredits(row.amount)}
                   </span>
                 ),
               },
-              { key: 'balanceAfter', label: 'Balance', className: 'w-[7rem] text-end', render: (row) => formatUsd(row.balanceAfter) },
+              { key: 'balanceAfter', label: 'Balance', className: 'w-[7rem] text-end', render: (row) => formatCredits(row.balanceAfter) },
             ]}
           />
         </div>
@@ -944,8 +945,8 @@ function ReferralSettings({ referrals, activeTab }: { readonly referrals: readon
           <SettingsTabs activeTab={activeTab} />
         </div>
         <div className="rounded-panel bg-accent-subtle p-8">
-          <h2 className="text-3xl font-bold leading-tight text-ink">Earn $1.00 in free balance</h2>
-          <p className="mt-2 text-sm text-ink-muted">You get $1.00 added to your balance when your referral signs up and subscribes.</p>
+          <h2 className="text-3xl font-bold leading-tight text-ink">Earn 17 credits in free balance</h2>
+          <p className="mt-2 text-sm text-ink-muted">You get 17 credits added to your balance when your referral signs up and subscribes.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {['https://app.lightforth.ai/auth/signup?code=Adedamolaiosmk', 'Adedamolaiosmk'].map((value, index) => (
               <div key={value} className="min-w-0 rounded-soft border border-accent bg-surface px-3 py-2">
@@ -961,8 +962,8 @@ function ReferralSettings({ referrals, activeTab }: { readonly referrals: readon
           </div>
           <ul className="mt-6 grid gap-2 text-sm text-ink">
             <li>• Invite a friend using your link</li>
-            <li>• They sign up → you earn $1.00 in free balance</li>
-            <li>• Refer 5 friends → unlock $5.00 in balance + bonus tools</li>
+            <li>• They sign up → you earn 17 credits in free balance</li>
+            <li>• Refer 5 friends → unlock 85 credits in balance + bonus tools</li>
           </ul>
         </div>
       </TitledPanel>

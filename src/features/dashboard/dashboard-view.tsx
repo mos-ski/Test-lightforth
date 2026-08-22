@@ -5,7 +5,8 @@ import { useState, type ReactNode } from 'react'
 
 import type { DashboardAction, DashboardActionId, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
 import type { UserIdentity } from '@/contracts/identity'
-import { Button, cn, Dialog, DialogClose, DialogPopup, DialogTitle, DialogTrigger, formatUsd, formatUsdWhole, LightforthMark, SideMenu } from '@/ui'
+import { formatCredits, formatCreditsCompact } from '@/lib/credits'
+import { Button, cn, Dialog, DialogClose, DialogPopup, DialogTitle, DialogTrigger, LightforthMark, SideMenu } from '@/ui'
 import { BriefcaseActionIcon, CopilotActionIcon, MonitorActionIcon, ResumeActionIcon } from './dashboard-action-icons'
 import {
   AutoApplyIcon,
@@ -205,13 +206,13 @@ function CreditDropdown({ creditBalanceCents, totalCreditsCents, forceOpen = fal
         </div>
         <div className="grid gap-1.5">
           <div className="flex items-start justify-between gap-4 text-sm text-ink-muted">
-            <span>Included this month: <span className="font-medium text-ink">{formatUsd(totalCreditsCents)}</span></span>
-            <span>Used: <span className="font-medium text-ink">{formatUsd(usedCents)}</span></span>
+            <span>Included this month: <span className="font-medium text-ink">{formatCredits(totalCreditsCents)}</span></span>
+            <span>Used: <span className="font-medium text-ink">{formatCredits(usedCents)}</span></span>
           </div>
           <div className="h-2 overflow-hidden rounded-pill bg-surface-subtle">
             <div className="h-full rounded-pill bg-accent shadow-control" style={progressStyle} />
           </div>
-          <p className="text-end text-xs font-medium leading-5 text-ink-muted">{formatUsd(creditBalanceCents)} remaining</p>
+          <p className="text-end text-xs font-medium leading-5 text-ink-muted">{formatCredits(creditBalanceCents)} remaining</p>
         </div>
       </div>
       <a href="/v3/billing" className="flex min-h-12 items-center justify-center gap-2 bg-accent px-3 text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
@@ -234,7 +235,7 @@ function CreditNotice({ variant, remainingCents }: { readonly variant: 'low' | '
         isLow ? 'bg-accent-subtle text-accent' : 'bg-danger text-on-danger',
       )}
     >
-      <p className="min-w-0 flex-1 truncate leading-6">{isLow ? `${formatUsd(remainingCents)} left this cycle!` : '$0.00 remaining this cycle'}</p>
+      <p className="min-w-0 flex-1 truncate leading-6">{isLow ? `${formatCredits(remainingCents)} left this cycle!` : '0 credits remaining this cycle'}</p>
       <a href="/v3/billing" className="shrink-0 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
         Upgrade
       </a>
@@ -329,9 +330,9 @@ function DashboardHeader({
       </div>
       <div className="flex items-center gap-4">
         <div className="group relative">
-          <a href="/v3/billing" aria-label={`${formatUsd(creditBalanceCents)} balance remaining`} className="relative grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          <a href="/v3/billing" aria-label={`${formatCredits(creditBalanceCents)} balance remaining`} className="relative grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <CreditCard aria-hidden="true" className="size-6" />
-            <span className="absolute -start-1.5 top-1 grid min-w-4 place-items-center rounded-pill bg-danger px-1 text-xs font-semibold leading-4 text-on-danger">{formatUsdWhole(creditBalanceCents)}</span>
+            <span className="absolute -start-1.5 top-1 grid min-w-4 place-items-center rounded-pill bg-danger px-1 text-xs font-semibold leading-4 text-on-danger">{formatCreditsCompact(creditBalanceCents)}</span>
           </a>
           <CreditDropdown creditBalanceCents={creditBalanceCents} totalCreditsCents={totalCreditsCents} forceOpen={activeDropdown === 'credits'} />
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Plan } from '@/contracts/billing'
-import { Badge, Button, cn, formatUsd } from '@/ui'
+import { formatCredits } from '@/lib/credits'
+import { Badge, Button, cn } from '@/ui'
 import { X } from 'lucide-react'
 
 export type AuthPlanOption = {
@@ -65,7 +66,7 @@ function PlanCard({
           <span className="pb-2 text-sm font-medium text-ink">per month</span>
         </div>
         {annual ? <p className="mt-1 text-sm text-ink-muted">${displayPrice * 12} billed yearly</p> : null}
-        <p className="mt-5 text-sm font-semibold text-ink">{formatUsd(plan.includedUsageCents)} of usage included</p>
+        <p className="mt-5 text-sm font-semibold text-ink">{formatCredits(plan.includedUsageCents)} included</p>
         <p className="mt-3 text-sm leading-5 text-ink-muted">{plan.description}</p>
 
         <div className="mt-6">
@@ -221,7 +222,7 @@ export function PlanSelectionView({
             </a>
           </p>
           <p className="mt-1.5 text-center text-sm text-ink-muted">
-            No plan? You&apos;ll still get $1.00 of usage every month to try Lightforth.
+            No plan? You&apos;ll still get 5 credits every month to try Lightforth.
           </p>
         </div>
       </section>
