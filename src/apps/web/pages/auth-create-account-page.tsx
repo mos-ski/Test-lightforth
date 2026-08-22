@@ -5,7 +5,7 @@ import { SignUpView } from '@/features/identity/sign-up-view'
 
 export function AuthCreateAccountPage() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('olivia@untitledui.com')
+  const [email, setEmail] = useState('jordan.blake@gmail.com')
   const [password, setPassword] = useState('password')
   const [confirmPassword, setConfirmPassword] = useState('password')
   const [referralCode, setReferralCode] = useState('')

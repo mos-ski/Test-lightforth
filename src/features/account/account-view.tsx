@@ -40,10 +40,17 @@ export type TutorialsViewProps = {
   readonly tutorials: readonly TutorialItem[]
 }
 
+export type BillingWallet = {
+  readonly remaining: number
+  readonly total: number
+  readonly resetDateLabel: string
+}
+
 export type BillingViewProps = {
   readonly homeHref: string
   readonly plans: readonly BillingPlanCard[]
   readonly usageRows: readonly CreditUsageRow[]
+  readonly wallet: BillingWallet
 }
 
 export type CreditHistoryViewProps = {
@@ -452,7 +459,7 @@ function CreditUsageTable({ rows }: { readonly rows: readonly CreditUsageRow[] }
   )
 }
 
-export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
+export function BillingView({ homeHref, plans, usageRows, wallet }: BillingViewProps) {
   const [annual, setAnnual] = useState(true)
   const currentPlan = plans.find((plan) => plan.current) ?? plans[0]
   const currentIndex = currentPlan ? plans.indexOf(currentPlan) : 0
@@ -516,7 +523,7 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
                   <span className="font-semibold text-ink">{currentPlan?.name.charAt(0)}{currentPlan?.name.slice(1).toLowerCase()} plan</span>
                   <span className="rounded-pill bg-accent-subtle px-2.5 py-0.5 text-xs font-medium text-accent-text">Monthly</span>
                 </div>
-                <p className="mt-2 text-sm text-ink-muted">Renews Sep 9, 2026</p>
+                <p className="mt-2 text-sm text-ink-muted">Renews {wallet.resetDateLabel}</p>
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
                   <CancelSubscriptionDialog renewalLabel="September 9th, 2026" />
                   <p className="text-end">
@@ -526,10 +533,10 @@ export function BillingView({ homeHref, plans, usageRows }: BillingViewProps) {
                 </div>
               </section>
               <CreditCard
-                remaining={45}
-                total={128}
-                resetDate="Sep 9, 2026"
-                bonusHref="/v3/billing/bonus"
+                remaining={wallet.remaining}
+                total={wallet.total}
+                resetDate={wallet.resetDateLabel}
+                bonusHref="/v3/settings?tab=referral"
                 detailsHref="/v3/billing/usage"
                 className="shadow-none"
               />
@@ -969,7 +976,21 @@ function ReferralSettings({ referrals, activeTab }: { readonly referrals: readon
           { key: 'name', label: 'Name', className: 'w-[14rem]', render: (row) => <span className="font-semibold">{row.name}</span> },
           { key: 'email', label: 'Email', className: 'w-[20rem]', render: (row) => row.email },
           { key: 'date', label: 'Date & Time', className: 'w-[14rem]', render: (row) => row.dateTime },
-          { key: 'status', label: 'Status', className: 'w-[11rem]', render: (row) => <span className="rounded-pill bg-danger-surface px-3 py-1 text-xs font-semibold text-danger">{row.status}</span> },
+          {
+            key: 'status',
+            label: 'Status',
+            className: 'w-[11rem]',
+            render: (row) => (
+              <span
+                className={cn(
+                  'rounded-pill px-3 py-1 text-xs font-semibold',
+                  row.status === 'Subscribed' ? 'bg-positive-surface text-positive' : 'bg-surface-subtle text-ink-muted',
+                )}
+              >
+                {row.status}
+              </span>
+            ),
+          },
         ]}
       />
     </div>

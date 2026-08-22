@@ -18,6 +18,7 @@ import {
 } from '@/contracts/auto-apply.draft'
 import type { ResumeDocument, ResumeHistoryRow } from '@/contracts/resume.draft'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
+import { COUNTRIES } from '@/data/countries'
 import {
   cn,
   Dialog,
@@ -28,6 +29,7 @@ import {
   FormField,
   FormPanel,
   FormPanelFooter,
+  FormSearchSelectField,
   FormSelectField,
   FormTextArea,
   LightforthAiIcon,
@@ -300,6 +302,9 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
               },
             ]}
           />
+          <p className="mt-4 text-xs leading-5 text-ink-muted">
+            Lightforth only deducts a credit for successful applications — 1 credit per job applied to.
+          </p>
         </FormPanel>
       </section>
     </Workspace>
@@ -570,14 +575,17 @@ function DateOfBirthField({ dob }: { readonly dob: string }) {
   )
 }
 
+const COUNTRY_NAMES = COUNTRIES.map((country) => country.name)
+
 function ContactForm({ setup }: { readonly setup: AutoApplySetup }) {
   const [openSection, setOpenSection] = useState<string | null>('profile')
+  const [country, setCountry] = useState(setup.country)
 
   const toggle = (key: string) => setOpenSection((prev) => prev === key ? null : key)
 
   const filled = {
     profile: !!(setup.email || setup.phone || setup.firstName || setup.lastName || setup.gender || setup.dob),
-    address: !!(setup.country || setup.city || setup.streetAddress || setup.postalCode),
+    address: !!(country || setup.city || setup.streetAddress || setup.postalCode),
     links: !!(setup.linkedIn || setup.github || setup.portfolio),
   }
 
@@ -612,8 +620,17 @@ function ContactForm({ setup }: { readonly setup: AutoApplySetup }) {
         isFilled={filled.address}
       >
         <div className="grid gap-3 sm:grid-cols-2">
-          <FormField id="auto-country" label="Country" defaultValue={setup.country} placeholder="Select country" />
-          <FormField id="auto-city" label="City" defaultValue={setup.city} placeholder={setup.country ? 'Enter city' : 'Select a country first'} disabled={!setup.country} />
+          <FormSearchSelectField
+            id="auto-country"
+            label="Country"
+            placeholder="Search countries..."
+            searchPlaceholder="Search countries..."
+            options={COUNTRY_NAMES}
+            selected={country ? [country] : []}
+            onSelectedChange={(next) => setCountry(next[0] ?? '')}
+            multiple={false}
+          />
+          <FormField id="auto-city" label="City" defaultValue={setup.city} placeholder={country ? 'Enter city' : 'Select a country first'} disabled={!country} />
           <FormField id="auto-street" label="Street Address" defaultValue={setup.streetAddress} placeholder="123 Main St" />
           <FormField id="auto-postal" label="Postal Code" defaultValue={setup.postalCode} placeholder="10001" />
         </div>
@@ -651,12 +668,18 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
 
   return (
     <div className="grid gap-2">
+      <p className="text-sm leading-6 text-ink-muted">
+        A few employers ask equal-opportunity and background questions on their applications. These are optional — answer what
+        you&apos;re comfortable sharing, or skip and Lightforth will leave them blank when it applies on your behalf. Your answers
+        are never shared outside the application itself.
+      </p>
       <CollapsibleSection
         title="Demographics"
         isOpen={openSection === 'demographics'}
         onToggle={() => toggle('demographics')}
         isFilled={filled.demographics}
       >
+        <p className="mb-3 text-xs text-ink-muted">Optional — used only if an employer's application asks for it.</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <FormSelectField
             id="auto-race"
@@ -756,6 +779,7 @@ function AdditionalForm({ setup }: { readonly setup: AutoApplySetup }) {
         onToggle={() => toggle('background')}
         isFilled={filled.background}
       >
+        <p className="mb-3 text-xs text-ink-muted">Optional — used only if an employer's application asks for it.</p>
         <div className="grid gap-5">
           <fieldset>
             <legend className="mb-2 text-sm font-medium text-ink">Is there anything that would prevent you from obtaining a Public Trust Clearance?</legend>

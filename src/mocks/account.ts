@@ -94,7 +94,7 @@ export const settingsProfile: SettingsProfile = {
 }
 
 export const creditHistoryRows: readonly CreditHistoryRow[] = [
-  { id: '1', feature: 'Interview Copilot', description: 'Started live session — Senior PM interview at Amazon', dateTime: 'Aug 14, 2026, 4:12 pm', amount: -1, balanceAfter: 31 },
+  { id: '1', feature: 'Interview Copilot', description: 'Started live session — Senior PM interview at Amazon', dateTime: 'Aug 14, 2026, 4:12 pm', amount: -1, balanceAfter: 32 },
   { id: '1a', feature: 'Resume Builder', description: 'Tailored resume for Notion — Product Lead', dateTime: 'Aug 14, 2026, 1:30 pm', amount: -1, balanceAfter: 32 },
   { id: '1b', feature: 'Auto Apply', description: 'Applied to Stripe — Backend Engineer', dateTime: 'Aug 14, 2026, 10:15 am', amount: -1, balanceAfter: 33 },
   { id: '2', feature: 'Resume Builder', description: 'Tailored resume for Stripe — Backend Engineer', dateTime: 'Aug 13, 2026, 2:14 pm', amount: -1, balanceAfter: 32 },
@@ -164,7 +164,7 @@ export const creditHistoryRows: readonly CreditHistoryRow[] = [
 ]
 
 export const referralRows: readonly ReferralRow[] = [
-  { id: '1', name: 'Jojo A', email: 'anyimjosh1995@gmail.com', dateTime: '03/09/2026, 2:31 am', status: 'Not subscribed' },
+  { id: '1', name: 'Jojo A', email: 'anyimjosh1995@gmail.com', dateTime: '03/09/2026, 2:31 am', status: 'Subscribed' },
   { id: '2', name: 'Morayo Sanni', email: 'sannimoyo@yahoo.com', dateTime: '02/18/2026, 9:29 am', status: 'Not subscribed' },
   { id: '3', name: 'Jamal Yakubu', email: 'jamal.yakubu@yahoo.com', dateTime: '02/17/2026, 2:58 pm', status: 'Not subscribed' },
   { id: '4', name: 'Joseph Ayo', email: 'ayojoefemi925@gmail.com', dateTime: '02/13/2026, 6:59 am', status: 'Not subscribed' },

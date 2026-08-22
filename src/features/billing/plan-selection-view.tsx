@@ -220,6 +220,9 @@ export function PlanSelectionView({
               I&apos;ll do this later
             </a>
           </p>
+          <p className="mt-1.5 text-center text-sm text-ink-muted">
+            No plan? You&apos;ll still get 5 free credits every month to try Lightforth.
+          </p>
         </div>
       </section>
     </main>
