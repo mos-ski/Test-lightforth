@@ -29,7 +29,7 @@ import type {
 } from '@/contracts/interview.draft'
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
-import { formatCredits } from '@/lib/credits'
+import { formatCreditsWithUsd } from '@/lib/credits'
 import { AddFundsDialog, AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger, UploadedFileDialog } from '@/ui'
 import { useCameraStream } from '@/hooks/useCameraStream'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
@@ -1056,7 +1056,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           onOpenChange={setTopUpOpen}
           currentBalance={balanceCents}
           quickAmounts={QUICK_TOPUP_CENTS}
-          formatAmount={formatCredits}
+          formatAmount={formatCreditsWithUsd}
           onAddFunds={handleAddFunds}
           description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
         />
@@ -1178,7 +1178,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
         onOpenChange={setTopUpOpen}
         currentBalance={balanceCents}
         quickAmounts={QUICK_TOPUP_CENTS}
-        formatAmount={formatCredits}
+        formatAmount={formatCreditsWithUsd}
         onAddFunds={handleAddFunds}
         description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
       />

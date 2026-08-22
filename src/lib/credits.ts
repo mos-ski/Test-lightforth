@@ -3,6 +3,7 @@
 // in real currency — this module is the one place that converts cents to the credit numbers
 // shown on screen, at a fixed rate of 1 credit = 6 cents.
 const CENTS_PER_CREDIT = 6
+const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 export function centsToCredits(cents: number): number {
   return cents / CENTS_PER_CREDIT
@@ -32,4 +33,9 @@ export function formatCreditsWhole(cents: number): string {
 /** Bare rounded number, no unit word — for compact badges. */
 export function formatCreditsCompact(cents: number): string {
   return Math.round(centsToCredits(cents)).toString()
+}
+
+/** e.g. 15 -> "2.5 credits (~$0.15)" — for places that should show the dollar value too. */
+export function formatCreditsWithUsd(cents: number): string {
+  return `${formatCredits(cents)} (~${usdFormatter.format(cents / 100)})`
 }

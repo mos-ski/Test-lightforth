@@ -16,6 +16,7 @@ export function CopilotCompletePage() {
       homeHref="/v3/app"
       sessionHref="/v3/interview-copilot/session"
       historyHref="/v3/interview-copilot/history"
+      reportHref={`/v3/interview-copilot/report?mode=${mode}`}
       mode={mode}
       companyName={mode !== 'meeting' ? copilotSetup.companyName : undefined}
     />
