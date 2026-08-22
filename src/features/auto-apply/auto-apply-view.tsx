@@ -17,6 +17,7 @@ import {
   WORK_SCHEDULE_OPTIONS,
 } from '@/contracts/auto-apply.draft'
 import type { ResumeDocument, ResumeHistoryRow } from '@/contracts/resume.draft'
+import { formatCredits } from '@/lib/credits'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 import { COUNTRIES } from '@/data/countries'
 import {
@@ -29,7 +30,6 @@ import {
   FormField,
   FormPanel,
   FormPanelFooter,
-  formatUsd,
   FormSearchSelectField,
   FormSelectField,
   FormTextArea,
@@ -304,7 +304,7 @@ export function AutoApplyReviewView({ homeHref, contactHref, additionalHref, age
             ]}
           />
           <p className="mt-4 text-xs leading-5 text-ink-muted">
-            Applying costs $0.15 per job — Lightforth only charges for successful applications.
+            Applying costs 2.5 credits per job — Lightforth only charges for successful applications.
           </p>
         </FormPanel>
       </section>
@@ -1322,8 +1322,8 @@ function JobPreview({
                 </section>
 
                 <div className="rounded-lg border border-border bg-surface-subtle p-4">
-                  <p className="text-sm font-semibold text-ink">{formatUsd(job.creditsRemaining)} of {formatUsd(job.creditsTotal)} balance remaining</p>
-                  <p className="mt-1 text-xs text-ink-muted">Applying costs $0.15 — Lightforth only charges for successful applications</p>
+                  <p className="text-sm font-semibold text-ink">{formatCredits(job.creditsRemaining)} of {formatCredits(job.creditsTotal)} balance remaining</p>
+                  <p className="mt-1 text-xs text-ink-muted">Applying costs 2.5 credits — Lightforth only charges for successful applications</p>
                 </div>
               </>
             ) : null}

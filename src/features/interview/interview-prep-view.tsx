@@ -29,7 +29,8 @@ import type {
 } from '@/contracts/interview.draft'
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
-import { AddFundsDialog, AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, formatUsd, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger, UploadedFileDialog } from '@/ui'
+import { formatCredits } from '@/lib/credits'
+import { AddFundsDialog, AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger, UploadedFileDialog } from '@/ui'
 import { useCameraStream } from '@/hooks/useCameraStream'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 import { useTypewriter } from '@/hooks/useTypewriter'
@@ -414,7 +415,7 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
             </div>
             <p className="border-t border-border px-6 py-3 text-xs leading-5 text-ink-muted">
               Before you start: check that your microphone is on and working. You can mute or turn off your camera at any time
-              during the session. This costs $0.12/min — you'll only be charged for the time you're in session.
+              during the session. This costs 2 credits/min — you'll only be charged for the time you're in session.
             </p>
             <div className="flex items-center justify-between border-t border-border px-6 py-4">
               <a href={configureHref} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
@@ -773,7 +774,8 @@ function InterviewLiveSettingsModal({
 }
 
 const SESSION_RATE_CENTS_PER_MIN = 12
-const SESSION_START_BALANCE_CENTS = 8
+const SESSION_START_BALANCE_CENTS = 9
+const QUICK_TOPUP_CENTS = [150, 300, 600]
 
 export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {
   const [phase, setPhase] = useState<LiveSessionPhase>('ready')
@@ -964,7 +966,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
             <p className="truncate text-sm font-semibold leading-5">{session.title}</p>
             <p className="text-xs leading-4 text-white/70">
               {session.timer} · {session.interviewer.label}
-              {phase !== 'ready' ? ` · ${formatUsd(spentCents)} so far` : ''}
+              {phase !== 'ready' ? ` · ${formatCredits(spentCents)} so far` : ''}
             </p>
           </div>
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 backdrop-blur-sm" aria-hidden="true">
@@ -976,7 +978,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
 
         {lowBalance && !sessionPaused ? (
           <div role="status" className="fixed inset-x-4 top-20 z-20 flex items-center justify-between gap-3 rounded-lg bg-warning-surface px-4 py-2.5 text-sm text-warning shadow-panel">
-            <span>{formatUsd(balanceCents)} left</span>
+            <span>{formatCredits(balanceCents)} left</span>
             <button type="button" onClick={(event) => { event.stopPropagation(); setTopUpOpen(true) }} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               Add funds
             </button>
@@ -1055,7 +1057,9 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
         <AddFundsDialog
           open={topUpOpen}
           onOpenChange={setTopUpOpen}
-          currentBalanceCents={balanceCents}
+          currentBalance={balanceCents}
+          quickAmounts={QUICK_TOPUP_CENTS}
+          formatAmount={formatCredits}
           onAddFunds={handleAddFunds}
           description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
         />
@@ -1086,7 +1090,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           <span className="text-sm italic leading-5 text-ink-muted">{session.activityLabel}</span>
           {phase !== 'ready' ? (
             <span className={cn('text-xs font-medium leading-5', lowBalance ? 'text-warning' : 'text-ink-muted')}>
-              {formatUsd(spentCents)} so far · ${(SESSION_RATE_CENTS_PER_MIN / 100).toFixed(2)}/min
+              {formatCredits(spentCents)} so far · {formatCredits(SESSION_RATE_CENTS_PER_MIN)}/min
             </span>
           ) : null}
         </div>
@@ -1097,7 +1101,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
       </div>
       {lowBalance && !sessionPaused ? (
         <div role="status" className="flex shrink-0 items-center justify-between gap-3 border-b border-warning bg-warning-surface px-5 py-2 text-sm text-warning">
-          <span>Running low — {formatUsd(balanceCents)} left, about {Math.max(1, Math.round((balanceCents / SESSION_RATE_CENTS_PER_MIN) * 60))}s at this rate.</span>
+          <span>Running low — {formatCredits(balanceCents)} left, about {Math.max(1, Math.round((balanceCents / SESSION_RATE_CENTS_PER_MIN) * 60))}s at this rate.</span>
           <button type="button" onClick={() => setTopUpOpen(true)} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             Add funds
           </button>
@@ -1180,7 +1184,9 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
       <AddFundsDialog
         open={topUpOpen}
         onOpenChange={setTopUpOpen}
-        currentBalanceCents={balanceCents}
+        currentBalance={balanceCents}
+        quickAmounts={QUICK_TOPUP_CENTS}
+        formatAmount={formatCredits}
         onAddFunds={handleAddFunds}
         description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
       />

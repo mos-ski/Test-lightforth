@@ -18,6 +18,7 @@ import type {
   CopilotSetup,
   CopilotTranscriptTurn,
 } from '@/contracts/copilot.draft'
+import { formatCredits } from '@/lib/credits'
 import {
   AddFundsDialog,
   AiSuggestionAction,
@@ -35,7 +36,6 @@ import {
   ExampleResponseCard,
   FormChoiceGroup,
   FormField,
-  formatUsd,
   FormPanel,
   FormPanelFooter,
   FormSelectField,
@@ -566,7 +566,7 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
           {previewSrc ? (
             <p className="mt-4 text-xs leading-5 text-ink-muted">
               Lightforth listens to your shared screen and audio only while the session is live, and keeps a transcript so you
-              can review it afterward. Nothing is recorded once you end the session. This costs $0.20/min — you'll only be
+              can review it afterward. Nothing is recorded once you end the session. This costs 2 credits/min — you'll only be
               charged for the time you're in session.
             </p>
           ) : null}
@@ -1597,8 +1597,9 @@ function CopilotCodingPanel({
   )
 }
 
-const COPILOT_RATE_CENTS_PER_MIN = 20
-const COPILOT_START_BALANCE_CENTS = 8
+const COPILOT_RATE_CENTS_PER_MIN = 12
+const COPILOT_START_BALANCE_CENTS = 9
+const QUICK_TOPUP_CENTS = [150, 300, 600]
 
 export function CopilotLiveView({ completeHref, session, isLoading = false, transcriptBank = [], codingBank = [] }: CopilotLiveViewProps) {
   const [assistantMessages, setAssistantMessages] = useState<readonly AiAssistantMessage[]>([])
@@ -1699,7 +1700,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           </a>
           <div className="min-w-0 text-center">
             <p className="truncate text-sm font-semibold leading-5">{session.title}</p>
-            <p className="text-xs leading-4 text-white/70">{session.timer} · {activityLabel} · {formatUsd(spentCents)} so far</p>
+            <p className="text-xs leading-4 text-white/70">{session.timer} · {activityLabel} · {formatCredits(spentCents)} so far</p>
           </div>
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 backdrop-blur-sm" aria-hidden="true">
             <LiveSignal label={session.signalLabel} />
@@ -1710,7 +1711,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
 
         {lowBalance && !sessionPaused ? (
           <div role="status" className="fixed inset-x-4 top-20 z-20 flex items-center justify-between gap-3 rounded-lg bg-warning-surface px-4 py-2.5 text-sm text-warning shadow-panel">
-            <span>{formatUsd(balanceCents)} left</span>
+            <span>{formatCredits(balanceCents)} left</span>
             <button type="button" onClick={(event) => { event.stopPropagation(); setTopUpOpen(true) }} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
               Add funds
             </button>
@@ -1814,7 +1815,9 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
         <AddFundsDialog
           open={topUpOpen}
           onOpenChange={setTopUpOpen}
-          currentBalanceCents={balanceCents}
+          currentBalance={balanceCents}
+          quickAmounts={QUICK_TOPUP_CENTS}
+          formatAmount={formatCredits}
           onAddFunds={handleAddFunds}
           description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
         />
@@ -1842,7 +1845,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
           <span className="text-sm italic leading-5 text-ink-muted">{activityLabel}</span>
           <span className={cn('text-xs font-medium leading-5', lowBalance ? 'text-warning' : 'text-ink-muted')}>
-            {formatUsd(spentCents)} so far · ${(COPILOT_RATE_CENTS_PER_MIN / 100).toFixed(2)}/min
+            {formatCredits(spentCents)} so far · {formatCredits(COPILOT_RATE_CENTS_PER_MIN)}/min
           </span>
         </div>
         <button type="button" onClick={() => setShowSettings(true)} className="min-h-8 items-center gap-3 rounded-soft px-2 text-sm font-medium text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
@@ -1852,7 +1855,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
       </div>
       {lowBalance && !sessionPaused ? (
         <div role="status" className="flex shrink-0 items-center justify-between gap-3 border-b border-warning bg-warning-surface px-5 py-2 text-sm text-warning">
-          <span>Running low — {formatUsd(balanceCents)} left, about {Math.max(1, Math.round((balanceCents / COPILOT_RATE_CENTS_PER_MIN) * 60))}s at this rate.</span>
+          <span>Running low — {formatCredits(balanceCents)} left, about {Math.max(1, Math.round((balanceCents / COPILOT_RATE_CENTS_PER_MIN) * 60))}s at this rate.</span>
           <button type="button" onClick={() => setTopUpOpen(true)} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             Add funds
           </button>
@@ -1935,7 +1938,9 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
       <AddFundsDialog
         open={topUpOpen}
         onOpenChange={setTopUpOpen}
-        currentBalanceCents={balanceCents}
+        currentBalance={balanceCents}
+        quickAmounts={QUICK_TOPUP_CENTS}
+        formatAmount={formatCredits}
         onAddFunds={handleAddFunds}
         description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
       />

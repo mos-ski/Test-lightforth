@@ -1,17 +1,18 @@
 import { Gift } from 'lucide-react'
 
-import { cn, formatUsd, Tooltip, TooltipContent, TooltipTrigger } from '@/ui'
+import { cn, Tooltip, TooltipContent, TooltipTrigger } from '@/ui'
 
 export type CreditCardProps = {
   readonly remainingCents: number
   readonly totalCents: number
+  readonly formatAmount: (cents: number) => string
   readonly resetDate: string
   readonly bonusHref: string
   readonly detailsHref: string
   readonly className?: string
 }
 
-export function CreditCard({ remainingCents, totalCents, resetDate, bonusHref, detailsHref, className }: CreditCardProps) {
+export function CreditCard({ remainingCents, totalCents, formatAmount, resetDate, bonusHref, detailsHref, className }: CreditCardProps) {
   const percentage = totalCents > 0 ? Math.round((remainingCents / totalCents) * 100) : 0
 
   return (
@@ -32,7 +33,7 @@ export function CreditCard({ remainingCents, totalCents, resetDate, bonusHref, d
       <p className="text-sm text-ink-muted">Resets on {resetDate}</p>
 
       <p className="mt-5 text-3xl font-black">
-        {formatUsd(remainingCents)} <span className="text-base font-medium text-ink-muted">of {formatUsd(totalCents)} Left</span>
+        {formatAmount(remainingCents)} <span className="text-base font-medium text-ink-muted">of {formatAmount(totalCents)} Left</span>
       </p>
       <div className="mt-3 h-2 overflow-hidden rounded-pill bg-surface-subtle">
         <div className={cn('h-full rounded-pill transition-all', percentage > 20 ? 'bg-accent' : 'bg-danger')} style={{ inlineSize: `${percentage}%` }} />
