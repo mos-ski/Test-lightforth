@@ -283,7 +283,7 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
                 }
               : undefined
           }
-          footer={<FormPanelFooter backHref={uploadHref} nextHref={preferencesHref} nextLabel={mode === 'coding' ? 'Start Session' : undefined} />}
+          footer={<FormPanelFooter backHref={uploadHref} nextHref={preferencesHref} />}
         >
           {mode === 'interview' ? (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -412,7 +412,43 @@ export function CopilotConfigureView({ homeHref, uploadHref, preferencesHref, se
   )
 }
 
+const RESPONSE_MODE_EXAMPLES: Record<CopilotResponseMode, { readonly helperText: string; readonly example: ReactNode }> = {
+  default: {
+    helperText: 'Best for candidates who want a direct, no-frills answer',
+    example: (
+      <>
+        "I redesigned a <strong>vehicle maintenance app</strong> that had low engagement. Led a team to identify pain points,
+        improved UI, and introduced a personalized dashboard. <strong>Engagement increased by 30% in 3 months</strong>, and
+        customer satisfaction improved significantly."
+      </>
+    ),
+  },
+  headlines: {
+    helperText: 'Best for candidates who want the key points, not a full script',
+    example: (
+      <>
+        • <strong>Situation:</strong> vehicle maintenance app, low engagement
+        <br />• <strong>Action:</strong> led team, identified pain points, redesigned UI
+        <br />• <strong>Result:</strong> <strong>+30% engagement in 3 months</strong>
+      </>
+    ),
+  },
+  coaching: {
+    helperText: 'Best for candidates who want guidance on how to answer, not the answer itself',
+    example: (
+      <>
+        Lead with the outcome — mention the <strong>30% engagement lift</strong> first, then walk back through what you
+        changed. Keep the redesign details brief; the interviewer is listening for impact, not implementation.
+      </>
+    ),
+  },
+}
+
 export function CopilotPreferencesView({ homeHref, configureHref, shareHref, setup }: CopilotPreferencesViewProps) {
+  const [responseMode, setResponseMode] = useState(setup.responseMode)
+  const [responseLength, setResponseLength] = useState(setup.responseLength)
+  const activeExample = RESPONSE_MODE_EXAMPLES[responseMode]
+
   return (
     <Workspace>
       <CopilotHeader homeHref={homeHref} current={copilotModeMeta[setup.mode].label} />
@@ -430,11 +466,10 @@ export function CopilotPreferencesView({ homeHref, configureHref, shareHref, set
                 { label: 'Headlines', value: 'headlines' },
                 { label: 'Coaching', value: 'coaching' },
               ]}
-              selected={setup.responseMode}
+              selected={responseMode}
+              onSelectedChange={setResponseMode}
             />
-            <ExampleResponseCard helperText="Best for candidates who want a direct, no-frills answer">
-              "I redesigned a <strong>vehicle maintenance app</strong> that had low engagement. Led a team to identify pain points, improved UI, and introduced a personalized dashboard. <strong>Engagement increased by 30% in 3 months</strong>, and customer satisfaction improved significantly."
-            </ExampleResponseCard>
+            <ExampleResponseCard helperText={activeExample.helperText}>{activeExample.example}</ExampleResponseCard>
             <FormChoiceGroup<CopilotResponseLength>
               label="Select Response Length"
               name="copilot-response-length"
@@ -443,7 +478,8 @@ export function CopilotPreferencesView({ homeHref, configureHref, shareHref, set
                 { label: 'Medium', value: 'medium' },
                 { label: 'Long', value: 'long' },
               ]}
-              selected={setup.responseLength}
+              selected={responseLength}
+              onSelectedChange={setResponseLength}
             />
         </FormPanel>
       </section>
@@ -708,6 +744,7 @@ function CopilotLiveSettingsModal({
   responseMode,
   setResponseMode,
   sessionTitle,
+  mode,
 }: {
   readonly open: boolean
   readonly onOpenChange: (open: boolean) => void
@@ -722,6 +759,7 @@ function CopilotLiveSettingsModal({
   readonly responseMode: 'auto' | 'manual'
   readonly setResponseMode: (mode: 'auto' | 'manual') => void
   readonly sessionTitle: string
+  readonly mode: CopilotMode
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -839,10 +877,12 @@ function CopilotLiveSettingsModal({
                   <span className="text-sm text-slate-400">Role</span>
                   <span className="text-sm font-semibold">{sessionTitle}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-400">Resume</span>
-                  <span className="text-sm font-semibold">Lightforth Resume</span>
-                </div>
+                {mode === 'interview' ? (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-400">Resume</span>
+                    <span className="text-sm font-semibold">Lightforth Resume</span>
+                  </div>
+                ) : null}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-400">Skip setup</span>
                   <button
@@ -1028,8 +1068,15 @@ function RubricTable<TStatus extends string>({
   )
 }
 
+const COPILOT_REPORT_LABELS: Record<CopilotMode, { readonly detailsTab: string; readonly suggestedHeading: string }> = {
+  interview: { detailsTab: 'Interview Details', suggestedHeading: 'Suggested Questions for Future Sessions' },
+  coding: { detailsTab: 'Code Review', suggestedHeading: 'Practice Suggestions' },
+  meeting: { detailsTab: 'Meeting Notes', suggestedHeading: 'Suggested Follow-ups' },
+}
+
 export function CopilotReportView({ homeHref, historyHref, report, mode }: CopilotReportViewProps) {
   const [rubricSort, setRubricSort] = useState<RubricSort | null>(null)
+  const reportLabels = COPILOT_REPORT_LABELS[mode]
   const sortedRubric = rubricSort
     ? [...report.rubric].sort((a, b) => {
         const cmp = String(a[rubricSort.column]).localeCompare(String(b[rubricSort.column]))
@@ -1058,7 +1105,7 @@ export function CopilotReportView({ homeHref, historyHref, report, mode }: Copil
               <Tabs defaultValue="summary">
                 <TabsList>
                   <TabsTrigger value="summary">Summary</TabsTrigger>
-                  <TabsTrigger value="details">Interview Details</TabsTrigger>
+                  <TabsTrigger value="details">{reportLabels.detailsTab}</TabsTrigger>
                   <TabsTrigger value="call">Call details</TabsTrigger>
                 </TabsList>
 
@@ -1077,7 +1124,7 @@ export function CopilotReportView({ homeHref, historyHref, report, mode }: Copil
                     <CopilotScorecardSection title="What Went Well" items={report.whatWentWell} />
                     <CopilotScorecardSection title="What Needs Work" items={report.whatNeedsWork} divider />
                     <CopilotScorecardSection title="Knowledge Gaps" items={report.knowledgeGaps} divider />
-                    <CopilotScorecardSection title="Suggested Questions for Future Sessions" items={report.suggestedQuestions} divider />
+                    <CopilotScorecardSection title={reportLabels.suggestedHeading} items={report.suggestedQuestions} divider />
                   </div>
                 </TabsContent>
 
@@ -1147,10 +1194,35 @@ function copilotResponseFor(prompt: string): string {
   )
 }
 
-function TranscriptBubble({ speaker, text, kind, fontSize }: { readonly speaker: string; readonly text: string; readonly kind: 'speaker' | 'ai'; readonly fontSize: number }) {
+const SPEAKER_ACCENTS = ['text-accent', 'text-positive', 'text-warning', 'text-danger'] as const
+const SPEAKER_DOT_ACCENTS = ['bg-accent', 'bg-positive', 'bg-warning', 'bg-danger'] as const
+
+function speakerAccentIndex(speaker: string): number {
+  let hash = 0
+  for (let i = 0; i < speaker.length; i++) hash = (hash * 31 + speaker.charCodeAt(i)) >>> 0
+  return hash % SPEAKER_ACCENTS.length
+}
+
+function TranscriptBubble({
+  speaker,
+  text,
+  kind,
+  fontSize,
+  multiSpeaker = false,
+}: {
+  readonly speaker: string
+  readonly text: string
+  readonly kind: 'speaker' | 'ai'
+  readonly fontSize: number
+  readonly multiSpeaker?: boolean
+}) {
+  const accentIndex = multiSpeaker && kind === 'speaker' ? speakerAccentIndex(speaker) : null
   return (
     <div className={cn('rounded-lg p-3', kind === 'ai' ? 'bg-accent-subtle/60' : 'bg-[var(--lf-live-message)]')}>
-      <p className="mb-1.5 truncate text-[11px] font-bold uppercase tracking-wide text-ink-muted">{speaker}</p>
+      <p className={cn('mb-1.5 flex items-center gap-1.5 truncate text-[11px] font-bold uppercase tracking-wide', accentIndex === null ? 'text-ink-muted' : SPEAKER_ACCENTS[accentIndex])}>
+        {accentIndex !== null ? <span aria-hidden="true" className={cn('size-1.5 shrink-0 rounded-full', SPEAKER_DOT_ACCENTS[accentIndex])} /> : null}
+        {speaker}
+      </p>
       <p className="whitespace-pre-wrap break-words text-brand-bar-text" style={{ fontSize: `${fontSize}px` }}>{text}</p>
     </div>
   )
@@ -1177,12 +1249,14 @@ function CopilotTranscriptPanel({
   fontSize,
   onActivityChange,
   manualHint = 'Press Space to start the simulation…',
+  multiSpeaker = false,
 }: {
   readonly bank: readonly CopilotTranscriptTurn[]
   readonly responseMode: 'auto' | 'manual'
   readonly fontSize: number
   readonly onActivityChange: (label: string) => void
   readonly manualHint?: string
+  readonly multiSpeaker?: boolean
 }) {
   const [started, setStarted] = useState(false)
   const [status, setStatus] = useState<ConversationalStatus>('listening')
@@ -1300,12 +1374,15 @@ function CopilotTranscriptPanel({
     <div ref={panelRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
       {history.map((turn, index) => (
         <div key={index} className="space-y-3">
-          <TranscriptBubble speaker={turn.speaker} text={`${questionTextFor(turn)}${turn.interjection ? '…' : ''}`} kind="speaker" fontSize={fontSize} />
+          <TranscriptBubble speaker={turn.speaker} text={`${questionTextFor(turn)}${turn.interjection ? '…' : ''}`} kind="speaker" fontSize={fontSize} multiSpeaker={multiSpeaker} />
           {turn.interjection ? (
             <div className="ms-4 flex items-start gap-1.5 border-s-2 border-[var(--lf-live-control-border)] ps-3">
               <ChevronRight aria-hidden="true" className="mt-0.5 size-3 shrink-0 text-ink-muted" />
               <p className="text-xs leading-relaxed text-ink-muted">
-                <span className="font-semibold text-brand-bar-text">{turn.interjection.speaker}</span> {turn.interjection.text}
+                <span className={cn('font-semibold', multiSpeaker ? SPEAKER_ACCENTS[speakerAccentIndex(turn.interjection.speaker)] : 'text-brand-bar-text')}>
+                  {turn.interjection.speaker}
+                </span>{' '}
+                {turn.interjection.text}
               </p>
             </div>
           ) : null}
@@ -1321,13 +1398,17 @@ function CopilotTranscriptPanel({
               text={`${qDisplayed}${questionComplete && currentTurn.interjection ? '…' : !questionComplete ? '|' : ''}`}
               kind="speaker"
               fontSize={fontSize}
+              multiSpeaker={multiSpeaker}
             />
           ) : null}
           {interjectionDisplayed && currentTurn.interjection ? (
             <div className="ms-4 flex items-start gap-1.5 border-s-2 border-[var(--lf-live-control-border)] ps-3">
               <ChevronRight aria-hidden="true" className="mt-0.5 size-3 shrink-0 text-ink-muted" />
               <p className="text-xs leading-relaxed text-ink-muted">
-                <span className="font-semibold text-brand-bar-text">{currentTurn.interjection.speaker}</span> {interjectionDisplayed}
+                <span className={cn('font-semibold', multiSpeaker ? SPEAKER_ACCENTS[speakerAccentIndex(currentTurn.interjection.speaker)] : 'text-brand-bar-text')}>
+                  {currentTurn.interjection.speaker}
+                </span>{' '}
+                {interjectionDisplayed}
                 {status === 'listening' && interjectionDisplayed.length < currentTurn.interjection.text.length ? (
                   <span className="animate-pulse">|</span>
                 ) : null}
@@ -1556,7 +1637,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
             {session.mode === 'coding' ? (
               <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} manualHint="Tap anywhere to capture your first question…" />
             ) : (
-              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} manualHint="Tap anywhere to start the simulation…" />
+              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} manualHint="Tap anywhere to start the simulation…" multiSpeaker={session.mode === 'meeting'} />
             )}
           </div>
           {responseMode === 'manual' ? (
@@ -1663,6 +1744,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           responseMode={responseMode}
           setResponseMode={setResponseMode}
           sessionTitle={session.title}
+          mode={session.mode}
         />
       </main>
     )
@@ -1705,7 +1787,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
             {session.mode === 'coding' ? (
               <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} />
             ) : (
-              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} />
+              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} multiSpeaker={session.mode === 'meeting'} />
             )}
           </div>
         </article>
@@ -1714,7 +1796,9 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           {session.mode !== 'coding' ? (
             <>
               <section className="overflow-hidden rounded-panel bg-[var(--lf-live-panel)]">
-                <h2 className="bg-[var(--lf-live-panel-header)] px-5 py-[13px] text-[18.67px] font-medium leading-[37px]">Your Interview</h2>
+                <h2 className="bg-[var(--lf-live-panel-header)] px-5 py-[13px] text-[18.67px] font-medium leading-[37px]">
+                  {session.mode === 'meeting' ? 'Your Meeting' : 'Your Interview'}
+                </h2>
                 <img src={session.screenPreviewSrc} alt="" className="h-[22.666rem] w-full rounded-b-lg object-cover" />
               </section>
               <div className="hidden h-1.5 bg-[var(--lf-live-divider)] xl:block" />
@@ -1755,6 +1839,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
         responseMode={responseMode}
         setResponseMode={setResponseMode}
         sessionTitle={session.title}
+        mode={session.mode}
       />
     </main>
   )

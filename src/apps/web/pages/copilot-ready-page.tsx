@@ -6,6 +6,12 @@ import { copilotReadySteps } from '@/mocks/copilot'
 
 const VALID_MODES: readonly CopilotMode[] = ['interview', 'coding', 'meeting']
 
+const START_LABEL: Record<CopilotMode, string> = {
+  interview: 'Start Interview',
+  coding: 'Start Coding Session',
+  meeting: 'Join Meeting',
+}
+
 export function CopilotReadyPage() {
   const [searchParams] = useSearchParams()
   const requestedMode = searchParams.get('mode')
@@ -18,7 +24,7 @@ export function CopilotReadyPage() {
       nextHref="/v3/interview-copilot/session"
       steps={copilotReadySteps}
       previewSrc="/v3-assets/copilot-screen-preview.png"
-      actionLabel="Start Interview"
+      actionLabel={START_LABEL[mode]}
       mode={mode}
     />
   )

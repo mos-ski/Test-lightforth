@@ -422,10 +422,11 @@ export type FormChoiceGroupProps<TValue extends string = string> = {
   readonly name: string
   readonly options: readonly FormChoiceOption<TValue>[]
   readonly selected: TValue
+  readonly onSelectedChange?: (value: TValue) => void
   readonly className?: string
 }
 
-export function FormChoiceGroup<TValue extends string = string>({ label, name, options, selected, className }: FormChoiceGroupProps<TValue>) {
+export function FormChoiceGroup<TValue extends string = string>({ label, name, options, selected, onSelectedChange, className }: FormChoiceGroupProps<TValue>) {
   return (
     <section data-slot="form-choice-group" className={cn('grid gap-2.5', className)}>
       <h2 className="text-xs font-semibold leading-5 text-ink-muted">{label}</h2>
@@ -440,7 +441,14 @@ export function FormChoiceGroup<TValue extends string = string>({ label, name, o
               option.value === selected ? 'border-accent bg-accent-subtle text-accent shadow-control' : 'border-input bg-surface text-ink-muted hover:border-border hover:text-ink',
             )}
           >
-            <input type="radio" name={name} value={option.value} className="sr-only" defaultChecked={option.value === selected} />
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              className="sr-only"
+              checked={option.value === selected}
+              onChange={() => onSelectedChange?.(option.value)}
+            />
             <span className={cn('grid size-4 place-items-center rounded-full border', option.value === selected ? 'border-accent bg-surface' : 'border-input bg-surface')}>
               {option.value === selected ? <span className="size-2 rounded-full bg-accent" /> : null}
             </span>

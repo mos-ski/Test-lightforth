@@ -14,13 +14,15 @@ export function CopilotConfigurePage() {
 
   const setup = { ...copilotSetup, mode }
 
+  // Coding and Meeting modes don't collect a resume, so there's no Upload step to go back to.
   const skipUpload = mode === 'coding' || mode === 'meeting'
+  const modeQuery = mode === 'interview' ? '' : `?mode=${mode}`
 
   return (
     <CopilotConfigureView
       homeHref="/v3/app"
       uploadHref={skipUpload ? '/v3/app' : '/v3/interview-copilot'}
-      preferencesHref={skipUpload ? '/v3/interview-copilot/session' : '/v3/interview-copilot/preferences'}
+      preferencesHref={`/v3/interview-copilot/preferences${modeQuery}`}
       setup={setup}
       knowledgeBaseDocuments={contextDocumentRows}
     />

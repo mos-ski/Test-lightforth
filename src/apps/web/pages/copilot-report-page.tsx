@@ -2,9 +2,15 @@ import { useSearchParams } from 'react-router-dom'
 
 import type { CopilotMode } from '@/contracts/copilot.draft'
 import { CopilotReportView } from '@/features/copilot/interview-copilot-view'
-import { copilotReport } from '@/mocks/copilot'
+import { copilotCodingReport, copilotMeetingReport, copilotReport } from '@/mocks/copilot'
 
 const VALID_MODES: readonly CopilotMode[] = ['interview', 'coding', 'meeting']
+
+const REPORT_BY_MODE = {
+  interview: copilotReport,
+  coding: copilotCodingReport,
+  meeting: copilotMeetingReport,
+}
 
 export function CopilotReportPage() {
   const [searchParams] = useSearchParams()
@@ -15,7 +21,7 @@ export function CopilotReportPage() {
     <CopilotReportView
       homeHref="/v3/app"
       historyHref="/v3/interview-copilot/history"
-      report={copilotReport}
+      report={REPORT_BY_MODE[mode]}
       mode={mode}
     />
   )
