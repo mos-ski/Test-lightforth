@@ -29,7 +29,7 @@ import type {
 } from '@/contracts/interview.draft'
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
-import { AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger, UploadedFileDialog } from '@/ui'
+import { AddFundsDialog, AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, formatUsd, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger, UploadedFileDialog } from '@/ui'
 import { useCameraStream } from '@/hooks/useCameraStream'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
 import { useTypewriter } from '@/hooks/useTypewriter'
@@ -772,6 +772,9 @@ function InterviewLiveSettingsModal({
   )
 }
 
+const SESSION_RATE_CENTS_PER_MIN = 12
+const SESSION_START_BALANCE_CENTS = 8
+
 export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {
   const [phase, setPhase] = useState<LiveSessionPhase>('ready')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -785,11 +788,36 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
   const [isMuted, setIsMuted] = useState(false)
   const [videoEnabled, setVideoEnabled] = useState(true)
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
+  const [spentCents, setSpentCents] = useState(0)
+  const [balanceCents, setBalanceCents] = useState(SESSION_START_BALANCE_CENTS)
+  const [sessionPaused, setSessionPaused] = useState(false)
+  const [topUpOpen, setTopUpOpen] = useState(false)
   const chatRef = useRef<HTMLDivElement>(null)
   const phaseRef = useRef(phase)
   const questionIndexRef = useRef(questionIndex)
+  const pausedRef = useRef(sessionPaused)
   phaseRef.current = phase
   questionIndexRef.current = questionIndex
+  pausedRef.current = sessionPaused
+
+  useEffect(() => {
+    if (phase === 'ready' || sessionPaused) return
+    const id = window.setInterval(() => {
+      const perTickCents = SESSION_RATE_CENTS_PER_MIN / 60
+      setBalanceCents((prev) => {
+        const next = Math.max(0, prev - perTickCents)
+        if (next <= 0 && prev > 0) {
+          setSessionPaused(true)
+          setTopUpOpen(true)
+        }
+        return next
+      })
+      setSpentCents((prev) => prev + perTickCents)
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [phase, sessionPaused])
+
+  const lowBalance = balanceCents > 0 && balanceCents <= SESSION_START_BALANCE_CENTS * 0.2
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1279px)')
@@ -803,6 +831,11 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
     const el = chatRef.current
     if (el) el.scrollTop = el.scrollHeight
   }, [transcript, phase, autoScroll])
+
+  function handleAddFunds(amountCents: number) {
+    setBalanceCents((prev) => prev + amountCents)
+    setSessionPaused(false)
+  }
 
   function speakQuestion(text: string) {
     if (typeof window === 'undefined' || !window.speechSynthesis) {
@@ -824,6 +857,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
   }
 
   function advanceSession() {
+    if (pausedRef.current) return
     const currentPhase = phaseRef.current
     const currentIndex = questionIndexRef.current
     const questions = session.questions
@@ -928,7 +962,10 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           </a>
           <div className="min-w-0 text-center">
             <p className="truncate text-sm font-semibold leading-5">{session.title}</p>
-            <p className="text-xs leading-4 text-white/70">{session.timer} · {session.interviewer.label}</p>
+            <p className="text-xs leading-4 text-white/70">
+              {session.timer} · {session.interviewer.label}
+              {phase !== 'ready' ? ` · ${formatUsd(spentCents)} so far` : ''}
+            </p>
           </div>
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 backdrop-blur-sm" aria-hidden="true">
             <SignalStrength label={session.signalLabel} />
@@ -936,6 +973,23 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
         </div>
 
         <DraggableCandidatePiP name={session.candidate.name} imageSrc={session.candidate.imageSrc} videoEnabled={videoEnabled} />
+
+        {lowBalance && !sessionPaused ? (
+          <div role="status" className="fixed inset-x-4 top-20 z-20 flex items-center justify-between gap-3 rounded-lg bg-warning-surface px-4 py-2.5 text-sm text-warning shadow-panel">
+            <span>{formatUsd(balanceCents)} left</span>
+            <button type="button" onClick={(event) => { event.stopPropagation(); setTopUpOpen(true) }} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              Add funds
+            </button>
+          </div>
+        ) : null}
+        {sessionPaused ? (
+          <div role="status" className="fixed inset-x-4 top-20 z-20 flex items-center justify-between gap-3 rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-on-danger shadow-panel">
+            <span>Session paused</span>
+            <button type="button" onClick={(event) => { event.stopPropagation(); setTopUpOpen(true) }} className="shrink-0 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              Add funds
+            </button>
+          </div>
+        ) : null}
 
         <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-center gap-4 bg-gradient-to-t from-black/25 to-transparent px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-10">
           <button
@@ -998,6 +1052,13 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           setFontSize={setFontSize}
           sessionTitle={session.title}
         />
+        <AddFundsDialog
+          open={topUpOpen}
+          onOpenChange={setTopUpOpen}
+          currentBalanceCents={balanceCents}
+          onAddFunds={handleAddFunds}
+          description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
+        />
       </main>
     )
   }
@@ -1023,12 +1084,33 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
           <SignalStrength label={session.signalLabel} />
           <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
           <span className="text-sm italic leading-5 text-ink-muted">{session.activityLabel}</span>
+          {phase !== 'ready' ? (
+            <span className={cn('text-xs font-medium leading-5', lowBalance ? 'text-warning' : 'text-ink-muted')}>
+              {formatUsd(spentCents)} so far · ${(SESSION_RATE_CENTS_PER_MIN / 100).toFixed(2)}/min
+            </span>
+          ) : null}
         </div>
         <button type="button" onClick={() => setShowSettings(true)} className="min-h-8 items-center gap-3 rounded-soft px-2 text-sm font-medium text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
           <Settings aria-hidden="true" className="size-4" />
           Settings
         </button>
       </div>
+      {lowBalance && !sessionPaused ? (
+        <div role="status" className="flex shrink-0 items-center justify-between gap-3 border-b border-warning bg-warning-surface px-5 py-2 text-sm text-warning">
+          <span>Running low — {formatUsd(balanceCents)} left, about {Math.max(1, Math.round((balanceCents / SESSION_RATE_CENTS_PER_MIN) * 60))}s at this rate.</span>
+          <button type="button" onClick={() => setTopUpOpen(true)} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            Add funds
+          </button>
+        </div>
+      ) : null}
+      {sessionPaused ? (
+        <div role="status" className="flex shrink-0 items-center justify-between gap-3 border-b border-danger bg-danger px-5 py-2 text-sm font-semibold text-on-danger">
+          <span>Session paused — you&apos;re out of balance.</span>
+          <button type="button" onClick={() => setTopUpOpen(true)} className="shrink-0 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            Add funds to continue
+          </button>
+        </div>
+      ) : null}
       <section className="flex min-h-0 flex-1 flex-col gap-3 p-3 xl:flex-row">
         <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
           <div className="flex shrink-0 items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
@@ -1094,6 +1176,13 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
         fontSize={fontSize}
         setFontSize={setFontSize}
         sessionTitle={session.title}
+      />
+      <AddFundsDialog
+        open={topUpOpen}
+        onOpenChange={setTopUpOpen}
+        currentBalanceCents={balanceCents}
+        onAddFunds={handleAddFunds}
+        description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
       />
     </main>
   )

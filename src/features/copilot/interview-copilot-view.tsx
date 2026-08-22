@@ -19,6 +19,7 @@ import type {
   CopilotTranscriptTurn,
 } from '@/contracts/copilot.draft'
 import {
+  AddFundsDialog,
   AiSuggestionAction,
   Avatar,
   Badge,
@@ -34,6 +35,7 @@ import {
   ExampleResponseCard,
   FormChoiceGroup,
   FormField,
+  formatUsd,
   FormPanel,
   FormPanelFooter,
   FormSelectField,
@@ -1251,6 +1253,7 @@ function CopilotTranscriptPanel({
   onActivityChange,
   manualHint = 'Press Space to start the simulation…',
   multiSpeaker = false,
+  paused = false,
 }: {
   readonly bank: readonly CopilotTranscriptTurn[]
   readonly responseMode: 'auto' | 'manual'
@@ -1258,6 +1261,7 @@ function CopilotTranscriptPanel({
   readonly onActivityChange: (label: string) => void
   readonly manualHint?: string
   readonly multiSpeaker?: boolean
+  readonly paused?: boolean
 }) {
   const [started, setStarted] = useState(false)
   const [status, setStatus] = useState<ConversationalStatus>('listening')
@@ -1270,6 +1274,7 @@ function CopilotTranscriptPanel({
   const statusRef = useRef(status)
   const turnIndexRef = useRef(turnIndex)
   const startedRef = useRef(started)
+  const pausedRef = useRef(paused)
 
   useEffect(() => {
     statusRef.current = status
@@ -1281,10 +1286,14 @@ function CopilotTranscriptPanel({
     startedRef.current = started
   }, [started])
   useEffect(() => {
+    pausedRef.current = paused
+  }, [paused])
+  useEffect(() => {
     onActivityChange(started ? conversationalStatusLabel[status] : 'Idle...')
   }, [status, started, onActivityChange])
 
   const advance = () => {
+    if (pausedRef.current) return
     if (!startedRef.current) {
       setStarted(true)
       return
@@ -1312,12 +1321,12 @@ function CopilotTranscriptPanel({
   }, [responseMode, bank])
 
   useEffect(() => {
-    if (responseMode !== 'auto') return
+    if (responseMode !== 'auto' || paused) return
     const delay = status === 'listening' ? 1800 : status === 'processing' ? 1200 : 1800
     const id = setTimeout(advance, delay)
     return () => clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [responseMode, status, turnIndex])
+  }, [responseMode, status, turnIndex, paused])
 
   useEffect(() => {
     if (!started || status !== 'listening') return
@@ -1456,12 +1465,14 @@ function CopilotCodingPanel({
   fontSize,
   onActivityChange,
   manualHint = 'Press Space to capture your first question…',
+  paused = false,
 }: {
   readonly bank: readonly CopilotCodingTurn[]
   readonly responseMode: 'auto' | 'manual'
   readonly fontSize: number
   readonly onActivityChange: (label: string) => void
   readonly manualHint?: string
+  readonly paused?: boolean
 }) {
   const [status, setStatus] = useState<CodingStatus>('idle')
   const [index, setIndex] = useState(0)
@@ -1470,6 +1481,7 @@ function CopilotCodingPanel({
   const panelRef = useRef<HTMLDivElement>(null)
   const statusRef = useRef(status)
   const indexRef = useRef(index)
+  const pausedRef = useRef(paused)
 
   useEffect(() => {
     statusRef.current = status
@@ -1478,10 +1490,14 @@ function CopilotCodingPanel({
     indexRef.current = index
   }, [index])
   useEffect(() => {
+    pausedRef.current = paused
+  }, [paused])
+  useEffect(() => {
     onActivityChange(codingStatusLabel[status])
   }, [status, onActivityChange])
 
   const capture = () => {
+    if (pausedRef.current) return
     if (statusRef.current === 'idle') setStatus('capturing')
     else if (statusRef.current === 'answered') {
       setHistory((h) => [...h, bank[indexRef.current]])
@@ -1516,12 +1532,12 @@ function CopilotCodingPanel({
   }, [status])
 
   useEffect(() => {
-    if (responseMode !== 'auto') return
+    if (responseMode !== 'auto' || (paused && status === 'idle')) return
     const delay = status === 'capturing' ? 600 : status === 'analyzing' ? 900 : 2200
     const id = setTimeout(capture, delay)
     return () => clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [responseMode, status, index])
+  }, [responseMode, status, index, paused])
 
   useEffect(() => {
     const el = panelRef.current
@@ -1581,6 +1597,9 @@ function CopilotCodingPanel({
   )
 }
 
+const COPILOT_RATE_CENTS_PER_MIN = 20
+const COPILOT_START_BALANCE_CENTS = 8
+
 export function CopilotLiveView({ completeHref, session, isLoading = false, transcriptBank = [], codingBank = [] }: CopilotLiveViewProps) {
   const [assistantMessages, setAssistantMessages] = useState<readonly AiAssistantMessage[]>([])
   const [draft, setDraft] = useState('')
@@ -1600,6 +1619,10 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
   const [showChat, setShowChat] = useState(false)
   const [videoEnabled, setVideoEnabled] = useState(true)
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
+  const [spentCents, setSpentCents] = useState(0)
+  const [balanceCents, setBalanceCents] = useState(COPILOT_START_BALANCE_CENTS)
+  const [sessionPaused, setSessionPaused] = useState(false)
+  const [topUpOpen, setTopUpOpen] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1279px)')
@@ -1607,6 +1630,30 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
   }, [])
+
+  useEffect(() => {
+    if (isLoading || sessionPaused) return
+    const id = window.setInterval(() => {
+      const perTickCents = COPILOT_RATE_CENTS_PER_MIN / 60
+      setBalanceCents((prev) => {
+        const next = Math.max(0, prev - perTickCents)
+        if (next <= 0 && prev > 0) {
+          setSessionPaused(true)
+          setTopUpOpen(true)
+        }
+        return next
+      })
+      setSpentCents((prev) => prev + perTickCents)
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [isLoading, sessionPaused])
+
+  const lowBalance = balanceCents > 0 && balanceCents <= COPILOT_START_BALANCE_CENTS * 0.2
+
+  function handleAddFunds(amountCents: number) {
+    setBalanceCents((prev) => prev + amountCents)
+    setSessionPaused(false)
+  }
 
   if (isLoading) {
     return <CopilotLiveLoadingView />
@@ -1636,9 +1683,9 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
         >
           <div className="min-h-0 flex-1 overflow-y-auto">
             {session.mode === 'coding' ? (
-              <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} manualHint="Tap anywhere to capture your first question…" />
+              <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} manualHint="Tap anywhere to capture your first question…" paused={sessionPaused} />
             ) : (
-              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} manualHint="Tap anywhere to start the simulation…" multiSpeaker={session.mode === 'meeting'} />
+              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} manualHint="Tap anywhere to start the simulation…" multiSpeaker={session.mode === 'meeting'} paused={sessionPaused} />
             )}
           </div>
           {responseMode === 'manual' ? (
@@ -1652,7 +1699,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           </a>
           <div className="min-w-0 text-center">
             <p className="truncate text-sm font-semibold leading-5">{session.title}</p>
-            <p className="text-xs leading-4 text-white/70">{session.timer} · {activityLabel}</p>
+            <p className="text-xs leading-4 text-white/70">{session.timer} · {activityLabel} · {formatUsd(spentCents)} so far</p>
           </div>
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-black/30 backdrop-blur-sm" aria-hidden="true">
             <LiveSignal label={session.signalLabel} />
@@ -1660,6 +1707,23 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
         </div>
 
         {session.mode === 'interview' ? <DraggableAvatar name="You" videoEnabled={videoEnabled} /> : null}
+
+        {lowBalance && !sessionPaused ? (
+          <div role="status" className="fixed inset-x-4 top-20 z-20 flex items-center justify-between gap-3 rounded-lg bg-warning-surface px-4 py-2.5 text-sm text-warning shadow-panel">
+            <span>{formatUsd(balanceCents)} left</span>
+            <button type="button" onClick={(event) => { event.stopPropagation(); setTopUpOpen(true) }} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              Add funds
+            </button>
+          </div>
+        ) : null}
+        {sessionPaused ? (
+          <div role="status" className="fixed inset-x-4 top-20 z-20 flex items-center justify-between gap-3 rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-on-danger shadow-panel">
+            <span>Session paused</span>
+            <button type="button" onClick={(event) => { event.stopPropagation(); setTopUpOpen(true) }} className="shrink-0 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              Add funds
+            </button>
+          </div>
+        ) : null}
 
         <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-center gap-4 bg-gradient-to-t from-black/80 to-transparent px-6 pb-[max(1.75rem,env(safe-area-inset-bottom))] pt-10">
           <button
@@ -1747,6 +1811,13 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           sessionTitle={session.title}
           mode={session.mode}
         />
+        <AddFundsDialog
+          open={topUpOpen}
+          onOpenChange={setTopUpOpen}
+          currentBalanceCents={balanceCents}
+          onAddFunds={handleAddFunds}
+          description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
+        />
       </main>
     )
   }
@@ -1770,12 +1841,31 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           <LiveSignal label={session.signalLabel} />
           <span className="text-sm font-medium leading-5 text-positive">{session.signalLabel}</span>
           <span className="text-sm italic leading-5 text-ink-muted">{activityLabel}</span>
+          <span className={cn('text-xs font-medium leading-5', lowBalance ? 'text-warning' : 'text-ink-muted')}>
+            {formatUsd(spentCents)} so far · ${(COPILOT_RATE_CENTS_PER_MIN / 100).toFixed(2)}/min
+          </span>
         </div>
         <button type="button" onClick={() => setShowSettings(true)} className="min-h-8 items-center gap-3 rounded-soft px-2 text-sm font-medium text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex">
           <Settings aria-hidden="true" className="size-4" />
           Settings
         </button>
       </div>
+      {lowBalance && !sessionPaused ? (
+        <div role="status" className="flex shrink-0 items-center justify-between gap-3 border-b border-warning bg-warning-surface px-5 py-2 text-sm text-warning">
+          <span>Running low — {formatUsd(balanceCents)} left, about {Math.max(1, Math.round((balanceCents / COPILOT_RATE_CENTS_PER_MIN) * 60))}s at this rate.</span>
+          <button type="button" onClick={() => setTopUpOpen(true)} className="shrink-0 font-semibold underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            Add funds
+          </button>
+        </div>
+      ) : null}
+      {sessionPaused ? (
+        <div role="status" className="flex shrink-0 items-center justify-between gap-3 border-b border-danger bg-danger px-5 py-2 text-sm font-semibold text-on-danger">
+          <span>Session paused — you&apos;re out of balance.</span>
+          <button type="button" onClick={() => setTopUpOpen(true)} className="shrink-0 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            Add funds to continue
+          </button>
+        </div>
+      ) : null}
       <section className="grid gap-3 overflow-hidden p-3 xl:h-[calc(100vh-6.0625rem)] xl:grid-cols-[minmax(0,1fr)_6px_28.5rem]">
         <article className="min-h-[38rem] overflow-hidden rounded-panel border border-[var(--lf-live-border)] bg-[var(--lf-live-panel)]">
           <div className="flex min-h-[57px] items-center justify-between border-b border-[var(--lf-live-border)] px-4 py-3">
@@ -1786,9 +1876,9 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           </div>
           <div className="flex min-h-[32rem] flex-col xl:h-[calc(100vh-12.4375rem)]">
             {session.mode === 'coding' ? (
-              <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} />
+              <CopilotCodingPanel bank={codingBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} paused={sessionPaused} />
             ) : (
-              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} multiSpeaker={session.mode === 'meeting'} />
+              <CopilotTranscriptPanel bank={transcriptBank} responseMode={responseMode} fontSize={fontSize} onActivityChange={setActivityLabel} multiSpeaker={session.mode === 'meeting'} paused={sessionPaused} />
             )}
           </div>
         </article>
@@ -1841,6 +1931,13 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
         setResponseMode={setResponseMode}
         sessionTitle={session.title}
         mode={session.mode}
+      />
+      <AddFundsDialog
+        open={topUpOpen}
+        onOpenChange={setTopUpOpen}
+        currentBalanceCents={balanceCents}
+        onAddFunds={handleAddFunds}
+        description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
       />
     </main>
   )
