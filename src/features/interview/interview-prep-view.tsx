@@ -29,7 +29,7 @@ import type {
 } from '@/contracts/interview.draft'
 import type { ContextDocumentRow } from '@/contracts/documents.draft'
 import type { ResumeHistoryRow } from '@/contracts/resume.draft'
-import { formatCreditsWithUsd } from '@/lib/credits'
+import { centsToCredits, creditsToCents, formatCreditAmountWithUsd } from '@/lib/credits'
 import { AddFundsDialog, AiSuggestionAction, Avatar, Badge, Button, Checkbox, cn, DataTable, Dialog, DialogClose, DialogPopup, DialogTitle, DocumentDropAction, FormField, FormPanel, FormPanelFooter, FormSelectField, FormTextArea, LightforthAiIcon, ListPickerDialog, ShellBar, SourcePicker, Tabs, TabsContent, TabsList, TabsTrigger, UploadedFileDialog } from '@/ui'
 import { useCameraStream } from '@/hooks/useCameraStream'
 import { clearDefaultResumePreference, getDefaultResumePreference, setDefaultResumePreference } from '@/lib/resume-preference'
@@ -775,7 +775,7 @@ function InterviewLiveSettingsModal({
 
 const SESSION_RATE_CENTS_PER_MIN = 12
 const SESSION_START_BALANCE_CENTS = 9
-const QUICK_TOPUP_CENTS = [150, 300, 600]
+const QUICK_TOPUP_CREDITS = [25, 50, 100]
 
 export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {
   const [phase, setPhase] = useState<LiveSessionPhase>('ready')
@@ -832,8 +832,8 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
     if (el) el.scrollTop = el.scrollHeight
   }, [transcript, phase, autoScroll])
 
-  function handleAddFunds(amountCents: number) {
-    setBalanceCents((prev) => prev + amountCents)
+  function handleAddFunds(amountCredits: number) {
+    setBalanceCents((prev) => prev + creditsToCents(amountCredits))
     setSessionPaused(false)
   }
 
@@ -1054,9 +1054,9 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
         <AddFundsDialog
           open={topUpOpen}
           onOpenChange={setTopUpOpen}
-          currentBalance={balanceCents}
-          quickAmounts={QUICK_TOPUP_CENTS}
-          formatAmount={formatCreditsWithUsd}
+          currentBalance={Math.ceil(centsToCredits(balanceCents))}
+          quickAmounts={QUICK_TOPUP_CREDITS}
+          formatAmount={formatCreditAmountWithUsd}
           onAddFunds={handleAddFunds}
           description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
         />
@@ -1176,9 +1176,9 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
       <AddFundsDialog
         open={topUpOpen}
         onOpenChange={setTopUpOpen}
-        currentBalance={balanceCents}
-        quickAmounts={QUICK_TOPUP_CENTS}
-        formatAmount={formatCreditsWithUsd}
+        currentBalance={Math.ceil(centsToCredits(balanceCents))}
+        quickAmounts={QUICK_TOPUP_CREDITS}
+        formatAmount={formatCreditAmountWithUsd}
         onAddFunds={handleAddFunds}
         description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
       />

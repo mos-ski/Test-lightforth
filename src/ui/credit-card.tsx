@@ -33,11 +33,12 @@ export function CreditCard({ remainingCents, totalCents, formatAmount, resetDate
       <p className="text-sm text-ink-muted">Resets on {resetDate}</p>
 
       <p className="mt-5 text-3xl font-black">
-        {formatAmount(remainingCents)} <span className="text-base font-medium text-ink-muted">of {formatAmount(totalCents)} Left</span>
+        {percentage}% <span className="text-base font-medium text-ink-muted">remaining</span>
       </p>
       <div className="mt-3 h-2 overflow-hidden rounded-pill bg-surface-subtle">
         <div className={cn('h-full rounded-pill transition-all', percentage > 20 ? 'bg-accent' : 'bg-danger')} style={{ inlineSize: `${percentage}%` }} />
       </div>
+      <p className="mt-2 text-sm text-ink-muted">{formatAmount(remainingCents)} of {formatAmount(totalCents)}</p>
 
       <a href={bonusHref} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
         <Gift aria-hidden="true" className="size-4 text-accent-secondary" />

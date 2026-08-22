@@ -5,7 +5,7 @@ import { useState, type ReactNode } from 'react'
 
 import type { DashboardAction, DashboardActionId, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
 import type { UserIdentity } from '@/contracts/identity'
-import { formatCredits, formatCreditsCompact } from '@/lib/credits'
+import { formatCredits, usagePercent } from '@/lib/credits'
 import { Button, cn, Dialog, DialogClose, DialogPopup, DialogTitle, DialogTrigger, LightforthMark, SideMenu } from '@/ui'
 import { BriefcaseActionIcon, CopilotActionIcon, MonitorActionIcon, ResumeActionIcon } from './dashboard-action-icons'
 import {
@@ -184,8 +184,7 @@ function HelpModal({ open, onOpenChange }: { readonly open: boolean; readonly on
 }
 
 function CreditDropdown({ creditBalanceCents, totalCreditsCents, forceOpen = false }: { readonly creditBalanceCents: number; readonly totalCreditsCents: number; readonly forceOpen?: boolean }) {
-  const usedCents = Math.max(totalCreditsCents - creditBalanceCents, 0)
-  const remainingPercent = Math.max(Math.min(Math.round((creditBalanceCents / totalCreditsCents) * 100), 100), 0)
+  const remainingPercent = usagePercent(creditBalanceCents, totalCreditsCents)
   const progressStyle = { inlineSize: `${remainingPercent}%` }
 
   return (
@@ -205,9 +204,9 @@ function CreditDropdown({ creditBalanceCents, totalCreditsCents, forceOpen = fal
           </a>
         </div>
         <div className="grid gap-1.5">
-          <div className="flex items-start justify-between gap-4 text-sm text-ink-muted">
-            <span>Included this month: <span className="font-medium text-ink">{formatCredits(totalCreditsCents)}</span></span>
-            <span>Used: <span className="font-medium text-ink">{formatCredits(usedCents)}</span></span>
+          <div className="flex items-center justify-between gap-4 text-sm text-ink-muted">
+            <span>Usage this month</span>
+            <span className="font-medium text-ink">{remainingPercent}% remaining</span>
           </div>
           <div className="h-2 overflow-hidden rounded-pill bg-surface-subtle">
             <div className="h-full rounded-pill bg-accent shadow-control" style={progressStyle} />
@@ -223,8 +222,9 @@ function CreditDropdown({ creditBalanceCents, totalCreditsCents, forceOpen = fal
   )
 }
 
-function CreditNotice({ variant, remainingCents }: { readonly variant: 'low' | 'empty'; readonly remainingCents: number }) {
+function CreditNotice({ variant, remainingCents, totalCents }: { readonly variant: 'low' | 'empty'; readonly remainingCents: number; readonly totalCents: number }) {
   const isLow = variant === 'low'
+  const remainingPercent = usagePercent(remainingCents, totalCents)
 
   return (
     <div
@@ -235,7 +235,7 @@ function CreditNotice({ variant, remainingCents }: { readonly variant: 'low' | '
         isLow ? 'bg-accent-subtle text-accent' : 'bg-danger text-on-danger',
       )}
     >
-      <p className="min-w-0 flex-1 truncate leading-6">{isLow ? `${formatCredits(remainingCents)} left this cycle!` : '0 credits remaining this cycle'}</p>
+      <p className="min-w-0 flex-1 truncate leading-6">{isLow ? `${remainingPercent}% left this cycle!` : '0% remaining this cycle'}</p>
       <a href="/v3/billing" className="shrink-0 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
         Upgrade
       </a>
@@ -332,7 +332,7 @@ function DashboardHeader({
         <div className="group relative">
           <a href="/v3/billing" aria-label={`${formatCredits(creditBalanceCents)} balance remaining`} className="relative grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <CreditCard aria-hidden="true" className="size-6" />
-            <span className="absolute -start-1.5 top-1 grid min-w-4 place-items-center rounded-pill bg-danger px-1 text-xs font-semibold leading-4 text-on-danger">{formatCreditsCompact(creditBalanceCents)}</span>
+            <span className="absolute -start-1.5 top-1 grid min-w-4 place-items-center rounded-pill bg-danger px-1 text-[10px] font-semibold leading-4 text-on-danger">{usagePercent(creditBalanceCents, totalCreditsCents)}%</span>
           </a>
           <CreditDropdown creditBalanceCents={creditBalanceCents} totalCreditsCents={totalCreditsCents} forceOpen={activeDropdown === 'credits'} />
         </div>
@@ -349,7 +349,7 @@ function DashboardHeader({
           <ProfileDropdown user={user} forceOpen={activeDropdown === 'profile'} />
         </div>
       </div>
-      {creditNotice ? <CreditNotice variant={creditNotice} remainingCents={creditBalanceCents} /> : null}
+      {creditNotice ? <CreditNotice variant={creditNotice} remainingCents={creditBalanceCents} totalCents={totalCreditsCents} /> : null}
     </header>
   )
 }
