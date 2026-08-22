@@ -19,7 +19,7 @@ import type {
   CopilotTalkTime,
   CopilotTranscriptTurn,
 } from '@/contracts/copilot.draft'
-import { formatCredits } from '@/lib/credits'
+import { formatCreditsWithUsd } from '@/lib/credits'
 import {
   AddFundsDialog,
   AiSuggestionAction,
@@ -117,6 +117,7 @@ export type CopilotCompleteViewProps = {
   readonly homeHref: string
   readonly sessionHref: string
   readonly historyHref: string
+  readonly reportHref: string
   readonly mode: CopilotMode
   readonly companyName?: string
 }
@@ -1838,7 +1839,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
           onOpenChange={setTopUpOpen}
           currentBalance={balanceCents}
           quickAmounts={QUICK_TOPUP_CENTS}
-          formatAmount={formatCredits}
+          formatAmount={formatCreditsWithUsd}
           onAddFunds={handleAddFunds}
           description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
         />
@@ -1958,7 +1959,7 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
         onOpenChange={setTopUpOpen}
         currentBalance={balanceCents}
         quickAmounts={QUICK_TOPUP_CENTS}
-        formatAmount={formatCredits}
+        formatAmount={formatCreditsWithUsd}
         onAddFunds={handleAddFunds}
         description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
       />
@@ -1966,11 +1967,11 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
   )
 }
 
-export function CopilotCompleteView({ homeHref, sessionHref, historyHref, mode, companyName }: CopilotCompleteViewProps) {
+export function CopilotCompleteView({ homeHref, sessionHref, historyHref, reportHref, mode, companyName }: CopilotCompleteViewProps) {
   const meta = copilotModeMeta[mode]
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} current={meta.label} />
+      <CopilotHeader homeHref={homeHref} current={meta.label} historyHref={historyHref} />
       <section className="px-4 py-9">
         <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
           <div className="grid gap-5 p-8">
@@ -1980,7 +1981,7 @@ export function CopilotCompleteView({ homeHref, sessionHref, historyHref, mode, 
             </p>
             <p className="text-base leading-6 text-ink-muted">Your responses have been recorded and will be evaluated by our Lightforth AI.</p>
           </div>
-          <FooterActions backHref={sessionHref} nextHref={historyHref} nextLabel="See Report" />
+          <FooterActions backHref={sessionHref} nextHref={reportHref} nextLabel="See Report" />
         </form>
       </section>
     </Workspace>

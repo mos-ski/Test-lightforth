@@ -75,12 +75,12 @@ export const billingPlans: readonly BillingPlanCard[] = [
 ]
 
 export const creditUsageRows: readonly CreditUsageRow[] = [
-  { feature: 'Resume Builder', trigger: 'One prompt or group of prompts sent to AI', deducted: '0.5 credits / message' },
-  { feature: 'Auto Apply', trigger: 'One successful job application', deducted: '2.5 credits / application' },
-  { feature: 'Interview Prep', trigger: 'Metered per minute of the live session', deducted: '2 credits / min' },
-  { feature: 'Interview Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min' },
-  { feature: 'Coding Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min' },
-  { feature: 'Meeting Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min' },
+  { feature: 'Resume Builder', trigger: 'One prompt or group of prompts sent to AI', deducted: '0.5 credits / message (~$0.03)' },
+  { feature: 'Auto Apply', trigger: 'One successful job application', deducted: '2.5 credits / application (~$0.15)' },
+  { feature: 'Interview Prep', trigger: 'Metered per minute of the live session', deducted: '2 credits / min (~$0.12)' },
+  { feature: 'Interview Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min (~$0.12)' },
+  { feature: 'Coding Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min (~$0.12)' },
+  { feature: 'Meeting Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min (~$0.12)' },
   { feature: 'ATS Scoring', trigger: 'Click Score Resume', deducted: '0 credits', free: true },
   { feature: 'AI Suggester', trigger: 'Writes a phrase or statement better', deducted: '0 credits', free: true },
 ]
