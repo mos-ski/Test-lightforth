@@ -8,6 +8,8 @@ You are building the complete UI, design system and screen flows for Lightforth 
 
 Read this entire brief before writing code. When a rule below conflicts with a habit or a scaffold default, the rule wins.
 
+Before adjusting Lightforth copy, screens, flows, product education, help-center content, marketing pages, emails, onboarding, tests, or user-facing product behavior, read `docs/LIGHTFORTH_END_TO_END_SMARTER_SCRIPT.md`. Treat it as the living end-to-end product script and update it when the product story or flow changes.
+
 ---
 
 ## 1. Stack
