@@ -75,8 +75,8 @@ export const billingPlans: readonly BillingPlanCard[] = [
 ]
 
 export const creditUsageRows: readonly CreditUsageRow[] = [
-  { feature: 'Resume Builder', trigger: 'One prompt or group of prompts sent to AI', deducted: '0.5 credits / message (~$0.03)' },
-  { feature: 'Auto Apply', trigger: 'One successful job application', deducted: '2.5 credits / application (~$0.15)' },
+  { feature: 'Resume Builder', trigger: 'One prompt or group of prompts sent to AI', deducted: '1 credit / message (~$0.03)' },
+  { feature: 'Auto Apply', trigger: 'One successful job application', deducted: '3 credits / application (~$0.15)' },
   { feature: 'Interview Prep', trigger: 'Metered per minute of the live session', deducted: '2 credits / min (~$0.12)' },
   { feature: 'Interview Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min (~$0.12)' },
   { feature: 'Coding Copilot', trigger: 'Metered per minute of the live session', deducted: '2 credits / min (~$0.12)' },

@@ -19,7 +19,7 @@ import type {
   CopilotTalkTime,
   CopilotTranscriptTurn,
 } from '@/contracts/copilot.draft'
-import { formatCreditsWithUsd } from '@/lib/credits'
+import { centsToCredits, creditsToCents, formatCreditAmountWithUsd } from '@/lib/credits'
 import {
   AddFundsDialog,
   AiSuggestionAction,
@@ -1623,7 +1623,7 @@ function CopilotCodingPanel({
 
 const COPILOT_RATE_CENTS_PER_MIN = 12
 const COPILOT_START_BALANCE_CENTS = 9
-const QUICK_TOPUP_CENTS = [150, 300, 600]
+const QUICK_TOPUP_CREDITS = [25, 50, 100]
 
 export function CopilotLiveView({ completeHref, session, isLoading = false, transcriptBank = [], codingBank = [] }: CopilotLiveViewProps) {
   const [assistantMessages, setAssistantMessages] = useState<readonly AiAssistantMessage[]>([])
@@ -1673,8 +1673,8 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
 
   const lowBalance = balanceCents > 0 && balanceCents <= COPILOT_START_BALANCE_CENTS * 0.2
 
-  function handleAddFunds(amountCents: number) {
-    setBalanceCents((prev) => prev + amountCents)
+  function handleAddFunds(amountCredits: number) {
+    setBalanceCents((prev) => prev + creditsToCents(amountCredits))
     setSessionPaused(false)
   }
 
@@ -1837,9 +1837,9 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
         <AddFundsDialog
           open={topUpOpen}
           onOpenChange={setTopUpOpen}
-          currentBalance={balanceCents}
-          quickAmounts={QUICK_TOPUP_CENTS}
-          formatAmount={formatCreditsWithUsd}
+          currentBalance={Math.ceil(centsToCredits(balanceCents))}
+          quickAmounts={QUICK_TOPUP_CREDITS}
+          formatAmount={formatCreditAmountWithUsd}
           onAddFunds={handleAddFunds}
           description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
         />
@@ -1957,9 +1957,9 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
       <AddFundsDialog
         open={topUpOpen}
         onOpenChange={setTopUpOpen}
-        currentBalance={balanceCents}
-        quickAmounts={QUICK_TOPUP_CENTS}
-        formatAmount={formatCreditsWithUsd}
+        currentBalance={Math.ceil(centsToCredits(balanceCents))}
+        quickAmounts={QUICK_TOPUP_CREDITS}
+        formatAmount={formatCreditAmountWithUsd}
         onAddFunds={handleAddFunds}
         description="You're out of balance for this session. Add funds to keep going — your session will resume right where you left off."
       />
