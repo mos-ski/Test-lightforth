@@ -16,6 +16,7 @@ import type {
   CopilotResponseLength,
   CopilotResponseMode,
   CopilotSetup,
+  CopilotTalkTime,
   CopilotTranscriptTurn,
 } from '@/contracts/copilot.draft'
 import { formatCredits } from '@/lib/credits'
@@ -1071,10 +1072,30 @@ function RubricTable<TStatus extends string>({
   )
 }
 
-const COPILOT_REPORT_LABELS: Record<CopilotMode, { readonly detailsTab: string; readonly suggestedHeading: string }> = {
-  interview: { detailsTab: 'Interview Details', suggestedHeading: 'Suggested Questions for Future Sessions' },
-  coding: { detailsTab: 'Code Review', suggestedHeading: 'Practice Suggestions' },
-  meeting: { detailsTab: 'Meeting Notes', suggestedHeading: 'Suggested Follow-ups' },
+const COPILOT_REPORT_LABELS: Record<
+  CopilotMode,
+  { readonly detailsTab: string; readonly suggestedHeading: string; readonly recordingTab: string; readonly recordingHeading: string }
+> = {
+  interview: { detailsTab: 'Interview Details', suggestedHeading: 'Suggested Questions for Future Sessions', recordingTab: 'Call details', recordingHeading: 'Call Recording' },
+  coding: { detailsTab: 'Code Review', suggestedHeading: 'Practice Suggestions', recordingTab: 'Recording', recordingHeading: 'Session Recording' },
+  meeting: { detailsTab: 'Meeting Notes', suggestedHeading: 'Suggested Follow-ups', recordingTab: 'Call details', recordingHeading: 'Call Recording' },
+}
+
+function CopilotTalkTimeCard({ talkTime }: { readonly talkTime: CopilotTalkTime }) {
+  return (
+    <div className="rounded-panel border border-border p-6 shadow-control">
+      <h3 className="text-lg font-bold leading-7">Talk Time</h3>
+      <div className="mt-4 flex h-3 overflow-hidden rounded-pill bg-surface-subtle">
+        <div className="bg-accent" style={{ inlineSize: `${talkTime.userPercent}%` }} />
+        <div className="bg-border" style={{ inlineSize: `${talkTime.otherPercent}%` }} />
+      </div>
+      <div className="mt-2 flex items-center justify-between text-xs font-medium text-ink-muted">
+        <span>You — {talkTime.userPercent}%</span>
+        <span>{talkTime.otherLabel} — {talkTime.otherPercent}%</span>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-ink-muted">{talkTime.tip}</p>
+    </div>
+  )
 }
 
 export function CopilotReportView({ homeHref, historyHref, report, mode }: CopilotReportViewProps) {
@@ -1109,7 +1130,7 @@ export function CopilotReportView({ homeHref, historyHref, report, mode }: Copil
                 <TabsList>
                   <TabsTrigger value="summary">Summary</TabsTrigger>
                   <TabsTrigger value="details">{reportLabels.detailsTab}</TabsTrigger>
-                  <TabsTrigger value="call">Call details</TabsTrigger>
+                  <TabsTrigger value="call">{reportLabels.recordingTab}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="summary">
@@ -1123,6 +1144,8 @@ export function CopilotReportView({ homeHref, historyHref, report, mode }: Copil
                         <p className="mt-2 text-base leading-7 text-ink-muted">{report.summary}</p>
                       </div>
                     </div>
+
+                    <CopilotTalkTimeCard talkTime={report.talkTime} />
 
                     <CopilotScorecardSection title="What Went Well" items={report.whatWentWell} />
                     <CopilotScorecardSection title="What Needs Work" items={report.whatNeedsWork} divider />
@@ -1140,7 +1163,7 @@ export function CopilotReportView({ homeHref, historyHref, report, mode }: Copil
                 <TabsContent value="call">
                   <div className="flex flex-col gap-6 pb-8">
                     <div className="rounded-panel border border-border p-6 shadow-control lg:p-8">
-                      <h3 className="text-lg font-bold leading-7">Call Recording</h3>
+                      <h3 className="text-lg font-bold leading-7">{reportLabels.recordingHeading}</h3>
                       <div className="mt-4 flex min-h-16 items-center gap-4 rounded-panel border border-border bg-surface-subtle p-3">
                         <button type="button" aria-label="Play recording" className="grid size-12 place-items-center rounded-lg bg-accent text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                           <Play aria-hidden="true" className="size-5" />
