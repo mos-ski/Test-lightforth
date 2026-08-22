@@ -16,7 +16,6 @@ const InterviewCopilot = lazy(() => import('@/pages/InterviewCopilot'))
 const InterviewPrep = lazy(() => import('@/pages/InterviewPrep'))
 const JobProfile = lazy(() => import('@/pages/JobProfile'))
 const Explore = lazy(() => import('@/pages/Explore'))
-const Settings = lazy(() => import('@/pages/Settings'))
 const HowToUse = lazy(() => import('@/pages/HowToUse'))
 const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview'))
 const FigmaInteriorLanding = lazy(() => import('@/pages/marketing/FigmaInteriorLanding'))
@@ -115,7 +114,7 @@ export default function App() {
             <Route path="/billing" element={<Navigate to="/v3/billing" replace />} />
             <Route path="/billings-and-subscription" element={<Navigate to="/v3/billing" replace />} />
             <Route path="/billing/usage" element={<Navigate to="/v3/billing/usage" replace />} />
-            <Route path="/settings" element={<AppRoute><Suspense fallback={null}><Settings /></Suspense></AppRoute>} />
+            <Route path="/settings" element={<Navigate to="/v3/settings" replace />} />
             <Route path="/job-profile" element={<AppRoute><Suspense fallback={null}><JobProfile /></Suspense></AppRoute>} />
             <Route path="/explore" element={<AppRoute><Suspense fallback={null}><Explore /></Suspense></AppRoute>} />
             <Route path="/downloads" element={<Navigate to="/v3/downloads" replace />} />

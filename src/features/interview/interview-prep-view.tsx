@@ -68,6 +68,7 @@ export type InterviewCompleteViewProps = {
   readonly homeHref: string
   readonly sessionHref: string
   readonly preparingReportHref: string
+  readonly companyName?: string
 }
 
 export type InterviewPreparingReportViewProps = {
@@ -411,6 +412,10 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
                 )
               })}
             </div>
+            <p className="border-t border-border px-6 py-3 text-xs leading-5 text-ink-muted">
+              Before you start: check that your microphone is on and working. You can mute or turn off your camera at any time
+              during the session. Starting uses 1 credit.
+            </p>
             <div className="flex items-center justify-between border-t border-border px-6 py-4">
               <a href={configureHref} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 <ArrowLeft aria-hidden="true" className="size-4" />
@@ -1094,7 +1099,7 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
   )
 }
 
-export function InterviewCompleteView({ homeHref, sessionHref, preparingReportHref }: InterviewCompleteViewProps) {
+export function InterviewCompleteView({ homeHref, sessionHref, preparingReportHref, companyName }: InterviewCompleteViewProps) {
   return (
     <Workspace>
       <InterviewHeader homeHref={homeHref} current="Interview Prep" />
@@ -1105,7 +1110,9 @@ export function InterviewCompleteView({ homeHref, sessionHref, preparingReportHr
               <Check aria-hidden="true" className="size-8" />
             </span>
             <h1 className="text-2xl font-bold leading-8">Your Interview is complete!</h1>
-            <p className="mx-auto max-w-md text-sm leading-6 text-ink-muted">Thank you for completing your AI interview with Your Favorite Company.</p>
+            <p className="mx-auto max-w-md text-sm leading-6 text-ink-muted">
+              Thank you for completing your AI interview{companyName ? ` with ${companyName}` : ''}.
+            </p>
             <p className="mx-auto max-w-md rounded-panel bg-surface-subtle px-5 py-5 text-sm leading-6 text-ink-muted">
               Your responses have been recorded and evaluated by Lightforth AI. Review the coaching report for your strengths, gaps, transcript, and next practice step.
             </p>

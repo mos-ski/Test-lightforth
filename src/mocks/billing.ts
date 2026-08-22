@@ -15,7 +15,7 @@ export const billingSnapshot: BillingSnapshot = {
   status: 'ready',
   plan: 'pro',
   wallet: {
-    balance: 100,
+    balance: 32,
     currency: 'credits',
     reserved: 0,
   },

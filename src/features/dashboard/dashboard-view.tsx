@@ -25,6 +25,7 @@ export type DashboardViewProps = {
   readonly actions: readonly DashboardAction[]
   readonly installPrompt: DashboardInstallPrompt
   readonly creditBalance: number
+  readonly totalCredits: number
   readonly isLoading?: boolean
   readonly activeDropdown?: 'help' | 'credits' | 'profile'
   readonly creditNotice?: 'low' | 'empty'
@@ -181,8 +182,7 @@ function HelpModal({ open, onOpenChange }: { readonly open: boolean; readonly on
   )
 }
 
-function CreditDropdown({ creditBalance, forceOpen = false }: { readonly creditBalance: number; readonly forceOpen?: boolean }) {
-  const totalCredits = 50
+function CreditDropdown({ creditBalance, totalCredits, forceOpen = false }: { readonly creditBalance: number; readonly totalCredits: number; readonly forceOpen?: boolean }) {
   const usedCredits = Math.max(totalCredits - creditBalance, 0)
   const remainingPercent = Math.max(Math.min(Math.round((creditBalance / totalCredits) * 100), 100), 0)
   const progressStyle = { inlineSize: `${remainingPercent}%` }
@@ -291,6 +291,7 @@ function DashboardHeader({
   user,
   navItems,
   creditBalance,
+  totalCredits,
   activeDropdown,
   creditNotice,
   collapsed,
@@ -299,6 +300,7 @@ function DashboardHeader({
   readonly user: UserIdentity
   readonly navItems: readonly DashboardNavItem[]
   readonly creditBalance: number
+  readonly totalCredits: number
   readonly activeDropdown?: 'help' | 'credits' | 'profile'
   readonly creditNotice?: 'low' | 'empty'
   readonly collapsed: boolean
@@ -331,7 +333,7 @@ function DashboardHeader({
             <CreditCard aria-hidden="true" className="size-6" />
             <span className="absolute -start-0.5 top-1 grid min-w-4 place-items-center rounded-pill bg-danger px-1 text-xs font-semibold leading-4 text-on-danger">{creditBalance}</span>
           </a>
-          <CreditDropdown creditBalance={creditBalance} forceOpen={activeDropdown === 'credits'} />
+          <CreditDropdown creditBalance={creditBalance} totalCredits={totalCredits} forceOpen={activeDropdown === 'credits'} />
         </div>
         <div className="group relative hidden lg:block">
           <a href="/v3/help" aria-label="Help" className="grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
@@ -513,7 +515,7 @@ function InstallPrompt({ installPrompt }: { readonly installPrompt: DashboardIns
   )
 }
 
-export function DashboardView({ user, navItems, actions, installPrompt, creditBalance, isLoading = false, activeDropdown, creditNotice }: DashboardViewProps) {
+export function DashboardView({ user, navItems, actions, installPrompt, creditBalance, totalCredits, isLoading = false, activeDropdown, creditNotice }: DashboardViewProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [upgradeAction, setUpgradeAction] = useState<DashboardAction | null>(null)
   const [helpModalOpen, setHelpModalOpen] = useState(false)
@@ -528,6 +530,7 @@ export function DashboardView({ user, navItems, actions, installPrompt, creditBa
         user={user}
         navItems={navItems}
         creditBalance={creditBalance}
+        totalCredits={totalCredits}
         activeDropdown={activeDropdown}
         creditNotice={creditNotice}
         collapsed={collapsed}

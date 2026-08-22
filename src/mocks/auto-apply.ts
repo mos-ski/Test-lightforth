@@ -109,8 +109,8 @@ export const autoApplyJobs: readonly AutoApplyJob[] = [
     description:
       'Own the roadmap for chat, voice, and proactive support surfaces. Partner with Engineering, CX Operations, Data Science, and Compliance to maximize automation rates while maintaining high customer satisfaction.',
     tags: ['full-time'],
-    creditsRemaining: 46,
-    creditsTotal: 128,
+    creditsRemaining: 32,
+    creditsTotal: 50,
   },
   {
     id: 'coinbase-payments-core',
@@ -127,8 +127,8 @@ export const autoApplyJobs: readonly AutoApplyJob[] = [
     resumeFileName: 'Resume_Tailored_Coinbase_Payments.pdf',
     description: 'Lead payments product strategy across processing, wallet operations, and compliance workflows.',
     tags: ['payments', 'remote'],
-    creditsRemaining: 46,
-    creditsTotal: 128,
+    creditsRemaining: 32,
+    creditsTotal: 50,
   },
   {
     id: 'coinbase-financial-engineering',
@@ -146,8 +146,8 @@ export const autoApplyJobs: readonly AutoApplyJob[] = [
     resumeFileName: 'Resume_Tailored_Coinbase_Financial.pdf',
     description: 'Shape financial systems, accounting automation, and cross-functional tooling for regulated products.',
     tags: ['financial systems', 'remote'],
-    creditsRemaining: 46,
-    creditsTotal: 128,
+    creditsRemaining: 32,
+    creditsTotal: 50,
   },
   {
     id: 'coinbase-reliability',
@@ -165,8 +165,8 @@ export const autoApplyJobs: readonly AutoApplyJob[] = [
     resumeFileName: 'Resume_Tailored_Coinbase_Reliability.pdf',
     description: 'Drive reliability roadmaps across internal platforms, customer operations, and product infrastructure.',
     tags: ['platform', 'remote'],
-    creditsRemaining: 46,
-    creditsTotal: 128,
+    creditsRemaining: 32,
+    creditsTotal: 50,
   },
   {
     id: 'coinbase-compliance',
@@ -184,8 +184,8 @@ export const autoApplyJobs: readonly AutoApplyJob[] = [
     resumeFileName: 'Resume_Tailored_Coinbase_Compliance.pdf',
     description: 'Lead automation for compliance review, risk signals, and operational readiness across product launches.',
     tags: ['compliance', 'automation'],
-    creditsRemaining: 46,
-    creditsTotal: 128,
+    creditsRemaining: 32,
+    creditsTotal: 50,
   },
   {
     id: 'stripe-payments',
@@ -202,8 +202,8 @@ export const autoApplyJobs: readonly AutoApplyJob[] = [
     resumeFileName: 'Resume_Tailored_Stripe_Payments.pdf',
     description: 'Own platform payment capabilities for high-growth customers and internal operations teams.',
     tags: ['payments'],
-    creditsRemaining: 46,
-    creditsTotal: 128,
+    creditsRemaining: 32,
+    creditsTotal: 50,
   },
   {
     id: 'stripe-enterprise',
@@ -219,8 +219,8 @@ export const autoApplyJobs: readonly AutoApplyJob[] = [
     resumeFileName: 'Resume_Tailored_Stripe_Enterprise.pdf',
     description: 'Define enterprise product capabilities for industry-specific workflows and large customer needs.',
     tags: ['enterprise'],
-    creditsRemaining: 46,
-    creditsTotal: 128,
+    creditsRemaining: 32,
+    creditsTotal: 50,
   },
   {
     id: 'stripe-dashboard',
@@ -236,8 +236,8 @@ export const autoApplyJobs: readonly AutoApplyJob[] = [
     resumeFileName: 'Resume_Tailored_Stripe_Dashboard.pdf',
     description: 'Improve dashboard workflows used by operators, developers, and financial teams.',
     tags: ['dashboard'],
-    creditsRemaining: 46,
-    creditsTotal: 128,
+    creditsRemaining: 32,
+    creditsTotal: 50,
   },
   {
     id: 'stripe-cards',
@@ -255,8 +255,8 @@ export const autoApplyJobs: readonly AutoApplyJob[] = [
     resumeFileName: 'Resume_Tailored_Stripe_Cards.pdf',
     description: 'Lead cards monetization strategy across pricing, network partnerships, and platform packaging.',
     tags: ['cards', 'monetization'],
-    creditsRemaining: 46,
-    creditsTotal: 128,
+    creditsRemaining: 32,
+    creditsTotal: 50,
   },
 ]
 

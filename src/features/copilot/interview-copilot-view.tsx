@@ -53,11 +53,19 @@ import {
 
 const copilotModeMeta: Record<
   CopilotMode,
-  { readonly label: string; readonly icon: ReactNode; readonly panelTitle: string; readonly badgeVariant: 'accent' | 'positive' | 'info'; readonly createCta: string }
+  {
+    readonly label: string
+    readonly icon: ReactNode
+    readonly panelTitle: string
+    readonly badgeVariant: 'accent' | 'positive' | 'info'
+    readonly createCta: string
+    readonly sessionNoun: string
+    readonly completeTitle: string
+  }
 > = {
-  interview: { label: 'Interview', icon: <Users aria-hidden="true" className="size-4" />, panelTitle: 'Configure your interview', badgeVariant: 'accent', createCta: 'Start New Interview' },
-  coding: { label: 'Coding', icon: <Code2 aria-hidden="true" className="size-4" />, panelTitle: 'Configure your coding exercise', badgeVariant: 'info', createCta: 'Start Coding Exercise' },
-  meeting: { label: 'Meeting', icon: <Video aria-hidden="true" className="size-4" />, panelTitle: 'Set up your meeting', badgeVariant: 'positive', createCta: 'Attend New Meeting' },
+  interview: { label: 'Interview', icon: <Users aria-hidden="true" className="size-4" />, panelTitle: 'Configure your interview', badgeVariant: 'accent', createCta: 'Start New Interview', sessionNoun: 'interview', completeTitle: 'Your interview is complete!' },
+  coding: { label: 'Coding', icon: <Code2 aria-hidden="true" className="size-4" />, panelTitle: 'Configure your coding exercise', badgeVariant: 'info', createCta: 'Start Coding Exercise', sessionNoun: 'coding session', completeTitle: 'Your coding session is complete!' },
+  meeting: { label: 'Meeting', icon: <Video aria-hidden="true" className="size-4" />, panelTitle: 'Set up your meeting', badgeVariant: 'positive', createCta: 'Attend New Meeting', sessionNoun: 'meeting', completeTitle: 'Your meeting is complete!' },
 }
 
 export type CopilotUploadViewProps = {
@@ -107,6 +115,7 @@ export type CopilotCompleteViewProps = {
   readonly sessionHref: string
   readonly historyHref: string
   readonly mode: CopilotMode
+  readonly companyName?: string
 }
 
 export type CopilotHistoryViewProps = {
@@ -499,7 +508,7 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
       <CopilotHeader homeHref={homeHref} current={copilotModeMeta[mode].label} />
       <section className="px-4 py-9">
         <FormPanel
-          title={isMobile ? 'Turn on video & audio' : 'Share your screen'}
+          title={previewSrc ? "You're all set" : isMobile ? 'Turn on video & audio' : 'Share your screen'}
           step="3/3"
           footer={previewSrc ? undefined : <FormPanelFooter backHref={backHref} nextHref={nextHref} />}
         >
@@ -516,6 +525,12 @@ export function CopilotPermissionView({ homeHref, backHref, nextHref, steps, pre
             videoStepId="video"
             videoStream={videoStream}
           />
+          {previewSrc ? (
+            <p className="mt-4 text-xs leading-5 text-ink-muted">
+              Lightforth listens to your shared screen and audio only while the session is live, and keeps a transcript so you
+              can review it afterward. Nothing is recorded once you end the session. Starting uses 1 credit.
+            </p>
+          ) : null}
         </FormPanel>
       </section>
     </Workspace>
@@ -1745,16 +1760,19 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
   )
 }
 
-export function CopilotCompleteView({ homeHref, sessionHref, historyHref, mode }: CopilotCompleteViewProps) {
+export function CopilotCompleteView({ homeHref, sessionHref, historyHref, mode, companyName }: CopilotCompleteViewProps) {
+  const meta = copilotModeMeta[mode]
   return (
     <Workspace>
-      <CopilotHeader homeHref={homeHref} current={copilotModeMeta[mode].label} />
+      <CopilotHeader homeHref={homeHref} current={meta.label} />
       <section className="px-4 py-9">
         <form className="mx-auto w-full max-w-lg border border-border bg-surface shadow-control">
           <div className="grid gap-5 p-8">
-            <h1 className="text-3xl font-semibold">Your Interview is complete!</h1>
-            <p className="text-base leading-6 text-ink-muted">Thank you for completing your AI interview with Your Favorite Company.</p>
-            <p className="text-base leading-6 text-ink-muted">Your responses have been recorded and will be evaluated by our Lightforth AI. Lightforth will provide an unbiased assessment of vocabulary for the role.</p>
+            <h1 className="text-3xl font-semibold">{meta.completeTitle}</h1>
+            <p className="text-base leading-6 text-ink-muted">
+              Thank you for completing your AI {meta.sessionNoun}{companyName ? ` with ${companyName}` : ''}.
+            </p>
+            <p className="text-base leading-6 text-ink-muted">Your responses have been recorded and will be evaluated by our Lightforth AI.</p>
           </div>
           <FooterActions backHref={sessionHref} nextHref={historyHref} nextLabel="See Report" />
         </form>

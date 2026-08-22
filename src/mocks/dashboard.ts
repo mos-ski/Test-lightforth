@@ -55,7 +55,7 @@ export const dashboardActions: readonly DashboardAction[] = [
 ]
 
 export const dashboardInstallPrompt: DashboardInstallPrompt = {
-  title: 'For coding interview and stealth version.',
+  title: 'Install the Lightforth desktop or mobile app to get live Copilot assistance wherever you interview.',
   qrSrc: '/v3-assets/Barcode.png',
   desktopHref: '/v3/downloads/desktop',
   mobileHref: '/v3/downloads/mobile',
