@@ -4,7 +4,7 @@ export type BillingPlanFixture = {
   readonly id: Plan
   readonly name: string
   readonly priceMonthly: number
-  readonly credits: number
+  readonly includedUsageCents: number
   readonly description: string
   readonly features: readonly string[]
   readonly note: string
@@ -32,8 +32,8 @@ export const authPlanFixtures: readonly BillingPlanFixture[] = [
     id: 'free',
     name: 'Starter',
     priceMonthly: 27,
-    credits: 15,
-    description: 'You can do up to 15 total actions per month, in any combination.',
+    includedUsageCents: 800,
+    description: 'You get $8.00 of usage per month, metered by what each feature actually costs to run.',
     features: [
       'Resume builder',
       'Resume downloads',
@@ -45,8 +45,8 @@ export const authPlanFixtures: readonly BillingPlanFixture[] = [
     id: 'pro',
     name: 'Pro',
     priceMonthly: 49,
-    credits: 50,
-    description: 'More credits, more freedom. Every feature still costs 1 credit per use, but you have room to job-hunt aggressively.',
+    includedUsageCents: 2200,
+    description: 'More usage included, and every feature is unlocked, so you have room to job-hunt aggressively.',
     features: [
       'Everything in Starter',
       'Auto-Apply (Scout, Filter, Tailor & Driver agents)',
@@ -60,7 +60,7 @@ export const authPlanFixtures: readonly BillingPlanFixture[] = [
     id: 'business',
     name: 'Premium',
     priceMonthly: 79,
-    credits: 100,
+    includedUsageCents: 4000,
     description: 'Built for power users who apply daily or want maximum automation.',
     features: [
       'Everything in Pro',

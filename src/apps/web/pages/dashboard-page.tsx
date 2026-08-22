@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { DashboardView } from '@/features/dashboard/dashboard-view'
 import { dashboardActions, dashboardInstallPrompt, dashboardNavItems } from '@/mocks/dashboard'
 import { candidateSession } from '@/mocks/sessions'
-import { CREDIT_WALLET, TRIAL_CREDIT_TOTAL } from '@/mocks/wallet'
+import { CREDIT_WALLET, TRIAL_BALANCE_CENTS, TRIAL_TOTAL_CENTS } from '@/mocks/wallet'
 
 export function DashboardPage() {
   const [params] = useSearchParams()
@@ -11,16 +11,16 @@ export function DashboardPage() {
   const creditParam = params.get('credit')
   const activeDropdown = dropdownParam === 'help' || dropdownParam === 'credits' || dropdownParam === 'profile' ? dropdownParam : undefined
   const creditNotice = creditParam === 'low' || creditParam === 'empty' ? creditParam : undefined
-  // `credit=trial` demos a user with no active plan: Lightforth still grants 5 free credits every month by default.
+  // `credit=trial` demos a user with no active plan: Lightforth still grants $1.00 of usage every month by default.
   const isTrial = creditParam === 'trial'
-  const totalCredits = isTrial ? TRIAL_CREDIT_TOTAL : CREDIT_WALLET.total
-  const creditBalance = activeDropdown === 'credits' || creditNotice === 'empty'
+  const totalCreditsCents = isTrial ? TRIAL_TOTAL_CENTS : CREDIT_WALLET.totalCents
+  const creditBalanceCents = activeDropdown === 'credits' || creditNotice === 'empty'
     ? 0
     : creditNotice === 'low'
-      ? 5
+      ? 100
       : isTrial
-        ? 3
-        : CREDIT_WALLET.balance
+        ? TRIAL_BALANCE_CENTS
+        : CREDIT_WALLET.balanceCents
   const user = candidateSession.status === 'authenticated' ? candidateSession.user : {
     id: 'review-user',
     email: 'review@lightforth.ai',
@@ -35,8 +35,8 @@ export function DashboardPage() {
       navItems={dashboardNavItems}
       actions={dashboardActions}
       installPrompt={dashboardInstallPrompt}
-      creditBalance={creditBalance}
-      totalCredits={totalCredits}
+      creditBalanceCents={creditBalanceCents}
+      totalCreditsCents={totalCreditsCents}
       isLoading={params.get('state') === 'loading'}
       activeDropdown={activeDropdown}
       creditNotice={creditNotice}

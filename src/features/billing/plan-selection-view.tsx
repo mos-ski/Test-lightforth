@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Plan } from '@/contracts/billing'
-import { Badge, Button, cn } from '@/ui'
+import { Badge, Button, cn, formatUsd } from '@/ui'
 import { X } from 'lucide-react'
 
 export type AuthPlanOption = {
   readonly id: Plan
   readonly name: string
   readonly priceMonthly: number
-  readonly credits: number
+  readonly includedUsageCents: number
   readonly description: string
   readonly features: readonly string[]
   readonly note: string
@@ -65,7 +65,7 @@ function PlanCard({
           <span className="pb-2 text-sm font-medium text-ink">per month</span>
         </div>
         {annual ? <p className="mt-1 text-sm text-ink-muted">${displayPrice * 12} billed yearly</p> : null}
-        <p className="mt-5 text-sm font-semibold text-ink">{plan.credits} Credits</p>
+        <p className="mt-5 text-sm font-semibold text-ink">{formatUsd(plan.includedUsageCents)} of usage included</p>
         <p className="mt-3 text-sm leading-5 text-ink-muted">{plan.description}</p>
 
         <div className="mt-6">
@@ -208,7 +208,7 @@ export function PlanSelectionView({
               ))}
             </div>
             <p className="rounded-b-panel border border-warning bg-warning-surface px-4 py-3 text-sm text-warning">
-              Every feature uses 1 credit. Use your credits however you like.
+              You're billed for what you actually use — a quick resume edit costs less than a 30-minute live Copilot session. Use your balance across any feature.
             </p>
           </div>
 
@@ -221,7 +221,7 @@ export function PlanSelectionView({
             </a>
           </p>
           <p className="mt-1.5 text-center text-sm text-ink-muted">
-            No plan? You&apos;ll still get 5 free credits every month to try Lightforth.
+            No plan? You&apos;ll still get $1.00 of usage every month to try Lightforth.
           </p>
         </div>
       </section>

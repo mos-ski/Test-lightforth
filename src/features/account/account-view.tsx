@@ -16,6 +16,7 @@ import {
   DialogPopup,
   DialogTitle,
   DialogTrigger,
+  formatUsd,
   SelectField,
   ShellBar,
   Switch,
@@ -41,8 +42,8 @@ export type TutorialsViewProps = {
 }
 
 export type BillingWallet = {
-  readonly remaining: number
-  readonly total: number
+  readonly remainingCents: number
+  readonly totalCents: number
   readonly resetDateLabel: string
 }
 
@@ -393,8 +394,8 @@ function AnnualToggle({ annual, onToggle }: { readonly annual: boolean; readonly
 }
 
 const billingFaqs: readonly { readonly question: string; readonly answer: string }[] = [
-  { question: 'What does a credit cover?', answer: 'Every feature — Resume Builder, Auto-Apply, Interview Prep, and Interview Copilot — deducts 1 credit per completed action. Lightforth only deducts credits for successful actions, so a failed Auto-Apply submission does not use one.' },
-  { question: 'Do unused credits roll over to next month?', answer: 'No. Your credit balance resets to your plan’s monthly allowance on your renewal date. Unused credits from the previous cycle do not carry forward.' },
+  { question: 'How does usage-based pricing work?', answer: 'Each feature is metered by what it actually costs to run — per message for Resume Builder, per successful application for Auto-Apply, per minute for live Interview Prep and Copilot sessions. See the rate table above for exact pricing. Lightforth only charges for successful actions, so a failed Auto-Apply submission never costs anything.' },
+  { question: 'Does unused balance roll over to next month?', answer: 'Your plan’s monthly included usage resets on your renewal date and does not carry forward. Any balance you’ve added yourself through a top-up is different — that stays on your account until you spend it.' },
   { question: 'What’s the difference between monthly and annual billing?', answer: 'Annual billing charges you once a year at a 20% discount off the monthly rate. Monthly billing charges the full rate every month. You can switch between them at any time using the toggle above the plan cards.' },
   { question: 'Can I change plans at any time?', answer: 'Yes. Upgrades take effect immediately and unlock the new plan’s features right away. Downgrades take effect at the start of your next billing cycle, so you keep your current plan’s benefits until then.' },
   { question: 'How do I cancel my subscription?', answer: 'Use the Cancel Subscription button above. You’ll keep full access until your current billing period ends, after which your account moves to the Free plan. You can renew at any time before then.' },
@@ -402,7 +403,7 @@ const billingFaqs: readonly { readonly question: string; readonly answer: string
   { question: 'Is the first-time offer available more than once?', answer: 'No. The $10 first-time Pro offer is available once per account, only before the countdown on this page expires. After it’s redeemed or the timer runs out, your plan renews at the regular price.' },
   { question: 'What payment methods do you accept?', answer: 'We accept all major debit and credit cards. Payments are processed securely and your card details are never stored on Lightforth’s servers.' },
   { question: 'Do you offer refunds?', answer: 'We don’t offer refunds for partial billing periods, but you can cancel at any time to stop future charges — you’ll keep access through the end of the period you already paid for.' },
-  { question: 'Can I get more credits without upgrading my plan?', answer: 'Yes. Use the Get Free Credits link above to earn bonus credits through referrals, or purchase a one-time top-up from the credit usage details page.' },
+  { question: 'Can I add more balance without upgrading my plan?', answer: 'Yes. Use the Add Funds link above to earn bonus balance through referrals, or add a one-time top-up from the usage details page — it stays on your account until you spend it.' },
 ]
 
 function BillingFaqSection() {
@@ -422,7 +423,7 @@ function BillingFaqSection() {
 
 function CreditUsageTable({ rows }: { readonly rows: readonly CreditUsageRow[] }) {
   return (
-    <TitledPanel title="How credits works">
+    <TitledPanel title="How usage works">
       <div className="relative">
         <div className="overflow-x-auto [scrollbar-width:thin]">
           <table className="w-full min-w-[28rem] border-collapse text-sm">
@@ -430,7 +431,7 @@ function CreditUsageTable({ rows }: { readonly rows: readonly CreditUsageRow[] }
               <tr className="border-b border-border bg-surface-subtle text-ink-muted">
                 <th className="px-3 py-2.5 text-start font-semibold sm:px-4">Feature</th>
                 <th className="hidden px-3 py-2.5 text-start font-semibold sm:table-cell sm:px-4">What triggers it</th>
-                <th className="px-3 py-2.5 text-start font-semibold sm:px-4">Credits</th>
+                <th className="px-3 py-2.5 text-start font-semibold sm:px-4">Rate</th>
               </tr>
             </thead>
             <tbody className="text-ink">
@@ -533,8 +534,8 @@ export function BillingView({ homeHref, plans, usageRows, wallet }: BillingViewP
                 </div>
               </section>
               <CreditCard
-                remaining={wallet.remaining}
-                total={wallet.total}
+                remainingCents={wallet.remainingCents}
+                totalCents={wallet.totalCents}
                 resetDate={wallet.resetDateLabel}
                 bonusHref="/v3/settings?tab=referral"
                 detailsHref="/v3/billing/usage"
@@ -633,7 +634,7 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
   return (
     <TitledPanel title="Usage Details">
       <p className="text-2xl font-black sm:text-3xl">
-        {totalUsed} <span className="text-sm font-medium text-ink-muted sm:text-base">credits used in last {dayRange} days</span>
+        {formatUsd(totalUsed)} <span className="text-sm font-medium text-ink-muted sm:text-base">used in last {dayRange} days</span>
       </p>
       <div className="mt-4 flex flex-wrap gap-3">
         <div className="relative">
@@ -672,7 +673,7 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
       </div>
 
       {dayEntries.length === 0 ? (
-        <p className="mt-8 text-sm text-ink-muted">No credit usage in this period yet.</p>
+        <p className="mt-8 text-sm text-ink-muted">No usage in this period yet.</p>
       ) : (
         <div className="mt-8 flex h-48 w-full items-end justify-between gap-1 overflow-x-auto px-1 pb-1">
           {dayEntries.map(([day, bucket]) => {
@@ -700,13 +701,13 @@ function UsageChart({ rows }: { readonly rows: readonly CreditHistoryRow[] }) {
                 {isHovered ? (
                   <div className="pointer-events-none absolute bottom-full start-1/2 z-tooltip mb-2 w-max -translate-x-1/2 rounded-lg border border-border bg-surface p-3 text-start shadow-popover">
                     <p className="text-sm font-semibold text-ink">{day}</p>
-                    <p className="mt-0.5 text-xs text-ink-muted">{total} credit{total !== 1 ? 's' : ''} spent</p>
+                    <p className="mt-0.5 text-xs text-ink-muted">{formatUsd(total)} spent</p>
                     <div className="mt-1.5 grid gap-0.5 border-t border-border pt-1.5">
                       {usedFeatures.map((feature) => (
                         <div key={feature} className="flex items-center gap-2">
                           <span className={cn('size-2 rounded-full', usageFeatureColors[feature])} />
                           <span className="text-xs text-ink-muted">{feature}</span>
-                          <span className="ml-auto text-xs font-semibold text-ink">{bucket[feature]}</span>
+                          <span className="ml-auto text-xs font-semibold text-ink">{formatUsd(bucket[feature])}</span>
                         </div>
                       ))}
                     </div>
@@ -744,7 +745,7 @@ export function CreditHistoryView({ homeHref, billingHref, rows }: CreditHistory
         <div className="grid gap-6">
           <UsageChart rows={rows} />
           <DataTable
-            title="Credit History"
+            title="Usage History"
             rows={rows}
             itemLabel={(row) => row.feature}
             selectable={false}
@@ -755,15 +756,15 @@ export function CreditHistoryView({ homeHref, billingHref, rows }: CreditHistory
               { key: 'dateTime', label: 'Date & Time', className: 'w-[12rem]', render: (row) => row.dateTime },
               {
                 key: 'amount',
-                label: 'Credits',
+                label: 'Amount',
                 className: 'w-[7rem] text-end',
                 render: (row) => (
                   <span className={cn('font-semibold', row.amount > 0 ? 'text-positive' : row.amount < 0 ? 'text-ink' : 'text-ink-muted')}>
-                    {row.amount > 0 ? `+${row.amount}` : row.amount}
+                    {row.amount > 0 ? `+${formatUsd(row.amount)}` : formatUsd(row.amount)}
                   </span>
                 ),
               },
-              { key: 'balanceAfter', label: 'Balance', className: 'w-[7rem] text-end', render: (row) => row.balanceAfter },
+              { key: 'balanceAfter', label: 'Balance', className: 'w-[7rem] text-end', render: (row) => formatUsd(row.balanceAfter) },
             ]}
           />
         </div>
@@ -943,8 +944,8 @@ function ReferralSettings({ referrals, activeTab }: { readonly referrals: readon
           <SettingsTabs activeTab={activeTab} />
         </div>
         <div className="rounded-panel bg-accent-subtle p-8">
-          <h2 className="text-3xl font-bold leading-tight text-ink">Earn 5 free credits</h2>
-          <p className="mt-2 text-sm text-ink-muted">You get 5 free credits when your referral signs up and subscribes.</p>
+          <h2 className="text-3xl font-bold leading-tight text-ink">Earn $1.00 in free balance</h2>
+          <p className="mt-2 text-sm text-ink-muted">You get $1.00 added to your balance when your referral signs up and subscribes.</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {['https://app.lightforth.ai/auth/signup?code=Adedamolaiosmk', 'Adedamolaiosmk'].map((value, index) => (
               <div key={value} className="min-w-0 rounded-soft border border-accent bg-surface px-3 py-2">
@@ -960,8 +961,8 @@ function ReferralSettings({ referrals, activeTab }: { readonly referrals: readon
           </div>
           <ul className="mt-6 grid gap-2 text-sm text-ink">
             <li>• Invite a friend using your link</li>
-            <li>• They sign up → you earn 5 free credits</li>
-            <li>• Refer 5 friends → unlock 25 credits + bonus tools</li>
+            <li>• They sign up → you earn $1.00 in free balance</li>
+            <li>• Refer 5 friends → unlock $5.00 in balance + bonus tools</li>
           </ul>
         </div>
       </TitledPanel>

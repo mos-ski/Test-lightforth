@@ -5,7 +5,7 @@ import { useState, type ReactNode } from 'react'
 
 import type { DashboardAction, DashboardActionId, DashboardInstallPrompt, DashboardNavItem } from '@/contracts/dashboard.draft'
 import type { UserIdentity } from '@/contracts/identity'
-import { Button, cn, Dialog, DialogClose, DialogPopup, DialogTitle, DialogTrigger, LightforthMark, SideMenu } from '@/ui'
+import { Button, cn, Dialog, DialogClose, DialogPopup, DialogTitle, DialogTrigger, formatUsd, formatUsdWhole, LightforthMark, SideMenu } from '@/ui'
 import { BriefcaseActionIcon, CopilotActionIcon, MonitorActionIcon, ResumeActionIcon } from './dashboard-action-icons'
 import {
   AutoApplyIcon,
@@ -24,8 +24,8 @@ export type DashboardViewProps = {
   readonly navItems: readonly DashboardNavItem[]
   readonly actions: readonly DashboardAction[]
   readonly installPrompt: DashboardInstallPrompt
-  readonly creditBalance: number
-  readonly totalCredits: number
+  readonly creditBalanceCents: number
+  readonly totalCreditsCents: number
   readonly isLoading?: boolean
   readonly activeDropdown?: 'help' | 'credits' | 'profile'
   readonly creditNotice?: 'low' | 'empty'
@@ -182,14 +182,14 @@ function HelpModal({ open, onOpenChange }: { readonly open: boolean; readonly on
   )
 }
 
-function CreditDropdown({ creditBalance, totalCredits, forceOpen = false }: { readonly creditBalance: number; readonly totalCredits: number; readonly forceOpen?: boolean }) {
-  const usedCredits = Math.max(totalCredits - creditBalance, 0)
-  const remainingPercent = Math.max(Math.min(Math.round((creditBalance / totalCredits) * 100), 100), 0)
+function CreditDropdown({ creditBalanceCents, totalCreditsCents, forceOpen = false }: { readonly creditBalanceCents: number; readonly totalCreditsCents: number; readonly forceOpen?: boolean }) {
+  const usedCents = Math.max(totalCreditsCents - creditBalanceCents, 0)
+  const remainingPercent = Math.max(Math.min(Math.round((creditBalanceCents / totalCreditsCents) * 100), 100), 0)
   const progressStyle = { inlineSize: `${remainingPercent}%` }
 
   return (
     <section
-      aria-label="Credit balance"
+      aria-label="Usage balance"
       className={cn(
         'absolute end-0 top-full z-20 mt-3 hidden w-[min(16rem,calc(100vw-2rem))] overflow-hidden rounded-md border border-border bg-surface text-xs shadow-popover group-focus-within:block group-hover:block',
         forceOpen ? 'block' : undefined,
@@ -197,7 +197,7 @@ function CreditDropdown({ creditBalance, totalCredits, forceOpen = false }: { re
     >
       <div className="grid gap-3 px-4 py-3">
         <div className="flex min-h-9 items-center justify-between gap-4">
-          <h2 className="text-sm font-medium leading-6 text-ink">Credits</h2>
+          <h2 className="text-sm font-medium leading-6 text-ink">Usage balance</h2>
           <a href="/v3/billing" className="inline-flex min-h-7 items-center justify-center gap-1 rounded-lg border border-border bg-surface px-2 text-xs font-semibold text-ink-muted shadow-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             Upgrade
             <ArrowRight aria-hidden="true" className="size-3" />
@@ -205,40 +205,40 @@ function CreditDropdown({ creditBalance, totalCredits, forceOpen = false }: { re
         </div>
         <div className="grid gap-1.5">
           <div className="flex items-start justify-between gap-4 text-sm text-ink-muted">
-            <span>Total Allocated: <span className="font-medium text-ink">{totalCredits}</span></span>
-            <span>Used: <span className="font-medium text-ink">{usedCredits}</span></span>
+            <span>Included this month: <span className="font-medium text-ink">{formatUsd(totalCreditsCents)}</span></span>
+            <span>Used: <span className="font-medium text-ink">{formatUsd(usedCents)}</span></span>
           </div>
           <div className="h-2 overflow-hidden rounded-pill bg-surface-subtle">
             <div className="h-full rounded-pill bg-accent shadow-control" style={progressStyle} />
           </div>
-          <p className="text-end text-xs font-medium leading-5 text-ink-muted">{creditBalance} remaining</p>
+          <p className="text-end text-xs font-medium leading-5 text-ink-muted">{formatUsd(creditBalanceCents)} remaining</p>
         </div>
       </div>
       <a href="/v3/billing" className="flex min-h-12 items-center justify-center gap-2 bg-accent px-3 text-sm font-semibold text-on-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
         <Gift aria-hidden="true" className="size-4" />
-        Get Free Credits
+        Add Funds
       </a>
     </section>
   )
 }
 
-function CreditNotice({ variant }: { readonly variant: 'low' | 'empty' }) {
+function CreditNotice({ variant, remainingCents }: { readonly variant: 'low' | 'empty'; readonly remainingCents: number }) {
   const isLow = variant === 'low'
 
   return (
     <div
       role="status"
-      aria-label={isLow ? 'Low credit notice' : 'Empty credit notice'}
+      aria-label={isLow ? 'Low balance notice' : 'Empty balance notice'}
       className={cn(
         'absolute start-1/2 top-14 z-10 flex min-h-9 w-[min(684px,calc(100vw-2rem))] -translate-x-1/2 items-center gap-1 rounded-b-xl ps-6 pe-3 text-sm font-semibold shadow-control',
         isLow ? 'bg-accent-subtle text-accent' : 'bg-danger text-on-danger',
       )}
     >
-      <p className="min-w-0 flex-1 truncate leading-6">{isLow ? '5 More credits left!' : '0 credits remaining today'}</p>
+      <p className="min-w-0 flex-1 truncate leading-6">{isLow ? `${formatUsd(remainingCents)} left this cycle!` : '$0.00 remaining this cycle'}</p>
       <a href="/v3/billing" className="shrink-0 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
         Upgrade
       </a>
-      <button type="button" aria-label="Dismiss credit notice" className="grid size-6 shrink-0 place-items-center rounded-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+      <button type="button" aria-label="Dismiss balance notice" className="grid size-6 shrink-0 place-items-center rounded-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
         <X aria-hidden="true" className="size-4" />
       </button>
     </div>
@@ -290,8 +290,8 @@ function ProfileDropdown({ user, forceOpen = false }: { readonly user: UserIdent
 function DashboardHeader({
   user,
   navItems,
-  creditBalance,
-  totalCredits,
+  creditBalanceCents,
+  totalCreditsCents,
   activeDropdown,
   creditNotice,
   collapsed,
@@ -299,8 +299,8 @@ function DashboardHeader({
 }: {
   readonly user: UserIdentity
   readonly navItems: readonly DashboardNavItem[]
-  readonly creditBalance: number
-  readonly totalCredits: number
+  readonly creditBalanceCents: number
+  readonly totalCreditsCents: number
   readonly activeDropdown?: 'help' | 'credits' | 'profile'
   readonly creditNotice?: 'low' | 'empty'
   readonly collapsed: boolean
@@ -329,11 +329,11 @@ function DashboardHeader({
       </div>
       <div className="flex items-center gap-4">
         <div className="group relative">
-          <a href="/v3/billing" aria-label={`${creditBalance} credits`} className="relative grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          <a href="/v3/billing" aria-label={`${formatUsd(creditBalanceCents)} balance remaining`} className="relative grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             <CreditCard aria-hidden="true" className="size-6" />
-            <span className="absolute -start-0.5 top-1 grid min-w-4 place-items-center rounded-pill bg-danger px-1 text-xs font-semibold leading-4 text-on-danger">{creditBalance}</span>
+            <span className="absolute -start-1.5 top-1 grid min-w-4 place-items-center rounded-pill bg-danger px-1 text-xs font-semibold leading-4 text-on-danger">{formatUsdWhole(creditBalanceCents)}</span>
           </a>
-          <CreditDropdown creditBalance={creditBalance} totalCredits={totalCredits} forceOpen={activeDropdown === 'credits'} />
+          <CreditDropdown creditBalanceCents={creditBalanceCents} totalCreditsCents={totalCreditsCents} forceOpen={activeDropdown === 'credits'} />
         </div>
         <div className="group relative hidden lg:block">
           <a href="/v3/help" aria-label="Help" className="grid size-11 place-items-center rounded-soft text-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
@@ -348,7 +348,7 @@ function DashboardHeader({
           <ProfileDropdown user={user} forceOpen={activeDropdown === 'profile'} />
         </div>
       </div>
-      {creditNotice ? <CreditNotice variant={creditNotice} /> : null}
+      {creditNotice ? <CreditNotice variant={creditNotice} remainingCents={creditBalanceCents} /> : null}
     </header>
   )
 }
@@ -515,7 +515,7 @@ function InstallPrompt({ installPrompt }: { readonly installPrompt: DashboardIns
   )
 }
 
-export function DashboardView({ user, navItems, actions, installPrompt, creditBalance, totalCredits, isLoading = false, activeDropdown, creditNotice }: DashboardViewProps) {
+export function DashboardView({ user, navItems, actions, installPrompt, creditBalanceCents, totalCreditsCents, isLoading = false, activeDropdown, creditNotice }: DashboardViewProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [upgradeAction, setUpgradeAction] = useState<DashboardAction | null>(null)
   const [helpModalOpen, setHelpModalOpen] = useState(false)
@@ -529,8 +529,8 @@ export function DashboardView({ user, navItems, actions, installPrompt, creditBa
       <DashboardHeader
         user={user}
         navItems={navItems}
-        creditBalance={creditBalance}
-        totalCredits={totalCredits}
+        creditBalanceCents={creditBalanceCents}
+        totalCreditsCents={totalCreditsCents}
         activeDropdown={activeDropdown}
         creditNotice={creditNotice}
         collapsed={collapsed}

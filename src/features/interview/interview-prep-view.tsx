@@ -414,7 +414,7 @@ export function InterviewVoiceView({ homeHref, configureHref, sessionHref, voice
             </div>
             <p className="border-t border-border px-6 py-3 text-xs leading-5 text-ink-muted">
               Before you start: check that your microphone is on and working. You can mute or turn off your camera at any time
-              during the session. Starting uses 1 credit.
+              during the session. This costs $0.12/min — you'll only be charged for the time you're in session.
             </p>
             <div className="flex items-center justify-between border-t border-border px-6 py-4">
               <a href={configureHref} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
