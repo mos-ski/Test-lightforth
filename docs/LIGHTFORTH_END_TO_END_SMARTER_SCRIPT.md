@@ -51,6 +51,16 @@ What could have taken you months of manual effort, Lightforth helps you compress
 
 So, let’s get started.
 
+### Master Your Interview VSL Landing Page
+
+The `/master-your-interview` landing page sells the same end-to-end promise through a sharper interview-loss story. It should not present Interview Prep as a standalone product only. The page should show that candidates lose offers across three connected points: the resume signal that gets them screened, the application process that limits reach, and the interview answer that decides the opportunity once they get the call.
+
+Use this sequence for the VSL story: free 22-minute training, specific job-seeker pain, cost of the old manual job search, the Lightforth system as the mechanism, proof, one-time activation offer, what happens next, FAQ, and final call to action. Keep the promise practical: Lightforth helps candidates tailor resumes, apply to relevant jobs, practice interviews, and use Copilot support during live interviews while keeping the user in control.
+
+### Extension Landing Page
+
+The `/extension` landing page is the public review path for the browser extension experience. It should explain the extension as browser-based Interview Copilot support: users add the extension, load interview context from their resume and target role, then use Lightforth during supported browser calls. Keep the distinction clear: the extension is for browser interviews, while the desktop Copilot is the stronger fit for installed apps and full desktop workflows.
+
 To create your account, go to the new Lightforth app and click **Get Started**.
 
 Enter your details, create your account, and once you're in, you'll land on your Lightforth dashboard.
