@@ -256,74 +256,78 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-ext-bg">
-      <div className="h-[1100px] w-[488px] overflow-visible">
-        <div className="flex w-[508px] origin-top-left scale-[0.82] flex-col">
-      <div
-        className="mx-5 mt-5 flex h-[1148px] w-[476px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm"
-      >
-        <Header onClose={() => window.close()} onBack={getBackHandler()} />
+    <div className="min-h-screen bg-ext-bg flex flex-col items-center py-6">
+      <div style={{ width: 380 }} className="flex flex-col">
+        {/* Extension popup card */}
+        <div
+          className="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col"
+          style={{ minHeight: 580 }}
+        >
+          <Header onClose={() => {}} onBack={getBackHandler()} />
 
-        {/* Scrollable main content */}
-        <div className="flex-1 overflow-y-auto">
-          {appState.view === 'login' && (
-            <LoginView
-              onLogin={handleLogin}
-            />
-          )}
-          {appState.view === 'before-you-begin' && (
-            <BeforeYouBeginView onDone={() => navigate('auto-apply')} />
-          )}
-          {appState.view === 'auto-apply' && (
-            <AutoApplyView
-              platforms={appState.platforms}
-              onStartAutoApply={handleStartAutoApply}
-              onConnectLightforth={() => navigate('before-you-begin')}
-              onCaptchaVerify={handleCaptchaVerify}
-              onJobHistory={() => navigate('job-history')}
-            />
-          )}
-          {appState.view === 'no-jobs' && (
-            <NoJobsView onChangeFilter={() => navigate('auto-apply')} />
-          )}
-          {appState.view === 'job-history' && (
-            <JobHistoryView groups={MOCK_JOB_HISTORY} />
-          )}
-          {appState.view === 'error' && (
-            <ErrorView onCta={() => navigate('auto-apply')} />
-          )}
-          {appState.view === 'success' && (
-            <SuccessView onCta={() => navigate('job-history')} />
-          )}
-        </div>
-
-        {/* Live progress widget — sticks to the bottom of the card */}
-        {hasProgress && (
-          <AutoApplyProgressWidget session={progressSession} />
-        )}
-      </div>
-
-      {/* Dev screen switcher — remove before shipping */}
-      <div className="px-3 pb-3">
-        <div className="bg-white/80 rounded-xl px-3 py-2.5 flex flex-col gap-1.5">
-          <p className="text-[9px] font-bold text-ext-muted uppercase tracking-wide">Dev: Switch screens</p>
-          <div className="flex flex-wrap gap-1">
-            {DEMO_STATES.map((d, i) => (
-              <button
-                key={i}
-                onClick={() => applyDemoState(i)}
-                className={`text-[9px] px-1.5 py-0.5 rounded font-medium transition-colors ${
-                  demoIndex === i
-                    ? 'bg-brand text-white'
-                    : 'bg-ext-row text-ext-muted hover:bg-brand/10 hover:text-brand'
-                }`}
-              >
-                {d.label}
-              </button>
-            ))}
+          {/* Scrollable main content */}
+          <div className="flex-1 overflow-y-auto">
+            {appState.view === 'login' && (
+              <LoginView
+                onLogin={handleLogin}
+                onGoogleLogin={() => {
+                  setAppState(prev => ({ ...prev, isLoggedIn: true }))
+                  navigate('before-you-begin')
+                }}
+              />
+            )}
+            {appState.view === 'before-you-begin' && (
+              <BeforeYouBeginView onDone={() => navigate('auto-apply')} />
+            )}
+            {appState.view === 'auto-apply' && (
+              <AutoApplyView
+                platforms={appState.platforms}
+                onStartAutoApply={handleStartAutoApply}
+                onConnectLightforth={() => navigate('before-you-begin')}
+                onCaptchaVerify={handleCaptchaVerify}
+                onJobHistory={() => navigate('job-history')}
+              />
+            )}
+            {appState.view === 'no-jobs' && (
+              <NoJobsView onChangeFilter={() => navigate('auto-apply')} />
+            )}
+            {appState.view === 'job-history' && (
+              <JobHistoryView groups={MOCK_JOB_HISTORY} />
+            )}
+            {appState.view === 'error' && (
+              <ErrorView onCta={() => navigate('auto-apply')} />
+            )}
+            {appState.view === 'success' && (
+              <SuccessView onCta={() => navigate('job-history')} />
+            )}
           </div>
+
+          {/* Live progress widget — sticks to the bottom of the card */}
+          {hasProgress && (
+            <AutoApplyProgressWidget session={progressSession} />
+          )}
         </div>
-      </div>
+
+        {/* Dev screen switcher */}
+        <div className="mt-3">
+          <div className="bg-white/80 rounded-xl px-3 py-2.5 flex flex-col gap-1.5">
+            <p className="text-[9px] font-bold text-ext-muted uppercase tracking-wide">Dev: Switch screens</p>
+            <div className="flex flex-wrap gap-1">
+              {DEMO_STATES.map((d, i) => (
+                <button
+                  key={i}
+                  onClick={() => applyDemoState(i)}
+                  className={`text-[9px] px-1.5 py-0.5 rounded font-medium transition-colors ${
+                    demoIndex === i
+                      ? 'bg-brand text-white'
+                      : 'bg-ext-row text-ext-muted hover:bg-brand/10 hover:text-brand'
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
