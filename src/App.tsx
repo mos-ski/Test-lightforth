@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { AuthProvider, ProtectedRoute } from '@/hooks/useAuth'
@@ -22,7 +22,11 @@ const FigmaInteriorLanding = lazy(() => import('@/pages/marketing/FigmaInteriorL
 const RegularCheckoutPage = lazy(() => import('@/pages/marketing/checkout/RegularCheckoutPage'))
 const MasterInterviewVSL = lazy(() => import('@/pages/marketing/vsl/MasterInterviewVSL'))
 const MobileAppPreview = lazy(() => import('@/pages/MobileAppPreview'))
-const V3WebRoutes = lazy(() => import('@/apps/web/routes').then((module) => ({ default: module.WebRoutes })))
+const Billing = lazy(() => import('@/pages/Billing'))
+const UsageDetails = lazy(() => import('@/pages/UsageDetails'))
+const Settings = lazy(() => import('@/pages/Settings'))
+const Downloads = lazy(() => import('@/pages/Downloads'))
+const ContextPage = lazy(() => import('@/pages/ContextPage'))
 const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'))
 const AdminOverview = lazy(() => import('@/pages/admin/AdminOverview'))
 const AdminRevenue = lazy(() => import('@/pages/admin/AdminRevenue'))
@@ -101,24 +105,24 @@ export default function App() {
             <Route path="/privacy-policy" element={<Suspense fallback={null}><PrivacyPolicyPage /></Suspense>} />
             <Route path="/terms-condition" element={<Suspense fallback={null}><TermsPage /></Suspense>} />
             <Route path="/refund-policy" element={<Suspense fallback={null}><RefundPolicyPage /></Suspense>} />
-            <Route path="/auth/*" element={<Navigate to="/v3/auth/sign-in" replace />} />
+            <Route path="/auth/*" element={<Auth />} />
             <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
             <Route path="/app" element={<AppRoute><Dashboard /></AppRoute>} />
             <Route path="/documents" element={<AppRoute><Suspense fallback={null}><MyDocuments /></Suspense></AppRoute>} />
-            <Route path="/documents/context" element={<Navigate to="/v3/documents" replace />} />
+            <Route path="/documents/context" element={<AppRoute><Suspense fallback={null}><ContextPage /></Suspense></AppRoute>} />
             <Route path="/resume-builder" element={<ProtectedRoute><Suspense fallback={null}><ResumeBuilder /></Suspense></ProtectedRoute>} />
             <Route path="/auto-apply" element={<Suspense fallback={null}><AutoApplyMarketingPage /></Suspense>} />
             <Route path="/app/auto-apply" element={<AppRoute><Suspense fallback={null}><AutoApply /></Suspense></AppRoute>} />
             <Route path="/interview-prep" element={<Suspense fallback={null}><InterviewPrepMarketingPage /></Suspense>} />
             <Route path="/app/interview-prep" element={<AppRoute><Suspense fallback={null}><InterviewPrep /></Suspense></AppRoute>} />
             <Route path="/interview-copilot" element={<AppRoute><Suspense fallback={null}><InterviewCopilot /></Suspense></AppRoute>} />
-            <Route path="/billing" element={<Navigate to="/v3/billing" replace />} />
-            <Route path="/billings-and-subscription" element={<Navigate to="/v3/billing" replace />} />
-            <Route path="/billing/usage" element={<Navigate to="/v3/billing/usage" replace />} />
-            <Route path="/settings" element={<Navigate to="/v3/settings" replace />} />
+            <Route path="/billing" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
+            <Route path="/billings-and-subscription" element={<AppRoute><Suspense fallback={null}><Billing /></Suspense></AppRoute>} />
+            <Route path="/billing/usage" element={<AppRoute><Suspense fallback={null}><UsageDetails /></Suspense></AppRoute>} />
+            <Route path="/settings" element={<AppRoute><Suspense fallback={null}><Settings /></Suspense></AppRoute>} />
             <Route path="/job-profile" element={<AppRoute><Suspense fallback={null}><JobProfile /></Suspense></AppRoute>} />
             <Route path="/explore" element={<AppRoute><Suspense fallback={null}><Explore /></Suspense></AppRoute>} />
-            <Route path="/downloads" element={<Navigate to="/v3/downloads" replace />} />
+            <Route path="/downloads" element={<AppRoute><Suspense fallback={null}><Downloads /></Suspense></AppRoute>} />
             <Route path="/how-to-use" element={<AppRoute><Suspense fallback={null}><HowToUse /></Suspense></AppRoute>} />
             <Route path="/career-specialist" element={<Suspense fallback={null}><CareerSpecialistLayout /></Suspense>}>
               <Route index element={<Suspense fallback={null}><CareerSpecialistPage /></Suspense>} />
@@ -137,7 +141,6 @@ export default function App() {
             <Route path="/checkout/:planId" element={<Suspense fallback={null}><RegularCheckoutPage /></Suspense>} />
             <Route path="/master-your-interview" element={<Suspense fallback={null}><MasterInterviewVSL /></Suspense>} />
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
-            <Route path="/v3/*" element={<Suspense fallback={null}><V3WebRoutes /></Suspense>} />
             <Route
               path="/admin"
               element={

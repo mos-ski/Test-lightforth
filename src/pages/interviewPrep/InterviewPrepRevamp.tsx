@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { buildInterviewReport, createCustomScenario, getScenarioPersona, report, scenarios as presetScenarios } from './mockData'
 import { InterviewAnswer, InterviewReport, InterviewScenario, PrepView } from './types'
 import { PreparingScreen, ProcessingScreen, ReportScreen, ScenarioBuilder, ScenarioGallery, StudioScreen } from './components'
 
 export default function InterviewPrepRevamp() {
+  const [searchParams] = useSearchParams()
   const [view, setView] = useState<PrepView>('gallery')
   const [selectedScenario, setSelectedScenario] = useState<InterviewScenario>(presetScenarios[0])
   const [sessionReport, setSessionReport] = useState<InterviewReport>(report)
@@ -53,7 +55,14 @@ export default function InterviewPrepRevamp() {
   }
 
   if (view === 'studio') {
-    return <StudioScreen scenario={selectedScenario} persona={persona} onEnd={finishInterview} />
+    return (
+      <StudioScreen
+        scenario={selectedScenario}
+        persona={persona}
+        onEnd={finishInterview}
+        startWithEmptyBalance={searchParams.get('credit') === 'empty'}
+      />
+    )
   }
 
   if (view === 'processing') {

@@ -1,21 +1,19 @@
 import { useState } from 'react'
-import { Check } from 'lucide-react'
+import { Check, X } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-import { cn } from './cn'
-import { Dialog, DialogClose, DialogDescription, DialogPopup, DialogTitle } from './dialog'
-
-export type AddFundsDialogProps = {
-  readonly open: boolean
-  readonly onOpenChange: (open: boolean) => void
-  readonly currentBalance: number
-  readonly quickAmounts: readonly number[]
-  readonly formatAmount: (value: number) => string
-  readonly onAddFunds: (amount: number) => void
-  readonly title?: string
-  readonly description?: string
+export interface AddFundsDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  currentBalance: number
+  quickAmounts: readonly number[]
+  formatAmount: (value: number) => string
+  onAddFunds: (amount: number) => void
+  title?: string
+  description?: string
 }
 
-export function AddFundsDialog({
+export default function AddFundsDialog({
   open,
   onOpenChange,
   currentBalance,
@@ -30,6 +28,8 @@ export function AddFundsDialog({
   const [status, setStatus] = useState<'idle' | 'processing' | 'success'>('idle')
   const [addedAmount, setAddedAmount] = useState(0)
 
+  if (!open) return null
+
   const customAmount = customValue ? Number(customValue) : null
   const activeAmount = customAmount ?? selectedAmount
   const canSubmit = status === 'idle' && !!activeAmount && activeAmount > 0
@@ -40,9 +40,9 @@ export function AddFundsDialog({
     setStatus('idle')
   }
 
-  function handleOpenChange(next: boolean) {
-    onOpenChange(next)
-    if (!next) reset()
+  function close() {
+    onOpenChange(false)
+    reset()
   }
 
   function handleSubmit() {
@@ -56,30 +56,33 @@ export function AddFundsDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogPopup aria-label={title}>
-        <DialogClose />
+    <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-slate-950/45 p-4">
+      <div className="lf-panel relative w-full max-w-[420px] p-6 shadow-2xl">
+        <button onClick={close} aria-label="Close" className="absolute right-6 top-6 rounded p-1 text-ink-muted hover:text-ink">
+          <X className="h-4 w-4" />
+        </button>
+
         {status === 'success' ? (
           <div className="grid gap-4 text-center">
-            <span className="mx-auto grid size-12 place-items-center rounded-full bg-positive-surface text-positive">
+            <span className="mx-auto grid size-12 place-items-center rounded-full bg-emerald-50 text-emerald-600">
               <Check aria-hidden="true" className="size-6" />
             </span>
             <div>
-              <DialogTitle>{formatAmount(addedAmount)} added</DialogTitle>
-              <DialogDescription>Your new balance is {formatAmount(currentBalance + addedAmount)}.</DialogDescription>
+              <h2 className="text-lg font-bold text-ink">{formatAmount(addedAmount)} added</h2>
+              <p className="mt-1 text-sm text-ink-muted">Your new balance is {formatAmount(currentBalance + addedAmount)}.</p>
             </div>
             <button
               type="button"
-              onClick={() => handleOpenChange(false)}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              onClick={close}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
             >
               Done
             </button>
           </div>
         ) : (
           <>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+            <h2 className="text-lg font-bold text-ink">{title}</h2>
+            <p className="mt-1 text-sm text-ink-muted">{description}</p>
             <p className="mt-3 text-sm text-ink-muted">
               Current balance: <span className="font-semibold text-ink">{formatAmount(currentBalance)}</span>
             </p>
@@ -96,8 +99,8 @@ export function AddFundsDialog({
                   className={cn(
                     'flex min-h-11 items-center justify-center rounded-lg border px-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50',
                     selectedAmount === amount && !customValue
-                      ? 'border-accent bg-accent-subtle text-accent shadow-control'
-                      : 'border-input bg-surface text-ink-muted hover:border-border hover:text-ink',
+                      ? 'border-accent bg-blue-50 text-accent'
+                      : 'border-border bg-white text-ink-muted hover:border-slate-300 hover:text-ink',
                   )}
                 >
                   {formatAmount(amount)}
@@ -121,20 +124,20 @@ export function AddFundsDialog({
                 }}
                 disabled={status === 'processing'}
                 placeholder="0"
-                className="mt-1.5 min-h-11 w-full rounded-lg border border-input bg-surface px-3 py-2.5 text-sm text-ink shadow-control outline-none focus:border-focus focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+                className="lf-input mt-1.5"
               />
             </div>
             <button
               type="button"
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-accent px-4 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {status === 'processing' ? 'Adding funds…' : activeAmount ? `Add ${formatAmount(activeAmount)}` : 'Add funds'}
             </button>
           </>
         )}
-      </DialogPopup>
-    </Dialog>
+      </div>
+    </div>
   )
 }

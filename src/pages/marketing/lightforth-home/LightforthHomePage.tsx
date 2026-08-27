@@ -385,10 +385,10 @@ function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <a href="/v3/auth/sign-in" className="rounded-full px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+          <a href="/auth" className="rounded-full px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
             Login
           </a>
-          <a href="/v3/auth/sign-in" className="rounded-full bg-[#0494fc] px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-500/20 transition hover:bg-[#0380e0]">
+          <a href="/auth" className="rounded-full bg-[#0494fc] px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-500/20 transition hover:bg-[#0380e0]">
             Sign in
           </a>
         </div>
@@ -406,7 +406,7 @@ function Header() {
                 {link.label}
               </a>
             ))}
-            <a href="/v3/auth/sign-in" className="mt-2 rounded-full bg-[#0494fc] px-5 py-2.5 text-center text-sm font-semibold text-white">
+            <a href="/auth" className="mt-2 rounded-full bg-[#0494fc] px-5 py-2.5 text-center text-sm font-semibold text-white">
               Sign in
             </a>
           </div>
@@ -606,7 +606,7 @@ function Hero({ onDownload }: { onDownload: () => void }) {
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <DownloadButton hero className="w-full sm:w-[239px]" onClick={onDownload} />
-            <a href="/v3/auth/sign-in" className="inline-flex h-12 min-w-[167px] items-center justify-center whitespace-nowrap rounded-lg bg-[#2388ff] px-6 text-base font-medium leading-none text-white transition hover:bg-[#0879f2]">
+            <a href="/auth" className="inline-flex h-12 min-w-[167px] items-center justify-center whitespace-nowrap rounded-lg bg-[#2388ff] px-6 text-base font-medium leading-none text-white transition hover:bg-[#0879f2]">
               Activate Pro for $10
             </a>
           </div>
