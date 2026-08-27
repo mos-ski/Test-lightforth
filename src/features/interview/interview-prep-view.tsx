@@ -63,6 +63,8 @@ export type InterviewSessionViewProps = {
   readonly completeHref: string
   readonly session: InterviewLiveSession
   readonly isLoading?: boolean
+  /** Starts the session already out of balance, with the Add Funds dialog open — skips the drain for demoing the top-up flow. */
+  readonly startWithEmptyBalance?: boolean
 }
 
 export type InterviewCompleteViewProps = {
@@ -777,7 +779,7 @@ const SESSION_RATE_CENTS_PER_MIN = 80
 const SESSION_START_BALANCE_CENTS = 60
 const QUICK_TOPUP_CREDITS = [25, 50, 100]
 
-export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false }: InterviewSessionViewProps) {
+export function InterviewSessionView({ voiceHref, completeHref, session, isLoading = false, startWithEmptyBalance = false }: InterviewSessionViewProps) {
   const [phase, setPhase] = useState<LiveSessionPhase>('ready')
   const [questionIndex, setQuestionIndex] = useState(0)
   const [transcript, setTranscript] = useState<readonly LiveTranscriptTurn[]>([])
@@ -790,9 +792,9 @@ export function InterviewSessionView({ voiceHref, completeHref, session, isLoadi
   const [isMuted, setIsMuted] = useState(false)
   const [videoEnabled, setVideoEnabled] = useState(true)
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
-  const [balanceCents, setBalanceCents] = useState(SESSION_START_BALANCE_CENTS)
-  const [sessionPaused, setSessionPaused] = useState(false)
-  const [topUpOpen, setTopUpOpen] = useState(false)
+  const [balanceCents, setBalanceCents] = useState(startWithEmptyBalance ? 0 : SESSION_START_BALANCE_CENTS)
+  const [sessionPaused, setSessionPaused] = useState(startWithEmptyBalance)
+  const [topUpOpen, setTopUpOpen] = useState(startWithEmptyBalance)
   const chatRef = useRef<HTMLDivElement>(null)
   const phaseRef = useRef(phase)
   const questionIndexRef = useRef(questionIndex)

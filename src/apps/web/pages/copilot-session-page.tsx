@@ -23,6 +23,7 @@ export function CopilotSessionPage() {
       isLoading={params.get('state') === 'loading'}
       transcriptBank={session.mode === 'meeting' ? copilotMeetingTranscript : copilotInterviewTranscript}
       codingBank={copilotCodingBank}
+      startWithEmptyBalance={params.get('credit') === 'empty'}
     />
   )
 }

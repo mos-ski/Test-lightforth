@@ -12,6 +12,7 @@ export function InterviewSessionPage() {
       completeHref="/v3/interview-prep/complete"
       session={interviewLiveSession}
       isLoading={params.get('state') === 'loading'}
+      startWithEmptyBalance={params.get('credit') === 'empty'}
     />
   )
 }
