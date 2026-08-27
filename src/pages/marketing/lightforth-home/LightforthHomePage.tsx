@@ -385,10 +385,10 @@ function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <a href="/auth" className="rounded-full px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+          <a href="/auth?mode=login" className="rounded-full px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
             Login
           </a>
-          <a href="/auth" className="rounded-full bg-[#0494fc] px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-500/20 transition hover:bg-[#0380e0]">
+          <a href="/auth?mode=login" className="rounded-full bg-[#0494fc] px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-500/20 transition hover:bg-[#0380e0]">
             Sign in
           </a>
         </div>
@@ -406,7 +406,7 @@ function Header() {
                 {link.label}
               </a>
             ))}
-            <a href="/auth" className="mt-2 rounded-full bg-[#0494fc] px-5 py-2.5 text-center text-sm font-semibold text-white">
+            <a href="/auth?mode=login" className="mt-2 rounded-full bg-[#0494fc] px-5 py-2.5 text-center text-sm font-semibold text-white">
               Sign in
             </a>
           </div>

@@ -17,7 +17,7 @@ function AuthShell({ children, showFooter = true }: { children: React.ReactNode;
           href="https://help.lightforth.ai"
           target="_blank"
           rel="noreferrer"
-          className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-primary/50 px-4 text-sm font-semibold text-primary hover:bg-blue-50 sm:px-5"
+          className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-accent/50 px-4 text-sm font-semibold text-accent hover:bg-blue-50 sm:px-5"
         >
           <span className="hidden sm:inline">Get Help</span>
           <Headphones className="h-4 w-4" />
@@ -27,9 +27,9 @@ function AuthShell({ children, showFooter = true }: { children: React.ReactNode;
       <main className="flex flex-1 items-start justify-center px-4 py-10 sm:px-6 md:pt-32">{children}</main>
 
       {showFooter && (
-        <footer className="flex flex-col items-center justify-between gap-3 px-4 py-5 text-sm font-medium text-muted-foreground sm:flex-row md:px-16">
+        <footer className="flex flex-col items-center justify-between gap-3 px-4 py-5 text-sm font-medium text-ink-muted sm:flex-row md:px-16">
           <span>© Lightforth AI 2026</span>
-          <a href="mailto:support@lightforth.org" className="flex items-center gap-2 hover:text-primary">
+          <a href="mailto:support@lightforth.org" className="flex items-center gap-2 hover:text-accent">
             <Mail className="h-4 w-4" />
             support@lightforth.org
           </a>
@@ -116,7 +116,11 @@ export default function Auth() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/app'
-  const routeMode = location.pathname.includes('forgot-password') ? 'forgot' : null
+  const routeMode = location.pathname.includes('forgot-password')
+    ? 'forgot'
+    : new URLSearchParams(location.search).get('mode') === 'login'
+      ? 'login'
+      : null
   const initialMode = useMemo<AuthMode>(() => routeMode ?? 'choice', [routeMode])
 
   const [mode, setMode] = useState<AuthMode>(initialMode)
@@ -162,7 +166,7 @@ export default function Auth() {
           <p className="mx-auto mt-4 max-w-xs text-sm leading-6 text-slate-600">
             Please verify your account by clicking on the link sent to your email to access your dashboard!
           </p>
-          <Button className="mt-8 h-11 w-full max-w-sm" onClick={() => setMode('login')}>
+          <Button className="mt-8 h-11 w-full max-w-sm bg-accent text-on-accent hover:bg-accent-hover" onClick={() => setMode('login')}>
             Go to Login
           </Button>
         </section>
@@ -184,10 +188,10 @@ export default function Auth() {
           <div className="mt-8">
             <Field label="Email" placeholder="Enter your email address" value={email} onChange={setEmail} />
           </div>
-          <Button className="mt-7 h-11 w-full" onClick={handleForgot}>Reset Password</Button>
-          <p className="mt-6 text-center text-sm font-semibold text-foreground">
+          <Button className="mt-7 h-11 w-full bg-accent text-on-accent hover:bg-accent-hover" onClick={handleForgot}>Reset Password</Button>
+          <p className="mt-6 text-center text-sm font-semibold text-ink">
             Remember?{' '}
-            <button className="text-primary hover:underline" onClick={() => setMode('login')}>
+            <button className="text-accent hover:underline" onClick={() => setMode('login')}>
               Log in
             </button>
           </p>
@@ -207,18 +211,18 @@ export default function Auth() {
             <Field label="Password" placeholder="Enter password" type="password" value={password} onChange={setPassword} />
           </div>
           <div className="mt-3 text-right">
-            <button className="text-sm font-semibold text-primary hover:underline" onClick={() => setMode('forgot')}>
+            <button className="text-sm font-semibold text-accent hover:underline" onClick={() => setMode('forgot')}>
               Forgot password?
             </button>
           </div>
-          <Button className="mt-5 h-11 w-full" onClick={handleLogin}>Log in</Button>
+          <Button className="mt-5 h-11 w-full bg-accent text-on-accent hover:bg-accent-hover" onClick={handleLogin}>Log in</Button>
           <div className="mt-4 space-y-3">
             <AuthButton onClick={handleLogin}><GoogleMark /> Continue with Gmail</AuthButton>
             <AuthButton onClick={handleLogin}><LinkedInMark /> Continue with LinkedIn</AuthButton>
           </div>
           <p className="mt-4 text-center text-sm text-slate-600">
             New to Lightforth?{' '}
-            <button className="font-semibold text-primary hover:underline" onClick={() => setMode('choice')}>
+            <button className="font-semibold text-accent hover:underline" onClick={() => setMode('choice')}>
               Create account
             </button>
           </p>
@@ -244,18 +248,18 @@ export default function Auth() {
             </div>
           </div>
           <label className="mt-5 flex flex-wrap items-center gap-2 text-sm text-slate-600 sm:gap-3">
-            <input className="h-5 w-5 rounded accent-primary" type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
+            <input className="h-5 w-5 rounded accent-[var(--lf-accent)]" type="checkbox" checked={accepted} onChange={(event) => setAccepted(event.target.checked)} />
             By signing up, you agree with Lightforth's
-            <a className="font-semibold text-primary underline" href="#">Terms & Conditions</a>
+            <a className="font-semibold text-accent underline" href="#">Terms & Conditions</a>
           </label>
-          <Button className="mt-6 h-11 w-full" onClick={handleEmailContinue} disabled={!accepted}>Continue</Button>
+          <Button className="mt-6 h-11 w-full bg-accent text-on-accent hover:bg-accent-hover" onClick={handleEmailContinue} disabled={!accepted}>Continue</Button>
           <div className="mt-4 space-y-3">
             <AuthButton onClick={handleEmailContinue}><GoogleMark /> Continue with Gmail</AuthButton>
             <AuthButton onClick={handleEmailContinue}><LinkedInMark /> Continue with LinkedIn</AuthButton>
           </div>
           <p className="mt-4 text-center text-sm text-slate-600">
             Already have an account?{' '}
-            <button className="font-semibold text-primary hover:underline" onClick={() => setMode('login')}>
+            <button className="font-semibold text-accent hover:underline" onClick={() => setMode('login')}>
               Log in
             </button>
           </p>
@@ -275,7 +279,7 @@ export default function Auth() {
             <Field label="Password" placeholder="Enter password" type="password" value={password} onChange={setPassword} />
             <Field label="Confirm Password" placeholder="Confirm password" type="password" value={confirmPassword} onChange={setConfirmPassword} />
           </div>
-          <Button className="mt-7 h-11 w-full" onClick={handlePasswordContinue}>Continue</Button>
+          <Button className="mt-7 h-11 w-full bg-accent text-on-accent hover:bg-accent-hover" onClick={handlePasswordContinue}>Continue</Button>
           <p className="mt-4 text-center text-sm text-slate-600">
             Already have an account?{' '}
             <button className="font-semibold text-violet-700 hover:underline" onClick={() => setMode('login')}>
@@ -291,7 +295,7 @@ export default function Auth() {
     <AuthShell showFooter={false}>
       <section className="w-full max-w-[700px] bg-white px-0 py-8 sm:px-8">
         <h1 className="lf-page-title">Create an account</h1>
-        <p className="mt-5 text-base text-foreground">
+        <p className="mt-5 text-base text-ink">
           By continuing you agree to our{' '}
           <a href="#" className="underline underline-offset-2">terms of service</a> and{' '}
           <a href="#" className="underline underline-offset-2">privacy policy</a>.
@@ -301,7 +305,7 @@ export default function Auth() {
           <AuthButton onClick={() => setMode('email')}><LinkedInMark /> Continue with LinkedIn</AuthButton>
         </div>
         <button
-          className={cn('mx-auto mt-6 block text-sm font-semibold text-slate-700 hover:text-primary')}
+          className={cn('mx-auto mt-6 block text-sm font-semibold text-slate-700 hover:text-accent')}
           onClick={() => setMode('email')}
         >
           Continue with Email
