@@ -111,6 +111,8 @@ export type CopilotLiveViewProps = {
   readonly isLoading?: boolean
   readonly transcriptBank?: readonly CopilotTranscriptTurn[]
   readonly codingBank?: readonly CopilotCodingTurn[]
+  /** Starts the session already out of balance, with the Add Funds dialog open — skips the ~45s drain for demoing the top-up flow. */
+  readonly startWithEmptyBalance?: boolean
 }
 
 export type CopilotCompleteViewProps = {
@@ -1625,7 +1627,7 @@ const COPILOT_RATE_CENTS_PER_MIN = 80
 const COPILOT_START_BALANCE_CENTS = 60
 const QUICK_TOPUP_CREDITS = [25, 50, 100]
 
-export function CopilotLiveView({ completeHref, session, isLoading = false, transcriptBank = [], codingBank = [] }: CopilotLiveViewProps) {
+export function CopilotLiveView({ completeHref, session, isLoading = false, transcriptBank = [], codingBank = [], startWithEmptyBalance = false }: CopilotLiveViewProps) {
   const [assistantMessages, setAssistantMessages] = useState<readonly AiAssistantMessage[]>([])
   const [draft, setDraft] = useState('')
   const assistantScrollRef = useRef<HTMLDivElement>(null)
@@ -1644,9 +1646,9 @@ export function CopilotLiveView({ completeHref, session, isLoading = false, tran
   const [showChat, setShowChat] = useState(false)
   const [videoEnabled, setVideoEnabled] = useState(true)
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 1279px)').matches)
-  const [balanceCents, setBalanceCents] = useState(COPILOT_START_BALANCE_CENTS)
-  const [sessionPaused, setSessionPaused] = useState(false)
-  const [topUpOpen, setTopUpOpen] = useState(false)
+  const [balanceCents, setBalanceCents] = useState(startWithEmptyBalance ? 0 : COPILOT_START_BALANCE_CENTS)
+  const [sessionPaused, setSessionPaused] = useState(startWithEmptyBalance)
+  const [topUpOpen, setTopUpOpen] = useState(startWithEmptyBalance)
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 1279px)')
