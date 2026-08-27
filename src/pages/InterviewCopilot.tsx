@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import {
   ArrowLeft, X, Settings, Upload, FileText, Mic, Sparkles, Lock,
@@ -8,7 +8,13 @@ import {
 import { cn } from '@/lib/utils'
 import DocumentPickerModal from '@/components/shared/DocumentPickerModal'
 import AIAssistantPanel from '@/components/shared/AIAssistantPanel'
+import AddFundsDialog from '@/components/shared/AddFundsDialog'
 import { useAuth } from '@/hooks/useAuth'
+import { centsToCredits, creditsToCents, formatCreditAmountWithUsd } from '@/lib/credits'
+
+const COPILOT_RATE_CENTS_PER_MIN = 80
+const COPILOT_START_BALANCE_CENTS = 60
+const QUICK_TOPUP_CREDITS = [25, 50, 100]
 
 // ---------------------------------------------------------------------------
 // Types
@@ -634,6 +640,7 @@ function LiveInterview({
   elapsed,
   onEnd,
   onResetPrefs,
+  startWithEmptyBalance = false,
 }: {
   jobTitle: string
   liveState: LiveState
@@ -641,11 +648,31 @@ function LiveInterview({
   elapsed: number
   onEnd: () => void
   onResetPrefs: () => void
+  startWithEmptyBalance?: boolean
 }) {
   const [fontSize, setFontSize] = useState(14)
   const [scrollSpeed, setScrollSpeed] = useState(3)
   const [showSettings, setShowSettings] = useState(false)
   const [showAI, setShowAI] = useState(true)
+  const [balanceCents, setBalanceCents] = useState(startWithEmptyBalance ? 0 : COPILOT_START_BALANCE_CENTS)
+  const [sessionPaused, setSessionPaused] = useState(startWithEmptyBalance)
+  const [topUpOpen, setTopUpOpen] = useState(startWithEmptyBalance)
+
+  useEffect(() => {
+    if (liveState !== 'interviewing' || sessionPaused) return
+    const id = window.setInterval(() => {
+      const perTickCents = COPILOT_RATE_CENTS_PER_MIN / 60
+      setBalanceCents((prev) => {
+        const next = Math.max(0, prev - perTickCents)
+        if (next <= 0 && prev > 0) {
+          setSessionPaused(true)
+          setTopUpOpen(true)
+        }
+        return next
+      })
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [liveState, sessionPaused])
 
   type CopilotStatus = 'listening' | 'processing' | 'answering' | 'paused'
   const [copilotStatus, setCopilotStatus] = useState<CopilotStatus>('listening')
@@ -785,13 +812,25 @@ function LiveInterview({
           {liveState === 'sharing' && (
             <button
               onClick={() => setLiveState('interviewing')}
-              className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+              className="rounded-lg bg-accent px-4 py-1.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover"
             >
               Start Interview
             </button>
           )}
         </div>
       </div>
+
+      {sessionPaused && (
+        <div className="flex flex-shrink-0 flex-wrap items-center justify-between gap-3 bg-red-600 px-5 py-2">
+          <span className="text-sm font-semibold text-white">Session paused — you&apos;re out of balance.</span>
+          <button
+            onClick={() => setTopUpOpen(true)}
+            className="rounded-lg bg-white px-3 py-1 text-xs font-bold text-red-600 transition-colors hover:bg-red-50"
+          >
+            Add funds to continue
+          </button>
+        </div>
+      )}
 
       {/* ── STATUS BAR ──────────────────────────────────────────────── */}
       <div
@@ -995,6 +1034,18 @@ function LiveInterview({
         </div>
 
       </div>
+
+      <AddFundsDialog
+        open={topUpOpen}
+        onOpenChange={setTopUpOpen}
+        currentBalance={Math.ceil(centsToCredits(balanceCents))}
+        quickAmounts={QUICK_TOPUP_CREDITS}
+        formatAmount={formatCreditAmountWithUsd}
+        onAddFunds={(amountCredits) => {
+          setBalanceCents((prev) => prev + creditsToCents(amountCredits))
+          setSessionPaused(false)
+        }}
+      />
     </>
   )
 }
@@ -1131,6 +1182,7 @@ const PREFS_KEY = 'lf_copilot_prefs'
 
 export default function InterviewCopilot() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user } = useAuth()
   const hasCopilotAccess = user?.plan === 'pro' || user?.plan === 'premium'
   const [view, setView] = useState<CopilotView>('landing')
@@ -1262,6 +1314,7 @@ export default function InterviewCopilot() {
             elapsed={elapsed}
             onEnd={handleEndInterview}
             onResetPrefs={handleResetPrefs}
+            startWithEmptyBalance={searchParams.get('credit') === 'empty'}
           />
         </div>
       )}

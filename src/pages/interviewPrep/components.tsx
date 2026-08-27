@@ -22,11 +22,16 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import AddFundsDialog from '@/components/shared/AddFundsDialog'
+import { centsToCredits, creditsToCents, formatCreditAmountWithUsd } from '@/lib/credits'
 import { InterviewAnswer, InterviewReport, InterviewScenario, InterviewerPersona, InterviewType } from './types'
 import { getScenarioPersona, interviewQuestions, personas } from './mockData'
 
 const filters: Array<'All' | InterviewType> = ['All', 'Recruiter Screen', 'Hiring Manager', 'Technical', 'Culture Fit', 'Final Round']
 const USER_PORTRAIT_URL = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=360&h=360&q=85'
+const SESSION_RATE_CENTS_PER_MIN = 80
+const SESSION_START_BALANCE_CENTS = 60
+const QUICK_TOPUP_CREDITS = [25, 50, 100]
 
 function PersonaPortrait({ persona, size = 'md', label }: { persona: InterviewerPersona; size?: 'sm' | 'md' | 'lg'; label?: string }) {
   const sizes = {
@@ -392,15 +397,20 @@ export function StudioScreen({
   scenario,
   persona,
   onEnd,
+  startWithEmptyBalance = false,
 }: {
   scenario: InterviewScenario
   persona: InterviewerPersona
   onEnd: (answers: InterviewAnswer[]) => void
+  startWithEmptyBalance?: boolean
 }) {
   const [muted, setMuted] = useState(false)
   const [questionIndex, setQuestionIndex] = useState(0)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [elapsed, setElapsed] = useState(0)
+  const [balanceCents, setBalanceCents] = useState(startWithEmptyBalance ? 0 : SESSION_START_BALANCE_CENTS)
+  const [sessionPaused, setSessionPaused] = useState(startWithEmptyBalance)
+  const [topUpOpen, setTopUpOpen] = useState(startWithEmptyBalance)
   const currentQuestion = interviewQuestions[questionIndex]
 
   const speakQuestion = () => {
@@ -423,9 +433,26 @@ export function StudioScreen({
   }, [questionIndex])
 
   useEffect(() => {
+    if (sessionPaused) return
     const timer = window.setInterval(() => setElapsed(value => value + 1), 1000)
     return () => window.clearInterval(timer)
-  }, [])
+  }, [sessionPaused])
+
+  useEffect(() => {
+    if (sessionPaused) return
+    const id = window.setInterval(() => {
+      const perTickCents = SESSION_RATE_CENTS_PER_MIN / 60
+      setBalanceCents((prev) => {
+        const next = Math.max(0, prev - perTickCents)
+        if (next <= 0 && prev > 0) {
+          setSessionPaused(true)
+          setTopUpOpen(true)
+        }
+        return next
+      })
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [sessionPaused])
 
   // Advance captions through the question bank while the call is live
   useEffect(() => {
@@ -459,6 +486,18 @@ export function StudioScreen({
           </div>
         </div>
       </header>
+
+      {sessionPaused && (
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 bg-red-600 px-5 py-2">
+          <span className="text-sm font-semibold text-white">Session paused — you&apos;re out of balance.</span>
+          <button
+            onClick={() => setTopUpOpen(true)}
+            className="rounded-lg bg-white px-3 py-1 text-xs font-bold text-red-600 transition-colors hover:bg-red-50"
+          >
+            Add funds to continue
+          </button>
+        </div>
+      )}
 
       <main className="relative z-10 flex min-h-0 flex-1 flex-col px-4 pb-4 sm:px-8">
         {/* Participant tiles — Meet-style grid */}
@@ -561,6 +600,18 @@ export function StudioScreen({
           End call
         </button>
       </footer>
+
+      <AddFundsDialog
+        open={topUpOpen}
+        onOpenChange={setTopUpOpen}
+        currentBalance={Math.ceil(centsToCredits(balanceCents))}
+        quickAmounts={QUICK_TOPUP_CREDITS}
+        formatAmount={formatCreditAmountWithUsd}
+        onAddFunds={(amountCredits) => {
+          setBalanceCents((prev) => prev + creditsToCents(amountCredits))
+          setSessionPaused(false)
+        }}
+      />
     </div>
   )
 }
