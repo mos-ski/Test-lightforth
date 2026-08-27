@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, Check, ShieldCheck, ArrowLeft, Sparkles } from 'lucide-react'
+import { Play, Check, ShieldCheck, ArrowLeft } from 'lucide-react'
 import LightforthLogo from '@/components/shared/LightforthLogo'
 import { setAccount } from '@/pages/desktopCopilot/mockAccounts'
 import { getPlan } from '@/pages/desktopCopilot/plans'
@@ -186,7 +186,6 @@ function WatchStep({ onClaimOffer }: { onClaimOffer: () => void }) {
                 onClick={onClaimOffer}
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-8 py-3.5 text-base font-semibold text-on-accent shadow-lg shadow-blue-500/25 transition hover:bg-accent-hover active:scale-[0.98]"
               >
-                <Sparkles className="h-5 w-5" />
                 Yes, I Want In — Claim My Offer
               </button>
               <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400">
