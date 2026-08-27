@@ -71,6 +71,7 @@ const PricingPage = lazy(() => import('@/pages/marketing/pricing/PricingPage'))
 const PrivacyPolicyPage = lazy(() => import('@/pages/marketing/legal/PrivacyPolicyPage'))
 const TermsPage = lazy(() => import('@/pages/marketing/legal/TermsPage'))
 const RefundPolicyPage = lazy(() => import('@/pages/marketing/legal/RefundPolicyPage'))
+const ExtensionApp = lazy(() => import('@/apps/extension/ExtensionApp'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -105,6 +106,7 @@ export default function App() {
             <Route path="/privacy-policy" element={<Suspense fallback={null}><PrivacyPolicyPage /></Suspense>} />
             <Route path="/terms-condition" element={<Suspense fallback={null}><TermsPage /></Suspense>} />
             <Route path="/refund-policy" element={<Suspense fallback={null}><RefundPolicyPage /></Suspense>} />
+            <Route path="/extension" element={<Suspense fallback={null}><ExtensionApp /></Suspense>} />
             <Route path="/auth/*" element={<Auth />} />
             <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
             <Route path="/app" element={<AppRoute><Dashboard /></AppRoute>} />

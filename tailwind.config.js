@@ -79,6 +79,13 @@ const config: Config = {
           'panel-header': 'var(--lf-live-panel-header)',
           'control-border': 'var(--lf-live-control-border)',
         },
+        brand: 'var(--lf-accent)',
+        'brand-hover': 'var(--lf-accent-hover)',
+        'ext-bg': 'var(--lf-danger-surface)',
+        'ext-row': 'var(--lf-surface-subtle)',
+        'ext-muted': 'var(--lf-muted)',
+        'ext-border': 'var(--lf-border)',
+        'ext-input': 'var(--lf-input)',
       },
       borderRadius: {
         soft: 'var(--lf-radius-soft)',
@@ -142,12 +149,17 @@ const config: Config = {
           '0%': { transform: 'translateX(0%)' },
           '100%': { transform: 'translateX(-50%)' },
         },
+        'captcha-spin': {
+          from: { transform: 'rotate(0deg)' },
+          to: { transform: 'rotate(360deg)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 200ms ease-out',
         'accordion-up': 'accordion-up 200ms ease-out',
         indeterminate: 'indeterminate 1.5s ease-in-out infinite',
         marquee: 'marquee 18s linear infinite',
+        'captcha-spin': 'captcha-spin 1.2s linear infinite',
       },
       transitionDuration: {
         fast: 'var(--lf-duration-fast)',
