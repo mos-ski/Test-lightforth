@@ -139,7 +139,7 @@ const faqItems = [
   },
 ] as const
 
-function CtaLink({ children, href = '/v3/auth/sign-up' }: { children: React.ReactNode; href?: string }) {
+function CtaLink({ children, href = '/auth' }: { children: React.ReactNode; href?: string }) {
   return (
     <a
       href={href}

@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { AuthProvider, ProtectedRoute } from '@/hooks/useAuth'
@@ -109,7 +109,7 @@ export default function App() {
             <Route path="/refund-policy" element={<Suspense fallback={null}><RefundPolicyPage /></Suspense>} />
             <Route path="/master-your-interview" element={<Suspense fallback={null}><InterviewMasterclassPage /></Suspense>} />
             <Route path="/extension" element={<Suspense fallback={null}><ExtensionApp /></Suspense>} />
-            <Route path="/auth/*" element={<Navigate to="/v3/auth/sign-in" replace />} />
+            <Route path="/auth/*" element={<Auth />} />
             <Route path="/onboarding" element={<Suspense fallback={null}><OnboardingFlow /></Suspense>} />
             <Route path="/app" element={<AppRoute><Dashboard /></AppRoute>} />
             <Route path="/documents" element={<AppRoute><Suspense fallback={null}><MyDocuments /></Suspense></AppRoute>} />
@@ -143,7 +143,7 @@ export default function App() {
             <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
             <Route path="/figma-interiors" element={<Suspense fallback={null}><FigmaInteriorLanding /></Suspense>} />
             <Route path="/checkout/:planId" element={<Suspense fallback={null}><RegularCheckoutPage /></Suspense>} />
-            <Route path="/master-your-interview" element={<Suspense fallback={null}><MasterInterviewVSL /></Suspense>} />
+            <Route path="/master-your-interview-alt" element={<Suspense fallback={null}><MasterInterviewVSL /></Suspense>} />
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
             <Route
               path="/admin"
