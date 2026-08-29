@@ -20,7 +20,6 @@ const HowToUse = lazy(() => import('@/pages/HowToUse'))
 const DesktopCopilotPreview = lazy(() => import('@/pages/DesktopCopilotPreview'))
 const FigmaInteriorLanding = lazy(() => import('@/pages/marketing/FigmaInteriorLanding'))
 const RegularCheckoutPage = lazy(() => import('@/pages/marketing/checkout/RegularCheckoutPage'))
-const MasterInterviewVSL = lazy(() => import('@/pages/marketing/vsl/MasterInterviewVSL'))
 const MobileAppPreview = lazy(() => import('@/pages/MobileAppPreview'))
 const Billing = lazy(() => import('@/pages/Billing'))
 const UsageDetails = lazy(() => import('@/pages/UsageDetails'))
@@ -143,7 +142,6 @@ export default function App() {
             <Route path="/desktop-copilot-preview" element={<Suspense fallback={null}><DesktopCopilotPreview /></Suspense>} />
             <Route path="/figma-interiors" element={<Suspense fallback={null}><FigmaInteriorLanding /></Suspense>} />
             <Route path="/checkout/:planId" element={<Suspense fallback={null}><RegularCheckoutPage /></Suspense>} />
-            <Route path="/master-your-interview-alt" element={<Suspense fallback={null}><MasterInterviewVSL /></Suspense>} />
             <Route path="/mobile-app" element={<Suspense fallback={null}><MobileAppPreview /></Suspense>} />
             <Route
               path="/admin"
