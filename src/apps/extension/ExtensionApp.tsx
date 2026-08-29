@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import type { AppState, CaptchaState, JobHistoryGroup, PlatformId, View } from './types'
+import type { AppState, ApplicationRecord, CaptchaState, JobHistoryGroup, PlatformId, RunLogEntry, View } from './types'
 import type { ProgressWidgetState } from './components/AutoApplyProgressWidget'
 import { Header } from './components/Header'
 import { AutoApplyProgressWidget } from './components/AutoApplyProgressWidget'
+import { TabBar, type ExtensionTab } from './components/TabBar'
+import { RunLogFeed } from './components/RunLogFeed'
 import { LoginView } from './views/LoginView'
 import { BeforeYouBeginView } from './views/BeforeYouBeginView'
 import { AutoApplyView } from './views/AutoApplyView'
 import { NoJobsView } from './views/NoJobsView'
 import { JobHistoryView } from './views/JobHistoryView'
+import { ApplicationsView } from './views/ApplicationsView'
 import { ErrorView } from './views/ErrorView'
 import { SuccessView } from './views/SuccessView'
 
@@ -87,7 +90,142 @@ const MOCK_PROGRESS: ProgressWidgetState = {
   ],
 }
 
-const DEMO_STATES: { label: string; state: Partial<AppState>; progress?: ProgressWidgetState }[] = [
+const MOCK_APPLICATIONS: ApplicationRecord[] = [
+  {
+    id: 'a0',
+    title: 'Senior Product Manager, Growth',
+    company: 'Notion',
+    timeLabel: '6:20 PM',
+    source: 'linkedin',
+    status: 'submitted',
+    postingUrl: '#',
+  },
+  {
+    id: 'a0b',
+    title: 'Product Manager, Platform',
+    company: 'Stripe',
+    timeLabel: '6:19 PM',
+    source: 'indeed',
+    status: 'submitted',
+    postingUrl: '#',
+  },
+  {
+    id: 'a1',
+    title: 'Technical Product Owner',
+    company: 'TechStar Group',
+    timeLabel: '6:19 PM',
+    source: 'linkedin',
+    status: 'skipped',
+    reason: 'You stopped the run while this application was in progress.',
+    postingUrl: '#',
+  },
+  {
+    id: 'a2',
+    title: 'Product Ownwer (Banking/ Financial)',
+    company: 'Mindlance',
+    timeLabel: '6:19 PM',
+    source: 'linkedin',
+    status: 'failed',
+    reason: 'The application pane offered nothing to click.',
+    postingUrl: '#',
+  },
+  {
+    id: 'a3',
+    title: 'Senior Product Manager, Digital Experience',
+    company: 'Four Hands',
+    timeLabel: '6:19 PM',
+    source: 'linkedin',
+    status: 'failed',
+    reason: 'The application pane offered nothing to click.',
+    postingUrl: '#',
+  },
+  {
+    id: 'a4',
+    title: 'Salesforce Platform Product Manager',
+    company: 'Perry Homes',
+    timeLabel: '6:19 PM',
+    source: 'linkedin',
+    status: 'skipped',
+    reason: '"3 reactions" does not match any of your target roles (Senior Product Manager, Product Manager, Product Designer).',
+    postingUrl: '#',
+  },
+  {
+    id: 'a5',
+    title: 'Senior Product Manager',
+    company: 'RigUp',
+    timeLabel: '6:19 PM',
+    source: 'linkedin',
+    status: 'failed',
+    reason: 'The application pane offered nothing to click.',
+    postingUrl: '#',
+  },
+  {
+    id: 'a6',
+    title: 'Product Owner - Microsoft Dynamics 365',
+    company: 'V-Soft Consulting Group, Inc.',
+    timeLabel: '6:18 PM',
+    source: 'linkedin',
+    status: 'skipped',
+    reason: '"2 reactions" does not match any of your target roles (Senior Product Manager, Product Manager, Product Designer).',
+    postingUrl: '#',
+  },
+  {
+    id: 'a7',
+    title: 'Product Manager, Marketing Data & Technology',
+    company: 'Neighborly®',
+    timeLabel: '6:18 PM',
+    source: 'linkedin',
+    status: 'failed',
+    reason: 'The application pane offered nothing to click.',
+    postingUrl: '#',
+  },
+  {
+    id: 'a8',
+    title: 'Product Manager, Intelligent Transportation Systems (ITS) & Edge Computing',
+    company: 'CURRUX Vision',
+    timeLabel: '6:18 PM',
+    source: 'linkedin',
+    status: 'failed',
+    reason: 'The application pane offered nothing to click.',
+    postingUrl: '#',
+  },
+  {
+    id: 'a9',
+    title: 'Lead, Digital Learning',
+    company: 'The Future Edge',
+    timeLabel: '6:18 PM',
+    source: 'linkedin',
+    status: 'skipped',
+    reason: '"Lead, Digital Learning" does not match any of your target roles (Senior Product Manager, Product Manager, Product Designer).',
+    postingUrl: '#',
+  },
+]
+
+const MOCK_RUN_LOG: RunLogEntry[] = [
+  {
+    id: 'l1',
+    timeLabel: '6:18:58 PM',
+    level: 'warning',
+    title: 'Senior Product Manager',
+    message: 'The application pane offered nothing to click. — retrying (2/2).',
+  },
+  {
+    id: 'l2',
+    timeLabel: '6:19:06 PM',
+    level: 'error',
+    title: 'Senior Product Manager at RigUp',
+    message: 'The application pane offered nothing to click.',
+  },
+  {
+    id: 'l3',
+    timeLabel: '6:19:18 PM',
+    level: 'info',
+    title: 'Salesforce Platform Product Manager at Perry Homes',
+    message: '"3 reactions" does not match any of your target roles.',
+  },
+]
+
+const DEMO_STATES: { label: string; state: Partial<AppState>; progress?: ProgressWidgetState; tab?: ExtensionTab }[] = [
   { label: 'Login', state: { view: 'login' } },
   { label: 'Before you begin', state: { view: 'before-you-begin' } },
   {
@@ -171,6 +309,18 @@ const DEMO_STATES: { label: string; state: Partial<AppState>; progress?: Progres
     },
     progress: MOCK_PROGRESS,
   },
+  {
+    label: 'Live run (finished)',
+    state: {
+      view: 'auto-apply',
+      platforms: { ...DEFAULT_PLATFORMS, linkedin: { status: 'idle' } },
+    },
+  },
+  {
+    label: 'Applications tab',
+    state: { view: 'auto-apply', platforms: DEFAULT_PLATFORMS },
+    tab: 'applications',
+  },
 ]
 
 export default function App() {
@@ -181,6 +331,8 @@ export default function App() {
   })
   const [demoIndex, setDemoIndex] = useState(0)
   const [progressSession, setProgressSession] = useState<ProgressWidgetState | null>(null)
+  const [activeTab, setActiveTab] = useState<ExtensionTab>('boards')
+  const [showRunLog, setShowRunLog] = useState(false)
 
   function navigate(view: View) {
     setAppState(prev => ({ ...prev, view }))
@@ -194,6 +346,8 @@ export default function App() {
       platforms: demo.state.platforms ?? prev.platforms,
     }))
     setProgressSession(demo.progress ?? null)
+    setShowRunLog(demo.label === 'Live run (finished)')
+    setActiveTab(demo.tab ?? 'boards')
     setDemoIndex(index)
   }
 
@@ -216,6 +370,7 @@ export default function App() {
       skipped: 0,
       logs: [{ id: '1', message: 'Fetching jobs...' }],
     })
+    setShowRunLog(true)
   }
 
   function handleCaptchaVerify() {
@@ -238,6 +393,7 @@ export default function App() {
   }
 
   const hasProgress = progressSession !== null
+  const isMainApp = appState.view !== 'login' && appState.view !== 'before-you-begin'
 
   function getBackHandler(): (() => void) | undefined {
     switch (appState.view) {
@@ -261,6 +417,10 @@ export default function App() {
       <div style={{ width: 380 }} className="flex flex-col h-full flex-shrink-0 bg-white shadow-xl">
         <Header onClose={() => {}} onBack={getBackHandler()} />
 
+        {isMainApp && (
+          <TabBar credits={40} activeTab={activeTab} onTabChange={setActiveTab} />
+        )}
+
         {/* Scrollable main content */}
         <div className="flex-1 overflow-y-auto">
           {appState.view === 'login' && (
@@ -275,31 +435,41 @@ export default function App() {
           {appState.view === 'before-you-begin' && (
             <BeforeYouBeginView onDone={() => navigate('auto-apply')} />
           )}
-          {appState.view === 'auto-apply' && (
-            <AutoApplyView
-              platforms={appState.platforms}
-              onStartAutoApply={handleStartAutoApply}
-              onConnectLightforth={() => navigate('before-you-begin')}
-              onCaptchaVerify={handleCaptchaVerify}
-              onJobHistory={() => navigate('job-history')}
+          {isMainApp && activeTab === 'applications' && (
+            <ApplicationsView
+              applications={MOCK_APPLICATIONS}
+              totalCount={169}
+              onRefresh={() => {}}
             />
           )}
-          {appState.view === 'no-jobs' && (
+          {isMainApp && activeTab === 'boards' && appState.view === 'auto-apply' && (
+            <>
+              <AutoApplyView
+                platforms={appState.platforms}
+                onStartAutoApply={handleStartAutoApply}
+                onConnectLightforth={() => navigate('before-you-begin')}
+                onCaptchaVerify={handleCaptchaVerify}
+                onJobHistory={() => navigate('job-history')}
+              />
+              {showRunLog && <RunLogFeed entries={MOCK_RUN_LOG} finished />}
+            </>
+          )}
+          {isMainApp && activeTab === 'boards' && appState.view === 'no-jobs' && (
             <NoJobsView onChangeFilter={() => navigate('auto-apply')} />
           )}
-          {appState.view === 'job-history' && (
+          {isMainApp && activeTab === 'boards' && appState.view === 'job-history' && (
             <JobHistoryView groups={MOCK_JOB_HISTORY} />
           )}
-          {appState.view === 'error' && (
+          {isMainApp && activeTab === 'boards' && appState.view === 'error' && (
             <ErrorView onCta={() => navigate('auto-apply')} />
           )}
-          {appState.view === 'success' && (
+          {isMainApp && activeTab === 'boards' && appState.view === 'success' && (
             <SuccessView onCta={() => navigate('job-history')} />
           )}
         </div>
 
         {/* Live progress widget — sticks to the bottom */}
-        {hasProgress && (
+        {hasProgress && activeTab === 'boards' && (
           <AutoApplyProgressWidget session={progressSession} />
         )}
 

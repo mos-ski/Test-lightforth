@@ -40,3 +40,26 @@ export interface JobHistoryGroup {
   platform: PlatformId
   jobs: JobEntry[]
 }
+
+export type ApplicationStatus = 'submitted' | 'failed' | 'skipped'
+
+export interface ApplicationRecord {
+  id: string
+  title: string
+  company: string
+  timeLabel: string
+  source: PlatformId
+  status: ApplicationStatus
+  reason?: string
+  postingUrl?: string
+}
+
+export type RunLogLevel = 'info' | 'warning' | 'error'
+
+export interface RunLogEntry {
+  id: string
+  timeLabel: string
+  level: RunLogLevel
+  title?: string
+  message: string
+}
