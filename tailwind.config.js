@@ -9,6 +9,37 @@ const config: Config = {
         sans: ['Instrument Sans', 'system-ui', 'sans-serif'],
       },
       colors: {
+        foreground: 'var(--lf-ink)',
+        'muted-foreground': 'var(--lf-ink-muted)',
+        primary: {
+          DEFAULT: 'var(--lf-accent)',
+          foreground: 'var(--lf-on-accent)',
+        },
+        background: 'var(--lf-canvas)',
+        card: {
+          DEFAULT: 'var(--lf-surface)',
+          foreground: 'var(--lf-ink)',
+        },
+        destructive: {
+          DEFAULT: 'var(--lf-danger)',
+          foreground: 'var(--lf-on-danger)',
+        },
+        popover: {
+          DEFAULT: 'var(--lf-surface)',
+          foreground: 'var(--lf-ink)',
+        },
+        secondary: {
+          DEFAULT: 'var(--lf-surface-subtle)',
+          foreground: 'var(--lf-ink)',
+        },
+        accent: {
+          DEFAULT: 'var(--lf-accent)',
+          foreground: 'var(--lf-on-accent)',
+          hover: 'var(--lf-accent-hover)',
+          subtle: 'var(--lf-accent-subtle)',
+          muted: 'var(--lf-accent-muted)',
+          text: 'var(--lf-accent-text)',
+        },
         canvas: 'var(--lf-canvas)',
         surface: {
           DEFAULT: 'var(--lf-surface)',
@@ -23,15 +54,9 @@ const config: Config = {
         border: 'var(--lf-border)',
         input: 'var(--lf-input)',
         muted: 'var(--lf-muted)',
-        accent: {
-          DEFAULT: 'var(--lf-accent)',
-          hover: 'var(--lf-accent-hover)',
-          subtle: 'var(--lf-accent-subtle)',
-          muted: 'var(--lf-accent-muted)',
-          text: 'var(--lf-accent-text)',
-        },
-        'on-accent': 'var(--lf-on-accent)',
         'accent-secondary': 'var(--lf-accent-secondary)',
+        'on-accent': 'var(--lf-on-accent)',
+        ring: 'var(--lf-focus)',
         'accent-tertiary': 'var(--lf-accent-tertiary)',
         paper: 'var(--lf-paper)',
         'paper-ink': 'var(--lf-paper-ink)',
